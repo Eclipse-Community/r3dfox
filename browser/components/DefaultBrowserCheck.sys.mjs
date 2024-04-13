@@ -190,6 +190,11 @@ export var DefaultBrowserCheck = {
       isDefaultError = true;
     }
 
+    let pService = Cc["@mozilla.org/toolkit/profile-service;1"].getService(
+      Ci.nsIToolkitProfileService
+    );
+
+    if (pService.portable() !=1 ) {
     if (isDefault && isStartupCheck) {
       let now = Math.floor(Date.now() / 1000).toString();
       Services.prefs.setCharPref(
@@ -243,5 +248,6 @@ export var DefaultBrowserCheck = {
     }
 
     return willPrompt;
+  }
   },
 };
