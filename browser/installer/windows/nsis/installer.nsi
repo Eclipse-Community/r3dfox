@@ -930,12 +930,6 @@ Section "-InstallEndCleanup"
   Call WriteInstallationTelemetryData
 
   StrCpy $InstallResult "success"
-
-  ; When we're using the GUI, .onGUIEnd sends the ping, but of course that isn't
-  ; invoked when we're running silently.
-  ${If} ${Silent}
-    Call SendPingIfApplicable
-  ${EndIf}
 SectionEnd
 
 ################################################################################
@@ -1102,22 +1096,6 @@ Function LaunchAppFromElevatedProcess
     StrCpy $LaunchedNewApp false
   ${Else}
     StrCpy $LaunchedNewApp true
-  ${EndIf}
-FunctionEnd
-
-; Send a telemetry ping to the server if needed.
-;
-; We do _not_ want to send the ping if we were launched by the stub installer,
-; since we'd be double-counting the number of installations. The stub installer
-; is repsonsible for sending the ping in that case.
-Function SendPingIfApplicable
-  ClearErrors
-  ${GetParameters} $0
-  ${GetOptions} $0 "/LaunchedFromStub" $0
-  ${If} ${Errors}
-    GetFunctionAddress $0 PrepareFullInstallPing
-    Push $0
-    Call SendTelemetryPing
   ${EndIf}
 FunctionEnd
 
@@ -1963,5 +1941,4 @@ FunctionEnd
 
 Function .onGUIEnd
   ${OnEndCommon}
-  Call SendPingIfApplicable
 FunctionEnd
