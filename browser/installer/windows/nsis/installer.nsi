@@ -2145,5 +2145,4 @@ FunctionEnd
 
 Function .onGUIEnd
   ${OnEndCommon}
-  Call SendPing
 FunctionEnd
