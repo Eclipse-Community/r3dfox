@@ -607,6 +607,7 @@ FunctionEnd
   ${AddAssociationIfNoneExist} ".svg" "FirefoxHTML$5"
   ${AddAssociationIfNoneExist} ".webp"  "FirefoxHTML$5"
   ${AddAssociationIfNoneExist} ".avif" "FirefoxHTML$5"
+  ${AddAssociationIfNoneExist} ".jxl" "FirefoxHTML$5"
 
   ${AddAssociationIfNoneExist} ".pdf" "FirefoxPDF$5"
 
