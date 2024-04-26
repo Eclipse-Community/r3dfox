@@ -295,3 +295,6 @@ libcrux-traits = { path = "build/rust/libcrux-traits" }
 # Patch `hashlink` 0.10.0 to include a `hashbrown` range dependency of 0.15 <= ver <= 0.16: <https://github.com/erichdongubler-contrib/hashlink/pull/6>
 # This technically breaks `hashbrown::DefaultHashBuilder: Copy`, but it's not something we use.
 hashlink = { git = "https://github.com/erichdongubler-contrib/hashlink", rev = "76dc47a12af5829c1e8bf4834e38b410dec2aeff" }
+
+# add unmerged mime types
+mime_guess = { path = "third_party/rust/mime_guess" }
