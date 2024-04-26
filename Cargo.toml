@@ -268,3 +268,6 @@ viaduct = { git = "https://github.com/mozilla/application-services", rev = "4d9d
 webext-storage = { git = "https://github.com/mozilla/application-services", rev = "4d9d334a28f61f1be84c92007aa0e76f04d165f4" }
 
 allocator-api2 = { path = "third_party/rust/allocator-api2" }
+
+# add unmerged mime types
+mime_guess = { path = "third_party/rust/mime_guess" }
