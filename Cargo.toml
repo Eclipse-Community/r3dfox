@@ -280,3 +280,6 @@ libcrux-traits = { path = "build/rust/libcrux-traits" }
 [patch."https://github.com/mozilla/neqo"]
 neqo-crypto = { path = "third_party/rust/neqo-crypto" }
 neqo-common = { path = "third_party/rust/neqo-common" }
+
+# add unmerged mime types
+mime_guess = { path = "third_party/rust/mime_guess" }
