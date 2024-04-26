@@ -278,3 +278,6 @@ sync15 = { git = "https://github.com/mozilla/application-services", rev = "f5907
 tabs = { git = "https://github.com/mozilla/application-services", rev = "f5907a411e52a3985d0369d71c486eb507c2c4e6" }
 viaduct = { git = "https://github.com/mozilla/application-services", rev = "f5907a411e52a3985d0369d71c486eb507c2c4e6" }
 webext-storage = { git = "https://github.com/mozilla/application-services", rev = "f5907a411e52a3985d0369d71c486eb507c2c4e6" }
+
+# add unmerged mime types
+mime_guess = { path = "third_party/rust/mime_guess" }
