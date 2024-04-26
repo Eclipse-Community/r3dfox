@@ -275,6 +275,9 @@ zip = { path = "third_party/rust/zip" }
 # Patch libcrux-traits to avoid unnecessary unused dependencies and conflicts.
 libcrux-traits = { path = "build/rust/libcrux-traits" }
 
+# add unmerged mime types
+mime_guess = { path = "third_party/rust/mime_guess" }
+
 # Patch neqo-crypto (and neqo-common to avoid duplicating it) to cherry-pick
 # https://github.com/mozilla/neqo/pull/2913
 [patch."https://github.com/mozilla/neqo"]
