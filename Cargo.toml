@@ -262,3 +262,6 @@ allocator-api2 = { path = "third_party/rust/allocator-api2" }
 
 # Patched version of zip 2.4.2 to allow for reading omnijars.
 zip = { path = "third_party/rust/zip" }
+
+# add unmerged mime types
+mime_guess = { path = "third_party/rust/mime_guess" }
