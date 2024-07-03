@@ -88,8 +88,10 @@
 #endif
 #ifdef XP_WIN
 @BINPATH@/@MOZ_CHILD_PROCESS_NAME@
+#ifdef MOZ_LAUNCHER_PROCESS
 @BINPATH@/@DLL_PREFIX@InstallationDirLayout@DLL_SUFFIX@
 @BINPATH@/installation_dir_layout/versioned/@DLL_PREFIX@InstallationDirLayout@DLL_SUFFIX@
+#endif
 #if MOZ_PACKAGE_MSVC_DLLS
 @BINPATH@/@MSVC_C_RUNTIME_DLL@
 #ifdef MSVC_C_RUNTIME_1_DLL
