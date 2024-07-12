@@ -60,6 +60,7 @@ class RequestContext final : public nsIRequestContext,
 
   uint64_t mID;
   Atomic<uint32_t> mBlockingTransactionCount;
+  nsCString mUserAgentOverride;
 
   using PendingTailRequest = nsCOMPtr<nsIRequestTailUnblockCallback>;
   // Number of known opened non-tailed requets
@@ -179,6 +180,15 @@ RequestContext::RemoveBlockingTransaction(uint32_t* outval) {
 }
 
 uint64_t RequestContext::GetID() { return mID; }
+
+const nsACString& RequestContext::GetUserAgentOverride() {
+  return mUserAgentOverride;
+}
+
+void RequestContext::SetUserAgentOverride(
+    const nsACString& aUserAgentOverride) {
+  mUserAgentOverride = aUserAgentOverride;
+}
 
 NS_IMETHODIMP
 RequestContext::AddNonTailRequest() {
