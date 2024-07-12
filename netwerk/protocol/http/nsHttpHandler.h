@@ -541,6 +541,8 @@ class nsHttpHandler final : public nsIHttpProtocolHandler,
 
   void NotifyObservers(nsIChannel* chan, const char* event);
 
+  void EnsureUAOverridesInit();
+
   friend class SocketProcessChild;
   void SetHttpHandlerInitArgs(const HttpHandlerInitArgs& aArgs);
   void SetDeviceModelId(const nsACString& aModelId);
