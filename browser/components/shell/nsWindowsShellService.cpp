@@ -2009,6 +2009,7 @@ static nsresult PinShortcutToTaskbarImpl(bool aCheckOnly,
     return NS_ERROR_FILE_NOT_FOUND;
   }
 
+  if (IsWin11OrLater()) {
   auto pinWithWin11TaskbarAPIResults =
       PinCurrentAppToTaskbarWin11(aCheckOnly, aAppUserModelId);
   switch (pinWithWin11TaskbarAPIResults.result) {
@@ -2030,6 +2031,7 @@ static nsresult PinShortcutToTaskbarImpl(bool aCheckOnly,
       // an error occurs or for when pinning is not allowed
       // with the Win 11 APIs.
       break;
+  }
   }
 
   return PinCurrentAppToTaskbarWin10(aCheckOnly, aAppUserModelId,
