@@ -263,6 +263,10 @@ const PREF_URLBAR_DEFAULTS = /** @type {PreferenceDefinition[]} */ ([
   // Feature gate pref for Nova UI.
   ["nova.featureGate", false],
 
+  // Whether the urlbar one-offs act as search filters instead of executing a
+  // search immediately.
+  ["oneOffsInstant", true],
+
   // Whether addresses and search results typed into the address bar
   // should be opened in new tabs by default.
   ["openintab", false],
