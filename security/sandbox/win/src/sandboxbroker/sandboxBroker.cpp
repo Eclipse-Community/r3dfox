@@ -401,6 +401,9 @@ static void AddLLVMProfilePathDirectoryToPolicy(
 #undef WSTRING
 
 static void EnsureAppLockerAccess(sandbox::TargetConfig* aConfig) {
+  if (!IsWin7OrLater()) {
+    return;
+  }
   if (aConfig->GetLockdownTokenLevel() < sandbox::USER_LIMITED) {
     // The following rules are to allow DLLs to be loaded when the token level
     // blocks access to AppLocker. If the sandbox does not allow access to the
@@ -1032,12 +1035,12 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
   // avoid changing their meaning.
   MOZ_RELEASE_ASSERT(aSandboxLevel >= 1,
                      "Should not be called with aSandboxLevel < 1");
-  if (aSandboxLevel >= 20) {
+  if (aSandboxLevel >= 20) && (IsWin7OrLater())) {
     jobLevel = sandbox::JobLevel::kLockdown;
     accessTokenLevel = sandbox::USER_LOCKDOWN;
     initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
     delayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_UNTRUSTED;
-  } else if (aSandboxLevel >= 8) {
+  } else if (aSandboxLevel >= 8) && (IsWin7OrLater())) {
     jobLevel = sandbox::JobLevel::kLockdown;
     accessTokenLevel = sandbox::USER_RESTRICTED;
     initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
@@ -1213,7 +1216,7 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
       sandbox::SBOX_ALL_OK == result,
       "With these static arguments AddRule should never fail, what happened?");
 
-  if (aSandboxLevel >= 8) {
+  if ((aSandboxLevel >= 8) && (IsWin7OrLater())) {
     // Content process still needs to be able to read fonts.
     AddCachedWindowsDirRule(config, sandbox::FileSemantics::kAllowReadonly,
                             FOLDERID_Fonts);
