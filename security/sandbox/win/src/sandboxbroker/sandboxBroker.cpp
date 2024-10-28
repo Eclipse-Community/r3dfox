@@ -425,6 +425,9 @@ static void AddLLVMProfilePathDirectoryToPolicy(
 #undef WSTRING
 
 static void EnsureAppLockerAccess(sandbox::TargetConfig* aConfig) {
+  if (!IsWin7OrLater()) {
+    return;
+  }
   if (aConfig->GetLockdownTokenLevel() < sandbox::USER_LIMITED) {
     // The following rules are to allow DLLs to be loaded when the token level
     // blocks access to AppLocker. If the sandbox does not allow access to the
