@@ -65,7 +65,7 @@ pref("security.osreauthenticator.password_last_changed_hi", 0);
 pref("security.crash_tracking.js_load_1.prevCrashes", 0);
 pref("security.crash_tracking.js_load_1.maxCrashes", 1);
 
-pref("general.useragent.compatMode.firefox", false);
+pref("general.useragent.compatMode.firefox", true);
 
 // Enable site specific overrides to fix shitty websites
 pref("general.useragent.site_specific_overrides", true);
@@ -105,7 +105,7 @@ pref("general.autoscroll.prevent_to_collapse_selection_by_middle_mouse_down", fa
 // maximum number of dated backups to keep at any time
 pref("browser.bookmarks.max_backups",       5);
 
-pref("browser.cache.disk_cache_ssl",        true);
+pref("browser.cache.disk_cache_ssl",        false);
 // The half life used to re-compute cache entries frecency in hours.
 pref("browser.cache.frecency_half_life_hours", 6);
 
@@ -139,6 +139,9 @@ pref("dom.serviceWorkers.update_delay", 1000);
 
 // Enable test for 24 hours update, service workers will always treat last update check time is over 24 hours
 pref("dom.serviceWorkers.testUpdateOverOneDay", false);
+
+// Disable whatever this i forgor
+pref("browser.startup.homepage_override.mstone", "ignore");
 
 // Blacklist of domains of web apps which are not aware of strict keypress
 // dispatching behavior.  This is comma separated list.  If you need to match
@@ -329,10 +332,10 @@ pref("media.videocontrols.keyboard-tab-to-all-controls", true);
   pref("media.peerconnection.ice.stun_client_maximum_transmits", 7);
   pref("media.peerconnection.ice.trickle_grace_period", 5000);
   pref("media.peerconnection.ice.no_host", false);
-  pref("media.peerconnection.ice.default_address_only", false);
+  pref("media.peerconnection.ice.default_address_only", true);
   pref("media.peerconnection.ice.obfuscate_host_addresses", true);
   pref("media.peerconnection.ice.obfuscate_host_addresses.blocklist", "");
-  pref("media.peerconnection.ice.proxy_only_if_behind_proxy", false);
+  pref("media.peerconnection.ice.proxy_only_if_behind_proxy", true);
   pref("media.peerconnection.ice.proxy_only", false);
   pref("media.peerconnection.ice.proxy_only_if_pbmode", false);
   pref("media.peerconnection.turn.disable", false);
@@ -507,7 +510,7 @@ pref("ui.textHighlightForeground", "#ffffff");
 //
 // Values are -1 always on. 1 always off, 0 is auto as some platform perform
 // further checks.
-pref("accessibility.force_disabled", 0);
+pref("accessibility.force_disabled", 1);
 
 pref("focusmanager.testmode", false);
 
@@ -535,7 +538,7 @@ pref("accessibility.typeaheadfind.enablesound", true);
   pref("accessibility.typeaheadfind.prefillwithselection", true);
 #endif
 pref("accessibility.typeaheadfind.matchesCountLimit", 1000);
-pref("findbar.highlightAll", false);
+pref("findbar.highlightAll", true);
 pref("findbar.entireword", false);
 pref("findbar.iteratorTimeout", 100);
 // matchdiacritics: controls the find bar's diacritic matching
@@ -563,15 +566,19 @@ pref("toolkit.sqlitejsm.loglevel", "Error");
 pref("toolkit.tabbox.switchByScrolling", false);
 
 // Telemetry settings.
+// Disabling telemetry hopefully
+pref("toolkit.telemetry.enabled", false);
+// Disable telemetry first run
+pref("toolkit.telemetry.reportingpolicy.firstRun", false);
 // Server to submit telemetry pings to.
-pref("toolkit.telemetry.server", "https://incoming.telemetry.mozilla.org");
+pref("toolkit.telemetry.server", "data:");
 // Telemetry server owner. Please change if you set toolkit.telemetry.server to a different server
-pref("toolkit.telemetry.server_owner", "Mozilla");
+pref("toolkit.telemetry.server_owner", "");
 // Determines whether full SQL strings are returned when they might contain sensitive info
 // i.e. dynamically constructed SQL strings or SQL executed by addons against addon DBs
 pref("toolkit.telemetry.debugSlowSql", false);
 // Whether to use the unified telemetry behavior, requires a restart.
-pref("toolkit.telemetry.unified", true);
+pref("toolkit.telemetry.unified", false);
 
 // DAP related preferences
 pref("toolkit.telemetry.dap_enabled", false);
@@ -736,7 +743,7 @@ pref("browser.fixup.alternate.protocol", "https");
 // The suffix is localized, and should be read using
 // Services.locale.urlFixupSuffix.
 pref("browser.fixup.alternate.suffix", ".com");
-pref("browser.fixup.fallback-to-https", true);
+pref("browser.fixup.fallback-to-https", false);
 
 // NOTE: On most platforms we save print settins to prefs with the name of the
 // printer in the pref name (Android being the notable exception, where prefs
@@ -803,8 +810,8 @@ pref("print.print_edge_bottom", 0);
 
 // Scripts & Windows prefs
 pref("dom.beforeunload_timeout_ms",         1000);
-pref("dom.disable_window_flip",             false);
-pref("dom.disable_window_move_resize",      false);
+pref("dom.disable_window_flip",             true);
+pref("dom.disable_window_move_resize",      true);
 
 pref("dom.allow_scripts_to_close_windows",          false);
 
@@ -1258,7 +1265,7 @@ pref("network.http.network-changed.timeout", 5);
 
 // The maximum number of current global half open sockets allowable
 // when starting a new speculative connection.
-pref("network.http.speculative-parallel-limit", 20);
+pref("network.http.speculative-parallel-limit", 0);
 
 // Whether or not to block requests for non head js/css items (e.g. media)
 // while those elements load.
@@ -1379,7 +1386,7 @@ pref("network.websocket.delay-failed-reconnects", true);
 
 // enables the prefetch service (i.e., prefetching of <link rel="next"> and
 // <link rel="prefetch"> URLs).
-pref("network.prefetch-next", true);
+pref("network.prefetch-next", false);
 
 // The following prefs pertain to the negotiate-auth extension (see bug 17578),
 // which provides transparent Kerberos or NTLM authentication using the SPNEGO
@@ -1427,6 +1434,12 @@ pref("network.auth.force-generic-ntlm", false);
 pref("network.automatic-ntlm-auth.allow-proxies", true);
 pref("network.automatic-ntlm-auth.allow-non-fqdn", false);
 pref("network.automatic-ntlm-auth.trusted-uris", "");
+
+// Disable gio as it could bypass proxy
+pref("network.gio.supported-protocols", "");
+
+// Disable using uniform naming convention to prevent proxy bypass
+pref("network.file.disable_unc_paths", true);
 
 // This preference controls whether to allow sending default credentials (SSO) to
 // NTLM/Negotiate servers allowed in the "trusted uri" list when navigating them
@@ -1765,7 +1778,7 @@ pref("font.name-list.monospace.x-math", "monospace");
 pref("font.blacklist.underline_offset", "FangSong,Gulim,GulimChe,MingLiU,MingLiU-ExtB,MingLiU_HKSCS,MingLiU-HKSCS-ExtB,MS Gothic,MS Mincho,MS PGothic,MS PMincho,MS UI Gothic,PMingLiU,PMingLiU-ExtB,SimHei,SimSun,SimSun-ExtB,Hei,Kai,Apple LiGothic,Apple LiSung,Osaka");
 
 // security-sensitive dialogs should delay button enabling. In milliseconds.
-pref("security.dialog_enable_delay", 1000);
+pref("security.dialog_enable_delay", 0);
 pref("security.notification_enable_delay", 500);
 
 #ifdef EARLY_BETA_OR_EARLIER
@@ -1790,7 +1803,7 @@ pref("extensions.abuseReport.amoFormURL", "https://addons.mozilla.org/%LOCALE%/f
 pref("extensions.addonAbuseReport.url", "https://services.addons.mozilla.org/api/v5/abuse/report/addon/");
 
 // Blocklist preferences
-pref("extensions.blocklist.enabled", true);
+pref("extensions.blocklist.enabled", false);
 pref("extensions.blocklist.detailsURL", "https://blocked.cdn.mozilla.net/");
 pref("extensions.blocklist.itemURL", "https://blocked.cdn.mozilla.net/%blockID%.html");
 pref("extensions.blocklist.addonItemURL", "https://addons.mozilla.org/%LOCALE%/firefox/blocked-addon/%addonID%/%addonVersion%/");
@@ -3114,8 +3127,7 @@ pref("network.tcp.keepalive.idle_time", 600); // seconds; 10 mins
 
 // All the Geolocation preferences are here.
 //
-#ifndef ANDROID
-  pref("geo.provider.network.url", "https://www.googleapis.com/geolocation/v1/geolocate?key=%GOOGLE_LOCATION_SERVICE_API_KEY%&solution_channel=%OS%");
+pref("geo.provider.network.url", "https://api.beacondb.net/v1/geolocate");
 
   // Timeout to wait before sending the location request.
   pref("geo.provider.network.timeToWaitBeforeSending", 5000);
@@ -3124,42 +3136,43 @@ pref("network.tcp.keepalive.idle_time", 600); // seconds; 10 mins
 #endif
 
 #ifdef XP_MACOSX
-  pref("geo.provider.use_corelocation", true);
+  pref("geo.provider.use_corelocation", false);
 #endif
 
 // Set to false if things are really broken.
 #ifdef XP_WIN
-  pref("geo.provider.ms-windows-location", true);
+  pref("geo.provider.ms-windows-location", false);
 #endif
 
 // Region
 pref("browser.region.log", false);
-pref("browser.region.network.url", "https://location.services.mozilla.com/v1/country?key=%MOZILLA_API_KEY%");
+pref("browser.region.network.url", "");
 // Include wifi data in region request.
 pref("browser.region.network.scan", false);
 // Timeout for whole region request.
 pref("browser.region.timeout", 5000);
-pref("browser.region.update.enabled", true);
+pref("browser.region.update.enabled", false);
 
 pref("browser.meta_refresh_when_inactive.disabled", false);
 
 // XPInstall prefs
-pref("xpinstall.whitelist.required", true);
+pref("xpinstall.whitelist.required", false);
 // Only Firefox requires add-on signatures
 pref("xpinstall.signatures.required", false);
 pref("extensions.langpacks.signatures.required", false);
 pref("extensions.webExtensionsMinPlatformVersion", "42.0a1");
-pref("extensions.experiments.enabled", true);
+pref("extensions.experiments.enabled", false);
+pref("extensions.enabledScopes", 5);
 
 // Other webextensions prefs
 pref("extensions.webextensions.keepStorageOnUninstall", false);
 pref("extensions.webextensions.keepUuidOnUninstall", false);
 // Redirect basedomain used by identity api
 pref("extensions.webextensions.identity.redirectDomain", "extensions.allizom.org");
-pref("extensions.webextensions.restrictedDomains", "accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com");
+pref("extensions.webextensions.restrictedDomains", "");
 
 // Extensions are prevented from accessing Quarantined Domains by default.
-pref("extensions.quarantinedDomains.enabled", true);
+pref("extensions.quarantinedDomains.enabled", false);
 pref("extensions.quarantinedDomains.list", "");
 
 // Include origin permissions in the install prompt for MV3 extensions.
@@ -3176,23 +3189,22 @@ pref("extensions.webextensions.ExtensionStorageIDB.enabled", true);
 // Whether to allow the inline options browser in HTML about:addons page.
 pref("extensions.htmlaboutaddons.inline-options.enabled", true);
 // Show recommendations on the extension and theme list views.
-pref("extensions.htmlaboutaddons.recommendations.enabled", true);
+pref("extensions.htmlaboutaddons.recommendations.enabled", false);
 
 // The URL for the privacy policy related to recommended add-ons.
 pref("extensions.recommendations.privacyPolicyUrl", "");
 // The URL for a recommended theme, shown on the theme page in about:addons.
 pref("extensions.recommendations.themeRecommendationUrl", "");
 
+// Disable addon recommendations in about:addons
+pref("extensions.getAddons.showPane", false);
+
 // Report Site Issue button
 // Note that on enabling the button in other release channels, make sure to
 // disable it in problematic tests, see disableNonReleaseActions() inside
 // browser/modules/test/browser/head.js
-pref("extensions.webcompat-reporter.newIssueEndpoint", "https://webcompat.com/issues/new");
-#if MOZ_UPDATE_CHANNEL != release && MOZ_UPDATE_CHANNEL != esr
-  pref("extensions.webcompat-reporter.enabled", true);
-#else
-  pref("extensions.webcompat-reporter.enabled", false);
-#endif
+pref("extensions.webcompat-reporter.newIssueEndpoint", "");
+pref("extensions.webcompat-reporter.enabled", true);
 
 // Add-on content security policies.
 pref("extensions.webextensions.base-content-security-policy", "script-src 'self' https://* http://localhost:* http://127.0.0.1:* moz-extension: blob: filesystem: 'unsafe-eval' 'wasm-unsafe-eval' 'unsafe-inline';");
@@ -3296,14 +3308,14 @@ pref("network.captive-portal-service.maxInterval", 1500000); // 25 minutes
 pref("network.captive-portal-service.backoffFactor", "5.0");
 pref("network.captive-portal-service.enabled", false);
 
-pref("network.connectivity-service.enabled", true);
+pref("network.connectivity-service.enabled", false);
 pref("network.connectivity-service.DNSv4.domain", "example.org");
 pref("network.connectivity-service.DNSv6.domain", "example.org");
 pref("network.connectivity-service.DNS_HTTPS.domain", "cloudflare-dns.com");
 pref("network.connectivity-service.IPv4.url", "http://detectportal.firefox.com/success.txt?ipv4");
 pref("network.connectivity-service.IPv6.url", "http://detectportal.firefox.com/success.txt?ipv6");
 
-pref("network.trr.uri", "");
+pref("network.trr.uri", "https://dns10.quad9.net/dns-query");
 // credentials to pass to DOH end-point
 pref("network.trr.credentials", "");
 pref("network.trr.custom_uri", "");
@@ -3318,7 +3330,7 @@ pref("network.trr.builtin-excluded-domains", "localhost,local");
 // Used for progressive rollout of LNA for ETP strict users
 pref("network.lna.etp.enabled", true);
 
-pref("captivedetect.canonicalURL", "http://detectportal.firefox.com/canonical.html");
+pref("captivedetect.canonicalURL", "");
 pref("captivedetect.canonicalContent", "<meta http-equiv=\"refresh\" content=\"0;url=https://support.mozilla.org/kb/captive-portal\"/>");
 pref("captivedetect.maxWaitingTime", 5000);
 pref("captivedetect.pollingTime", 3000);
@@ -3359,6 +3371,7 @@ pref("urlclassifier.features.cryptomining.annotate.blacklistTables", "base-crypt
 pref("urlclassifier.features.cryptomining.annotate.whitelistTables", "mozstd-trackwhite-digest256");
 pref("urlclassifier.features.socialtracking.blacklistTables", "social-tracking-protection-facebook-digest256,social-tracking-protection-linkedin-digest256,social-tracking-protection-twitter-digest256");
 pref("urlclassifier.features.socialtracking.whitelistTables", "mozstd-trackwhite-digest256,google-trackwhite-digest256");
+pref("urlclassifier.features.socialtracking.skipURLs", "abs.twimg.com");
 pref("urlclassifier.features.socialtracking.annotate.blacklistTables", "social-tracking-protection-facebook-digest256,social-tracking-protection-linkedin-digest256,social-tracking-protection-twitter-digest256");
 pref("urlclassifier.features.socialtracking.annotate.whitelistTables", "mozstd-trackwhite-digest256,google-trackwhite-digest256");
 pref("urlclassifier.features.emailtracking.blocklistTables", "base-email-track-digest256");
@@ -3398,6 +3411,9 @@ pref("urlclassifier.gethash.timeout_ms", 5000);
 // Name of the about: page to display Safe Browsing warnings (bug 399233)
 pref("urlclassifier.alternate_error_page", "blocked");
 
+// Disable Safe Browsing URIs
+pref("browser.safebrowsing.blockedURIs.enabled", false);
+
 // Enable safe-browsing debugging
 pref("browser.safebrowsing.debug", false);
 
@@ -3413,14 +3429,21 @@ pref("browser.safebrowsing.allowOverride", true);
 #endif
 
 // Download protection
-pref("browser.safebrowsing.downloads.enabled", true);
-pref("browser.safebrowsing.downloads.remote.enabled", true);
+pref("browser.safebrowsing.downloads.enabled", false);
+pref("browser.safebrowsing.downloads.remote.enabled", false);
 pref("browser.safebrowsing.downloads.remote.timeout_ms", 15000);
 pref("browser.safebrowsing.downloads.remote.url", "https://sb-ssl.google.com/safebrowsing/clientreport/download?key=%GOOGLE_SAFEBROWSING_API_KEY%");
-pref("browser.safebrowsing.downloads.remote.block_dangerous",            true);
-pref("browser.safebrowsing.downloads.remote.block_dangerous_host",       true);
-pref("browser.safebrowsing.downloads.remote.block_potentially_unwanted", true);
-pref("browser.safebrowsing.downloads.remote.block_uncommon",             true);
+pref("browser.safebrowsing.downloads.remote.block_dangerous",            false);
+pref("browser.safebrowsing.downloads.remote.block_dangerous_host",       false);
+pref("browser.safebrowsing.downloads.remote.block_potentially_unwanted", false);
+pref("browser.safebrowsing.downloads.remote.block_uncommon",             false);
+
+// Disable Safe Browsing malware
+pref("browser.safebrowsing.malware.enabled", false);
+
+// Disable Safe Browsing phishing
+pref("browser.safebrowsing.phishing.enabled", false);
+
 
 // Android SafeBrowsing's configuration is in ContentBlocking.java, keep in sync.
 #ifndef MOZ_WIDGET_ANDROID
@@ -3494,17 +3517,17 @@ pref("browser.safebrowsing.provider.mozilla.lists.content", "moz-full");
 
 // Search service settings
 pref("browser.search.log", false);
-pref("browser.search.update", true);
+pref("browser.search.update", false);
 pref("browser.search.suggest.enabled", true);
 pref("browser.search.suggest.enabled.private", false);
-pref("browser.search.separatePrivateDefault", true);
-pref("browser.search.separatePrivateDefault.ui.enabled", false);
+pref("browser.search.separatePrivateDefault", false);
+pref("browser.search.separatePrivateDefault.ui.enabled", true);
 pref("browser.search.removeEngineInfobar.enabled", true);
 
 // GMPInstallManager prefs
 
 // User-settable override to media.gmp-manager.url for testing purposes.
-//pref("media.gmp-manager.url.override", "");
+pref("media.gmp-manager.url.override", "data:text/plain,");
 
 // When |media.gmp-manager.allowLocalSources| is true, we will allow falling
 // back to using the plugin configurations distributed with Firefox to update
@@ -3513,7 +3536,7 @@ pref("browser.search.removeEngineInfobar.enabled", true);
 pref("media.gmp-manager.allowLocalSources", true);
 
 // Update service URL for GMP install/updates:
-pref("media.gmp-manager.url", "https://aus5.mozilla.org/update/3/GMP/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml");
+pref("media.gmp-manager.url", "data:text/plain,");
 
 // The |media.gmp-manager.certs.| preference branch contains branches that are
 // sequentially numbered starting at 1 that contain attribute name / value
@@ -3681,7 +3704,7 @@ pref("browser.translations.neverTranslateLanguages", "");
 // translation behavior on about:translations. Requires a page refresh.
 pref("browser.translations.useHTML", false);
 // Automatically popup an offer to translate on sites.
-pref("browser.translations.automaticallyPopup", true);
+pref("browser.translations.automaticallyPopup", false);
 // Simulate the behavior of using a device that does not support the translations engine.
 // Requires restart.
 // Enables or disables the usage of lexical shortlisting for the translation models.
@@ -3704,7 +3727,7 @@ pref("browser.ai.control.linkPreviewKeyPoints", "default");
 pref("browser.ai.control.sidebarChatbot", "default");
 
 // Enable the experimental machine learning inference engine.
-pref("browser.ml.enable", true);
+pref("browser.ml.enable", false);
 // Set to "All" to see all logs, which are useful for debugging.
 pref("browser.ml.logLevel", "Error");
 // Model hub root URL used to download models.
@@ -3781,18 +3804,21 @@ pref("toolkit.aboutProcesses.profileDuration", 5);
 // user profile directory for these stylesheets:
 //  * userContent.css
 //  * userChrome.css
-pref("toolkit.legacyUserProfileCustomizations.stylesheets", false);
+pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
 
+pref("datareporting.policy.dataSubmissionEnabled", false);
+pref("datareporting.policy.dataSubmissionPolicyNotifiedTime", "32503679999000");
+pref("datareporting.policy.dataSubmissionPolicyAcceptedVersion", 999);
+pref("datareporting.policy.dataSubmissionPolicyBypassNotification", true);
 #ifdef MOZ_DATA_REPORTING
-  pref("datareporting.policy.dataSubmissionEnabled", true);
-  pref("datareporting.policy.dataSubmissionPolicyNotifiedTime", "0");
-  pref("datareporting.policy.dataSubmissionPolicyAcceptedVersion", 0);
   pref("datareporting.policy.currentPolicyVersion", 2);
   pref("datareporting.policy.minimumPolicyVersion", 1);
   pref("datareporting.policy.minimumPolicyVersion.channel-beta", 2);
   pref("datareporting.policy.firstRunURL", "https://www.mozilla.org/privacy/firefox/");
-  pref("datareporting.policy.dataSubmissionPolicyBypassNotification", false);
 #endif
+
+pref("datareporting.healthreport.uploadEnabled", false);
+pref("datareporting.usage.uploadEnabled", false);
 
 #ifdef MOZ_SERVICES_HEALTHREPORT
   #if !defined(ANDROID)
@@ -3800,8 +3826,8 @@ pref("toolkit.legacyUserProfileCustomizations.stylesheets", false);
 
     // Health Report is enabled by default on all channels.
     // Do note that the toggle on Fenix and Focus does NOT reflect to this pref.
-    pref("datareporting.healthreport.uploadEnabled", true);
-    pref("datareporting.usage.uploadEnabled", true);
+    pref("datareporting.healthreport.uploadEnabled", false);
+    pref("datareporting.usage.uploadEnabled", false);
   #endif
 #endif
 
