@@ -33,12 +33,13 @@
   background-image: url("chrome://branding/content/about-wordmark.svg");
   background-repeat: no-repeat;
   background-size: 288px auto;
-  /* move wordmark down a bit so it doesnt bump up too closely to top of dialog */
+  /* padding-top creates room for the wordmark */
+  padding-top: 38px;
   margin-top: 20px;
   /* We don't want this box to contribute arbitrarily to the intrinsic size of
    * the dialog, so set the width to a reasonable size, but let it flex to take
    * all available space. */
-  max-width: 430px;
+  width: 430px;
   flex: 1 auto;
 
   &:-moz-locale-dir(rtl) {
