@@ -137,7 +137,7 @@ search-results-header = Search Results
 search-results-empty-message2 =
         Sorry! There are no results in Settings for “<span data-l10n-name="query"></span>”.
 
-search-results-help-link = Need help? Visit <a data-l10n-name="url">{ -brand-short-name } Support</a>
+search-results-help-link = Need help? Visit <a data-l10n-name="url">Mozilla Support</a>
 
 ## General Section
 
@@ -760,7 +760,7 @@ home-prefs-shortcuts-by-option-sponsored =
 
 home-prefs-recommended-by-header-generic =
     .label = Recommended stories
-home-prefs-recommended-by-description-generic = Exceptional content curated by the { -brand-product-name } family
+home-prefs-recommended-by-description-generic = Exceptional content curated by Mozilla
 
 home-prefs-stories-header =
     .label = Stories
@@ -1316,7 +1316,7 @@ addressbar-suggest-1 = Choose which suggestions display in your address bar
 addressbar-header-firefox-suggest-1 = { -firefox-suggest-brand-name }
 
 # When Firefox Suggest is enabled, this replaces `addressbar-suggest`.
-addressbar-suggest-firefox-suggest-1 = Suggestions from { -brand-short-name } and our partners in your address bar.
+addressbar-suggest-firefox-suggest-1 = Suggestions from Mozilla and their partners in your address bar.
 
 # When Firefox Suggest is enabled, a "Learn more" link appears at the end of
 # `addressbar-suggest-firefox-suggest`.
@@ -1356,12 +1356,12 @@ addressbar-locbar-showtrendingsuggestions-option =
 
 # Toggles whether suggestions are obtained from Firefox Suggest or not (local or online).
 addressbar-locbar-suggest-all-option =
-  .label = Suggestions from { -brand-short-name }
+  .label = Suggestions from Mozilla
 addressbar-locbar-suggest-all-option-desc = Get suggestions from the web related to your search.
 
 addressbar-locbar-suggest-sponsored-option =
   .label = Suggestions from sponsors
-addressbar-locbar-suggest-sponsored-desc = Support { -brand-short-name } with occasional sponsored suggestions.
+addressbar-locbar-suggest-sponsored-desc = Support Mozilla with occasional sponsored suggestions.
 
 # This string is used for a checkbox in the settings UI that opts the
 # user into "online" Firefox Suggest, allowing them to receive suggestions from
@@ -1375,7 +1375,7 @@ addressbar-firefox-suggest-online =
 addressbar-quickactions-learn-more = Learn more
 
 addressbar-dismissed-suggestions-label = Dismissed suggestions
-addressbar-restore-dismissed-suggestions-description = Restore dismissed suggestions from sponsors and { -brand-short-name }.
+addressbar-restore-dismissed-suggestions-description = Restore dismissed suggestions from sponsors and Mozilla
 addressbar-restore-dismissed-suggestions-button =
   .label = Restore
 
@@ -1584,52 +1584,52 @@ permissions-addon-exceptions =
 
 ## Privacy Section - Data Collection
 
-collection-header2 = { -brand-short-name } Data Collection and Use
+collection-header2 = Mozilla Data Collection and Use
     .searchkeywords = telemetry
 
-preferences-collection-description = We strive to provide you with choices and collect only the minimal data necessary to improve { -brand-product-name } for everyone.
+preferences-collection-description = Mozilla wants your data.
 preferences-collection-privacy-notice = View Privacy Notice
 preferences-across-profiles = These settings apply to every { -brand-product-name } profile on this device.
 preferences-view-profiles = View all profiles
 
-collection-health-report-telemetry-disabled = You’re no longer allowing { -vendor-short-name } to capture technical and interaction data. All past data will be deleted within 30 days.
+collection-health-report-telemetry-disabled = You’re no longer allowing Mozilla to capture technical and interaction data. All past data will be deleted within 30 days.
 collection-health-report-telemetry-disabled-link = Learn more
 
 collection-usage-ping =
-    .label = Send daily usage ping to { -vendor-short-name }
+    .label = Send daily usage ping to Mozilla
     .accesskey = u
-collection-usage-ping-description = This helps { -vendor-short-name } to estimate active users.
+collection-usage-ping-description = This helps Mozilla to estimate active users.
 
 collection-health-report2 =
-    .label = Send technical and interaction data to { -vendor-short-name }
+    .label = Give Mozilla your technical and interaction data
     .accesskey = r
 collection-health-report-link = Learn more
-collection-health-report-description = This helps us improve { -brand-product-name } features, performance, and stability.
+collection-health-report-description = This helps us """improve features""", performance, and stability, and definitely not to sell to advertisers.
 
 collection-studies2 =
-    .label = Install and run studies
+    .label = Allow Mozilla to install and run studies
 collection-studies-description = Try out features and ideas before they’re released to everyone.
-collection-studies-link = View { -brand-short-name } studies
+collection-studies-link = View Mozilla studies
 
 addon-recommendations2 =
-    .label = Allow personalized extension recommendations
-addon-recommendations-description = Get extension recommendations to improve your browsing experience.
+    .label = Allow Mozilla to make personalized extension recommendations
+addon-recommendations-description = Get extension recommendations to improve your browsing experience and we totally won't sell this to advertisers.
 
 # This message is displayed above disabled data sharing options in developer builds
 # or builds with no Telemetry support available.
 collection-health-report-disabled2 = Data reporting is disabled for this build configuration.
 
 collection-backlogged-crash-reports2 =
-    .label = Automatically send crash reports
+    .label = Automatically send crash reports to Mozilla. Not like they'd care about this fork lol.
     .accesskey = c
-collection-backlogged-crash-reports-description = This helps { -vendor-short-name } diagnose and fix issues with the browser. Reports may include personal or sensitive data.
+collection-backlogged-crash-reports-description = This just gives Mozilla data. Reports may include personal or sensitive data.
 
 privacy-segmentation-section-header = New features that enhance your browsing
 
 privacy-segmentation-section-description = When we offer features that use your data to give you a more personal experience:
 
 privacy-segmentation-radio-off =
-    .label = Use { -brand-product-name } recommendations
+    .label = Use Mozilla recommendations
 
 privacy-segmentation-radio-on =
     .label = Show detailed information
