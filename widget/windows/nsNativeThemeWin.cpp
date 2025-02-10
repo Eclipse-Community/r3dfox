@@ -858,7 +858,9 @@ mozilla::Maybe<nsUXThemeClass> nsNativeThemeWin::GetThemeClass(
     case StyleAppearance::FocusOutline:
       return Some(eUXEdit);
     case StyleAppearance::Tooltip:
-      return Some(eUXTooltip);
+      // XP/2K3 should force a classic treatment of tooltips
+      return !IsVistaOrLater() ?
+        Nothing() : Some(eUXTooltip);
     case StyleAppearance::Toolbox:
       return Some(eUXRebar);
     case StyleAppearance::MozWinMediaToolbox:
@@ -1102,9 +1104,14 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       return NS_OK;
     }
     case StyleAppearance::FocusOutline: {
-      // XXX the EDITBORDER values don't respect DTBG_OMITCONTENT
-      aPart = TFP_TEXTFIELD;  // TFP_EDITBORDER_NOSCROLL;
-      aState = TS_FOCUSED;    // TFS_EDITBORDER_FOCUSED;
+      if (IsVistaOrLater()) {
+        // XXX the EDITBORDER values don't respect DTBG_OMITCONTENT
+        aPart = TFP_TEXTFIELD; //TFP_EDITBORDER_NOSCROLL;
+        aState = TS_FOCUSED; //TFS_EDITBORDER_FOCUSED;
+      } else {
+        aPart = TFP_TEXTFIELD;
+        aState = TS_FOCUSED;
+      }
       return NS_OK;
     }
     case StyleAppearance::Tooltip: {
@@ -1188,7 +1195,8 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
           aState += TS_ACTIVE;
         else if (eventState.HasState(ElementState::HOVER))
           aState += TS_HOVER;
-        else if (parentState.HasState(ElementState::HOVER))
+        else if (IsVistaOrLater() &&
+                 parentState.HasState(ElementState::HOVER))
           aState =
               (int(aAppearance) - int(StyleAppearance::ScrollbarbuttonUp)) +
               SP_BUTTON_IMPLICIT_HOVER_BASE;
