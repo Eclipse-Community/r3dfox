@@ -964,7 +964,7 @@ FunctionEnd
     ${WriteRegStr2} $RegHive "$0" "DisplayVersion" "${AppVersion}" 0
     ${WriteRegStr2} $RegHive "$0" "HelpLink" "${HelpLink}" 0
     ${WriteRegStr2} $RegHive "$0" "InstallLocation" "$8" 0
-    ${WriteRegStr2} $RegHive "$0" "Publisher" "Mozilla" 0
+    ${WriteRegStr2} $RegHive "$0" "Publisher" "${CompanyName}" 0
     ${WriteRegStr2} $RegHive "$0" "UninstallString" "$\"$8\uninstall\helper.exe$\"" 0
     DeleteRegValue SHCTX "$0" "URLInfoAbout"
 ; Don't add URLUpdateInfo which is the release notes url except for the release
