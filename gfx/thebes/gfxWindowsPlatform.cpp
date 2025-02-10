@@ -89,6 +89,8 @@
 #include "D3D11Checks.h"
 #include "mozilla/ScreenHelperWin.h"
 
+#include "mozilla/StaticPrefs_gfx.h"
+
 using namespace mozilla;
 using namespace mozilla::gfx;
 using namespace mozilla::layers;
@@ -655,7 +657,7 @@ mozilla::gfx::BackendType gfxWindowsPlatform::GetPreferredCanvasBackend() {
 bool gfxWindowsPlatform::CreatePlatformFontList() {
   // bug 630201 - older pre-RTM versions of Direct2D/DirectWrite cause odd
   // crashers so block them altogether
-  if (IsNotWin7PreRTM() && DWriteEnabled()) {
+  if (StaticPrefs::gfx_dwrite_enabled() && IsNotWin7PreRTM() && DWriteEnabled()) {
     if (gfxPlatformFontList::Initialize(new gfxDWriteFontList)) {
       return true;
     }
