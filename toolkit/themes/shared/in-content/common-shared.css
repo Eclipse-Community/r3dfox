@@ -101,7 +101,7 @@
 
 :root {
   appearance: none;
-  background-color: var(--background-color-canvas);
+  background: var(--background-color-canvas);
   color: var(--text-color);
 }
 
