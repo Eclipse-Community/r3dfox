@@ -72,6 +72,7 @@ testing/web-platform/tests/tools/third_party/pywebsocket3/build
 /.clangd
 /.mozconfig*
 /mozconfig*
+!/mozconfigs
 /.moz-fast-forward
 /.moz-vendoring
 /old-configure
