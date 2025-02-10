@@ -114,6 +114,9 @@ document.addEventListener(
         case "context-media-showcontrols":
           gContextMenu.mediaCommand("showcontrols");
           break;
+        case "context-viewimagetab":
+        case "context-viewvideotab":
+        case "context-viewbgimage":
         case "context-viewimage":
         case "context-viewvideo":
           gContextMenu.viewMedia(event);
@@ -158,10 +161,14 @@ document.addEventListener(
           gContextMenu.setDesktopBackground();
           break;
         case "context-bookmarkpage":
+        case "context-bookmarkpage-old":
           gContextMenu.bookmarkThisPage();
           break;
         case "context-savepage":
           gContextMenu.savePageAs();
+          break;
+        case "context-sendpage":
+          gContextMenu.sendPage();
           break;
         case "fill-login-generated-password":
           gContextMenu.useGeneratedPassword();
@@ -286,6 +293,9 @@ document.addEventListener(
           break;
         case "context-viewsource":
           BrowserCommands.viewSource(gContextMenu.browser);
+          break;
+        case "context-viewinfo":
+          gContextMenu.viewInfo();
           break;
         case "context-inspect-a11y":
           gContextMenu.inspectA11Y();
