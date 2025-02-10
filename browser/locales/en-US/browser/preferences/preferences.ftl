@@ -71,6 +71,10 @@ pane-experimental-subtitle = Proceed with Caution
 pane-experimental-search-results-header = { -brand-short-name } Experiments: Proceed with Caution
 pane-experimental-description2 = Changing advanced configuration settings can impact { -brand-short-name } performance or security.
 
+pane-r3dfox-title = r3dfox configurations
+category-r3dfox =
+    .tooltiptext = { pane-privacy-title }
+
 pane-experimental-reset =
   .label = Restore Defaults
   .accesskey = R
@@ -140,7 +144,142 @@ search-results-empty-message2 =
 
 search-results-help-link = Need help? Visit <a data-l10n-name="url">Mozilla Support</a>
 
-## General Section
+## General Section - r3dfox
+
+r3dfox-title = r3dfox specific options
+
+r3dfox-visual-header = Visual configurations
+
+r3dfox-native-checkbox =
+    .label = Use native styles
+
+r3dfox-native-checkbox-desc = This controls whether the scrollbar, checkboxes, and other elements use their native system counterparts or their non-native browser themed style.
+
+r3dfox-native-menulist = Menulist type
+
+r3dfox-native-scroll = Scrollbar type
+
+r3dfox-fake-scroll-type = Non-native scrollbar theme
+
+r3dfox-win-theme-type = Windows version theme override (requires restart)
+
+r3dfox-colors = r3dfox color schemes
+
+r3dfox-fog-type = Caption bar/Aero fog style
+
+r3dfox-caption-text = Override caption/window text color
+
+r3dfox-theme =
+    .label = Use r3dfox theme styles
+
+r3dfox-drag =
+    .label = Enable drag space on r3dfox theme styles
+
+r3dfox-backgrounds =
+    .label = Backgrounds for tabs and other toolbar items
+
+r3dfox-menubar =
+    .label = Transparent menubar
+
+r3dfox-navbar =
+    .label = Translucent design
+
+r3dfox-functional-header = Functionality configurations
+
+r3dfox-one-offs =
+    .label = Instant one off searches
+
+r3dfox-view-image =
+    .label = Restore classic View Image context menu options
+
+r3dfox-nav-text =
+    .label = Replace context menu navigation icons with text options
+
+r3dfox-translations-enable =
+    .label = Enable in-browser language translations
+
+r3dfox-screenshot-component =
+    .label = Enable in-browser screenshot component
+
+r3dfox-hover-preview =
+    .label = Modern style tab hover preview
+
+r3dfox-drop-to-pin =
+    .label = Disable drop to pin tabs
+
+r3dfox-switch-to-tab =
+    .label = Reverse urlbar switch to tab behavior
+
+r3dfox-switch-to-tab-desc = This should reverse the behavior of switching to an already open tab in the urlbar (require Shift/Ctrl/Alt to switch to open tab instead of preventing it), however it's a bit buggy currently and just disables it.
+
+r3dfox-advanced-header = Advanced configurations
+
+r3dfox-accessibility = Accessibility services
+
+r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
+
+r3dfox-cookiebanners = Cookie banner handling mode in normal browsing
+
+r3dfox-cookiebanners-desc = Recommended to leave enabled for a less annoying browsing experience. Currently this will set cookies even when set to block all cookies.
+
+r3dfox-cookiebanners-private = Cookie banner handling mode in private browsing
+
+r3dfox-caption-width = Custom caption button Aero fog mask width
+
+r3dfox-caption-desc = For themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
+
+r3dfox-caption-height = Custom caption button Aero fog mask height
+
+r3dfox-sandbox-level = Security Sandbox Content Level
+
+r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8 or above. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
+
+r3dfox-webaudio =
+    .label = Disable Web Audio API
+
+r3dfox-webaudio-desc = Web Audio can be disabled for enhanced security, however a few websites may require it to be enabled.
+
+r3dfox-csp =
+    .label = Disable Content Security Policy (CSP)
+
+r3dfox-csp-desc = CSP is a security feature, improperly designed websites may require disabling CSP. Not recommended unless you know what you are doing.
+
+r3dfox-port-blocking =
+    .label = Disable Website Port Blocking
+
+r3dfox-port-blocking-desc = Supposedly for "security", to disallow accessing websites on specified blocked ports but it makes no sense. What can a website on a blocked port do that can't just be done on 80/443? https://fetch.spec.whatwg.org/#port-blocking
+
+r3dfox-dwrite =
+    .label = Use Skia GDI font rendering (BETA)
+
+r3dfox-dwrite-desc = Disable DirectWrite font rendering. Not recommended unless you know what you are doing. Currently buggy. https://github.com/Eclipse-Community/r3dfox/issues/19
+
+r3dfox-hsts =
+    .label = Disable HTTP Strict Transport Security (HSTS)
+
+r3dfox-hsts-desc = HSTS is a security feature, websites with missing, expired, or wrong certificates may require disabling HSTS to access. Not recommended unless you know what you are doing.
+
+r3dfox-cors-base =
+    .label = Disable Cross-Origin Resource Sharing (CORS)
+
+r3dfox-cors-base-desc = CORS is a security feature, improperly designed websites may require disabling CORS. Not recommended unless you know what you are doing.
+
+r3dfox-cors-preflight =
+    .label = Disable Cross-Origin Resource Sharing Preflight requests (CORS)
+
+r3dfox-cors-preflight-desc = Bypasses CORS Preflight requests, improperly designed websites may require this as well as disabling CORS. Not recommended unless you know what you are doing.
+
+r3dfox-same-origin =
+    .label = Disable Same-Origin Policy (SOP)
+
+r3dfox-same-origin-desc = SOP is a security feature, improperly designed websites may require disabling SOP. Not recommended unless you know what you are doing.
+
+r3dfox-e10s =
+    .label = Disable content multiprocess (e10s) (BETA)
+
+r3dfox-e10s-desc = Disables e10s/electrolysis content multiprocess. There are still multiple processes from other browser components with this enabled. Not recommended unless you know what you are doing.
+
+## General Section - Startup
 
 startup-header = Startup
 
@@ -1210,14 +1349,6 @@ sitedata-settings =
 sitedata-cookies-exceptions =
     .label = Manage Exceptions…
     .accesskey = x
-
-## Privacy Section - Cookie Banner Blocking
-
-cookie-banner-blocker-header = Cookie Banner Blocker
-cookie-banner-blocker-description = When a site asks if they can use cookies in private browsing mode, { -brand-short-name } automatically refuses for you. Only on supported sites.
-cookie-banner-learn-more = Learn More
-cookie-banner-blocker-checkbox-label =
-    .label = Automatically refuse cookie banners
 
 ## Privacy Section - Address Bar
 

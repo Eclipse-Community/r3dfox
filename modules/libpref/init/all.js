@@ -149,9 +149,6 @@ pref("dom.serviceWorkers.update_delay", 1000);
 // Enable test for 24 hours update, service workers will always treat last update check time is over 24 hours
 pref("dom.serviceWorkers.testUpdateOverOneDay", false);
 
-// Disable whatever this i forgor
-pref("browser.startup.homepage_override.mstone", "ignore");
-
 // Blacklist of domains of web apps which are not aware of strict keypress
 // dispatching behavior.  This is comma separated list.  If you need to match
 // all sub-domains, you can specify it as "*.example.com".  Additionally, you
@@ -657,6 +654,28 @@ pref("toolkit.telemetry.user_characteristics_ping.logLevel", "Warn");
 #endif // !defined(MOZ_ASAN) && !defined(MOZ_TSAN)
 // Extra logging for AsyncShutdown barriers and phases
 pref("toolkit.asyncshutdown.log", false);
+
+// r3dfox preferences.
+// Ability to enable/disable Aero fog.
+pref("r3dfox.aero.fog", 0);
+// r3dfox theme.
+pref("r3dfox.customizations.enabled", true);
+// r3dfox drag space in theme.
+pref("r3dfox.drag-space.enabled", true);
+// r3dfox tab and other item brackgrounds so no fog needed.
+pref("r3dfox.backgrounds.enabled", true);
+// Black or white caption text.
+pref("r3dfox.caption.text.color", 0);
+// Force (kinda) transparency.
+pref("r3dfox.force.transparency", false);
+// Disable transparent menubar by default
+pref("r3dfox.transparent.menubar", false);
+// Enable menubar text glow by default
+pref("r3dfox.glow.menubar", true);
+// Translucent navbar design
+pref("r3dfox.translucent.navbar", false);
+// Disable other customizations by default
+pref("r3dfox.view.image", false);
 
 // Enable JS dump() function.
 // IMPORTANT: These prefs must be here even though they're also defined in

@@ -115,6 +115,8 @@ struct BootstrapConfig;
  */
 #  define XRE_SYS_NATIVE_MANIFESTS "XRESysNativeManifests"
 #  define XRE_USER_NATIVE_MANIFESTS "XREUserNativeManifests"
+#  define XRE_MOZ_SYS_NATIVE_MANIFESTS "XREMozSysNativeManifests"
+#  define XRE_MOZ_USER_NATIVE_MANIFESTS "XREMozUserNativeManifests"
 #endif
 
 /**
