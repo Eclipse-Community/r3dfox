@@ -2295,6 +2295,11 @@
   value: false
   mirror: always
 
+- name: content.cors.bypass_preflight_request
+  type: bool
+  value: false
+  mirror: always
+
 # If true, we'll use the triggering principal rather than the loading principal
 # when doing CORS checks.  Doing so is generally not correct, but we shipped
 # with this behavior for a long time, so we're leaving it preffable in case
@@ -15154,6 +15159,12 @@
   value: 1048576
   mirror: always
 
+# Master switch for HSTS usage (security <-> privacy tradeoff)
+- name: network.stricttransportsecurity.enabled
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
 # If true, use the HSTS preload list.
 - name: network.stricttransportsecurity.preloadlist
   type: RelaxedAtomicBool
@@ -17613,6 +17624,12 @@
 
 # Pref for mixed display content upgrading (images, audio, video).
 - name: security.mixed_content.upgrade_display_content
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
+# Whether same-origin policy for all URIs is in effect. "False" is traditional.
+- name: security.same_origin_policy.enabled
   type: RelaxedAtomicBool
   value: true
   mirror: always
