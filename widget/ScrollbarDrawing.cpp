@@ -359,12 +359,24 @@ bool ScrollbarDrawing::PaintScrollbarButton(
     const ElementState& aElementState, const Colors& aColors, const DPIRatio&) {
   auto [buttonColor, arrowColor] = ComputeScrollbarButtonColors(
       aFrame, aAppearance, aStyle, aElementState, aColors);
-  aDrawTarget.FillRect(aRect.ToUnknownRect(),
+  // Scrollbar thumb and button are two CSS pixels thinner than the track.
+  LayoutDeviceRect buttonRect(aRect);
+  gfxFloat p2a = gfxFloat(aFrame->PresContext()->AppUnitsPerDevPixel());
+  gfxFloat dev2css = round(AppUnitsPerCSSPixel() / p2a);
+  const bool horizontal = aScrollbarKind == ScrollbarKind::Horizontal;
+  if (horizontal) {
+    buttonRect.Deflate(0, dev2css);
+  } else {
+    buttonRect.Deflate(dev2css, 0);
+  }
+
+  aDrawTarget.FillRect(buttonRect.ToUnknownRect(),
+
                        ColorPattern(ToDeviceColor(buttonColor)));
 
   // Start with Up arrow.
-  float arrowPolygonX[] = {-4.0f, 0.0f, 4.0f, 4.0f, 0.0f, -4.0f};
-  float arrowPolygonY[] = {0.0f, -4.0f, 0.0f, 3.0f, -1.0f, 3.0f};
+  float arrowPolygonX[] = {5.0, 8.5, 12.0, 12.0, 8.5, 5.0};
+  float arrowPolygonY[] = {9.0, 6.0, 9.0, 12.0, 9.0, 12.0};
 
   const float kPolygonSize = 17;
 
@@ -374,7 +386,7 @@ bool ScrollbarDrawing::PaintScrollbarButton(
       break;
     case StyleAppearance::ScrollbarbuttonDown:
       for (int32_t i = 0; i < arrowNumPoints; i++) {
-        arrowPolygonY[i] *= -1;
+        arrowPolygonY[i] = kPolygonSize - arrowPolygonY[i];
       }
       break;
     case StyleAppearance::ScrollbarbuttonLeft:
@@ -387,15 +399,35 @@ bool ScrollbarDrawing::PaintScrollbarButton(
     case StyleAppearance::ScrollbarbuttonRight:
       for (int32_t i = 0; i < arrowNumPoints; i++) {
         float temp = arrowPolygonX[i];
-        arrowPolygonX[i] = arrowPolygonY[i] * -1;
+        arrowPolygonX[i] = kPolygonSize - arrowPolygonY[i];
         arrowPolygonY[i] = temp;
       }
       break;
     default:
       return false;
   }
-  ThemeDrawing::PaintArrow(aDrawTarget, aRect, arrowPolygonX, arrowPolygonY,
-                           kPolygonSize, arrowNumPoints, arrowColor);
+
+  // Compute the path and draw the scrollbar.
+  const float scale = ThemeDrawing::ScaleToFillRect(aRect, kPolygonSize);
+  RefPtr<gfx::PathBuilder> builder = aDrawTarget.CreatePathBuilder();
+  gfx::Point start =
+      gfx::Point(aRect.X(), aRect.Y());
+  gfx::Point p =
+      start + gfx::Point(arrowPolygonX[0] * scale, arrowPolygonY[0] * scale);
+  builder->MoveTo(p);
+  for (int32_t i = 1; i < arrowNumPoints; i++) {
+    p = start +
+        gfx::Point(arrowPolygonX[i] * scale, arrowPolygonY[i] * scale);
+    builder->LineTo(p);
+  }
+  RefPtr<gfx::Path> path = builder->Finish();
+
+  // The arrow should be drawn without antialiasing.
+  DrawOptions arrowOptions(
+    1.0f, gfx::CompositionOp::OP_OVER, gfx::AntialiasMode::NONE
+  );
+
+  aDrawTarget.Fill(path, gfx::ColorPattern(ToDeviceColor(arrowColor)), arrowOptions);
   return true;
 }
 
