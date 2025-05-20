@@ -109,6 +109,7 @@ Maybe<nsITheme::Transparency> ScrollbarDrawingWin::GetScrollbarPartTransparency(
     case StyleAppearance::ScrollbarHorizontal:
     case StyleAppearance::ScrollbarVertical:
     case StyleAppearance::Scrollcorner:
+    case StyleAppearance::Statusbar:
       // Knowing that scrollbars and statusbars are opaque improves
       // performance, because we create layers for them. This better be
       // true across all Windows themes! If it's not true, we should
@@ -131,7 +132,17 @@ bool ScrollbarDrawingWin::DoPaintScrollbarThumb(
     const Colors& aColors, const DPIRatio& aDpiRatio) {
   sRGBColor thumbColor = ComputeScrollbarThumbColor(
       aFrame, aStyle, aElementState, aDocumentState, aColors);
-  ThemeDrawing::FillRect(aPaintData, aRect, thumbColor);
+  // Scrollbar thumb and button are two CSS pixels thinner than the track.
+  LayoutDeviceRect thumbRect(aRect);
+  gfxFloat p2a = gfxFloat(aFrame->PresContext()->AppUnitsPerDevPixel());
+  gfxFloat dev2css = round(AppUnitsPerCSSPixel() / p2a);
+  const bool horizontal = aScrollbarKind == ScrollbarKind::Horizontal;
+  if (horizontal) {
+    thumbRect.Deflate(0, dev2css);
+  } else {
+    thumbRect.Deflate(dev2css, 0);
+  }
+  ThemeDrawing::FillRect(aPaintData, thumbRect, thumbColor);
   return true;
 }
 
