@@ -1467,6 +1467,11 @@ nsNativeThemeWin::DrawWidgetBackground(gfxContext* aContext, nsIFrame* aFrame,
                                        const nsRect& aRect,
                                        const nsRect& aDirtyRect,
                                        DrawOverflow aDrawOverflow) {
+  bool dwmCompositionEnabled =
+      StaticPrefs::widget_native_controls_force_dwm_report_off()
+          ? false
+          : gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
+
   if (IsWidgetNonNative(aFrame, aAppearance) != NonNative::No) {
     return Theme::DrawWidgetBackground(aContext, aFrame, aAppearance, aRect,
                                        aDirtyRect, aDrawOverflow);
@@ -1478,7 +1483,7 @@ nsNativeThemeWin::DrawWidgetBackground(gfxContext* aContext, nsIFrame* aFrame,
                                        aDirtyRect);
 
   // ^^ without the right sdk, assume xp theming and fall through.
-  if (gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+  if (dwmCompositionEnabled) {
     switch (aAppearance) {
       case StyleAppearance::MozWindowTitlebar:
       case StyleAppearance::MozWindowTitlebarMaximized:
@@ -1908,6 +1913,11 @@ bool nsNativeThemeWin::GetWidgetPadding(nsDeviceContext* aContext,
                                         nsIFrame* aFrame,
                                         StyleAppearance aAppearance,
                                         LayoutDeviceIntMargin* aResult) {
+  bool dwmCompositionEnabled =
+      StaticPrefs::widget_native_controls_force_dwm_report_off()
+          ? false
+          : gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
+
   switch (aAppearance) {
     // Radios and checkboxes return a fixed size in GetMinimumWidgetSize
     // and have a meaningful baseline, so they can't have
@@ -1927,7 +1937,7 @@ bool nsNativeThemeWin::GetWidgetPadding(nsDeviceContext* aContext,
     aResult->SizeTo(0, 0, 0, 0);
 
     // aero glass doesn't display custom buttons
-    if (gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) return true;
+    if (dwmCompositionEnabled) return true;
 
     // button padding for standard windows
     if (aAppearance == StyleAppearance::MozWindowButtonBox) {
@@ -2105,6 +2115,11 @@ bool nsNativeThemeWin::GetWidgetOverflow(nsDeviceContext* aContext,
 LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
     nsPresContext* aPresContext, nsIFrame* aFrame,
     StyleAppearance aAppearance) {
+  bool dwmCompositionEnabled =
+      StaticPrefs::widget_native_controls_force_dwm_report_off()
+          ? false
+          : gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
+
   if (IsWidgetNonNative(aFrame, aAppearance) == NonNative::Always) {
     return Theme::GetMinimumWidgetSize(aPresContext, aFrame, aAppearance);
   }
@@ -2267,7 +2282,7 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
 
     case StyleAppearance::MozWindowButtonBox:
     case StyleAppearance::MozWindowButtonBoxMaximized: {
-      if (gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+      if (dwmCompositionEnabled) {
         SIZE sz = nsUXThemeData::GetCommandButtonBoxMetrics();
         LayoutDeviceIntSize result(sz.cx,
                                    sz.cy - GetSystemMetrics(SM_CYFRAME) -
