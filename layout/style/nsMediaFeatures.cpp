@@ -33,6 +33,10 @@
 #  include "mozilla/WindowsVersion.h"
 #endif
 
+// -- native controls patch includes --
+#include "mozilla/StaticPrefs_widget.h"
+// -- end native controls patch includes --
+
 using namespace mozilla;
 using mozilla::dom::DisplayMode;
 using mozilla::dom::Document;
@@ -248,13 +252,17 @@ bool Gecko_MediaFeatures_MatchesPlatform(StylePlatform aPlatform) {
     case StylePlatform::WindowsWin10:
     case StylePlatform::WindowsWin7:
     case StylePlatform::WindowsWin8: {
-      if (!IsVistaOrLater()) {
+      int overridePref =
+          StaticPrefs::widget_override_win_version();
+      bool doesOverride = overridePref > 0;
+
+      if ((!doesOverride && !IsVistaOrLater()) || overridePref == 5) {
         return aPlatform == StylePlatform::WindowsXp;
       }
-      if (IsWin10OrLater()) {
+      if ((!doesOverride && IsWin10OrLater()) || overridePref == 10) {
         return aPlatform == StylePlatform::WindowsWin10;
       }
-      if (IsWin8OrLater()) {
+      if ((!doesOverride && IsWin8OrLater()) || overridePref == 8) {
         return aPlatform == StylePlatform::WindowsWin8;
       }
       return aPlatform == StylePlatform::WindowsWin7;

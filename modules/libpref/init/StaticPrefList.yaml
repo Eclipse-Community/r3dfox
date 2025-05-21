@@ -16481,27 +16481,27 @@
 # Prefs starting with "widget."
 #---------------------------------------------------------------------------
 
-- name: widget.ev-native-controls-patch.override-win-version
+- name: widget.override-win-version
   type: int32_t
   value: 0
   mirror: always
   
-- name: widget.native-controls.force-dwm-report-off
+- name: widget.force-dwm-report-off
   type: bool
   value: false
   mirror: always
   
-- name: widget.native-controls.force-glass-reporting
+- name: widget.force-glass-reporting
   type: int32_t
   value: 0
   mirror: always
   
-- name: widget.native-controls.override-aero-caption-buttons-mask-width
+- name: widget.override-aero-caption-buttons-mask-width
   type: int32_t
   value: 0
   mirror: always
   
-- name: widget.native-controls.override-aero-caption-buttons-mask-height
+- name: widget.override-aero-caption-buttons-mask-height
   type: int32_t
   value: 0
   mirror: always

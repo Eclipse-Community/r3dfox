@@ -486,32 +486,44 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
     case IntID::WindowsDefaultTheme:
       aResult = nsUXThemeData::IsDefaultWindowTheme();
       break;
-    case IntID::DWMCompositor:
-      if (StaticPrefs::widget_native_controls_force_dwm_report_off()) {
+    case IntID::DWMCompositor: {
+      int winPref =
+          StaticPrefs::widget_override_win_version();
+      if (winPref == 10) {
+        aResult = 1;
+        break;
+      }
+      if (StaticPrefs::widget_force_dwm_report_off()) {
         aResult = 0;
         break;
       }
 
       aResult = gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
       break;
+    }
     case IntID::WindowsAccentColorInTitlebar:
       aResult = mTitlebarColors.mUseAccent;
       break;
     case IntID::WindowsGlass: {
       int reportingPref =
-          StaticPrefs::widget_native_controls_force_glass_reporting();
+          StaticPrefs::widget_force_glass_reporting();
       if (reportingPref != 0) {
         aResult = (reportingPref == 1) ? 1 : 0;
         break;
       }
-      if (StaticPrefs::widget_native_controls_force_dwm_report_off()) {
+      if (StaticPrefs::widget_force_dwm_report_off()) {
         aResult = 0;
         break;
       }
+
+      int overrideWinVer =
+          StaticPrefs::widget_override_win_version();
+      bool isWin8OrLater =
+          (overrideWinVer == 0 && IsWin8OrLater()) || overrideWinVer >= 8;
+
       // Aero Glass is only available prior to Windows 8 when DWM is used.
-      // Actually not, you can restore it with glass tools
-      // It's just that people don't research anymore... smh
-      aResult = (gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled());
+      aResult = (gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled() &&
+                 !isWin8OrLater);
       break;
     }
     case IntID::AlertNotificationOrigin:

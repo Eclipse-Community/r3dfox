@@ -354,7 +354,7 @@ bool CompositorBridgeChild::SendAdoptChild(const LayersId& id) {
 bool CompositorBridgeChild::SendFlushRendering(
     const wr::RenderReasons& aReasons) {
   bool dwmCompositionEnabled =
-      StaticPrefs::widget_native_controls_force_dwm_report_off()
+      StaticPrefs::widget_force_dwm_report_off()
           ? false
           : gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
 

@@ -184,16 +184,16 @@ void nsUXThemeData::UpdateTitlebarInfo(HWND aWnd) {
   if (!aWnd) return;
 
   bool dwmCompositionEnabled =
-      StaticPrefs::widget_native_controls_force_dwm_report_off()
+      StaticPrefs::widget_force_dwm_report_off()
           ? false
           : gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
 
   if (!sTitlebarInfoPopulatedAero && dwmCompositionEnabled) {
     RECT captionButtons;
     int overrideCaptionButtonsWidth = StaticPrefs::
-        widget_native_controls_override_aero_caption_buttons_mask_width();
+        widget_override_aero_caption_buttons_mask_width();
     int overrideCaptionButtonsHeight = StaticPrefs::
-        widget_native_controls_override_aero_caption_buttons_mask_height();
+        widget_override_aero_caption_buttons_mask_height();
 
     if (SUCCEEDED(WinUtils::dwmGetWindowAttributePtr(aWnd, DWMWA_CAPTION_BUTTON_BOUNDS,
                                         &captionButtons,
@@ -220,7 +220,9 @@ void nsUXThemeData::UpdateTitlebarInfo(HWND aWnd) {
   }
 
   // NB: sTitlebarInfoPopulatedThemed is always true pre-vista.
-  if (sTitlebarInfoPopulatedThemed || IsWin8OrLater()) return;
+  if (sTitlebarInfoPopulatedThemed ||
+      (IsWin8OrLater() && dwmCompositionEnabled))
+    return;
 
   // Query a temporary, visible window with command buttons to get
   // the right metrics.
