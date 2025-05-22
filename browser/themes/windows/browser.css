@@ -6,6 +6,21 @@
 @import url("chrome://browser/skin/contextmenu.css");
 @import url("chrome://browser/skin/browser-custom-colors.css");
 
+#main-menubar > menu {
+  appearance: none;
+  color: inherit;
+
+  &[_moz-menuactive] {
+    background-color: light-dark(hsla(0,0%,0%,.12), hsla(0,0%,100%,.22));
+    color: inherit;
+
+    @media (prefers-contrast) {
+      background-color: -moz-menuhover;
+      color: -moz-menuhovertext;
+    }
+  }
+}
+
 #menubar-items {
   flex-direction: column; /* for flex hack */
   justify-content: normal; /* align the menubar to the top also in customize mode */
@@ -77,7 +92,9 @@
 @media (-moz-platform: windows-win7) {
   @media (-moz-windows-default-theme) {
     :root:not([lwtheme]) #TabsToolbar {
-      background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 80%, transparent);
+    @media -moz-pref("r3dfox.aero.fog", 2) {
+      background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 40%, transparent);
+    }
     }
   }
 }
@@ -109,6 +126,7 @@
    * titlebar. We side-step this issue by layering our own background underneath
    * the tabs.
    */
+  @media -moz-pref("r3dfox.aero.fog", 2) {
   :root[tabsintitlebar]:not([lwtheme], [sizemode=fullscreen]) #TabsToolbar {
     background-image: linear-gradient(transparent, ActiveCaption);
     background-size: auto 200%;
@@ -116,6 +134,7 @@
 
   :root[tabsintitlebar]:not([lwtheme], [sizemode=fullscreen]) #TabsToolbar:-moz-window-inactive {
     background-image: linear-gradient(transparent, InactiveCaption);
+  }
   }
 
   /* Add a window top border for webextension themes */
@@ -133,14 +152,16 @@
 
 /* Titlebar */
 
-:root[tabsintitlebar][sizemode="normal"] #titlebar {
-  appearance: auto;
-  -moz-default-appearance: -moz-window-titlebar;
-}
+@media not (-moz-platform: windows-win10) {
+  :root[tabsintitlebar][sizemode="normal"] #titlebar {
+    appearance: auto;
+    -moz-default-appearance: -moz-window-titlebar;
+  }
 
-:root[tabsintitlebar][sizemode="maximized"] #titlebar {
-  appearance: auto;
-  -moz-default-appearance: -moz-window-titlebar-maximized;
+  :root[tabsintitlebar][sizemode="maximized"] #titlebar {
+    appearance: auto;
+    -moz-default-appearance: -moz-window-titlebar-maximized;
+  }
 }
 
 @media (-moz-windows-compositor: 0) {
