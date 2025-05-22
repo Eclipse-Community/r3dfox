@@ -108,6 +108,19 @@
         content: inherit;
       }
 
+      .titlebar-button{
+        background-color: transparent !important;
+        -moz-context-properties: stroke !important;
+        stroke: currentColor !important;
+      }
+
+      .titlebar-button:hover {
+        background-color: hsla(0,0%,100%,.32) !important
+      }
+      .titlebar-close:hover {
+        background-color: hsl(355,86%,49%) !important
+      }
+
       .titlebar-min {
         content: "\e921"; /* ChromeMinimize */
       }

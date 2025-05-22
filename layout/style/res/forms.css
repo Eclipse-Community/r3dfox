@@ -291,6 +291,10 @@ select > button:first-child {
   display: contents;
 }
 
+::-moz-display-comboboxcontrol-frame:read-write {
+  user-select: text;
+}
+
 option[label]::before {
   content: attr(label);
 }
@@ -503,6 +507,7 @@ input:where([type="reset"], [type="button"], [type="submit"]) {
   white-space: pre;
   text-align: center;
   padding-inline: 4px;
+  overflow-clip-box: padding-box;
 }
 
 input[type="color"] {
