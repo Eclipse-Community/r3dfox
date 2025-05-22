@@ -443,10 +443,12 @@ menupopup > menu:-moz-locale-dir(rtl)::after {
     margin-inline: var(--space-small) 0;
   }
 
+  @media (-moz-windows-non-native-menus) {
   @media not (prefers-contrast) {
     menuitem:not([disabled]) > & {
       color: var(--text-color-disabled);
     }
+  }
   }
 
   :is(menu, menuitem):not([acceltext]) > & {
