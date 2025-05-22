@@ -117,3 +117,12 @@ menuitem[badge]::after {
   margin-inline-start: var(--space-small);
   padding: var(--space-xxsmall) var(--space-small);
 }
+
+/* menuseparator */
+
+menuseparator {
+  appearance: auto;
+  -moz-default-appearance: menuseparator;
+  margin: 5px 0;
+  padding: 1px 0;
+}
