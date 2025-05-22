@@ -5,6 +5,21 @@
 @import url("chrome://browser/skin/browser-shared.css");
 @import url("chrome://browser/skin/contextmenu.css");
 
+#main-menubar > menu {
+  appearance: none;
+  color: inherit;
+
+  &[_moz-menuactive] {
+    background-color: light-dark(hsla(0,0%,0%,.12), hsla(0,0%,100%,.22));
+    color: inherit;
+
+    @media (prefers-contrast) {
+      background-color: -moz-menuhover;
+      color: -moz-menuhovertext;
+    }
+  }
+}
+
 #menubar-items {
   flex-direction: column; /* for flex hack */
   justify-content: normal; /* align the menubar to the top also in customize mode */
@@ -88,7 +103,9 @@
 @media (-moz-platform: windows-win7) {
   @media (-moz-windows-default-theme) {
     :root:not([lwtheme]) :is(#TabsToolbar, #navigator-toolbox[tabs-hidden] #nav-bar) {
-      background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 80%, transparent);
+      @media -moz-pref("r3dfox.aero.fog", 2) {
+        background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 40%, transparent);
+      }
     }
   }
 }
@@ -112,7 +129,7 @@
     color: InactiveCaptionText;
   }
 
-  :root[customtitlebar] .browser-titlebar {
+  :root[customtitlebar] #titlebar {
     color: CaptionText;
 
     &:-moz-window-inactive {
@@ -122,6 +139,23 @@
 }
 
 @media (-moz-windows-classic) {
+  /**
+   * In the classic themes, the titlebar has a horizontal gradient, which is
+   * problematic for reading the text of background tabs when they're in the
+   * titlebar. We side-step this issue by layering our own background underneath
+   * the tabs.
+   */
+  @media -moz-pref("r3dfox.aero.fog", 2) {
+  :root[tabsintitlebar]:not([sizemode=fullscreen]) #TabsToolbar:not([lwtheme]) {
+    background-image: linear-gradient(transparent, ActiveCaption);
+    background-size: auto 200%;
+  }
+
+  :root[tabsintitlebar]:not([sizemode=fullscreen]) #TabsToolbar:not([lwtheme]):-moz-window-inactive {
+    background-image: linear-gradient(transparent, InactiveCaption);
+  }
+  }
+
   /* Add a window top border for webextension themes */
   :root[customtitlebar][lwtheme][sizemode="normal"] #navigator-toolbox {
     background-image: linear-gradient(to bottom,
@@ -139,6 +173,7 @@
 /* Titlebar */
 
 /* ??? wtf? */
+@media not (-moz-platform: windows-win10) {
 :root[customtitlebar][sizemode="normal"] #titlebar {
   appearance: auto;
   -moz-default-appearance: -moz-window-titlebar;
@@ -147,6 +182,7 @@
 :root[customtitlebar][sizemode="maximized"] #titlebar {
   appearance: auto;
   -moz-default-appearance: -moz-window-titlebar-maximized;
+}
 }
 
 /* stylelint-disable-next-line media-query-no-invalid */
@@ -309,6 +345,14 @@
     .findbar-textbox:not(:focus) {
       border-color: ThreeDShadow;
     }
+  }
+}
+
+/* Address bar results view */
+
+@media not (-moz-windows-default-theme) {
+  :root:not([lwtheme]) {
+    --urlbar-popup-action-color: LinkText;
   }
 }
 
