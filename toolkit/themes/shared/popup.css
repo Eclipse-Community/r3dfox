@@ -50,6 +50,9 @@
   /* Panel design token theming */
   --background-color-canvas: var(--panel-background-color);
 
+  --panel-box-shadow: 0 0 var(--panel-box-shadow-margin) hsla(0, 0%, 0%, 0.2);
+  --panel-padding-block: 0;
+
   @media (-moz-platform: linux) and (not (-moz-gtk-csd-transparency-available)) {
     /* On some linux WMs we need to draw square and opaque menus because alpha
      * is not available. */
@@ -97,7 +100,9 @@
     /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
     max-width: round(up, 100% - 2 * var(--panel-box-shadow-margin), 1px);
 
-    overflow: clip; /* Don't let panel content overflow the border */
+    @media (-moz-windows-non-native-menus) {
+      overflow: clip; /* Don't let panel content overflow the border */
+    }
   }
 
   &[orient="vertical"]::part(content) {
@@ -139,15 +144,17 @@ menupopup {
   menupopup {
     appearance: auto;
     -moz-default-appearance: menupopup;
+    --panel-padding: unset;
 
     /* Native menus are always light */
     color-scheme: light !important;
 
     /* We set the background-color / border here so that it doesn't interfere with native styling. */
     background-color: Menu;
-    border: 1px solid ThreeDShadow;
     --panel-background-color: transparent;
-    --panel-border-color: transparent;
+    @media (-moz-windows-classic) {
+      --panel-border-color: ThreeDShadow;
+    }
     --nested-margin: -3px;
     --panel-box-shadow-margin: 0px;
   }
@@ -253,6 +260,14 @@ panel[type="arrow"] {
 
   &[animating] {
     pointer-events: none;
+  }
+}
+
+@media (-moz-platform: windows) {
+  menulist > menupopup {
+    appearance: none;
+    background-color: transparent;
+    border: none;
   }
 }
 
