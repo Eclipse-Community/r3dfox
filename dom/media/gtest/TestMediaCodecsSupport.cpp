@@ -217,6 +217,7 @@ TEST(MediaCodecsSupport, GetMediaCodecFromMimeType)
 #endif
       {"video/avc"_ns, MediaCodec::H264},
       {"video/mp4"_ns, MediaCodec::H264},
+      {"video/theora"_ns, MediaCodec::Theora},
       {"video/vp8"_ns, MediaCodec::VP8},
       {"video/vp9"_ns, MediaCodec::VP9},
       // Audio codecs
