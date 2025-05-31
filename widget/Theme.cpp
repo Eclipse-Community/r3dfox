@@ -1165,6 +1165,7 @@ bool Theme::DoDrawWidgetBackground(PaintBackendData& aPaintData,
     case StyleAppearance::Listbox:
       PaintListbox(aPaintData, devPxRect, elementState, colors, dpiRatio);
       break;
+    case StyleAppearance::MenulistButton:
     case StyleAppearance::Menulist:
       PaintMenulist(aPaintData, devPxRect, elementState, colors, dpiRatio);
       break;
@@ -1419,6 +1420,7 @@ LayoutDeviceIntMargin Theme::GetWidgetBorder(nsDeviceContext* aContext,
     case StyleAppearance::PasswordInput:
     case StyleAppearance::Listbox:
     case StyleAppearance::Menulist:
+    case StyleAppearance::MenulistButton:
     case StyleAppearance::Button:
     case StyleAppearance::ProgressBar:
       // Return the border size from the UA sheet, even though what we paint
@@ -1478,6 +1480,7 @@ bool Theme::GetWidgetOverflow(nsDeviceContext* aContext, nsIFrame* aFrame,
     case StyleAppearance::PasswordInput:
       outlineOffset = -kTextFieldBorderWidth;
       break;
+    case StyleAppearance::MenulistButton:
     case StyleAppearance::Menulist:
     case StyleAppearance::Button:
       outlineOffset = -kButtonBorderWidth;
@@ -1625,6 +1628,7 @@ bool Theme::ThemeSupportsWidget(nsPresContext* aPresContext, nsIFrame* aFrame,
     case StyleAppearance::Button:
     case StyleAppearance::Listbox:
     case StyleAppearance::Menulist:
+    case StyleAppearance::MenulistButton:
     case StyleAppearance::NumberInput:
     case StyleAppearance::PasswordInput:
     case StyleAppearance::MozMenulistArrowButton:
