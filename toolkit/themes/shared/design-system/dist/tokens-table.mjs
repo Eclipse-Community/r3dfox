@@ -502,7 +502,7 @@ export const tokensTable = {
     { value: "8px", name: "--border-radius-medium" },
     { value: "16px", name: "--border-radius-large" },
     { value: "var(--border-radius-small)", name: "--badge-border-radius" },
-    { value: "var(--border-radius-medium)", name: "--button-border-radius" },
+    { value: "var(--border-radius-small)", name: "--button-border-radius" },
   ],
   "border-width": [
     { value: "1px", name: "--border-width" },
@@ -1970,7 +1970,7 @@ export const variableLookupTable = {
   "button-border-color-primary-selected":
     "var(--button-border-color-primary-active)",
   "button-border-color-selected": "var(--button-border-color-active)",
-  "button-border-radius": "var(--border-radius-medium)",
+  "button-border-radius": "var(--border-radius-small)",
   "button-font-size": "var(--font-size-root)",
   "button-font-size-small": "var(--font-size-small)",
   "button-font-weight": "var(--font-weight-semibold)",
