@@ -65,6 +65,11 @@
   }
 }
 
+[focused] > .urlbar-background,
+#searchbar:focus-within {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.23);
+}
+
 /* Variables that make it easier to support both Nova and Proton. These can
    optionally be replaced with inline definitions when Proton is removed. */
 .urlbar,
@@ -73,8 +78,6 @@
   --urlbar-background-background-color-focused: var(--toolbar-field-background-color-focus);
   --urlbar-background-border: none;
   --urlbar-background-border-breakout: none;
-  --urlbar-background-border-radius: var(--urlbarview-border-radius);
-  --urlbar-background-border-top-radius-breakout-compact: min(var(--urlbar-background-border-radius), calc(var(--urlbar-min-height) / 2));
   --urlbar-background-box-shadow-breakout: 0 0 14px 0 var(--chrome-box-shadow);
   --urlbar-background-box-shadow-breakout-compact: none;
   --urlbar-background-inset-breakout: calc(var(--urlbar-min-height) / 2 - var(--border-radius-xxlarge));
