@@ -20,7 +20,7 @@
   --toolbarbutton-icon-fill-attention-text: AccentColorText;
 
   --toolbarbutton-disabled-opacity: 0.4;
-  --toolbarbutton-border-radius: var(--button-border-radius);
+  --toolbarbutton-border-radius: 4px;
 
   --toolbarbutton-hover-background: color-mix(in srgb, currentColor 17%, transparent);
   --toolbarbutton-active-background: color-mix(in srgb, currentColor 30%, transparent);
