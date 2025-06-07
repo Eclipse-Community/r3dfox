@@ -987,7 +987,7 @@ const gfx::DeviceColor& gfxUtils::GetColorForFrameNumber(
     uint32_t i = 0;
     colors[i++] = gfx::DeviceColor::FromABGR(0xffff0000);
     colors[i++] = gfx::DeviceColor::FromABGR(0xffcc00ff);
-    colors[i++] = gfx::DeviceColor::FromABGR(0xff0000ee);
+    colors[i++] = gfx::DeviceColor::FromABGR(0xff0066cc);
     colors[i++] = gfx::DeviceColor::FromABGR(0xff00ff00);
     colors[i++] = gfx::DeviceColor::FromABGR(0xff33ffff);
     colors[i++] = gfx::DeviceColor::FromABGR(0xffff0099);
