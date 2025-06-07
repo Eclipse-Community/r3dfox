@@ -104,7 +104,7 @@
     --button-border-color-toolbar-active: var(--button-border-color-active);
     --button-border-color-toolbar-disabled: var(--button-border-color-disabled);
     --button-border-color-toolbar-selected: var(--button-border-color-ghost-active);
-    --button-border-radius: var(--border-radius-medium);
+    --button-border-radius: var(--border-radius-small);
     --button-font-size: var(--font-size-root);
     --button-font-size-small: var(--font-size-small);
     --button-font-weight: var(--font-weight-semibold);
@@ -398,7 +398,7 @@
     --input-text-border: var(--border-width) solid var(--input-text-border-color);
     --input-text-border-color: var(--border-color);
     --input-text-border-color-disabled: var(--border-color-interactive-disabled);
-    --input-text-border-radius: var(--border-radius-medium);
+    --input-text-border-radius: var(--border-radius-small);
     --input-text-color-disabled: var(--input-text-color);
     --input-text-icon-size: var(--icon-size-xsmall);
     --input-text-min-height: var(--button-min-height);
@@ -514,7 +514,7 @@
     --toolbarbutton-badge-min-width: 14px;
     --toolbarbutton-badge-padding-block-end: 1px;
     --toolbarbutton-badge-padding-inline: 2px;
-    --toolbarbutton-border-radius: var(--button-border-radius);
+    --toolbarbutton-border-radius: var(--border-radius-small);
     --toolbarbutton-icon-fill: light-dark(var(--color-gray-70), var(--color-gray-0));
     --toolbarbutton-icon-fill-attention: light-dark(var(--color-blue-60), var(--color-cyan-30));
     --toolbarbutton-icon-fill-attention-text: light-dark(var(--color-gray-20), var(--color-gray-90));

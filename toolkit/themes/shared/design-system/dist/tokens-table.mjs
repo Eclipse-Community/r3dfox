@@ -1169,11 +1169,11 @@ export const tokensTable = {
     { value: "4px", name: "--border-radius-small" },
     { value: "8px", name: "--border-radius-medium" },
     { value: "16px", name: "--border-radius-large" },
-    { value: "var(--border-radius-medium)", name: "--button-border-radius" },
+    { value: "var(--border-radius-small)", name: "--button-border-radius" },
     { value: "var(--border-radius-large)", name: "--card-border-radius" },
     { value: "var(--border-radius-small)", name: "--checkbox-border-radius" },
     {
-      value: "var(--border-radius-medium)",
+      value: "var(--border-radius-small)",
       name: "--input-text-border-radius",
     },
     {
@@ -3843,7 +3843,7 @@ export const variableLookupTable = {
   },
   "button-border-color-toolbar-selected":
     "var(--button-border-color-ghost-active)",
-  "button-border-radius": "var(--border-radius-medium)",
+  "button-border-radius": "var(--border-radius-small)",
   "button-font-size": "var(--font-size-root)",
   "button-font-size-small": "var(--font-size-small)",
   "button-font-weight": "var(--font-weight-semibold)",
@@ -4092,7 +4092,7 @@ export const variableLookupTable = {
   "input-text-border-color": "var(--border-color)",
   "input-text-border-color-disabled":
     "var(--border-color-interactive-disabled)",
-  "input-text-border-radius": "var(--border-radius-medium)",
+  "input-text-border-radius": "var(--border-radius-small)",
   "input-text-color": {
     nativeTheme: "FieldText",
     platform: {
