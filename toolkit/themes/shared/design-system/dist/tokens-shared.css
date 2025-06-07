@@ -86,7 +86,7 @@
     --button-border-color-primary-disabled: var(--button-border-color-primary);
     --button-border-color-primary-selected: var(--button-border-color-primary-active);
     --button-border-color-selected: var(--button-border-color-active);
-    --button-border-radius: var(--border-radius-medium);
+    --button-border-radius: var(--border-radius-small);
     --button-font-size: var(--font-size-root);
     --button-font-size-small: var(--font-size-small);
     --button-font-weight: var(--font-weight-semibold);
@@ -439,7 +439,7 @@
     /** toolbarbutton **/
     --toolbarbutton-background-color-hover: color-mix(in srgb, currentColor 17%, transparent);
     --toolbarbutton-background-color-active: color-mix(in srgb, currentColor 30%, transparent);
-    --toolbarbutton-border-radius: var(--button-border-radius);
+    --toolbarbutton-border-radius: var(--border-radius-small);
     --toolbarbutton-icon-fill: currentColor;
     --toolbarbutton-icon-fill-attention: AccentColor;
     --toolbarbutton-icon-fill-attention-text: AccentColorText;
