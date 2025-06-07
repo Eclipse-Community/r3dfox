@@ -7,6 +7,7 @@
   :host {
     --button-size-icon: var(--tab-min-height);
     --button-min-height: var(--button-size-icon);
+    --button-border-radius: var(--border-radius-medium);
   }
 }
 
