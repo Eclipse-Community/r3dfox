@@ -7,7 +7,7 @@
   --input-text-border-color: var(--border-color-interactive);
   --input-text-border-color-disabled: var(--border-color-interactive-disabled);
   --input-text-border: var(--border-width) solid var(--input-text-border-color);
-  --input-text-border-radius: var(--border-radius-medium);
+  --input-text-border-radius: var(--border-radius-small);
   --input-text-background-color: Field;
   --input-text-color: FieldText;
   --input-text-background-color-disabled: var(--button-background-color-disabled);
