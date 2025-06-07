@@ -918,7 +918,7 @@ export const tokensTable = {
     { value: "var(--border-radius-medium)", name: "--button-border-radius" },
     { value: "var(--border-radius-large)", name: "--card-border-radius" },
     {
-      value: "var(--border-radius-medium)",
+      value: "var(--border-radius-small)",
       name: "--input-text-border-radius",
     },
     {
@@ -3415,7 +3415,7 @@ export const variableLookupTable = {
   "input-text-border-color": "var(--border-color)",
   "input-text-border-color-disabled":
     "var(--border-color-interactive-disabled)",
-  "input-text-border-radius": "var(--border-radius-medium)",
+  "input-text-border-radius": "var(--border-radius-small)",
   "input-text-color": "FieldText",
   "input-text-color-disabled": {
     default: "var(--input-text-color)",

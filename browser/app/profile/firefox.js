@@ -447,7 +447,7 @@ pref("browser.urlbar.deduplication.thresholdDays", 0);
 
 pref("browser.urlbar.scotchBonnet.enableOverride", false);
 
-pref("browser.urlbar.trustPanel.featureGate", true);
+pref("browser.urlbar.trustPanel.featureGate", false);
 pref("browser.urlbar.trustPanel.breachAlerts.featureGate", false);
 pref("browser.urlbar.trustPanel.breachAlerts", false);
 
@@ -2101,7 +2101,7 @@ pref("browser.newtabpage.activity-stream.hideTopSitesWithSearchParam", "mfadid=a
 pref("browser.newtabpage.activity-stream.selfLoading.enabled", true);
 
 // Enables the Nova UI refresh for the new tab page.
-pref("browser.newtabpage.activity-stream.nova.enabled", true);
+pref("browser.newtabpage.activity-stream.nova.enabled", false);
 
 // Set to true to enable debug logging for AboutNewTabResourceMapping.
 pref("browser.newtabpage.resource-mapping.log", false);
@@ -2132,6 +2132,7 @@ pref("browser.aboutwelcome.experimentsGate.minDisplayMs", 3000);
 pref("browser.aboutwelcome.experimentsGate.maxDisplayMs", 8000);
 
 // Global Nova enabled pref
+// adding thing here so it results in a conflict when Mozilla flips it
 pref("browser.nova.enabled", false);
 
 // Disable singleProfile messaging mitigation (Bug 1963213) for multiProfile feature users
@@ -2192,11 +2193,7 @@ pref("pdfjs.handleOctetStream", true);
 
 // Is the sidebar positioned ahead of the content browser
 pref("sidebar.position_start", true);
-#ifdef NIGHTLY_BUILD
-pref("sidebar.revamp", true);
-#else
 pref("sidebar.revamp", false);
-#endif
 pref("sidebar.revamp.round-content-area", true);
 pref("sidebar.animation.enabled", true);
 pref("sidebar.animation.duration-ms", 200);
@@ -2947,8 +2944,8 @@ pref("browser.toolbars.bookmarks.showOtherBookmarks", true);
 pref("browser.toolbars.share-button.enabled", true);
 
 // Felt Privacy pref to control simplified private browsing UI
-pref("browser.privatebrowsing.felt-privacy-v1", true);
-pref("security.certerrors.felt-privacy-v1", true);
+pref("browser.privatebrowsing.felt-privacy-v1", false);
+pref("security.certerrors.felt-privacy-v1", false);
 
 
 // Prefs to control the Firefox Account toolbar menu.
