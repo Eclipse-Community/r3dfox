@@ -236,6 +236,12 @@ r3dfox-accessibility = Accessibility services
 
 r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
 
+r3dfox-cookiebanners = Cookie banner handling mode in normal browsing
+
+r3dfox-cookiebanners-desc = Recommended to leave enabled for a less annoying browsing experience. Currently this will set cookies even when set to block all cookies.
+
+r3dfox-cookiebanners-private = Cookie banner handling mode in private browsing
+
 r3dfox-caption-width = Custom caption button Aero fog mask width
 
 r3dfox-caption-desc = For themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
