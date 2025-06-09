@@ -34,4 +34,6 @@ Preferences.addAll([
   { id: "browser.tabs.groups.enabled", type: "bool" },
   { id: "browser.translations.enable", type: "bool" },
   { id: "screenshots.browser.component.enabled", type: "bool" },
+  { id: "cookiebanners.service.mode", type: "int" },
+  { id: "cookiebanners.service.mode.privateBrowsing", type: "int" },
 ]);
