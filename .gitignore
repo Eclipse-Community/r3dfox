@@ -352,3 +352,6 @@ mobile/android/annotations/bin/
 
 # Ignore generated log files under media/libvpx
 media/libvpx/config/**/config.log
+
+# dumb shit
+gfx/wr/webrender/default_*.profraw
