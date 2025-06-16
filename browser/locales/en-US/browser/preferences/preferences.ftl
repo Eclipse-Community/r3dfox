@@ -2526,178 +2526,70 @@ preferences-ai-controls-block-confirmation-cancel =
 preferences-ai-controls-block-confirmation-confirm =
     .label = Block
 
-## Privacy and security status card
+## LibreWolf preferences
 
-security-privacy-status-ok-header = { -brand-short-name } is on guard
+# Sidebar
+pane-librewolf-title = LibreWolf
+category-librewolf =
+    .tooltiptext = about:config changes, logically grouped and easily accessible
+# Main content
+librewolf-header = LibreWolf Preferences
+librewolf-warning-title = Heads up!
+librewolf-warning-description = We carefully choose default settings to focus on privacy and security. When changing these settings, read the descriptions to understand the implications of those changes.
+# Page Layout
+librewolf-general-heading = Browser Behavior
+librewolf-extension-update-checkbox =
+    .label = Update add-ons automatically
+librewolf-sync-checkbox =
+    .label = Enable Firefox Sync
+librewolf-autocopy-checkbox =
+    .label = Enable middle click paste
+librewolf-styling-checkbox =
+    .label = Allow userChrome.css customization
+librewolf-network-heading = Networking
+librewolf-ipv6-checkbox =
+    .label = Enable IPv6
+librewolf-privacy-heading = Privacy
+librewolf-xorigin-ref-checkbox =
+    .label = Limit cross-origin referrers
+librewolf-broken-heading = Fingerprinting
+librewolf-webgl-checkbox =
+    .label = Enable WebGL
+librewolf-rfp-checkbox =
+    .label = Enable ResistFingerprinting
+librewolf-letterboxing-checkbox =
+    .label = Enable letterboxing
+librewolf-security-heading = Security
+librewolf-goog-safe-checkbox =
+    .label = Enable Google Safe Browsing
+librewolf-goog-safe-download-checkbox =
+    .label = Scan downloads
+# In-depth descriptions
+librewolf-extension-update-description = Keep extensions up to date without manual intervention. A good choice for your security.
+librewolf-extension-update-warning1 = If you don't review the code of your extensions before every update, you should enable this option.
+librewolf-ipv6-description = Allow { -brand-short-name } to connect using IPv6.
+librewolf-ipv6-warning1 = Instead of blocking IPv6 in the browser, we suggest enabling the IPv6 privacy extension in your OS.
+librewolf-sync-description = Sync your data with other browsers. Requires restart.
+librewolf-sync-warning1 = Firefox Sync encrypts data locally before transmitting it to the server.
+librewolf-autocopy-description = Select some text to copy it, then paste it with a middle-mouse click.
+librewolf-styling-description = Enable this if you want to customize the UI with a manually loaded theme.
+librewolf-styling-warning1 = Make sure you trust the provider of the theme.
+librewolf-xorigin-ref-description = Send a referrer only on same-origin.
+librewolf-xorigin-ref-warning1 = This may cause breakage. Additionally, even when sent referrers will still be trimmed.
+librewolf-webgl-description = WebGL is a strong fingerprinting vector.
+librewolf-webgl-warning1 = If you need to enable it, consider using an extension like Canvas Blocker.
+librewolf-rfp-description = ResistFingerprinting is the best in class anti-fingerprinting tool.
+librewolf-rfp-warning1 = If you need to disable it, consider using an extension like Canvas Blocker.
+librewolf-letterboxing-description = Letterboxing applies margins around your windows, in order to return a limited set of rounded resolutions.
+librewolf-goog-safe-description = If you are worried about malware and phishing, consider enabling it.
+librewolf-goog-safe-warning1 = Disabled over censorship concerns but recommended for less advanced users. All the checks happen locally.
+librewolf-goog-safe-download-description = Allow Safe Browsing to scan your downloads to identify suspicious files.
+librewolf-goog-safe-download-warning1 = All the checks happen locally.
+# Footer
+librewolf-footer = Useful links
+librewolf-config-link = All advanced settings (about:config)
+librewolf-open-profile = Open user profile directory
 
-# This is the header above a section telling the user about problems in their settings
-security-privacy-status-problem-header = { -brand-short-name } recommends some security improvements
-security-privacy-status-ok-label = Enhanced Tracking Protection is on
-security-privacy-status-problem-label = We found settings affecting your protection
-security-privacy-status-problem-helper-label = View issues
-security-privacy-status-pending-trackers-label = Looking up how many trackers { -brand-short-name } blocked over the last month
+## Privacy & Security preferences
 
-# This label tells the user how many trackers we have blocked for them.
-# Variables:
-#   $trackerCount (Number) - Number of trackers we have blocked in the last month
-security-privacy-status-trackers-label = { $trackerCount ->
-      [one] { $trackerCount } tracker blocked over the last month
-      *[other] { $trackerCount } trackers blocked over the last month
-  }
-# This string appears under "Enhanced Tracking Protection is on" when a user has enabled "Strict" in Enhanced Tracking Protection advanced settings
-security-privacy-status-strict-enabled-label = You have <a data-l10n-name="strict-tracking-protection">strict protection</a>
-# This string appears under "Enhanced Tracking Protection is on" when a user has enabled "Custom" in Enhanced Tracking Protection advanced settings
-security-privacy-status-custom-enabled-label = You have <a data-l10n-name="custom-tracking-protection">custom protection</a>
-security-privacy-status-up-to-date-label = You’ve got the latest, safest version of { -brand-short-name }
-security-privacy-status-update-needed-label = A new version of { -brand-short-name } is available.
-security-privacy-status-update-error-label = { -brand-short-name } is having trouble updating itself
-security-privacy-status-update-checking-label = { -brand-short-name } is checking for updates
-security-privacy-status-update-needed-description = Update for the latest speed, stability, and security updates.
-security-privacy-status-update-button-label =
-  .label = Update { -brand-short-name }
-
-security-privacy-image-warning =
-  .alt = A shield with an exclamation mark, expressing concern over your security warnings
-security-privacy-image-ok =
-  .alt = A shield with a check mark, showing that you have no outstanding security issues
-
-security-privacy-issue-card =
-  .heading = Security warnings
-issue-card-reset-button =
-  .label = Reset
-issue-card-dismiss-button =
-  .tooltiptext = Dismiss
-  .aria-label = Dismiss
-
-## Enhanced Tracking Protection (ETP) status section
-
-preferences-etp-status-header =
-    .label = Enhanced Tracking Protection
-    .description = Sites use trackers to follow you online and show creepy ads. { -brand-short-name } shields you as you browse, blocking trackers automatically so you’re in control of your digital trail.
-
-preferences-etp-level-standard =
-    .label = Standard (default)
-    .description = Strong, reliable protections that work smoothly with most websites.
-
-preferences-etp-level-strict =
-    .label = Strict
-    .description = Stronger protections that block more trackers, but may cause some sites to break.
-
-preferences-etp-level-custom =
-    .label = Custom
-    .description = Choose which protections to turn on or off.
-
-preferences-etp-status-advanced-button =
-    .label = Advanced settings
-
-preferences-etp-status-protections-dashboard-link =
-        .label = View your personalized protections dashboard
-        .description = See how many sneaky trackers { -brand-short-name } has blocked for you, including social media trackers, fingerprinters, and cryptominers.
-
-preferences-etp-header =
-    .heading = Enhanced Tracking Protection
-
-preferences-etp-advanced-settings-group =
-    .label = Advanced settings
-    .description = Sites use trackers to follow you online and show creepy ads. { -brand-short-name } shields you as you browse, blocking most trackers automatically so you’re in control of your digital trail.
-
-preferences-etp-customize-button =
-    .label = Customize tracking protection
-
-preferences-etp-reload-tabs-hint =
-    .message = Reload your tabs to apply these changes.
-preferences-etp-reload-tabs-hint-button =
-  .label = Reload all tabs
-
-preferences-etp-rfp-warning-message =
-    .message = You’re using Resist Fingerprinting (RFP), which replaces some of { -brand-short-name }’s fingerprinting protection settings. This might cause some sites to break.
-
-preferences-etp-level-warning-message =
-    .heading = Heads up! Some sites may not work as expected.
-    .message = Some sites build trackers into their features or content. When { -brand-short-name } blocks them, the site looks broken. Try using “Fix site issue” or turning off tracking protection on that site.
-
-preferences-etp-manage-exceptions-button =
-    .label = Manage exceptions
-    .description = Manage websites where Enhanced Tracking Protection is disabled.
-
-preferences-etp-customize-header =
-    .heading = Customize tracking protection
-
-preferences-etp-reset =
-    .label = Reset customizations
-    .description = Restore settings to a preset protection level.
-
-preferences-etp-reset-standard-button =
-    .label = Reset to standard
-
-preferences-etp-reset-strict-button =
-    .label = Reset to strict
-
-preferences-etp-custom-control-group =
-    .label = Tracking protection
-    .description = Choose which protections to turn on or off.
-
-preferences-etp-custom-cookies-enabled =
-    .label = Cookies
-
-preferences-etp-custom-cookie-behavior =
-    .aria-label = Cookies
-
-preferences-etpc-custom-cookie-behavior-accept-all =
-    .label = Allow all cookies
-
-preferences-etp-custom-tracking-protection-enabled =
-    .label = Tracking content
-
-preferences-etp-custom-tracking-protection-enabled-context =
-    .aria-label = Tracking content
-
-preferences-etp-custom-crypto-mining-protection-enabled =
-    .label = Cryptominers
-
-preferences-etp-custom-known-fingerprinting-protection-enabled =
-    .label = Known fingerprinters
-
-preferences-etp-custom-suspect-fingerprinting-protection-enabled =
-    .label = Suspected fingerprinters
-
-preferences-etp-custom-suspect-fingerprinting-protection-enabled-context =
-    .aria-label = Suspected fingerprinters
-
-## Warnings section
-
-security-privacy-issue-warning-fingerprinters =
-  .label = Known fingerprinters are not blocked
-  .description = This may allow some trackers to follow you without cookies.
-
-security-privacy-issue-warning-third-party-cookies =
-  .label = Third-party cookies are enabled
-  .description = Third-party cookies are used to track you across websites.
-
-security-privacy-issue-warning-password-manager =
-  .label = Password manager is disabled
-  .description = Password managers help you store strong passwords for your accounts.
-
-security-privacy-issue-warning-popup-blocker =
-  .label = Popup blocker is disabled
-  .description = Popups are interruptive and potentially harmful.
-
-security-privacy-issue-warning-extension-install =
-  .label = Websites can install extensions
-  .description = Websites can install extensions to { -brand-short-name } without asking.
-
-security-privacy-issue-warning-safe-browsing =
-  .label = Dangerous and deceptive content is not blocked
-  .description = Your exposure to scams and malware from websites is increased.
-
-security-privacy-issue-warning-doh =
-  .label = DNS over HTTPS is disabled
-  .description = DNS over HTTPS hides what sites you visit from your network provider.
-
-security-privacy-issue-warning-ech =
-  .label = Encrypted Client Hello is disabled
-  .description = Encrypted Client Hello hides what sites you visit from your network provider.
-
-security-privacy-issue-warning-proxy-autodetection =
-  .label = Proxy auto-configuration is enabled
-  .description = Proxy auto-configuration could let untrusted networks to monitor your activity.
+content-blocking-section-top-level-description = LibreWolf supports - and it enables by default - Enhanced Tracking Protection in Strict mode. This is one of the most important settings in the browser, as it provides state partitioning, strict blocking lists and other neat privacy features. We do not recommend changing to other modes.
