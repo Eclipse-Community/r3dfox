@@ -148,6 +148,10 @@ Preferences.addAll([
   { id: "dom.ipc.processCount.web", type: "int" },
   { id: "layers.acceleration.disabled", type: "bool", inverted: true },
 
+  /* Fullpage Translations */
+  { id: "browser.translations.enable", type: "bool" },
+  { id: "browser.translations.automaticallyPopup", type: "bool" },
+
   // Files and Applications
   { id: "pref.downloads.disable_button.edit_actions", type: "bool" },
 
@@ -328,6 +332,22 @@ var gMainPane = {
     gMainPane.initDefaultZoomValues();
 
     gMainPane.initTranslations();
+
+    let inPrompt = false;
+    Preferences.get("browser.translations.enable").on("change", () => {
+      if(!Preferences.get("browser.translations.enable").value)
+      if(!inPrompt) {
+        inPrompt = true;
+        confirmRestartPrompt(false, 1, true, false).then(buttonIndex => {
+          inPrompt = false;
+          if (buttonIndex == CONFIRM_RESTART_PROMPT_RESTART_NOW) {
+            Services.startup.quit(
+              Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart
+            );
+          }
+        });
+      }
+    });
 
     if (
       Services.prefs.getBoolPref(
@@ -798,6 +818,10 @@ var gMainPane = {
       () => this.writeCheckSpelling()
     );
     Preferences.addSyncFromPrefListener(
+      document.getElementById("translations-manage-enable"),
+      () => this.readEnableTranslations()
+    );
+    Preferences.addSyncFromPrefListener(
       document.getElementById("alwaysAsk"),
       () => this.readUseDownloadDir()
     );
@@ -1027,23 +1051,32 @@ var gMainPane = {
     document.getElementById("zoomBox").hidden = false;
   },
 
+  readEnableTranslations(skipInit = false) {
+    const translationsEnabled = Preferences.get("browser.translations.enable").value;
+    document.getElementById("innerTranslationsGroup").hidden = !translationsEnabled;
+    if (!this._translationsInitialized && !skipInit)
+      this.initTranslations();
+  },
+
+  _translationsInitialized: false,
+
   /**
    * Initialize the translations view.
    */
   async initTranslations() {
+    this.readEnableTranslations(true);
+
     if (!Services.prefs.getBoolPref("browser.translations.enable")) {
       return;
     }
+
+    this._translationsInitialized = true;
 
     /**
      * Which phase a language download is in.
      *
      * @typedef {"downloaded" | "loading" | "uninstalled"} DownloadPhase
      */
-
-    // Immediately show the group so that the async load of the component does
-    // not cause the layout to jump. The group will be empty initially.
-    document.getElementById("translationsGroup").hidden = false;
 
     class TranslationsState {
       /**
@@ -4222,6 +4255,7 @@ const AppearanceChooser = {
 
     FORCED_COLORS_QUERY.addEventListener("change", this);
     Services.prefs.addObserver(PREF_USE_SYSTEM_COLORS, this);
+    Services.prefs.addObserver("privacy.resistFingerprinting", this);
     Services.obs.addObserver(this, "look-and-feel-changed");
     this._update();
   },
@@ -4258,6 +4292,7 @@ const AppearanceChooser = {
 
   destroy() {
     Services.prefs.removeObserver(PREF_USE_SYSTEM_COLORS, this);
+    Services.prefs.removeObserver("privacy.resistFingerprinting", this);
     Services.obs.removeObserver(this, "look-and-feel-changed");
     FORCED_COLORS_QUERY.removeEventListener("change", this);
   },
@@ -4297,5 +4332,33 @@ const AppearanceChooser = {
       (AppConstants.platform == "win" ||
         !Services.prefs.getBoolPref(PREF_USE_SYSTEM_COLORS));
     this.warning.hidden = !forcingColorsAndNoColorSchemeSupport;
+
+    document.getElementById("web-appearance-rfp-warning")?.remove();
+    if (Services.prefs.getBoolPref("privacy.resistFingerprinting")) {
+      document.getElementById("web-appearance-chooser").style.opacity = 0.3;
+      document.getElementById("web-appearance-chooser").style.pointerEvents = "none";
+      const infoBox = document.createElement("div");
+      infoBox.id = "web-appearance-rfp-warning";
+      infoBox.classList.add("info-box-container");
+      infoBox.style.display = "flex";
+      infoBox.style.alignItems = "center";
+      infoBox.style.marginTop = "10px";
+      infoBox.style.marginBottom = "5px";
+      const text = document.createElement("div");
+      text.innerText = "This feature is disabled because ResistFingerprinting is enabled. This means LibreWolf will force web content to display in a light theme.";
+      infoBox.appendChild(text);
+      const learnMore = document.createElement("a");
+      learnMore.classList.add("text-link");
+      learnMore.style.marginLeft = "5px";
+      learnMore.style.flexShrink = 0;
+      learnMore.setAttribute("is", "learn-more");
+      learnMore.href = "https://librewolf.net/docs/faq/#why-is-librewolf-forcing-light-theme";
+      learnMore.innerText = "Learn more";
+      infoBox.appendChild(learnMore);
+      document.getElementById("webAppearanceSettings").insertBefore(infoBox, document.getElementById("webAppearanceSettings").children[2]);
+    } else {
+      document.getElementById("web-appearance-chooser").style.opacity = 1;
+      document.getElementById("web-appearance-chooser").style.pointerEvents = "all";
+    }
   },
 };

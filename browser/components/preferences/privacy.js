@@ -335,7 +335,7 @@ function dataCollectionCheckboxHandler({
       !collectionEnabled || Services.prefs.prefIsLocked(pref) || isDisabled();
   }
 
-  Preferences.get(PREF_UPLOAD_ENABLED).on("change", updateCheckbox);
+  Preferences.get(PREF_UPLOAD_ENABLED)?.on("change", updateCheckbox);
   updateCheckbox();
 }
 
@@ -1267,6 +1267,10 @@ var gPrivacyPane = {
     this.initDoH();
 
     this.initWebAuthn();
+
+    if (Services.prefs.getBoolPref("librewolf.hidePasswdmgr", false)) {
+      document.getElementById("passwordsGroup")?.remove();
+    }
 
     // Notify observers that the UI is now ready
     Services.obs.notifyObservers(window, "privacy-pane-loaded");

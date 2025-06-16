@@ -9,6 +9,7 @@
 /* import-globals-from containers.js */
 /* import-globals-from translations.js */
 /* import-globals-from privacy.js */
+/* import-globals-from librewolf.js */
 /* import-globals-from sync.js */
 /* import-globals-from experimental.js */
 /* import-globals-from moreFromMozilla.js */
@@ -202,6 +203,7 @@ function init_all() {
   register_module("paneHome", gHomePane);
   register_module("paneSearch", gSearchPane);
   register_module("panePrivacy", gPrivacyPane);
+  register_module("paneLibrewolf", gLibrewolfPane);
   register_module("paneContainers", gContainersPane);
   register_module("paneR3dfox", gR3dfoxPane);
 
@@ -247,8 +249,6 @@ function init_all() {
   categories.addEventListener("mousedown", function () {
     this.removeAttribute("keyboard-navigation");
   });
-
-  maybeDisplayPoliciesNotice();
 
   window.addEventListener("hashchange", onHashChange);
 
