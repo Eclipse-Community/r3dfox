@@ -588,6 +588,7 @@ class nsWindow final : public nsIWidget {
    * XP and Vista theming support for windows with rounded edges
    */
   void ClearThemeRegion();
+  void SetThemeRegion();
 
   /**
    * Popup hooks
