@@ -160,16 +160,15 @@ const Curl = {
 
     // Format with line breaks if the command has more than 2 parts
     // e.g
-    // Command with 2 parts  - curl https://foo.com
+    // Command with 2 parts - curl https://foo.com
     // Commands with more than 2 parts -
     // curl https://foo.com
     // -X POST
     // -H "Accept : */*"
     // -H "accept-language: en-US"
     const joinStr = currentPlatform === "WINNT" ? " ^\n  " : " \\\n  ";
-    return (
-      "curl " + commandParts.join(commandParts.length >= 3 ? joinStr : " ")
-    );
+    const CMD = currentPlatform == "WINNT" ? "curl.exe " : "curl ";
+    return CMD + commandParts.join(commandParts.length >= 3 ? joinStr : " ");
   },
 };
 
@@ -451,24 +450,20 @@ const CurlUtils = {
       Because cmd.exe parser and MS Crt arguments parsers use some of the
       same escape characters, they can interact with each other in
       horrible ways, the order of operations is critical.
+    
+      Also see https://ss64.com/nt/syntax-esc.html for details on
+      escaping characters on Windows.
     */
     const encapsChars = '^"';
     return (
       encapsChars +
       str
-        //  Replace \ with \\ first because it is an escape character for certain
-        // conditions in both parsers.
-        .replace(/\\/g, "\\\\")
-
-        // Escape double quotes with double slashes.
+        // Replace all " with \" to ensure the first parser does not remove it.
         .replace(/"/g, '\\"')
-
-        // Escape ` and $ so commands do not get executed e.g $(calc.exe) or `\$(calc.exe)
-        .replace(/[`$]/g, "\\$&")
 
         // Then escape all characters we are not sure about with ^ to ensure it
         // gets to MS Crt parser safely.
-        .replace(/[^a-zA-Z0-9\s_\-:=+~\/.',?;()*\$&\\{}\"`]/g, "^$&")
+        .replace(/[^a-zA-Z0-9\s_\-:=+~\/.',?;()*`]/g, "^$&")
 
         // The % character is special because MS Crt parser will try and look for
         // ENV variables and fill them in its place. We cannot escape them with %
@@ -479,10 +474,15 @@ const CurlUtils = {
         // by the previous replace.
         .replace(/%(?=[a-zA-Z0-9_])/g, "%^")
 
+        // We replace \r and \r\n with \n, this allows to consistently escape all new
+        // lines in the next replace
+        .replace(/\r\n?/g, "\n")
+
         // Lastly we replace new lines with ^ and TWO new lines because the first
         // new line is there to enact the escape command the second is the character
         // to escape (in this case new line).
-        .replace(/\r?\n|\r/g, "^\n\n") +
+        // The extra " enables escaping new lines with ^ within quotes in cmd.exe.
+        .replace(/\n/g, '"^\r\n\r\n"') +
       encapsChars
     );
   },
