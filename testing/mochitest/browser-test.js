@@ -1307,6 +1307,12 @@ Tester.prototype = {
 
     this.ContentTask.setTestScope(currentScope);
 
+    // Import Mochia methods in the test scope
+    Services.scriptloader.loadSubScript(
+      "resource://testing-common/Mochia.js",
+      scope
+    );
+
     // Allow Assert.sys.mjs methods to be tacked to the current scope.
     scope.export_assertions = function () {
       for (let func in this.Assert) {
@@ -1936,11 +1942,3 @@ testScope.prototype = {
     }
   },
 };
-
-/* import-globals-from ../modules/Mochia.js */
-Services.scriptloader.loadSubScript(
-  "resource://testing-common/Mochia.js",
-  this
-);
-
-Mochia(testScope);

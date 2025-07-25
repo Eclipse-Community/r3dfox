@@ -4,11 +4,8 @@
 
 /**
  * Define Mochia's helpers on the given scope.
- *
- * @param {object} scope
- *        The `globalThis` of the running test, where `add_task` is defined.
  */
-const Mochia = (function () {
+(() => {
   /**
    * The context of each test suite.
    */
@@ -246,14 +243,12 @@ const Mochia = (function () {
     },
   });
 
-  return function (scope) {
-    _testScope = scope;
+  _testScope = this;
 
-    Object.assign(_testScope, {
-      describe: MochiaImpl.describe,
-      beforeEach: MochiaImpl.beforeEach,
-      afterEach: MochiaImpl.afterEach,
-      it: MochiaImpl.it,
-    });
-  };
+  Object.assign(_testScope, {
+    describe: MochiaImpl.describe,
+    beforeEach: MochiaImpl.beforeEach,
+    afterEach: MochiaImpl.afterEach,
+    it: MochiaImpl.it,
+  });
 })();
