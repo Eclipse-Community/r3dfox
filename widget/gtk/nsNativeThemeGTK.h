@@ -57,6 +57,8 @@ class nsNativeThemeGTK final : public mozilla::widget::Theme {
 
   bool ThemeSupportsWidget(nsPresContext*, nsIFrame*, StyleAppearance) override;
   bool ThemeDrawsFocusForWidget(nsIFrame*, StyleAppearance) override;
+
+  bool ThemeNeedsComboboxDropmarker() override;
   Transparency GetWidgetTransparency(nsIFrame*, StyleAppearance) override;
 
   nsNativeThemeGTK();
