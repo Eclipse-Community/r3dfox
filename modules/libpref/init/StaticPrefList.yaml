@@ -14688,6 +14688,12 @@
   value: 2
   mirror: always
 
+# Port blocking
+- name: security.port.blocking.enabled
+  type: bool
+  value: true
+  mirror: always
+
 # If true, all toplevel data: URI navigations will be blocked.
 # Please note that manually entering a data: URI in the
 # URL-Bar will not be blocked when flipping this pref.
