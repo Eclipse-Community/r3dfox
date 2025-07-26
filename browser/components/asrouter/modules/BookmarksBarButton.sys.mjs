@@ -95,13 +95,7 @@ export const BookmarksBarButton = {
       },
     };
 
-    try {
-      lazy.CustomizableUI.addListener(fxmsBookmarksBarBtn);
-      lazy.CustomizableUI.createWidget(fxmsBookmarksBarBtn);
-    } catch (err) {
-      console.error(
-        "Error creating bookmarks bar button. It most likely already exists."
-      );
-    }
+    lazy.CustomizableUI.addListener(fxmsBookmarksBarBtn);
+    lazy.CustomizableUI.createWidget(fxmsBookmarksBarBtn);
   },
 };
