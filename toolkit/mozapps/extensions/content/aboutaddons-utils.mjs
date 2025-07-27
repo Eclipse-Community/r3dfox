@@ -551,7 +551,7 @@ export async function getAddonMessageInfo(
       linkSumoPage: "unsigned-addons",
       messageId: "details-notification-unsigned2",
       messageArgs: { name },
-      type: "warning",
+      type: "info",
     };
   } else if (addon.blocklistState === STATE_SOFTBLOCKED) {
     const softBlockFluentIdsMap = {
