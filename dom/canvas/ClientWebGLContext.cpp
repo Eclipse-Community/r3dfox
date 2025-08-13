@@ -1480,6 +1480,7 @@ RefPtr<gfx::DataSourceSurface> ClientWebGLContext::BackBufferSnapshot() {
 }
 
 UniquePtr<uint8_t[]> ClientWebGLContext::GetImageBuffer(
+    mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
     int32_t* out_format, gfx::IntSize* out_imageSize) {
   *out_format = 0;
   *out_imageSize = {};
@@ -1494,7 +1495,7 @@ UniquePtr<uint8_t[]> ClientWebGLContext::GetImageBuffer(
   const auto& premultAlpha = mNotLost->info.options.premultipliedAlpha;
   *out_imageSize = dataSurface->GetSize();
 
-  if (ShouldResistFingerprinting(RFPTarget::CanvasRandomization)) {
+  if (aExtractionBehavior == CanvasUtils::ImageExtraction::Randomize) {
     return gfxUtils::GetImageBufferWithRandomNoise(
         dataSurface, premultAlpha, GetCookieJarSettings(), PrincipalOrNull(),
         out_format);
@@ -1504,9 +1505,10 @@ UniquePtr<uint8_t[]> ClientWebGLContext::GetImageBuffer(
 }
 
 NS_IMETHODIMP
-ClientWebGLContext::GetInputStream(const char* mimeType,
-                                   const nsAString& encoderOptions,
-                                   nsIInputStream** out_stream) {
+ClientWebGLContext::GetInputStream(
+    const char* mimeType, const nsAString& encoderOptions,
+    mozilla::CanvasUtils::ImageExtraction spoofing,
+    nsIInputStream** out_stream) {
   // Use GetSurfaceSnapshot() to make sure that appropriate y-flip gets applied
   gfxAlphaType any;
   RefPtr<gfx::SourceSurface> snapshot = GetSurfaceSnapshot(&any);

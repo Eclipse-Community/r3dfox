@@ -505,13 +505,13 @@ already_AddRefed<Promise> OffscreenCanvas::ConvertToBlob(
   RefPtr<EncodeCompleteCallback> callback =
       CreateEncodeCompleteCallback(promise);
 
-  bool usePlaceholder = mCurrentContext && mCurrentContext->PrincipalOrNull() &&
-                        !CanvasUtils::IsImageExtractionAllowed(
-                            this, nsContentUtils::GetCurrentJSContext(),
-                            *mCurrentContext->PrincipalOrNull());
+  CanvasUtils::ImageExtraction spoofing = CanvasUtils::ImageExtractionResult(
+      this, nsContentUtils::GetCurrentJSContext(),
+      mCurrentContext ? mCurrentContext->PrincipalOrNull() : nullptr);
+
   CanvasRenderingContextHelper::ToBlob(callback, type, encodeOptions,
                                        /* aUsingCustomOptions */ false,
-                                       usePlaceholder, aRv);
+                                       spoofing, aRv);
   if (aRv.Failed()) {
     promise->MaybeReject(std::move(aRv));
   }
@@ -549,12 +549,11 @@ already_AddRefed<Promise> OffscreenCanvas::ToBlob(JSContext* aCx,
 
   RefPtr<EncodeCompleteCallback> callback =
       CreateEncodeCompleteCallback(promise);
-  bool usePlaceholder = mCurrentContext && mCurrentContext->PrincipalOrNull() &&
-                        !CanvasUtils::IsImageExtractionAllowed(
-                            this, nsContentUtils::GetCurrentJSContext(),
-                            *mCurrentContext->PrincipalOrNull());
-  CanvasRenderingContextHelper::ToBlob(aCx, callback, aType, aParams,
-                                       usePlaceholder, aRv);
+  CanvasUtils::ImageExtraction spoofing = CanvasUtils::ImageExtractionResult(
+      this, aCx,
+      mCurrentContext ? mCurrentContext->PrincipalOrNull() : nullptr);
+  CanvasRenderingContextHelper::ToBlob(aCx, callback, aType, aParams, spoofing,
+                                       aRv);
 
   return promise.forget();
 }

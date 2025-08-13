@@ -27,7 +27,8 @@ CanvasRenderingContextHelper::CanvasRenderingContextHelper()
 
 void CanvasRenderingContextHelper::ToBlob(
     JSContext* aCx, EncodeCompleteCallback* aCallback, const nsAString& aType,
-    JS::Handle<JS::Value> aParams, bool aUsePlaceholder, ErrorResult& aRv) {
+    JS::Handle<JS::Value> aParams,
+    CanvasUtils::ImageExtraction aExtractionBehavior, ErrorResult& aRv) {
   nsAutoString type;
   nsContentUtils::ASCIIToLower(aType, type);
 
@@ -38,16 +39,14 @@ void CanvasRenderingContextHelper::ToBlob(
     return;
   }
 
-  ToBlob(aCallback, type, params, usingCustomParseOptions, aUsePlaceholder,
+  ToBlob(aCallback, type, params, usingCustomParseOptions, aExtractionBehavior,
          aRv);
 }
 
-void CanvasRenderingContextHelper::ToBlob(EncodeCompleteCallback* aCallback,
-                                          nsAString& aType,
-                                          const nsAString& aEncodeOptions,
-                                          bool aUsingCustomOptions,
-                                          bool aUsePlaceholder,
-                                          ErrorResult& aRv) {
+void CanvasRenderingContextHelper::ToBlob(
+    EncodeCompleteCallback* aCallback, nsAString& aType,
+    const nsAString& aEncodeOptions, bool aUsingCustomOptions,
+    CanvasUtils::ImageExtraction aExtractionBehavior, ErrorResult& aRv) {
   const CSSIntSize elementSize = GetWidthHeight();
   if (mCurrentContext) {
     // We disallow canvases of width or height zero, and set them to 1, so
@@ -64,19 +63,22 @@ void CanvasRenderingContextHelper::ToBlob(EncodeCompleteCallback* aCallback,
 
   int32_t format = 0;
   auto imageSize = gfx::IntSize{elementSize.width, elementSize.height};
-  UniquePtr<uint8_t[]> imageBuffer = GetImageBuffer(&format, &imageSize);
+  UniquePtr<uint8_t[]> imageBuffer =
+      GetImageBuffer(aExtractionBehavior, &format, &imageSize);
   RefPtr<EncodeCompleteCallback> callback = aCallback;
 
   aRv = ImageEncoder::ExtractDataAsync(
       aType, aEncodeOptions, aUsingCustomOptions, std::move(imageBuffer),
-      format, CSSIntSize::FromUnknownSize(imageSize), aUsePlaceholder,
+      format, CSSIntSize::FromUnknownSize(imageSize), aExtractionBehavior,
       callback);
 }
 
 UniquePtr<uint8_t[]> CanvasRenderingContextHelper::GetImageBuffer(
-    int32_t* aOutFormat, gfx::IntSize* aOutImageSize) {
+    CanvasUtils::ImageExtraction aExtractionBehavior, int32_t* aOutFormat,
+    gfx::IntSize* aOutImageSize) {
   if (mCurrentContext) {
-    return mCurrentContext->GetImageBuffer(aOutFormat, aOutImageSize);
+    return mCurrentContext->GetImageBuffer(aExtractionBehavior, aOutFormat,
+                                           aOutImageSize);
   }
   return nullptr;
 }

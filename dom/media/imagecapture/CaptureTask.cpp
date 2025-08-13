@@ -160,7 +160,8 @@ void CaptureTask::NotifyRealtimeTrackData(MediaTrackGraph* aGraph,
     nsAutoString type(u"image/jpeg"_ns);
     nsAutoString options;
     rv = dom::ImageEncoder::ExtractDataFromLayersImageAsync(
-        type, options, false, image, false, new EncodeComplete(this));
+        type, options, false, image, CanvasUtils::ImageExtraction::Unrestricted,
+        new EncodeComplete(this));
     if (NS_FAILED(rv)) {
       PostTrackEndEvent();
     }
