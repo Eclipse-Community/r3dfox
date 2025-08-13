@@ -113,6 +113,7 @@ class nsICanvasRenderingContextInternal : public nsISupports,
 
   // Creates an image buffer. Returns null on failure.
   virtual mozilla::UniquePtr<uint8_t[]> GetImageBuffer(
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
       int32_t* out_format, mozilla::gfx::IntSize* out_imageSize) = 0;
 
   // Gives you a stream containing the image represented by this context.
@@ -123,6 +124,7 @@ class nsICanvasRenderingContextInternal : public nsISupports,
   // composited on black.
   NS_IMETHOD GetInputStream(const char* mimeType,
                             const nsAString& encoderOptions,
+                            mozilla::CanvasUtils::ImageExtraction spoofing,
                             nsIInputStream** stream) = 0;
 
   // This gets an Azure SourceSurface for the canvas, this will be a snapshot

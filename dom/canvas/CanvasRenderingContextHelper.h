@@ -23,6 +23,9 @@ namespace layers {
 class SurfaceDescriptor;
 }  // namespace layers
 
+namespace CanvasUtils {
+enum class ImageExtraction;
+}
 namespace dom {
 
 class BlobCallback;
@@ -60,14 +63,17 @@ class CanvasRenderingContextHelper {
 
   void ToBlob(JSContext* aCx, EncodeCompleteCallback* aCallback,
               const nsAString& aType, JS::Handle<JS::Value> aParams,
-              bool aUsePlaceholder, ErrorResult& aRv);
+              CanvasUtils::ImageExtraction aExtractionBehavior,
+              ErrorResult& aRv);
 
   void ToBlob(EncodeCompleteCallback* aCallback, nsAString& aType,
               const nsAString& aEncodeOptions, bool aUsingCustomOptions,
-              bool aUsePlaceholder, ErrorResult& aRv);
+              CanvasUtils::ImageExtraction aExtractionBehavior,
+              ErrorResult& aRv);
 
-  virtual UniquePtr<uint8_t[]> GetImageBuffer(int32_t* aOutFormat,
-                                              gfx::IntSize* aOutImageSize);
+  virtual UniquePtr<uint8_t[]> GetImageBuffer(
+      CanvasUtils::ImageExtraction aExtractionBehavior, int32_t* aOutFormat,
+      gfx::IntSize* aOutImageSize);
 
   already_AddRefed<nsISupports> GetOrCreateContext(
       JSContext* aCx, const nsAString& aContextId,
