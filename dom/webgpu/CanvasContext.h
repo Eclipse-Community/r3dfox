@@ -55,10 +55,12 @@ class CanvasContext final : public nsICanvasRenderingContextInternal,
   bool InitializeCanvasRenderer(nsDisplayListBuilder* aBuilder,
                                 layers::CanvasRenderer* aRenderer) override;
   mozilla::UniquePtr<uint8_t[]> GetImageBuffer(
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
       int32_t* out_format, gfx::IntSize* out_imageSize) override;
-  NS_IMETHOD GetInputStream(const char* aMimeType,
-                            const nsAString& aEncoderOptions,
-                            nsIInputStream** aStream) override;
+  NS_IMETHOD GetInputStream(
+      const char* aMimeType, const nsAString& aEncoderOptions,
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
+      nsIInputStream** aStream) override;
   already_AddRefed<gfx::SourceSurface> GetSurfaceSnapshot(
       gfxAlphaType* aOutAlphaType) override;
 

@@ -1003,10 +1003,12 @@ class ClientWebGLContext final : public nsICanvasRenderingContextInternal,
 
   void ResetBitmap() override;
 
-  UniquePtr<uint8_t[]> GetImageBuffer(int32_t* out_format,
-                                      gfx::IntSize* out_imageSize) override;
+  UniquePtr<uint8_t[]> GetImageBuffer(
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
+      int32_t* out_format, gfx::IntSize* out_imageSize) override;
   NS_IMETHOD GetInputStream(const char* mimeType,
                             const nsAString& encoderOptions,
+                            mozilla::CanvasUtils::ImageExtraction spoofing,
                             nsIInputStream** out_stream) override;
 
   already_AddRefed<mozilla::gfx::SourceSurface> GetSurfaceSnapshot(

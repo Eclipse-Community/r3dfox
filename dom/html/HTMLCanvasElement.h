@@ -333,8 +333,9 @@ class HTMLCanvasElement final : public nsGenericHTMLElement,
                          const nsAString& aMimeType,
                          const JS::Value& aEncoderOptions, nsAString& aDataURL);
 
-  UniquePtr<uint8_t[]> GetImageBuffer(int32_t* aOutFormat,
-                                      gfx::IntSize* aOutImageSize) override;
+  UniquePtr<uint8_t[]> GetImageBuffer(
+      CanvasUtils::ImageExtraction aExtractionBehavior, int32_t* aOutFormat,
+      gfx::IntSize* aOutImageSize) override;
 
   MOZ_CAN_RUN_SCRIPT void CallPrintCallback();
 

@@ -498,9 +498,10 @@ class CanvasRenderingContext2D : public nsICanvasRenderingContextInternal,
   NS_IMETHOD InitializeWithDrawTarget(
       nsIDocShell* aShell, NotNull<gfx::DrawTarget*> aTarget) override;
 
-  NS_IMETHOD GetInputStream(const char* aMimeType,
-                            const nsAString& aEncoderOptions,
-                            nsIInputStream** aStream) override;
+  NS_IMETHOD GetInputStream(
+      const char* aMimeType, const nsAString& aEncoderOptions,
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
+      nsIInputStream** aStream) override;
 
   already_AddRefed<mozilla::gfx::SourceSurface> GetOptimizedSnapshot(
       mozilla::gfx::DrawTarget* aTarget, gfxAlphaType* aOutAlphaType) override;
@@ -592,6 +593,7 @@ class CanvasRenderingContext2D : public nsICanvasRenderingContextInternal,
   }
 
   virtual UniquePtr<uint8_t[]> GetImageBuffer(
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
       int32_t* out_format, gfx::IntSize* out_imageSize) override;
 
   void OnShutdown();

@@ -70,10 +70,12 @@ class ImageBitmapRenderingContext final
       nsIDocShell* aDocShell, NotNull<gfx::DrawTarget*> aTarget) override;
 
   virtual mozilla::UniquePtr<uint8_t[]> GetImageBuffer(
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
       int32_t* out_format, gfx::IntSize* out_imageSize) override;
-  NS_IMETHOD GetInputStream(const char* aMimeType,
-                            const nsAString& aEncoderOptions,
-                            nsIInputStream** aStream) override;
+  NS_IMETHOD GetInputStream(
+      const char* aMimeType, const nsAString& aEncoderOptions,
+      mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
+      nsIInputStream** aStream) override;
 
   virtual already_AddRefed<mozilla::gfx::SourceSurface> GetSurfaceSnapshot(
       gfxAlphaType* aOutAlphaType) override;

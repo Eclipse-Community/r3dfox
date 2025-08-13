@@ -75,8 +75,9 @@ class OffscreenCanvasDisplayHelper final {
 
   already_AddRefed<mozilla::gfx::SourceSurface> GetSurfaceSnapshot();
   already_AddRefed<mozilla::layers::Image> GetAsImage();
-  UniquePtr<uint8_t[]> GetImageBuffer(int32_t* aOutFormat,
-                                      gfx::IntSize* aOutImageSize);
+  UniquePtr<uint8_t[]> GetImageBuffer(
+      CanvasUtils::ImageExtraction aExtractionBehavior, int32_t* aOutFormat,
+      gfx::IntSize* aOutImageSize);
 
  private:
   ~OffscreenCanvasDisplayHelper();

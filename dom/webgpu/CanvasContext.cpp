@@ -312,6 +312,7 @@ bool CanvasContext::InitializeCanvasRenderer(
 }
 
 mozilla::UniquePtr<uint8_t[]> CanvasContext::GetImageBuffer(
+    mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
     int32_t* out_format, gfx::IntSize* out_imageSize) {
   *out_format = 0;
   *out_imageSize = {};
@@ -336,9 +337,10 @@ mozilla::UniquePtr<uint8_t[]> CanvasContext::GetImageBuffer(
                                   &*out_format);
 }
 
-NS_IMETHODIMP CanvasContext::GetInputStream(const char* aMimeType,
-                                            const nsAString& aEncoderOptions,
-                                            nsIInputStream** aStream) {
+NS_IMETHODIMP CanvasContext::GetInputStream(
+    const char* aMimeType, const nsAString& aEncoderOptions,
+    mozilla::CanvasUtils::ImageExtraction aExtractionBehavior,
+    nsIInputStream** aStream) {
   gfxAlphaType any;
   RefPtr<gfx::SourceSurface> snapshot = GetSurfaceSnapshot(&any);
   if (!snapshot) {

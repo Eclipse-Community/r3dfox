@@ -570,7 +570,8 @@ already_AddRefed<layers::Image> OffscreenCanvasDisplayHelper::GetAsImage() {
 }
 
 UniquePtr<uint8_t[]> OffscreenCanvasDisplayHelper::GetImageBuffer(
-    int32_t* aOutFormat, gfx::IntSize* aOutImageSize) {
+    CanvasUtils::ImageExtraction aExtractionBehavior, int32_t* aOutFormat,
+    gfx::IntSize* aOutImageSize) {
   RefPtr<gfx::SourceSurface> surface = GetSurfaceSnapshot();
   if (!surface) {
     return nullptr;
@@ -589,42 +590,28 @@ UniquePtr<uint8_t[]> OffscreenCanvasDisplayHelper::GetImageBuffer(
     return nullptr;
   }
 
-  bool resistFingerprinting;
-  nsICookieJarSettings* cookieJarSettings = nullptr;
-  {
-    MutexAutoLock lock(mMutex);
-    if (mCanvasElement) {
-      Document* doc = mCanvasElement->OwnerDoc();
-      resistFingerprinting =
-          doc->ShouldResistFingerprinting(RFPTarget::CanvasRandomization);
-      if (resistFingerprinting) {
-        cookieJarSettings = doc->CookieJarSettings();
-      }
-    } else {
-      resistFingerprinting = nsContentUtils::ShouldResistFingerprinting(
-          "Fallback", RFPTarget::CanvasRandomization);
-    }
-  }
-
-  if (resistFingerprinting) {
+  if (aExtractionBehavior == CanvasUtils::ImageExtraction::Randomize) {
     nsIPrincipal* principal = nullptr;
+    nsICookieJarSettings* cookieJarSettings = nullptr;
     {
+      // This function is never called with mOffscreenCanvas set, so we skip
+      // the check for it.
       MutexAutoLock lock(mMutex);
+      MOZ_ASSERT(!mOffscreenCanvas);
+
       if (mCanvasElement) {
         principal = mCanvasElement->NodePrincipal();
-      }
-      if (mOffscreenCanvas) {
-        principal = mOffscreenCanvas->GetParentObject()
-                        ? mOffscreenCanvas->GetParentObject()->PrincipalOrNull()
-                        : nullptr;
+        cookieJarSettings = mCanvasElement->OwnerDoc()->CookieJarSettings();
       }
     }
+
     nsRFPService::RandomizePixels(
         cookieJarSettings, principal, imageBuffer.get(),
         dataSurface->GetSize().width, dataSurface->GetSize().height,
         dataSurface->GetSize().width * dataSurface->GetSize().height * 4,
         gfx::SurfaceFormat::A8R8G8B8_UINT32);
   }
+
   return imageBuffer;
 }
 

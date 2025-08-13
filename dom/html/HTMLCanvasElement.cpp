@@ -898,11 +898,12 @@ already_AddRefed<CanvasCaptureMediaStream> HTMLCanvasElement::CaptureStream(
   // Check site-specific permission and display prompt if appropriate.
   // If no permission, arrange for the frame capture listener to return
   // all-white, opaque image data.
-  bool usePlaceholder = !CanvasUtils::IsImageExtractionAllowed(
-      OwnerDoc(), nsContentUtils::GetCurrentJSContext(), aSubjectPrincipal);
+  CanvasUtils::ImageExtraction spoofing =
+      CanvasUtils::ImageExtractionResult(this, nullptr, &aSubjectPrincipal);
 
-  rv = RegisterFrameCaptureListener(stream->FrameCaptureListener(),
-                                    usePlaceholder);
+  rv = RegisterFrameCaptureListener(
+      stream->FrameCaptureListener(),
+      spoofing == CanvasUtils::ImageExtraction::Placeholder);
   if (NS_FAILED(rv)) {
     aRv.Throw(rv);
     return nullptr;
@@ -918,10 +919,10 @@ nsresult HTMLCanvasElement::ExtractData(JSContext* aCx,
                                         nsIInputStream** aStream) {
   // Check site-specific permission and display prompt if appropriate.
   // If no permission, return all-white, opaque image data.
-  bool usePlaceholder = !CanvasUtils::IsImageExtractionAllowed(
-      OwnerDoc(), aCx, aSubjectPrincipal);
+  CanvasUtils::ImageExtraction spoofing =
+      CanvasUtils::ImageExtractionResult(this, aCx, &aSubjectPrincipal);
 
-  if (!usePlaceholder) {
+  if (spoofing != CanvasUtils::ImageExtraction::Placeholder) {
     auto size = GetWidthHeight();
     CanvasContextType type = GetCurrentContextType();
     CanvasFeatureUsage featureUsage = CanvasFeatureUsage::None;
@@ -936,7 +937,7 @@ nsresult HTMLCanvasElement::ExtractData(JSContext* aCx,
     OwnerDoc()->RecordCanvasUsage(usage);
   }
 
-  return ImageEncoder::ExtractData(aType, aOptions, GetSize(), usePlaceholder,
+  return ImageEncoder::ExtractData(aType, aOptions, GetSize(), spoofing,
                                    mCurrentContext, mOffscreenDisplay, aStream);
 }
 
@@ -988,12 +989,15 @@ nsresult HTMLCanvasElement::ToDataURLImpl(JSContext* aCx,
 }
 
 UniquePtr<uint8_t[]> HTMLCanvasElement::GetImageBuffer(
-    int32_t* aOutFormat, gfx::IntSize* aOutImageSize) {
+    CanvasUtils::ImageExtraction aExtractionBehavior, int32_t* aOutFormat,
+    gfx::IntSize* aOutImageSize) {
   if (mCurrentContext) {
-    return mCurrentContext->GetImageBuffer(aOutFormat, aOutImageSize);
+    return mCurrentContext->GetImageBuffer(aExtractionBehavior, aOutFormat,
+                                           aOutImageSize);
   }
   if (mOffscreenDisplay) {
-    return mOffscreenDisplay->GetImageBuffer(aOutFormat, aOutImageSize);
+    return mOffscreenDisplay->GetImageBuffer(aExtractionBehavior, aOutFormat,
+                                             aOutImageSize);
   }
   return nullptr;
 }
@@ -1028,8 +1032,8 @@ void HTMLCanvasElement::ToBlob(JSContext* aCx, BlobCallback& aCallback,
 
   // Check site-specific permission and display prompt if appropriate.
   // If no permission, return all-white, opaque image data.
-  bool usePlaceholder = !CanvasUtils::IsImageExtractionAllowed(
-      OwnerDoc(), aCx, aSubjectPrincipal);
+  CanvasUtils::ImageExtraction spoofing =
+      CanvasUtils::ImageExtractionResult(this, aCx, &aSubjectPrincipal);
 
   // Encoder callback when encoding is complete.
   class EncodeCallback : public EncodeCompleteCallback {
@@ -1082,8 +1086,8 @@ void HTMLCanvasElement::ToBlob(JSContext* aCx, BlobCallback& aCallback,
       global, &aCallback, recheckCanRead ? mOffscreenDisplay.get() : nullptr,
       recheckCanRead ? &aSubjectPrincipal : nullptr);
 
-  CanvasRenderingContextHelper::ToBlob(aCx, callback, aType, aParams,
-                                       usePlaceholder, aRv);
+  CanvasRenderingContextHelper::ToBlob(aCx, callback, aType, aParams, spoofing,
+                                       aRv);
 }
 
 OffscreenCanvas* HTMLCanvasElement::TransferControlToOffscreen(
