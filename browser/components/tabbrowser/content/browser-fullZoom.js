@@ -236,7 +236,7 @@ var FullZoom = {
     // to the new location.
     this._ignorePendingZoomAccesses(browser);
 
-    if (!aURI || (aIsTabSwitch && !this._isSiteSpecific(browser))) {
+    if (!aURI || (aIsTabSwitch && !this.siteSpecific)) {
       this._notifyOnLocationChange(browser);
       return;
     }
@@ -535,13 +535,13 @@ var FullZoom = {
     if (
       !aBrowser.mInitialized ||
       aBrowser.isSyntheticDocument ||
-      (!this._isSiteSpecific(aBrowser) && aBrowser.tabHasCustomZoom)
+      (!this.siteSpecific && aBrowser.tabHasCustomZoom)
     ) {
       this._executeSoon(aCallback);
       return;
     }
 
-    if (aValue !== undefined && this._isSiteSpecific(aBrowser)) {
+    if (aValue !== undefined && this.siteSpecific) {
       ZoomManager.setZoomForBrowser(aBrowser, this._ensureValid(aValue));
       this._ignorePendingZoomAccesses(aBrowser);
       this._executeSoon(aCallback);
@@ -568,11 +568,11 @@ var FullZoom = {
    * @param browser  The zoom of this browser will be saved.  Required.
    */
   _applyZoomToPref: function FullZoom__applyZoomToPref(browser) {
-    if (!this._isSiteSpecific(browser) || browser.isSyntheticDocument) {
+    if (!this.siteSpecific || browser.isSyntheticDocument) {
       // If site-specific zoom is disabled, we have called this function
       // to adjust our tab's zoom level. It is now considered "custom"
       // and we mark that here.
-      browser.tabHasCustomZoom = !this._isSiteSpecific(browser);
+      browser.tabHasCustomZoom = !this.siteSpecific;
       return null;
     }
 
@@ -700,23 +700,6 @@ var FullZoom = {
     }
 
     return aValue;
-  },
-
-  // Whether to remember the site specific zoom level for this browser.
-  // This returns false when `browser.zoom.siteSpecific` is false or
-  // the browser has content loaded that should resist fingerprinting.
-  _isSiteSpecific(aBrowser) {
-    if (!this.siteSpecific) {
-      return false;
-    }
-    return (
-      !aBrowser?.browsingContext?.topWindowContext.shouldResistFingerprinting ||
-      !ChromeUtils.shouldResistFingerprinting(
-        "SiteSpecificZoom",
-        aBrowser?.browsingContext?.topWindowContext
-          .overriddenFingerprintingSettings
-      )
-    );
   },
 
   /**

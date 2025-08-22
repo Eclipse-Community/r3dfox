@@ -331,16 +331,88 @@ const CookieBannerExecutedRecordCleaner = {
 
 // A cleaner for cleaning fingerprinting protection states.
 const FingerprintingProtectionStateCleaner = {
+  async _maybeClearSiteSpecificZoom(
+    deleteAll,
+    aSchemelessSite,
+    aOriginAttributes = {}
+  ) {
+    if (
+      !ChromeUtils.shouldResistFingerprinting("SiteSpecificZoom", null, true)
+    ) {
+      return;
+    }
+
+    const cps2 = Cc["@mozilla.org/content-pref/service;1"].getService(
+      Ci.nsIContentPrefService2
+    );
+    const ZOOM_PREF_NAME = "browser.content.full-zoom";
+
+    await new Promise((aResolve, aReject) => {
+      if (deleteAll) {
+        cps2.removeByName(ZOOM_PREF_NAME, null, {
+          handleCompletion: aReason => {
+            if (aReason === cps2.COMPLETE_ERROR) {
+              aReject();
+            } else {
+              aResolve();
+            }
+          },
+        });
+      } else {
+        aOriginAttributes =
+          ChromeUtils.fillNonDefaultOriginAttributes(aOriginAttributes);
+
+        let loadContext;
+        if (
+          aOriginAttributes.privateBrowsingId ==
+          Services.scriptSecurityManager.DEFAULT_PRIVATE_BROWSING_ID
+        ) {
+          loadContext = Cu.createLoadContext();
+        } else {
+          loadContext = Cu.createPrivateLoadContext();
+        }
+
+        cps2.removeBySubdomainAndName(
+          aSchemelessSite,
+          ZOOM_PREF_NAME,
+          loadContext,
+          {
+            handleCompletion: aReason => {
+              if (aReason === cps2.COMPLETE_ERROR) {
+                aReject();
+              } else {
+                aResolve();
+              }
+            },
+          }
+        );
+      }
+    });
+  },
+
   async deleteAll() {
     Services.rfp.cleanAllRandomKeys();
+
+    await this._maybeClearSiteSpecificZoom(true);
   },
 
   async deleteByPrincipal(aPrincipal) {
     Services.rfp.cleanRandomKeyByPrincipal(aPrincipal);
+
+    await this._maybeClearSiteSpecificZoom(
+      false,
+      aPrincipal.host,
+      aPrincipal.originAttributes
+    );
   },
 
   async deleteByBaseDomain(aDomain) {
     Services.rfp.cleanRandomKeyByDomain(aDomain);
+
+    await this._maybeClearSiteSpecificZoom(
+      false,
+      aDomain,
+    );
   },
 
   async deleteByHost(aHost, aOriginAttributesPattern) {
@@ -348,12 +420,21 @@ const FingerprintingProtectionStateCleaner = {
       aHost,
       JSON.stringify(aOriginAttributesPattern)
     );
+
+    await this._maybeClearSiteSpecificZoom(
+      false,
+      aHost,
+      aOriginAttributesPattern
+    );
   },
 
   async deleteByOriginAttributes(aOriginAttributesString) {
     Services.rfp.cleanRandomKeyByOriginAttributesPattern(
       aOriginAttributesString
     );
+
+    // For deleteByOriginAttributes, we only receive userContextId which is not enough to target specific
+    // site-specific zooms. So we don't clear site-specific zooms here.
   },
 };
 
