@@ -73,13 +73,15 @@ pref("general.useragent.compatMode.firefox", true);
 
 // Enable site specific overrides to fix shitty websites
 pref("general.useragent.site_specific_overrides", true);
-pref("general.useragent.override.aistudio.google.com", "Mozilla/5.0 (%OS_SLICE%) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
-pref("general.useragent.override.discord.com", "Mozilla/5.0 (%OS_SLICE%; rv:109.0) Gecko/20100101 Firefox/115.0");
-pref("general.useragent.override.gmx.com", "Mozilla/5.0 (%OS_SLICE%; rv:109.0) Gecko/20100101 Firefox/115.0");
-pref("general.useragent.override.mail.com", "Mozilla/5.0 (%OS_SLICE%; rv:109.0) Gecko/20100101 Firefox/115.0");
-pref("general.useragent.override.routenote.com", "Mozilla/5.0 (%OS_SLICE%; rv:109.0) Gecko/20100101 Firefox/115.0");
-pref("general.useragent.override.snapchat.com", "Mozilla/5.0 (%OS_SLICE%) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
-pref("general.useragent.override.whatsapp.com", "Mozilla/5.0 (%OS_SLICE%; rv:109.0) Gecko/20100101 Firefox/115.0");
+pref("general.useragent.override.aistudio.google.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.gemini.google.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.chase.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.discord.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.gmx.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.mail.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.routenote.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.snapchat.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.whatsapp.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 
 pref("general.config.obscure_value", 13); // for MCD .cfg files
 
