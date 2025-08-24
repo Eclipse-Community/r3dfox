@@ -2463,7 +2463,7 @@ pref("browser.suppress_first_window_animation", true);
 pref("extensions.screenshots.disabled", true);
 
 // Preference that determines whether Screenshots uses the dedicated browser component
-pref("screenshots.browser.component.enabled", true);
+pref("screenshots.browser.component.enabled", false);
 
 // Preference that determines what button to focus
 pref("screenshots.browser.component.last-saved-method", "download");
