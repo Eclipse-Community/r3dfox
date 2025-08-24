@@ -138,10 +138,6 @@
   --panel-shadow-margin: var(--arrowpanel-shadow-margin);
 }
 
-xul|window {
-  color-scheme: light;
-}
-
 /* Lightweight theme roots */
 
 :root[lwtheme] {
