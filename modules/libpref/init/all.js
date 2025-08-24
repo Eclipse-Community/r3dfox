@@ -111,7 +111,7 @@ pref("general.autoscroll.prevent_to_collapse_selection_by_middle_mouse_down", fa
 // maximum number of dated backups to keep at any time
 pref("browser.bookmarks.max_backups",       5);
 
-pref("browser.cache.disk_cache_ssl",        true);
+pref("browser.cache.disk_cache_ssl",        false);
 // The half life used to re-compute cache entries frecency in hours.
 pref("browser.cache.frecency_half_life_hours", 6);
 

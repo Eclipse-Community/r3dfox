@@ -1061,7 +1061,7 @@
 
 - name: browser.cache.disk.enable
   type: RelaxedAtomicBool
-  value: true
+  value: false
   mirror: always
 
 - name: browser.cache.memory.enable
@@ -1078,7 +1078,7 @@
 # Does the user want smart-sizing?
 - name: browser.cache.disk.smart_size.enabled
   type: RelaxedAtomicBool
-  value: true
+  value: false
   mirror: always
 
 # Disk cache capacity in kilobytes. It's used only when
@@ -1761,7 +1761,7 @@
 # Force usage of in-memory (rather than file on disk) media cache for video streaming when private browsing
 - name: browser.privatebrowsing.forceMediaMemoryCache
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # Communicates the toolbar color to platform (for e.g., prefers-color-scheme).

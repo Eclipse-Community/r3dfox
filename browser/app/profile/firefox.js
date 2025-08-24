@@ -2271,7 +2271,7 @@ pref("browser.translation.neverForLanguages", "");
 
 // Enable Firefox translations powered by the Bergamot translations
 // engine https://browser.mt/.
-pref("browser.translations.enable", true);
+pref("browser.translations.enable", false);
 
 // Enable the new Firefox Translations Settings UI Design
 pref("browser.translations.newSettingsUI.enable", true);
@@ -2283,6 +2283,7 @@ pref("browser.translations.select.enable", true);
 // Telemetry settings.
 // Determines if Telemetry pings can be archived locally.
 pref("toolkit.telemetry.archive.enabled", false);
+pref("datareporting.usage.uploadEnabled", false);
 // Enables sending the shutdown ping when Firefox shuts down.
 pref("toolkit.telemetry.shutdownPingSender.enabled", false);
 // Enables using the `pingsender` background task.
