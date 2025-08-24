@@ -1743,6 +1743,7 @@
       if (!this._previewMode) {
         newTab.recordTimeFromUnloadToReload();
         newTab.updateLastAccessed();
+        newTab.removeAttribute("unread");
         oldTab.updateLastAccessed();
         // if this is the foreground window, update the last-seen timestamps.
         if (this.ownerGlobal == BrowserWindowTracker.getTopWindow()) {
@@ -9394,6 +9395,9 @@
 
             this.mTab.setAttribute("bursting", "true");
           }
+
+          if (!this.mTab.selected)
+            this.mTab.setAttribute("unread", "true");
         }
 
         if (this.mTab.hasAttribute("progress")) {
