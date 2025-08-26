@@ -412,7 +412,6 @@ pub unsafe extern "C" fn crash_helper_rendezvous(client_endpoint: AncillaryData)
                     .is_ok(),
                 "The crash_helper_rendezvous() function must only be called once"
             );
-            return;
         }
 
         RENDEZVOUS_FAILED.store(true, Ordering::Relaxed);
