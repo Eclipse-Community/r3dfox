@@ -28,26 +28,27 @@
 }
 
 #context-back {
-  --menuitem-icon: url("chrome://browser/skin/back.svg");
+  list-style-image: url("chrome://browser/skin/back.svg");
 }
 
 #context-forward {
-  --menuitem-icon: url("chrome://browser/skin/forward.svg");
+  list-style-image: url("chrome://browser/skin/forward.svg");
 }
 
 #context-reload {
-  --menuitem-icon: url("chrome://global/skin/icons/reload.svg");
+  list-style-image: url("chrome://global/skin/icons/reload.svg");
 }
 
 #context-stop {
-  --menuitem-icon: url("chrome://global/skin/icons/close.svg");
+  list-style-image: url("chrome://global/skin/icons/close.svg");
 }
 
 #context-bookmarkpage {
-  --menuitem-icon: url("chrome://browser/skin/bookmark-hollow.svg");
-  &[starred] {
-    --menuitem-icon: url("chrome://browser/skin/bookmark.svg");
-  }
+  list-style-image: url("chrome://browser/skin/bookmark-hollow.svg");
+}
+
+#context-bookmarkpage[starred="true"] {
+  list-style-image: url("chrome://browser/skin/bookmark.svg");
 }
 
 #context-back:-moz-locale-dir(rtl),
@@ -57,7 +58,7 @@
 }
 
 #context-media-eme-learnmore {
-  --menuitem-icon: url("chrome://browser/skin/drm-icon.svg");
+  list-style-image: url("chrome://browser/skin/drm-icon.svg");
   -moz-context-properties: fill;
   fill: currentColor;
 }
