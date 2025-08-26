@@ -529,6 +529,10 @@ class Process extends BaseProcess {
       win32.CREATE_SUSPENDED |
       win32.CREATE_UNICODE_ENVIRONMENT;
 
+    if (io.breakAwayFromJob) {
+      processFlags |= win32.CREATE_BREAKAWAY_FROM_JOB;
+    }
+
     let startupInfoEx = new win32.STARTUPINFOEXW();
     let startupInfo = startupInfoEx.StartupInfo;
 
@@ -725,6 +729,8 @@ io = {
       win32.HANDLE
     );
     this.updatePollEvents();
+
+    this.breakAwayFromJob = details.breakAwayFromJob;
 
     setTimeout(this.loop.bind(this), 0);
   },
