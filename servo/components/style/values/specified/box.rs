@@ -1546,12 +1546,23 @@ pub enum Appearance {
     /// The scroll corner
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Scrollcorner,
+    /// A spin control (up/down control for time/date pickers).
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Spinner,
     /// The up button of a spin control.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     SpinnerUpbutton,
     /// The down button of a spin control.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     SpinnerDownbutton,
+    /// The textfield of a spin control
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    SpinnerTextfield,
+    /// The tabs scroll arrows (left/right).
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    TabScrollArrowBack,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    TabScrollArrowForward,
     /// A single toolbar button (with no associated dropdown).
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Toolbarbutton,
