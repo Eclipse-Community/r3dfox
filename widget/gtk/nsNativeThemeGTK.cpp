@@ -458,7 +458,11 @@ bool nsNativeThemeGTK::IsWidgetAlwaysNonNative(nsIFrame* aFrame,
          aAppearance == StyleAppearance::Radio ||
          aAppearance == StyleAppearance::Button ||
          aAppearance == StyleAppearance::Listbox ||
-         aAppearance == StyleAppearance::Menulist;
+         aAppearance == StyleAppearance::Menulist ||
+         aAppearance == StyleAppearance::ProgressBar ||
+         aAppearance == StyleAppearance::Progresschunk ||
+         aAppearance == StyleAppearance::Range ||
+         aAppearance == StyleAppearance::RangeThumb;
 }
 
 LayoutDeviceIntSize nsNativeThemeGTK::GetMinimumWidgetSize(

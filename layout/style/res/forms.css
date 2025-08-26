@@ -729,6 +729,8 @@ progress::slider-fill {
   overflow: visible !important;
   box-sizing: border-box !important;
 
+  appearance: auto;
+  -moz-default-appearance: progresschunk;
   height: 100%;
   width: 100%;
 
@@ -753,6 +755,8 @@ meter::slider-fill {
   position: static !important;
   overflow: visible !important;
 
+  appearance: auto;
+  -moz-default-appearance: meterchunk;
   height: 100%;
   width: 100%;
 }
@@ -848,6 +852,11 @@ input[type="range"]::slider-fill {
  */
 input[type="range"]::-moz-range-thumb,
 input[type="range"]::slider-thumb {
+  /* Native theming is atomic for range. Set appearance on the range
+   * to get rid of it. The thumb's appearance is fixed.
+   */
+  appearance: auto !important;
+  -moz-default-appearance: range-thumb !important;
   /* Prevent styling that would change the type of frame we construct. */
   display: block !important;
   float: none !important;
