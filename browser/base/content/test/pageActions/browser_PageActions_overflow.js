@@ -130,6 +130,7 @@ add_task(async function bookmark() {
     () => bookmarkButton.label === "Edit This Bookmark…"
   );
   Assert.ok(bookmarkButton.hasAttribute("starred"));
+  Assert.equal(bookmarkButton.getAttribute("starred"), "true");
 
   // Click it again.
   hiddenPromise = promisePageActionPanelHidden(win);
