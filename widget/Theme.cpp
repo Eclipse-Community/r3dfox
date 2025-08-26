@@ -1253,7 +1253,6 @@ bool Theme::DoDrawWidgetBackground(PaintBackendData& aPaintData,
       break;
     }
     case StyleAppearance::Button:
-    case StyleAppearance::Toolbarbutton:
       PaintButton(aPaintData, devPxRect, aAppearance, elementState, colors,
                   dpiRatio);
       break;
@@ -1394,7 +1393,6 @@ LayoutDeviceIntMargin Theme::GetWidgetBorder(nsDeviceContext* aContext,
     case StyleAppearance::Listbox:
     case StyleAppearance::Menulist:
     case StyleAppearance::Button:
-    case StyleAppearance::Toolbarbutton:
     case StyleAppearance::ProgressBar:
       // Return the border size from the UA sheet, even though what we paint
       // doesn't actually match that. We know this is the UA sheet border
@@ -1455,7 +1453,6 @@ bool Theme::GetWidgetOverflow(nsDeviceContext* aContext, nsIFrame* aFrame,
       break;
     case StyleAppearance::Menulist:
     case StyleAppearance::Button:
-    case StyleAppearance::Toolbarbutton:
       outlineOffset = -kButtonBorderWidth;
       break;
     default:
@@ -1592,7 +1589,6 @@ bool Theme::ThemeSupportsWidget(nsPresContext* aPresContext, nsIFrame* aFrame,
     case StyleAppearance::ScrollbarVertical:
     case StyleAppearance::Scrollcorner:
     case StyleAppearance::Button:
-    case StyleAppearance::Toolbarbutton:
     case StyleAppearance::Listbox:
     case StyleAppearance::Menulist:
     case StyleAppearance::NumberInput:
