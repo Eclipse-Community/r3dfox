@@ -8,7 +8,14 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+toolbox {
+  appearance: auto;
+  -moz-default-appearance: toolbox;
+}
+
 toolbar {
+  appearance: auto;
+  -moz-default-appearance: toolbar;
   min-width: 1px;
   min-height: 20px;
 
@@ -27,6 +34,13 @@ toolbar {
       background-color: transparent;
       padding: 1px 0;
     }
+  }
+}
+
+*|*:root[lwtheme] {
+  toolbox,
+  toolbar {
+    appearance: none;
   }
 }
 
