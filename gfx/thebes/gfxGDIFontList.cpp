@@ -30,6 +30,7 @@
 #include "mozilla/ProfilerLabels.h"
 #include "mozilla/StaticPrefs_gfx.h"
 #include "mozilla/glean/GfxMetrics.h"
+#include "mozilla/WindowsVersion.h"
 
 #include "mozilla/dom/Document.h"
 #include "nsContentUtils.h"
