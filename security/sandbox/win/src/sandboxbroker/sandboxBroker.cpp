@@ -1040,7 +1040,10 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
   }
 
   if (aSandboxLevel > 4) {
-    config->SetDesktop(sandbox::Desktop::kAlternateWinstation);
+    // Alternate winstation breaks native theming.
+    bool useAlternateWinstation =
+        StaticPrefs::widget_non_native_theme_enabled();
+    config->SetDesktop(useAlternateWinstation ? sandbox::Desktop::kAlternateWinstation : sandbox::Desktop::kAlternateDesktop);
   }
 
   sandbox::MitigationFlags mitigations =
