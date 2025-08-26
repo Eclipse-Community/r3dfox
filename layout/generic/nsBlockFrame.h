@@ -537,14 +537,8 @@ class nsBlockFrame : public nsContainerFrame {
   }
 
   bool IsButtonLike() const {
-    if (mContent->IsHTMLElement(nsGkAtoms::button)) {
-      // NOTE(emilio): We need the IsAnonBox check to deal with things like the
-      // :-moz-anonymous-item of a <button> with display: grid. We don't want
-      // that to e.g. center its contents. But we do want the scrolled-content
-      // box of a button to do it.
-      auto pseudoType = Style()->GetPseudoType();
-      return !mozilla::PseudoStyle::IsAnonBox(pseudoType) ||
-             pseudoType == mozilla::PseudoStyleType::scrolledContent;
+    if (!Style()->IsAnonBox() && mContent->IsHTMLElement(nsGkAtoms::button)) {
+      return true;
     }
     return IsButtonControlFrame();
   }
