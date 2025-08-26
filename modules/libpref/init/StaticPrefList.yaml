@@ -16393,6 +16393,11 @@
   value: 2
   mirror: always
 
+- name: security.csp.enable
+  type: bool
+  value: true
+  mirror: always
+
 - name: security.csp.reporting.script-sample.max-length
   type: int32_t
   value: 40
