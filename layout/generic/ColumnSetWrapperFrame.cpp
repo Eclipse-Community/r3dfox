@@ -251,6 +251,10 @@ Maybe<nscoord> ColumnSetWrapperFrame::GetBaselineBOffset(
                  (*aStart == PrincipalChildList().LastChild() &&
                   aBaselineGroup == BaselineSharingGroup::Last),
              "Iterator direction must match baseline sharing group.");
+  if (StyleDisplay()->IsContainLayout()) {
+    return Nothing{};
+  }
+
   // Start from start/end of principal child list, and use the first valid
   // baseline.
   for (auto itr = aStart; itr != aEnd; ++itr) {
@@ -277,9 +281,6 @@ Maybe<nscoord> ColumnSetWrapperFrame::GetBaselineBOffset(
 Maybe<nscoord> ColumnSetWrapperFrame::GetNaturalBaselineBOffset(
     WritingMode aWM, BaselineSharingGroup aBaselineGroup,
     BaselineExportContext aExportContext) const {
-  if (StyleDisplay()->IsContainLayout()) {
-    return Nothing{};
-  }
   if (aBaselineGroup == BaselineSharingGroup::First) {
     return GetBaselineBOffset(PrincipalChildList().cbegin(),
                               PrincipalChildList().cend(), aWM, aBaselineGroup,

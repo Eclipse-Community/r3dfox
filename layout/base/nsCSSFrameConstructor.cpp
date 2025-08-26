@@ -169,7 +169,6 @@ nsIFrame* NS_NewSVGFEUnstyledLeafFrame(PresShell* aPresShell,
 nsIFrame* NS_NewFileControlLabelFrame(PresShell*, ComputedStyle*);
 nsIFrame* NS_NewComboboxLabelFrame(PresShell*, ComputedStyle*);
 nsIFrame* NS_NewMiddleCroppingLabelFrame(PresShell*, ComputedStyle*);
-nsIFrame* NS_NewInputButtonControlFrame(PresShell*, ComputedStyle*);
 
 #include "mozilla/dom/NodeInfo.h"
 #include "nsContentCreatorFunctions.h"
@@ -3047,7 +3046,8 @@ nsCSSFrameConstructor::FindSelectData(const Element& aElement,
   MOZ_ASSERT(sel);
   if (sel->IsCombobox()) {
     static constexpr FrameConstructionData sComboboxData{
-        ToCreationFunc(NS_NewComboboxControlFrame)};
+        ToCreationFunc(NS_NewComboboxControlFrame), 0,
+        PseudoStyleType::buttonContent};
     return &sComboboxData;
   }
   // FIXME: Can we simplify this to avoid needing ConstructListboxSelectFrame,
@@ -3501,7 +3501,8 @@ nsCSSFrameConstructor::FindHTMLData(const Element& aElement,
             NS_NewFileControlLabelFrame);
         return &sFileLabelData;
       }
-      if (aParentFrame->IsComboboxControlFrame()) {
+      if (aParentFrame->GetParent() &&
+          aParentFrame->GetParent()->IsComboboxControlFrame()) {
         static constexpr FrameConstructionData sComboboxLabelData(
             NS_NewComboboxLabelFrame);
         return &sComboboxLabelData;
@@ -3522,7 +3523,6 @@ nsCSSFrameConstructor::FindHTMLData(const Element& aElement,
       {nsGkAtoms::br,
        {NS_NewBRFrame, FCDATA_IS_LINE_PARTICIPANT | FCDATA_IS_LINE_BREAK}},
       SIMPLE_TAG_CREATE(wbr, NS_NewWBRFrame),
-      SIMPLE_TAG_CHAIN(button, nsCSSFrameConstructor::FindHTMLButtonData),
       SIMPLE_TAG_CHAIN(input, nsCSSFrameConstructor::FindInputData),
       SIMPLE_TAG_CREATE(textarea, NS_NewTextControlFrame),
       SIMPLE_TAG_CHAIN(select, nsCSSFrameConstructor::FindSelectData),
@@ -3532,6 +3532,10 @@ nsCSSFrameConstructor::FindHTMLData(const Element& aElement,
                          &nsCSSFrameConstructor::ConstructFieldSetFrame),
       SIMPLE_TAG_CREATE(frameset, NS_NewHTMLFramesetFrame),
       SIMPLE_TAG_CREATE(iframe, NS_NewSubDocumentFrame),
+      {nsGkAtoms::button,
+       {ToCreationFunc(NS_NewHTMLButtonControlFrame),
+        FCDATA_ALLOW_BLOCK_STYLES | FCDATA_ALLOW_GRID_FLEX_COLUMN,
+        PseudoStyleType::buttonContent}},
       SIMPLE_TAG_CHAIN(canvas, nsCSSFrameConstructor::FindCanvasData),
       SIMPLE_TAG_CREATE(video, NS_NewHTMLVideoFrame),
       SIMPLE_TAG_CREATE(audio, NS_NewHTMLAudioFrame),
@@ -3562,38 +3566,6 @@ nsCSSFrameConstructor::FindGeneratedImageData(const Element& aElement,
   static constexpr FrameConstructionData sImgData(
       NS_NewImageFrameForGeneratedContentIndex);
   return &sImgData;
-}
-
-const nsCSSFrameConstructor::FrameConstructionData*
-nsCSSFrameConstructor::FindHTMLButtonData(const Element&,
-                                          ComputedStyle& aStyle) {
-  // Buttons force a (maybe inline) block unless their display is flex or grid.
-  // TODO(emilio): It'd be good to remove this restriction more broadly.
-  // There are some tests that expect block baselines on e.g. a `display: table`
-  // button, but seems like it would be doable.
-  const auto* disp = aStyle.StyleDisplay();
-  const bool respectDisplay = [&] {
-    if (disp->IsInlineFlow()) {
-      // For compat, `display: inline` and co need to create an inline-block.
-      return false;
-    }
-    switch (disp->DisplayInside()) {
-      case StyleDisplayInside::Flex:
-      case StyleDisplayInside::Grid:
-      case StyleDisplayInside::FlowRoot:
-        return true;
-      default:
-        return false;
-    }
-  }();
-  if (respectDisplay) {
-    return nullptr;
-  }
-  static constexpr FrameConstructionData sBlockData[2] = {
-      {&nsCSSFrameConstructor::ConstructNonScrollableBlock},
-      {&nsCSSFrameConstructor::ConstructScrollableBlock},
-  };
-  return &sBlockData[disp->IsScrollableOverflow()];
 }
 
 /* static */
@@ -3661,7 +3633,9 @@ nsCSSFrameConstructor::FindInputData(const Element& aElement,
       SIMPLE_INT_CREATE(FormControlType::InputUrl, NS_NewTextControlFrame),
       SIMPLE_INT_CREATE(FormControlType::InputRange, NS_NewRangeFrame),
       SIMPLE_INT_CREATE(FormControlType::InputPassword, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputColor, NS_NewColorControlFrame),
+      {int32_t(FormControlType::InputColor),
+       {NS_NewColorControlFrame, 0, PseudoStyleType::buttonContent}},
+
       SIMPLE_INT_CHAIN(FormControlType::InputSearch,
                        nsCSSFrameConstructor::FindSearchControlData),
       SIMPLE_INT_CREATE(FormControlType::InputNumber, NS_NewNumberControlFrame),
@@ -3673,12 +3647,15 @@ nsCSSFrameConstructor::FindInputData(const Element& aElement,
       SIMPLE_INT_CREATE(FormControlType::InputMonth, NS_NewTextControlFrame),
       // TODO: this is temporary until a frame is written: bug 888320
       SIMPLE_INT_CREATE(FormControlType::InputWeek, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputSubmit,
-                        NS_NewInputButtonControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputReset,
-                        NS_NewInputButtonControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputButton,
-                        NS_NewInputButtonControlFrame),
+      {int32_t(FormControlType::InputSubmit),
+       {ToCreationFunc(NS_NewGfxButtonControlFrame), 0,
+        PseudoStyleType::buttonContent}},
+      {int32_t(FormControlType::InputReset),
+       {ToCreationFunc(NS_NewGfxButtonControlFrame), 0,
+        PseudoStyleType::buttonContent}},
+      {int32_t(FormControlType::InputButton),
+       {ToCreationFunc(NS_NewGfxButtonControlFrame), 0,
+        PseudoStyleType::buttonContent}}
       // Keeping hidden inputs out of here on purpose for so they get frames by
       // display (in practice, none).
   };
@@ -3782,6 +3759,9 @@ void nsCSSFrameConstructor::ConstructFrameFromItemInternal(
   MOZ_ASSERT(
       !(bits & FCDATA_IS_WRAPPER_ANON_BOX) || (bits & FCDATA_USE_CHILD_ITEMS),
       "Wrapper anon boxes should always have FCDATA_USE_CHILD_ITEMS");
+  MOZ_ASSERT(!(bits & FCDATA_ALLOW_GRID_FLEX_COLUMN) ||
+                 (bits & FCDATA_CREATE_BLOCK_WRAPPER_FOR_ALL_KIDS),
+             "Need the block wrapper bit to create grid/flex/column.");
 
   // Don't create a subdocument frame for iframes if we're creating extra frames
   if (aState.mCreatingExtraFrames &&
@@ -3839,9 +3819,37 @@ void nsCSSFrameConstructor::ConstructFrameFromItemInternal(
       MOZ_ASSERT(containerFrame);
 #endif
       nsContainerFrame* container = static_cast<nsContainerFrame*>(newFrame);
-      nsContainerFrame* innerFrame = NS_NewBlockFrame(mPresShell, outerStyle);
-      InitAndRestoreFrame(aState, content, container, innerFrame);
-      outerFrame = innerFrame;
+      nsContainerFrame* innerFrame;
+      if (bits & FCDATA_ALLOW_GRID_FLEX_COLUMN) {
+        switch (display->DisplayInside()) {
+          case StyleDisplayInside::Flex:
+            outerFrame = NS_NewFlexContainerFrame(mPresShell, outerStyle);
+            InitAndRestoreFrame(aState, content, container, outerFrame);
+            innerFrame = outerFrame;
+            break;
+          case StyleDisplayInside::Grid:
+            outerFrame = NS_NewGridContainerFrame(mPresShell, outerStyle);
+            InitAndRestoreFrame(aState, content, container, outerFrame);
+            innerFrame = outerFrame;
+            break;
+          default: {
+            innerFrame = NS_NewBlockFrame(mPresShell, outerStyle);
+            if (outerStyle->StyleColumn()->IsColumnContainerStyle()) {
+              outerFrame = BeginBuildingColumns(aState, content, container,
+                                                innerFrame, outerStyle);
+            } else {
+              // No need to create column container. Initialize innerFrame.
+              InitAndRestoreFrame(aState, content, container, innerFrame);
+              outerFrame = innerFrame;
+            }
+            break;
+          }
+        }
+      } else {
+        innerFrame = NS_NewBlockFrame(mPresShell, outerStyle);
+        InitAndRestoreFrame(aState, content, container, innerFrame);
+        outerFrame = innerFrame;
+      }
 
       SetInitialSingleChild(container, outerFrame);
 
@@ -3930,10 +3938,34 @@ void nsCSSFrameConstructor::ConstructFrameFromItemInternal(
         childList = std::move(newList);
       }
 
-      // Set the frame's initial child list. Note that MathML depends on this
-      // being called even if childList is empty!
-      newFrameAsContainer->SetInitialChildList(FrameChildListID::Principal,
-                                               std::move(childList));
+      if (!(bits & FCDATA_ALLOW_GRID_FLEX_COLUMN) ||
+          !MayNeedToCreateColumnSpanSiblings(newFrameAsContainer, childList)) {
+        // Set the frame's initial child list. Note that MathML depends on this
+        // being called even if childList is empty!
+        newFrameAsContainer->SetInitialChildList(FrameChildListID::Principal,
+                                                 std::move(childList));
+      } else {
+        // Extract any initial non-column-span kids, and put them in inner
+        // frame's child list.
+        nsFrameList initialNonColumnSpanKids =
+            childList.Split([](nsIFrame* f) { return f->IsColumnSpan(); });
+        newFrameAsContainer->SetInitialChildList(
+            FrameChildListID::Principal, std::move(initialNonColumnSpanKids));
+
+        if (childList.NotEmpty()) {
+          nsFrameList columnSpanSiblings = CreateColumnSpanSiblings(
+              aState, newFrameAsContainer, childList,
+              // Column content should never be a absolute/fixed positioned
+              // containing block. Pass nullptr as aPositionedFrame.
+              nullptr);
+
+          MOZ_ASSERT(outerFrame,
+                     "outerFrame should be non-null if multi-column container "
+                     "is created.");
+          FinishBuildingColumns(aState, outerFrame, newFrameAsContainer,
+                                columnSpanSiblings);
+        }
+      }
     }
   }
 

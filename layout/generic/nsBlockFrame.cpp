@@ -596,9 +596,6 @@ void nsBlockFrame::InvalidateFrameWithRect(const nsRect& aRect,
 
 nscoord nsBlockFrame::SynthesizeFallbackBaseline(
     WritingMode aWM, BaselineSharingGroup aBaselineGroup) const {
-  if (IsButtonLike() && StyleDisplay()->IsInlineOutsideStyle()) {
-    return Baseline::SynthesizeBOffsetFromContentBox(this, aWM, aBaselineGroup);
-  }
   return Baseline::SynthesizeBOffsetFromMarginBox(this, aWM, aBaselineGroup);
 }
 
@@ -665,21 +662,13 @@ Maybe<nscoord> nsBlockFrame::GetNaturalBaselineBOffset(
     return Nothing{};
   }
 
-  Maybe<nscoord> offset =
-      aBaselineGroup == BaselineSharingGroup::First
-          ? GetBaselineBOffset(LinesBegin(), LinesEnd(), aWM, aBaselineGroup,
-                               aExportContext)
-          : GetBaselineBOffset(LinesRBegin(), LinesREnd(), aWM, aBaselineGroup,
-                               aExportContext);
-  if (!offset && IsButtonLike() && !mLines.empty()) {
-    // Buttons use the end of the content as a baseline if we haven't found one
-    // yet.
-    nscoord bEnd = mLines.back()->BEnd();
-    offset.emplace(aBaselineGroup == BaselineSharingGroup::Last
-                       ? BSize(aWM) - bEnd
-                       : bEnd);
+  if (aBaselineGroup == BaselineSharingGroup::First) {
+    return GetBaselineBOffset(LinesBegin(), LinesEnd(), aWM, aBaselineGroup,
+                              aExportContext);
   }
-  return offset;
+
+  return GetBaselineBOffset(LinesRBegin(), LinesREnd(), aWM, aBaselineGroup,
+                            aExportContext);
 }
 
 nscoord nsBlockFrame::GetCaretBaseline() const {
@@ -2274,8 +2263,7 @@ nscoord nsBlockFrame::ComputeFinalSize(const ReflowInput& aReflowInput,
     // calculated from aspect-ratio. i.e. Don't carry out block margin-end if it
     // is replaced by the block size from aspect-ratio and inline size.
     aMetrics.mCarriedOutBEndMargin.Zero();
-  } else if (Maybe<nscoord> containBSize = ContainIntrinsicBSize(
-                 IsComboboxControlFrame() ? aReflowInput.GetLineHeight() : 0)) {
+  } else if (Maybe<nscoord> containBSize = ContainIntrinsicBSize()) {
     // If we're size-containing in block axis and we don't have a specified
     // block size, then our final size should actually be computed from only
     // our border, padding and contain-intrinsic-block-size, ignoring the
@@ -2409,7 +2397,7 @@ nscoord nsBlockFrame::ComputeFinalSize(const ReflowInput& aReflowInput,
 void nsBlockFrame::AlignContent(BlockReflowState& aState,
                                 ReflowOutput& aMetrics,
                                 nscoord aBEndEdgeOfChildren) {
-  StyleAlignFlags alignment = EffectiveAlignContent();
+  StyleAlignFlags alignment = StylePosition()->mAlignContent.primary;
   alignment &= ~StyleAlignFlags::FLAG_BITS;
 
   // Short circuit
@@ -2435,8 +2423,7 @@ void nsBlockFrame::AlignContent(BlockReflowState& aState,
   if ((isCentered || isEndAlign) && !mLines.empty() &&
       aState.mReflowStatus.IsFullyComplete() && !GetPrevInFlow()) {
     nscoord availB = aState.mReflowInput.AvailableBSize();
-    nscoord endB =
-        aMetrics.Size(wm).BSize(wm) - aState.BorderPadding().BEnd(wm);
+    nscoord endB = aMetrics.BSize(wm) - aState.BorderPadding().BEnd(wm);
     shift = std::min(availB, endB) - aBEndEdgeOfChildren;
 
     // note: these measures all include start BP, so it subtracts out
@@ -2659,13 +2646,6 @@ void nsBlockFrame::UnionChildOverflow(OverflowAreas& aOverflowAreas,
   // frame children, so calling UnionChildOverflow alone will end up
   // using the old cached values.
   const auto wm = GetWritingMode();
-
-  // ButtonControlFrame elements don't support scrolling, and some like
-  // comboboxes intentionally ignore padding to place their inner elements like
-  // the button, so to preserve behavior of stuff like the scroll{Width,Height}
-  // APIs, forcefully ignore aAsIfScrolled there.
-  aAsIfScrolled = aAsIfScrolled && !IsButtonControlFrame();
-
   // Overflow area computed here should agree with one computed in
   // `ComputeOverflowAreas` (see bug 1800939 and bug 1800719). So the
   // documentation in that function applies here as well.
@@ -6785,6 +6765,7 @@ static bool AnonymousBoxIsBFC(const ComputedStyle* aStyle) {
   switch (aStyle->GetPseudoType()) {
     case PseudoStyleType::fieldsetContent:
     case PseudoStyleType::columnContent:
+    case PseudoStyleType::buttonContent:
     case PseudoStyleType::cellContent:
     case PseudoStyleType::scrolledContent:
     case PseudoStyleType::anonymousItem:
@@ -6807,6 +6788,8 @@ static bool StyleEstablishesBFC(const ComputedStyle* aStyle) {
          disp->mContainerType != StyleContainerType::Normal ||
          disp->DisplayInside() == StyleDisplayInside::FlowRoot ||
          disp->IsAbsolutelyPositionedStyle() || disp->IsFloatingStyle() ||
+         aStyle->StylePosition()->mAlignContent.primary !=
+             StyleAlignFlags::NORMAL ||
          aStyle->IsRootElementStyle() || AnonymousBoxIsBFC(aStyle);
 }
 
@@ -6836,10 +6819,6 @@ static bool EstablishesBFC(const nsBlockFrame* aFrame) {
   }
 
   if (aFrame->IsColumnSpan()) {
-    return true;
-  }
-
-  if (aFrame->IsContentAligned()) {
     return true;
   }
 
@@ -8143,31 +8122,27 @@ a11y::AccType nsBlockFrame::AccessibleType() {
     return a11y::eHTMLHRType;
   }
 
-  if (IsButtonLike()) {
-    return a11y::eHTMLButtonType;
+  if (!HasMarker() || !PresContext()) {
+    // XXXsmaug What if we're in the shadow dom?
+    if (!mContent->GetParent()) {
+      // Don't create accessible objects for the root content node, they are
+      // redundant with the nsDocAccessible object created with the document
+      // node
+      return a11y::eNoType;
+    }
+
+    if (mContent == mContent->OwnerDoc()->GetBody()) {
+      // Don't create accessible objects for the body, they are redundant with
+      // the nsDocAccessible object created with the document node
+      return a11y::eNoType;
+    }
+
+    // Not a list item with a ::marker, treat as normal HTML container.
+    return a11y::eHyperTextType;
   }
 
-  if (HasMarker()) {
-    // Create special list item accessible since we have a ::marker.
-    return a11y::eHTMLLiType;
-  }
-
-  // XXXsmaug What if we're in the shadow dom?
-  if (!mContent->GetParent()) {
-    // Don't create accessible objects for the root content node, they are
-    // redundant with the nsDocAccessible object created with the document
-    // node
-    return a11y::eNoType;
-  }
-
-  if (mContent == mContent->OwnerDoc()->GetBody()) {
-    // Don't create accessible objects for the body, they are redundant with
-    // the nsDocAccessible object created with the document node
-    return a11y::eNoType;
-  }
-
-  // Not a list item with a ::marker, treat as normal HTML container.
-  return a11y::eHyperTextType;
+  // Create special list item accessible since we have a ::marker.
+  return a11y::eHTMLLiType;
 }
 #endif
 
@@ -8337,6 +8312,8 @@ void nsBlockFrame::SetInitialChildList(ChildListID aListID,
          (pseudo == PseudoStyleType::cellContent &&
           !GetParent()->Style()->IsPseudoOrAnonBox()) ||
          pseudo == PseudoStyleType::fieldsetContent ||
+         (pseudo == PseudoStyleType::buttonContent &&
+          !GetParent()->IsComboboxControlFrame()) ||
          pseudo == PseudoStyleType::columnContent ||
          (pseudo == PseudoStyleType::scrolledContent &&
           !GetParent()->IsListControlFrame()) ||

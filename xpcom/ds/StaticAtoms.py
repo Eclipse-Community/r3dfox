@@ -2572,6 +2572,7 @@ STATIC_ATOMS = [
     InheritingAnonBoxAtom("AnonBox_mozBlockInsideInlineWrapper", ":-moz-block-inside-inline-wrapper"),
     InheritingAnonBoxAtom("AnonBox_mozMathMLAnonymousBlock", ":-moz-mathml-anonymous-block"),
     InheritingAnonBoxAtom("AnonBox_mozLineFrame", ":-moz-line-frame"),
+    InheritingAnonBoxAtom("AnonBox_buttonContent", ":-moz-button-content"),
     InheritingAnonBoxAtom("AnonBox_cellContent", ":-moz-cell-content"),
     InheritingAnonBoxAtom("AnonBox_dropDownList", ":-moz-dropdown-list"),
     InheritingAnonBoxAtom("AnonBox_fieldsetContent", ":-moz-fieldset-content"),
