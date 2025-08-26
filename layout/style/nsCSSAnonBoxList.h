@@ -95,6 +95,7 @@ CSS_WRAPPER_ANON_BOX(mozMathMLAnonymousBlock, ":-moz-mathml-anonymous-block")
 
 CSS_ANON_BOX(mozLineFrame, ":-moz-line-frame")
 
+CSS_ANON_BOX(buttonContent, ":-moz-button-content")
 CSS_ANON_BOX(cellContent, ":-moz-cell-content")
 CSS_ANON_BOX(dropDownList, ":-moz-dropdown-list")
 CSS_ANON_BOX(fieldsetContent, ":-moz-fieldset-content")

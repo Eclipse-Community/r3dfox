@@ -578,17 +578,6 @@ static void MaybeScheduleReflowSVGNonDisplayText(nsIFrame* aFrame) {
       IntrinsicDirty::FrameAncestorsAndDescendants);
 }
 
-bool nsIFrame::IsReplaced() const {
-  if (HasAnyClassFlag(ClassFlags::Replaced)) {
-    return true;
-  }
-  if (!Style()->IsAnonBox() && mContent->IsHTMLElement(nsGkAtoms::button)) {
-    // Button always behaves as a replaced element.
-    return true;
-  }
-  return false;
-}
-
 bool nsIFrame::ShouldPropagateRepaintsToRoot() const {
   if (!IsPrimaryFrame()) {
     // special case for table frames because style images are associated to the
@@ -4803,10 +4792,13 @@ bool nsIFrame::ShouldHaveLineIfEmpty() const {
       break;
     case PseudoStyleType::scrolledContent:
       return GetParent()->ShouldHaveLineIfEmpty();
+    case PseudoStyleType::buttonContent:
+      // HTML quirk.
+      return GetContent()->IsHTMLElement(nsGkAtoms::input);
     default:
       return false;
   }
-  return IsInputButtonControlFrame() || IsEditingHost(this);
+  return IsEditingHost(this);
 }
 
 /**
@@ -8633,13 +8625,9 @@ inline static bool FormControlShrinksForPercentSize(const nsIFrame* aFrame) {
     case LayoutFrameType::ImageControl:
       return true;
     default:
-      // True buttons (<button>, backed by block/grid/flex frame) and most
-      // button-flavored <inputs> (those backed by InputButtonControlFrame)
-      // don't have this shrinking behavior. But color-inputs and comboboxes do;
-      // and both of those derive from ButtonControlFrame. So: we can't easily
-      // use do_QueryFrame to differentiate the buttons-that-do vs. the
-      // buttons-that-don't. So we explicitly list the buttons-that-do by
-      // LayoutFrameType above, and the others fall into this catch-all.
+      // Buttons (GfxButtonControl / HTMLButtonControl) don't have this
+      // shrinking behavior.  (Note that color inputs do, even though they
+      // inherit from button, so we can't use do_QueryFrame here.)
       return false;
   }
 }
@@ -8681,6 +8669,7 @@ bool nsIFrame::IsPercentageResolvedAgainstZero(const LengthPercentage& aSize,
 bool nsIFrame::IsBlockWrapper() const {
   auto pseudoType = Style()->GetPseudoType();
   return pseudoType == PseudoStyleType::mozBlockInsideInlineWrapper ||
+         pseudoType == PseudoStyleType::buttonContent ||
          pseudoType == PseudoStyleType::cellContent ||
          pseudoType == PseudoStyleType::columnSpanWrapper;
 }
@@ -12251,6 +12240,7 @@ PhysicalAxes nsIFrame::ShouldApplyOverflowClipping(
     switch (type) {
       case LayoutFrameType::CheckboxRadio:
       case LayoutFrameType::ComboboxControl:
+      case LayoutFrameType::HTMLButtonControl:
       case LayoutFrameType::ListControl:
       case LayoutFrameType::Progress:
       case LayoutFrameType::Range:
