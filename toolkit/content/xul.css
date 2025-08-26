@@ -228,6 +228,14 @@ html|label.toolbarbutton-badge:empty {
 .toolbarbutton-menu-dropmarker,
 .treecol-text,
 .treecol-sortdirection,
+.menubar-text,
+.menu-text,
+.menu-highlightable-text,
+.menu-iconic-text,
+.menu-iconic-highlightable-text,
+.menu-iconic-left,
+.menu-right,
+.menu-accel-container,
 .button-box {
   /* Preserves legacy behavior */
   pointer-events: none;
@@ -635,6 +643,11 @@ findbar {
 button,
 image {
   display: inline-flex;
+}
+
+.menu-iconic-highlightable-text:not([highlightable="true"]),
+.menu-iconic-text[highlightable="true"] {
+  display: none;
 }
 
 [orient="vertical"] {
