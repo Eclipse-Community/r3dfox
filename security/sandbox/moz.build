@@ -197,7 +197,7 @@ elif CONFIG["OS_ARCH"] == "WINNT":
     LOCAL_INCLUDES += ["/third_party/abseil-cpp"]
     LOCAL_INCLUDES += ["/nsprpub"]
 
-    OS_LIBS += ["userenv", "usp10"]
+    OS_LIBS += ["usp10"]
 
     DisableStlWrapping()
 

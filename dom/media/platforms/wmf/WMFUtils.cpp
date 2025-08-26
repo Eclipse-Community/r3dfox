@@ -23,6 +23,7 @@
 #include "mozilla/Logging.h"
 #include "mozilla/RefPtr.h"
 #include "mozilla/mscom/EnsureMTA.h"
+#include "mozilla/WindowsVersion.h"
 #include "nsTArray.h"
 #include "nsThreadUtils.h"
 #include "nsWindowsHelpers.h"
@@ -493,6 +494,16 @@ LoadDLLs() {
 
 HRESULT
 MediaFoundationInitializer::MFStartup() {
+  if (IsWin7AndPre2000Compatible()) {
+    /*
+     * Specific exclude the usage of WMF on Win 7 with compatibility mode
+     * prior to Win 2000 as we may crash while trying to startup WMF.
+     * Using GetVersionEx API which takes compatibility mode into account.
+     * See Bug 1279171.
+     */
+    return E_FAIL;
+  }
+
   HRESULT hr = LoadDLLs();
   if (FAILED(hr)) {
     return hr;
