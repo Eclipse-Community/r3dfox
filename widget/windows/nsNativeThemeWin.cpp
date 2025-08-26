@@ -714,6 +714,7 @@ mozilla::Maybe<nsUXThemeClass> nsNativeThemeWin::GetThemeClass(
     case StyleAppearance::ProgressBar:
       return Some(eUXProgress);
     case StyleAppearance::Range:
+    case StyleAppearance::RangeThumb:
       return Some(eUXTrackbar);
     case StyleAppearance::SpinnerUpbutton:
     case StyleAppearance::SpinnerDownbutton:
@@ -952,6 +953,33 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       } else {
         aPart = TKP_TRACKVERT;
         aState = TRVS_NORMAL;
+      }
+      return NS_OK;
+    }
+    case StyleAppearance::RangeThumb: {
+      if (IsRangeHorizontal(aFrame)) {
+        aPart = TKP_THUMBBOTTOM;
+      } else {
+        aPart = IsFrameRTL(aFrame) ? TKP_THUMBLEFT : TKP_THUMBRIGHT;
+      }
+      ElementState elementState = GetContentState(aFrame, aAppearance);
+      if (!aFrame) {
+        aState = TS_NORMAL;
+      } else if (elementState.HasState(ElementState::DISABLED)) {
+        aState = TKP_DISABLED;
+      } else {
+        if (elementState.HasState(
+                ElementState::ACTIVE))  // Hover is not also a requirement for
+                                        // the thumb, since the drag is not
+                                        // canceled when you move outside the
+                                        // thumb.
+          aState = TS_ACTIVE;
+        else if (elementState.HasState(ElementState::FOCUSRING))
+          aState = TKP_FOCUSED;
+        else if (elementState.HasState(ElementState::HOVER))
+          aState = TS_HOVER;
+        else
+          aState = TS_NORMAL;
       }
       return NS_OK;
     }
@@ -1937,6 +1965,15 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
       sizeReq = TS_MIN;
       break;
 
+    case StyleAppearance::RangeThumb: {
+      LayoutDeviceIntSize result(12, 20);
+      if (!IsRangeHorizontal(aFrame)) {
+        std::swap(result.width, result.height);
+      }
+      ScaleForFrameDPI(&result, aFrame);
+      return result;
+    }
+
     case StyleAppearance::Button:
       // We should let HTML buttons shrink to their min size.
       // FIXME bug 403934: We should probably really separate
@@ -2190,6 +2227,7 @@ bool nsNativeThemeWin::ClassicThemeSupportsWidget(nsIFrame* aFrame,
     case StyleAppearance::Checkbox:
     case StyleAppearance::Radio:
     case StyleAppearance::Range:
+    case StyleAppearance::RangeThumb:
     case StyleAppearance::Groupbox:
     case StyleAppearance::Menulist:
     case StyleAppearance::MozMenulistArrowButton:
@@ -2311,6 +2349,16 @@ LayoutDeviceIntSize nsNativeThemeWin::ClassicGetMinimumWidgetSize(
       result.width = ::GetSystemMetrics(SM_CXVSCROLL);
       result.height = 8;  // No good metrics available for this
       break;
+    case StyleAppearance::RangeThumb: {
+      if (IsRangeHorizontal(aFrame)) {
+        result.width = 12;
+        result.height = 20;
+      } else {
+        result.width = 20;
+        result.height = 12;
+      }
+      break;
+    }
     case StyleAppearance::MozMenulistArrowButton:
       result.width = ::GetSystemMetrics(SM_CXVSCROLL);
       break;
@@ -2502,6 +2550,7 @@ nsresult nsNativeThemeWin::ClassicGetThemePartAndState(
     case StyleAppearance::Textarea:
     case StyleAppearance::Menulist:
     case StyleAppearance::Range:
+    case StyleAppearance::RangeThumb:
     case StyleAppearance::ProgressBar:
     case StyleAppearance::Menubar:
     case StyleAppearance::Menupopup:
@@ -2779,6 +2828,18 @@ RENDER_AGAIN:
       InflateRect(&widgetRect, -1, -1);
       ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_BTNFACE + 1));
       break;
+    case StyleAppearance::RangeThumb: {
+      ElementState elementState = GetContentState(aFrame, aAppearance);
+
+      ::DrawEdge(hdc, &widgetRect, EDGE_RAISED,
+                 BF_RECT | BF_SOFT | BF_MIDDLE | BF_ADJUST);
+      if (elementState.HasState(ElementState::DISABLED)) {
+        DrawCheckedRect(hdc, widgetRect, COLOR_3DFACE, COLOR_3DHILIGHT,
+                        (HBRUSH)COLOR_3DHILIGHT);
+      }
+
+      break;
+    }
     // Draw scale track background
     case StyleAppearance::Range: {
       const int32_t trackWidth = 4;
