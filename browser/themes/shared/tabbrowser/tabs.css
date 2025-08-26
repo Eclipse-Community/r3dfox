@@ -2114,24 +2114,31 @@ toolbar:not(#TabsToolbar) #firefox-view-button {
   }
 }
 
-/* NOTE(emilio): The double class is an specificity hack to win over the
- * .subviewbutton-iconic rules */
-.tab-group-icon.tab-group-icon {
+.menu-iconic.tab-group-icon,
+.menuitem-iconic.tab-group-icon,
+.subviewbutton-iconic.tab-group-icon {
   list-style-image: url("chrome://browser/skin/tabbrowser/tab-group-chicklet.svg");
-  --menuitem-icon: url("chrome://browser/skin/tabbrowser/tab-group-chicklet.svg");
   -moz-context-properties: fill, stroke;
   fill: light-dark(var(--tab-group-color), var(--tab-group-color-invert));
   stroke: light-dark(var(--tab-group-color), var(--tab-group-color-invert));
+}
 
-  &.tab-group-icon-collapsed {
-    fill: light-dark(var(--tab-group-color-pale), var(--tab-group-color));
-    stroke: light-dark(var(--tab-group-color), var(--tab-group-color-pale));
-  }
+.menu-iconic.tab-group-icon-collapsed,
+.menuitem-iconic.tab-group-icon-collapsed,
+.subviewbutton-iconic.tab-group-icon-collapsed {
+  list-style-image: url("chrome://browser/skin/tabbrowser/tab-group-chicklet.svg");
+  -moz-context-properties: fill, stroke;
+  fill: light-dark(var(--tab-group-color-pale), var(--tab-group-color));
+  stroke: light-dark(var(--tab-group-color), var(--tab-group-color-pale));
+}
 
-  &.tab-group-icon-closed {
-    fill: transparent;
-    stroke: light-dark(var(--tab-group-color), var(--tab-group-color-invert));
-  }
+.menu-iconic.tab-group-icon-closed,
+.menuitem-iconic.tab-group-icon-closed,
+.subviewbutton-iconic.tab-group-icon-closed {
+  list-style-image: url("chrome://browser/skin/tabbrowser/tab-group-chicklet.svg");
+  -moz-context-properties: fill, stroke;
+  fill: transparent;
+  stroke: light-dark(var(--tab-group-color), var(--tab-group-color-invert));
 }
 
 #tab-group-suggestions-heading,
