@@ -13,6 +13,7 @@
 #include "DisplayItemClip.h"
 #include "HitTestInfo.h"
 #include "LayerAnimationInfo.h"
+#include "MediaManager.h"
 #include "Navigator.h"
 #include "StorageObserver.h"
 #include "base/basictypes.h"
@@ -216,6 +217,7 @@ nsresult nsLayoutStatics::Initialize() {
   }
 
   DecoderDoctorLogger::Init();
+  MediaManager::StartupInit();
 
 #ifdef XP_WIN
   if (XRE_IsParentProcess()) {
