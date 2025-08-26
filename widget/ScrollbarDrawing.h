@@ -53,6 +53,7 @@ class ScrollbarDrawing {
   static bool IsParentScrollbarHoveredOrActive(nsIFrame* aFrame);
 
   static bool IsScrollbarWidthThin(const ComputedStyle& aStyle);
+  static bool IsScrollbarWidthThin(nsIFrame* aFrame);
 
   CSSIntCoord GetCSSScrollbarSize(StyleScrollbarWidth, Overlay) const;
   LayoutDeviceIntCoord GetScrollbarSize(const nsPresContext*,
