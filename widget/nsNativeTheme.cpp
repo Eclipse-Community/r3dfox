@@ -195,8 +195,12 @@ bool nsNativeTheme::IsWidgetStyled(nsPresContext* aPresContext,
    * comes to native theming (either all parts, or no parts, are themed).
    * nsRangeFrame owns the logic and will tell us what we should do.
    */
-  if (aAppearance == StyleAppearance::Range) {
-    if (nsRangeFrame* rangeFrame = do_QueryFrame(aFrame)) {
+  if (aAppearance == StyleAppearance::Range ||
+      aAppearance == StyleAppearance::RangeThumb) {
+    nsRangeFrame* rangeFrame = do_QueryFrame(
+        aAppearance == StyleAppearance::RangeThumb ? aFrame->GetParent()
+                                                   : aFrame);
+    if (rangeFrame) {
       return !rangeFrame->ShouldUseNativeStyle();
     }
   }
