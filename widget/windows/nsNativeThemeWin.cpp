@@ -1342,6 +1342,10 @@ LayoutDeviceIntSize nsNativeThemeWin::ClassicGetMinimumWidgetSize(
     nsIFrame* aFrame, StyleAppearance aAppearance) {
   LayoutDeviceIntSize result;
   switch (aAppearance) {
+    case StyleAppearance::Menuarrow:
+      result.width = ::GetSystemMetrics(SM_CXMENUCHECK);
+      result.height = ::GetSystemMetrics(SM_CYMENUCHECK);
+      break;
     case StyleAppearance::Menulist:
     case StyleAppearance::Button:
     case StyleAppearance::Listbox:
