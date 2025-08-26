@@ -13,6 +13,7 @@
 #include "base/win/security_descriptor.h"
 #include "sandbox/win/src/acl.h"
 #include "base/win/windows_version.h"
+#include "sandbox/win/src/job.h"
 #include "sandbox/win/src/restricted_token.h"
 #include "sandbox/win/src/sandbox_nt_util.h"
 #include "sandbox/win/src/security_level.h"
