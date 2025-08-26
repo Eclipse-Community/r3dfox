@@ -25,6 +25,7 @@
 #include "base/win/scoped_handle.h"
 #include "base/win/security_util.h"
 #include "base/win/startup_information.h"
+#include "base/win/windows_version.h"
 #include "sandbox/win/src/crosscall_client.h"
 #include "sandbox/win/src/crosscall_server.h"
 #include "sandbox/win/src/policy_low_level.h"
