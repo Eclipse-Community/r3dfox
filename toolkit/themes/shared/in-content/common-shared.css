@@ -42,7 +42,7 @@
 
   --card-padding: 16px;
 
-  -moz-theme: non-native;
+  /*-moz-theme: non-native;*/
   color-scheme: light dark;
   @media not (forced-colors) {
     accent-color: var(--color-accent-primary);
