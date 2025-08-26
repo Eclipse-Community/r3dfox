@@ -10,23 +10,6 @@
   justify-content: normal; /* align the menubar to the top also in customize mode */
 }
 
-@media (-moz-windows-default-theme) {
-#main-menubar > menu {
-  appearance: none;
-  color: inherit;
-
-  &[_moz-menuactive] {
-    background-color: light-dark(hsla(0, 0%, 0%, 0.12), hsla(0, 0%, 100%, 0.22));
-    color: inherit;
-
-    @media (prefers-contrast) {
-      background-color: -moz-menuhover;
-      color: -moz-menuhovertext;
-    }
-  }
-}
-}
-
 :root[tabsintitlebar]:not([lwtheme]) {
   @media (-moz-windows-mica) {
     background-color: transparent;
@@ -83,6 +66,16 @@
 
 /* Titlebar */
 
+:root[tabsintitlebar][sizemode="normal"] .browser-titlebar {
+  appearance: auto;
+  -moz-default-appearance: -moz-window-titlebar;
+}
+
+:root[tabsintitlebar][sizemode="maximized"] .browser-titlebar {
+  appearance: auto;
+  -moz-default-appearance: -moz-window-titlebar-maximized;
+}
+
 .titlebar-buttonbox {
   appearance: none;
   /* The button box must appear on top of the navigator-toolbox in order for
@@ -99,112 +92,31 @@
 
 /* Window control buttons */
 
-.titlebar-button {
-  appearance: none;
-  border: none;
-  margin: 0;
-  padding: 8px 18px;
-  color: inherit;
-
-  /* Segoe Fluent Icons is the preferred font for Windows 11, and
-   * Segoe MDL2 Assets is there for windows 10. Luckily, the relevant glyphs
-   * are the same, so we can just fall back.
-   * See: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font */
-  font:
-    round(10px, env(hairline)) / 1 "Segoe Fluent Icons",
-    "Segoe MDL2 Assets"; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
-
-  /* Win10's tablet mode is non-windowed -- windows can't be moved or resized
-     freely. In theory "minimize" might still make sense, but for simplicity we
-     just hide everything but "close".
-
-     (This is not called for in Win11's tablet mode, which _is_ windowed.)
-  */
-  :root[win10-tablet-mode] &:not(.titlebar-close) {
-    display: none;
-  }
-
-  &:focus-visible {
-    outline: var(--focus-outline);
-    outline-offset: var(--focus-outline-inset);
-  }
-
-  > .toolbarbutton-icon {
-    display: none;
-  }
-
-  &::before {
-    display: inline-block;
-    content: inherit;
-
-    &:-moz-locale-dir(rtl) {
-      transform: scaleX(-1);
-    }
-  }
-
-  @media (-moz-windows-default-theme) {
-    &:hover {
-      background-color: var(--toolbarbutton-hover-background);
-
-      &:active {
-        background-color: var(--toolbarbutton-active-background);
-      }
-    }
-
-    &.titlebar-close:hover {
-      color: white;
-      background-color: hsl(355, 86%, 49%);
-
-      &:active {
-        background-color: hsl(355, 82%, 69%);
-      }
-    }
-  }
-
-  @media not (-moz-windows-default-theme) {
-    background-color: Field;
-    color: ButtonText; /* FIXME: shouldn't it be FieldText? */
-
-    &:hover {
-      background-color: SelectedItem;
-      color: SelectedItemText;
-    }
-  }
-}
-
 .titlebar-min {
-  /* Even though we use appearance: none, -moz-default-appearance is necessary
-   * for Windows 11's "snap layouts" feature, see
-   * DealWithWindowsAppearanceHacks */
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-minimize;
-  content: "\e921"; /* ChromeMinimize */
-  @media (prefers-contrast) {
-    content: "\ef2d"; /* ChromeMinimizeContrast */
-  }
+  margin-inline-end: 2px;
 }
 
 .titlebar-max {
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-maximize;
-  content: "\e922"; /* ChromeMaximize */
-  @media (prefers-contrast) {
-    content: "\ef2e"; /* ChromeMaximizeContrast */
-  }
 }
 
 .titlebar-restore {
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-restore;
-  content: "\e923"; /* ChromeRestore */
-  @media (prefers-contrast) {
-    content: "\ef2f"; /* ChromeRestoreContrast */
-  }
 }
 
 .titlebar-close {
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-close;
-  content: "\e8bb"; /* ChromeClose */
-  @media (prefers-contrast) {
-    content: "\ef2c"; /* ChromeCloseContrast */
-  }
+}
+
+:root[tabletmode] .titlebar-min,
+:root[tabletmode] .titlebar-restore,
+:root[tabletmode] .titlebar-max {
+  display: none;
 }
 
 /* Bookmark menus */
