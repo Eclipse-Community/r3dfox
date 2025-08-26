@@ -10,6 +10,7 @@
   justify-content: normal; /* align the menubar to the top also in customize mode */
 }
 
+@media (-moz-windows-default-theme) {
 #main-menubar > menu {
   appearance: none;
   color: inherit;
@@ -23,6 +24,7 @@
       color: -moz-menuhovertext;
     }
   }
+}
 }
 
 :root[tabsintitlebar]:not([lwtheme]) {
@@ -142,7 +144,7 @@
     }
   }
 
-  @media not (prefers-contrast) {
+  @media (-moz-windows-default-theme) {
     &:hover {
       background-color: light-dark(hsla(0, 0%, 0%, 0.12), hsla(0, 0%, 100%, 0.22));
 
@@ -161,7 +163,7 @@
     }
   }
 
-  @media (prefers-contrast) {
+  @media not (-moz-windows-default-theme) {
     background-color: -moz-field;
     color: ButtonText;
 
@@ -261,7 +263,7 @@
   }
 }
 
-@media (prefers-contrast) {
+@media not (-moz-windows-default-theme) {
   :root {
     /* Windows HCM conventions use these colors for chiclets. We can't use them on
        other platforms because AccentColor can be shown atop SelectedItem,
@@ -293,7 +295,7 @@
   padding: 0;
 }
 
-@media (prefers-contrast) {
+@media not (-moz-windows-default-theme) {
   /* For high contrast themes. XXX is this needed anymore? */
   #tabbrowser-tabpanels,
   :root[privatebrowsingmode="temporary"] #tabbrowser-tabpanels {
