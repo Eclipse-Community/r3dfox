@@ -367,13 +367,19 @@ void AudioSession::Stop(bool aShouldRestart) {
   // to the main thread's apartment as an AgileReference for completeness,
   // since it was created from an MTA thread.
   MOZ_ASSERT(mscom::IsCurrentThreadMTA());
-  mscom::AgileReference agileAsc(mAudioSessionControl);
+  const IID IID_IAudioSessionControl = __uuidof(IAudioSessionControl);
+  auto agileAsc = MakeUnique<mozilla::mscom::AgileReference>(
+      IID_IAudioSessionControl, mAudioSessionControl);
   mAudioSessionControl = nullptr;
   NS_DispatchToMainThread(NS_NewRunnableFunction(
-      "FreeIAudioSessionControl", [agileAsc = std::move(agileAsc)]() mutable {
+      "FreeIAudioSessionControl", [agileAsc = std::move(agileAsc),
+                           IID_IAudioSessionControl] {
+        RefPtr<IAudioSessionControl> toDelete;
+        [[maybe_unused]] HRESULT hr = agileAsc->Resolve(
+            IID_IAudioSessionControl, getter_AddRefs(toDelete));
+        MOZ_ASSERT(SUCCEEDED(hr));
         // Now release the AgileReference which holds our only reference to the
         // IAudioSessionControl, then restart (i.e. create a new one).
-        agileAsc = nullptr;
         NS_DispatchBackgroundTask(NS_NewCancelableRunnableFunction(
             "RestartAudioSession", [] { AudioSession::MaybeRestart(); }));
       }));
