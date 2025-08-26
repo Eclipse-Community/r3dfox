@@ -15,6 +15,7 @@
 #include "nsStyleConsts.h"
 
 // Notify/query select frame for selected state
+#include "nsIFormControlFrame.h"
 #include "mozAutoDocUpdate.h"
 #include "mozilla/dom/Document.h"
 #include "nsCOMPtr.h"
