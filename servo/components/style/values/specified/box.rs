@@ -1757,6 +1757,8 @@ pub enum Appearance {
     /// nsRangeFrame and its subparts
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Range,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    RangeThumb,
     /// The scrollbar slider
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     ScrollbarHorizontal,
