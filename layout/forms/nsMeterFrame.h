@@ -50,9 +50,6 @@ class nsMeterFrame final : public nsContainerFrame,
    */
   bool ShouldUseNativeStyle() const;
 
-  void BuildDisplayList(nsDisplayListBuilder*,
-                        const nsDisplayListSet&) override;
-
  protected:
   // Helper function which reflow the anonymous div frame.
   void ReflowBarFrame(nsIFrame* aBarFrame, nsPresContext* aPresContext,
