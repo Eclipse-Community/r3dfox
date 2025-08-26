@@ -8,6 +8,7 @@
 
 #include "CacheLoadHandler.h"  // CachePromiseHandler
 #include "mozilla/Encoding.h"
+#include "mozilla/StaticPrefs_security.h"
 #include "mozilla/dom/BlobURLProtocolHandler.h"
 #include "mozilla/dom/InternalResponse.h"
 #include "mozilla/dom/Response.h"
@@ -236,12 +237,14 @@ nsresult NetworkLoadHandler::DataReceivedFromNetwork(nsIStreamLoader* aLoader,
     nsCOMPtr<nsIContentSecurityPolicy> csp = mWorkerRef->Private()->GetCsp();
     // We did inherit CSP in bug 1223647. If we do not already have a CSP, we
     // should get it from the HTTP headers on the worker script.
-    if (!csp) {
-      rv = mWorkerRef->Private()->SetCSPFromHeaderValues(tCspHeaderValue,
-                                                         tCspROHeaderValue);
-      NS_ENSURE_SUCCESS(rv, rv);
-    } else {
-      csp->EnsureEventTarget(mWorkerRef->Private()->MainThreadEventTarget());
+      if (StaticPrefs::security_csp_enable()) {
+        if (!csp) {
+          rv = mWorkerRef->Private()->SetCSPFromHeaderValues(tCspHeaderValue,
+                                                             tCspROHeaderValue);
+          NS_ENSURE_SUCCESS(rv, rv);
+        } else {
+          csp->EnsureEventTarget(mWorkerRef->Private()->MainThreadEventTarget());
+        }
     }
 
     mWorkerRef->Private()->UpdateReferrerInfoFromHeader(tRPHeaderCValue);
