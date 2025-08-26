@@ -1538,6 +1538,9 @@ pub enum Appearance {
     /// Menu Popup background.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Menupopup,
+    /// Menu item arrow.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Menuarrow,
     /// The "arrowed" part of the dropdown button that open up a dropdown list.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozMenulistArrowButton,
