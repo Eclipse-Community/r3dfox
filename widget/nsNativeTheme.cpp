@@ -209,10 +209,14 @@ bool nsNativeTheme::IsWidgetStyled(nsPresContext* aPresContext,
 
   /**
    * Progress bar appearance should be the same for the bar and the container
-   * frame.
+   * frame. nsProgressFrame owns the logic and will tell us what we should do.
    */
-  if (aAppearance == StyleAppearance::ProgressBar) {
-    if (nsProgressFrame* progressFrame = do_QueryFrame(aFrame)) {
+  if (aAppearance == StyleAppearance::Progresschunk ||
+      aAppearance == StyleAppearance::ProgressBar) {
+    nsProgressFrame* progressFrame = do_QueryFrame(
+        aAppearance == StyleAppearance::Progresschunk ? aFrame->GetParent()
+                                                      : aFrame);
+    if (progressFrame) {
       return !progressFrame->ShouldUseNativeStyle();
     }
   }
@@ -221,8 +225,12 @@ bool nsNativeTheme::IsWidgetStyled(nsPresContext* aPresContext,
    * Meter bar appearance should be the same for the bar and the container
    * frame. nsMeterFrame owns the logic and will tell us what we should do.
    */
-  if (aAppearance == StyleAppearance::Meter) {
-    if (nsMeterFrame* meterFrame = do_QueryFrame(aFrame)) {
+  if (aAppearance == StyleAppearance::Meterchunk ||
+      aAppearance == StyleAppearance::Meter) {
+    nsMeterFrame* meterFrame = do_QueryFrame(
+        aAppearance == StyleAppearance::Meterchunk ? aFrame->GetParent()
+                                                   : aFrame);
+    if (meterFrame) {
       return !meterFrame->ShouldUseNativeStyle();
     }
   }
@@ -232,8 +240,12 @@ bool nsNativeTheme::IsWidgetStyled(nsPresContext* aPresContext,
    * comes to native theming (either all parts, or no parts, are themed).
    * nsRangeFrame owns the logic and will tell us what we should do.
    */
-  if (aAppearance == StyleAppearance::Range) {
-    if (nsRangeFrame* rangeFrame = do_QueryFrame(aFrame)) {
+  if (aAppearance == StyleAppearance::Range ||
+      aAppearance == StyleAppearance::RangeThumb) {
+    nsRangeFrame* rangeFrame = do_QueryFrame(
+        aAppearance == StyleAppearance::RangeThumb ? aFrame->GetParent()
+                                                   : aFrame);
+    if (rangeFrame) {
       return !rangeFrame->ShouldUseNativeStyle();
     }
   }
