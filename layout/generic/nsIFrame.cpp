@@ -8713,7 +8713,7 @@ inline static bool FormControlShrinksForPercentSize(const nsIFrame* aFrame) {
   }
 
   LayoutFrameType fType = aFrame->Type();
-  if (fType == LayoutFrameType::Progress ||
+  if (fType == LayoutFrameType::Meter || fType == LayoutFrameType::Progress ||
       fType == LayoutFrameType::Range) {
     // progress, meter and range do have this shrinking behavior
     // FIXME: Maybe these should be nsIFormControlFrame?
@@ -12296,6 +12296,7 @@ PhysicalAxes nsIFrame::ShouldApplyOverflowClipping(
       case LayoutFrameType::CheckboxRadio:
       case LayoutFrameType::ComboboxControl:
       case LayoutFrameType::HTMLButtonControl:
+      case LayoutFrameType::Meter:
       case LayoutFrameType::Progress:
       case LayoutFrameType::Range:
       case LayoutFrameType::SubDocument:

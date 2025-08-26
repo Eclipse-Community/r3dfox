@@ -107,6 +107,7 @@ FRAME_CLASSES = [
     Frame("nsMathMLmunderoverFrame", "None", MATHML_CONTAINER),
     Frame("nsMathMLTokenFrame", "None", MATHML_CONTAINER),
     Frame("nsMenuPopupFrame", "MenuPopup", BLOCK),
+    Frame("nsMeterFrame", "Meter", REPLACED | LEAF),
     Frame("nsNumberControlFrame", "TextInput", REPLACED | LEAF | BACKDROP_UNSUPPORTED),
     Frame("nsPageBreakFrame", "PageBreak", COMMON | LEAF),
     Frame("nsPageContentFrame", "PageContent", BLOCK),
