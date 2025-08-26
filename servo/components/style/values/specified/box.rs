@@ -1623,6 +1623,9 @@ pub enum Appearance {
     /// A spin control (up/down control for time/date pickers).
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Spinner,
+    /// A separator.  Can be horizontal or vertical.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Separator,
     /// The up button of a spin control.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     SpinnerUpbutton,

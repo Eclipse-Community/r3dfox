@@ -587,6 +587,7 @@ toolbarseparator {
     /* Make separators wider so they're easier to drag. Make them also a bit
      * smaller visually on the vertical axis */
     padding: 4px;
+    appearance: none;
   }
 }
 
