@@ -5537,7 +5537,7 @@ Maybe<layers::SurfaceDescriptor> ValidSurfaceDescriptorForRemoteCanvas2d(
       }
       auto& ssd = subdesc.get_SurfaceDescriptorD3D10();
       ssd.handle() =
-          nullptr;  // Not IPC-able, but it's just an optimization to have this.
+          0;  // Not IPC-able, but it's just an optimization to have this.
       break;
     }
 #endif
