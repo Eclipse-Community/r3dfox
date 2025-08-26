@@ -256,32 +256,33 @@
 /* Bookmark toolbar buttons and menu items */
 
 .bookmark-item {
-  --bookmark-item-icon: url("chrome://global/skin/icons/defaultFavicon.svg");
-  --menuitem-icon: var(--bookmark-item-icon);
+  list-style-image: url("chrome://global/skin/icons/defaultFavicon.svg");
   -moz-context-properties: fill;
   fill: currentColor;
 
   &:is(toolbarbutton) {
     -moz-context-properties: fill, fill-opacity;
     fill: var(--toolbarbutton-icon-fill);
-    list-style-image: var(--bookmark-item-icon);
   }
 
-  &[container],
-  &[hostContainer] {
-    --bookmark-item-icon: url("chrome://global/skin/icons/folder.svg");
+  &[container] {
+    list-style-image: url("chrome://global/skin/icons/folder.svg");
   }
 
   &[query] {
-    --bookmark-item-icon: url("chrome://browser/skin/places/folder-smart.svg");
+    list-style-image: url("chrome://browser/skin/places/folder-smart.svg");
   }
 
   &[tagContainer] {
-    --bookmark-item-icon: url("chrome://browser/skin/places/tag.svg");
+    list-style-image: url("chrome://browser/skin/places/tag.svg");
   }
 
   &[dayContainer] {
-    --bookmark-item-icon: url("chrome://browser/skin/history.svg");
+    list-style-image: url("chrome://browser/skin/history.svg");
+  }
+
+  &[hostContainer] {
+    list-style-image: url("chrome://global/skin/icons/folder.svg");
   }
 }
 
