@@ -18,13 +18,11 @@
 #include <nsIBaseWindow.h>
 #include <nsServiceManagerUtils.h>
 #include "nsIXULAppInfo.h"
-#include "nsILegacyJumpListBuilder.h"
 #include "nsUXThemeData.h"
 #include "nsWindow.h"
 #include "WinUtils.h"
 #include "TaskbarTabPreview.h"
 #include "TaskbarWindowPreview.h"
-#include "LegacyJumpListBuilder.h"
 #include "nsWidgetsCID.h"
 #include "nsPIDOMWindow.h"
 #include "nsAppDirectoryServiceDefs.h"
@@ -39,9 +37,6 @@
 #include <shellapi.h>
 
 const wchar_t kShellLibraryName[] =  L"shell32.dll";
-
-static NS_DEFINE_CID(kLegacyJumpListBuilderCID,
-                     NS_WIN_LEGACYJUMPLISTBUILDER_CID);
 
 namespace {
 
@@ -457,26 +452,6 @@ WinTaskbar::GetOverlayIconController(
   NS_ENSURE_SUCCESS(rv, rv);
 
   return CallQueryInterface(preview, _retval);
-}
-
-NS_IMETHODIMP
-WinTaskbar::CreateLegacyJumpListBuilder(
-    bool aPrivateBrowsing, nsILegacyJumpListBuilder** aJumpListBuilder) {
-  nsresult rv;
-
-  if (LegacyJumpListBuilder::sBuildingList) return NS_ERROR_ALREADY_INITIALIZED;
-
-  nsCOMPtr<nsILegacyJumpListBuilder> builder =
-      do_CreateInstance(kLegacyJumpListBuilderCID, &rv);
-  if (NS_FAILED(rv)) return NS_ERROR_UNEXPECTED;
-
-  NS_IF_ADDREF(*aJumpListBuilder = builder);
-
-  nsAutoString aumid;
-  GenerateAppUserModelID(aumid, aPrivateBrowsing);
-  builder->SetAppUserModelID(aumid);
-
-  return NS_OK;
 }
 
 NS_IMETHODIMP
