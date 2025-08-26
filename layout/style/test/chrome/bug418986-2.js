@@ -53,7 +53,9 @@ var expected_values = [
 var suppressed_toggles = [
   "-moz-mac-graphite-theme",
   //  "-moz-maemo-classic",
+  "-moz-windows-compositor",
   "-moz-windows-default-theme",
+  "-moz-windows-glass",
   "-moz-gtk-csd-available",
   "-moz-gtk-csd-minimize-button",
   "-moz-gtk-csd-maximize-button",
@@ -65,6 +67,12 @@ var toggles_enabled_in_content = [];
 
 // Read the current OS.
 var OS = SpecialPowers.Services.appinfo.OS;
+
+// If we are using Windows, add an extra toggle only
+// available on that OS.
+if (OS === "WINNT") {
+  suppressed_toggles.push("-moz-windows-classic");
+}
 
 // __keyValMatches(key, val)__.
 // Runs a media query and returns true if key matches to val.
