@@ -40,21 +40,3 @@ dau-reporting:
     active: |
       The ping was submitted when the application became active again,
       which includes when the application starts.
-
-temp-fog-initial-state:
-  description: |
-    Minimal ping sent immediately before Glean SDK initialization to measure
-    initial state of FOG storages and other particulars about the FOG setup.
-  include_client_id: true
-  send_if_empty: true
-  bugs:
-    - https://bugzilla.mozilla.org/show_bug.cgi?id=1979075
-  data_reviews:
-    - https://bugzilla.mozilla.org/show_bug.cgi?id=1979075
-  notification_emails:
-    - glean-team@mozilla.com
-    - tlong@mozilla.com
-  reasons:
-    startup: |
-      The ping was submitted at startup, immediately before `glean::initialize`
-      was called to initialize the Glean SDK.

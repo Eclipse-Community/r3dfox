@@ -2,11 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+use std::env;
 use std::ffi::{c_char, CStr, CString};
 use std::ops::DerefMut;
 use std::path::PathBuf;
-use std::time::{Duration, UNIX_EPOCH};
-use std::{env, fs};
+use std::time::Duration;
 
 use firefox_on_glean::{metrics, pings};
 use nserror::{nsresult, NS_ERROR_FAILURE};
@@ -119,12 +119,6 @@ fn fog_init_internal(
 
     // Register all custom pings before we initialize.
     pings::register_pings(Some(&conf.application_id));
-
-    // Collect directory information for debugging purposes. Nightly only for now.
-    if mozbuild::config::NIGHTLY_BUILD {
-        log::debug!("Collecting FOG data directory information.");
-        collect_directory_info(&conf.data_path);
-    }
 
     glean::initialize(conf, client_info);
 
@@ -334,100 +328,6 @@ fn get_app_info() -> Result<(String, String, String, String), nsresult> {
         channel.to_string(),
         locale.to_string(),
     ))
-}
-
-/// Collects information about the data directories used by FOG.
-fn collect_directory_info(path: &PathBuf) {
-    // List of child directories to check
-    let subdirs = ["db", "events", "pending_pings"];
-    let mut directories_info = metrics::fog::DataDirectoryInfoObject::new();
-
-    for subdir in subdirs.iter() {
-        let dir_path = path.join(subdir);
-
-        // Initialize a DataDirectoryInfoObjectItem for each directory
-        let mut directory_info = metrics::fog::DataDirectoryInfoObjectItem {
-            dir_name: Some(subdir.to_string()),
-            dir_exists: None,
-            dir_created: None,
-            dir_modified: None,
-            file_count: None,
-            files: Vec::new(),
-        };
-
-        // Check if the directory exists
-        if dir_path.is_dir() {
-            directory_info.dir_exists = Some(true);
-
-            // Get directory metadata
-            if let Ok(metadata) = fs::metadata(&dir_path) {
-                if let Ok(created) = metadata.created() {
-                    directory_info.dir_created = Some(
-                        created
-                            .duration_since(UNIX_EPOCH)
-                            .unwrap_or(Duration::ZERO)
-                            .as_secs() as i64,
-                    );
-                }
-                if let Ok(modified) = metadata.modified() {
-                    directory_info.dir_modified = Some(
-                        modified
-                            .duration_since(UNIX_EPOCH)
-                            .unwrap_or(Duration::ZERO)
-                            .as_secs() as i64,
-                    );
-                }
-            }
-
-            // Read the directory's contents
-            let mut file_count = 0;
-            for entry in fs::read_dir(&dir_path).unwrap() {
-                let entry = entry.unwrap();
-                let metadata = entry.metadata().unwrap();
-
-                // Check if the entry is a file
-                if metadata.is_file() {
-                    file_count += 1;
-
-                    // Collect file details
-                    let file_size = metadata.len() as i64;
-                    let modified_time = metadata
-                        .modified()
-                        .unwrap_or(UNIX_EPOCH)
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap_or(Duration::ZERO)
-                        .as_secs() as i64;
-
-                    let creation_time = metadata
-                        .created()
-                        .unwrap_or(UNIX_EPOCH)
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap_or(Duration::ZERO)
-                        .as_secs() as i64;
-                    let file_name = entry.file_name().to_string_lossy().to_string();
-
-                    let file_info = metrics::fog::DataDirectoryInfoObjectItemItemFilesItem {
-                        file_name: Some(file_name),
-                        file_created: Some(creation_time),
-                        file_modified: Some(modified_time),
-                        file_size: Some(file_size),
-                    };
-
-                    directory_info.files.push(file_info);
-                }
-            }
-
-            directory_info.file_count = Some(file_count as i64);
-        } else {
-            directory_info.dir_exists = Some(false);
-        }
-
-        // Add the directory info to the final collection
-        directories_info.push(directory_info);
-    }
-
-    metrics::fog::data_directory_info.set(directories_info);
-    pings::temp_fog_initial_state.submit(Some("startup"));
 }
 
 /// **TEST-ONLY METHOD**
