@@ -78,7 +78,6 @@ UNIFIED_SOURCES += [
     "InkCollector.cpp",
     "JumpListBuilder.cpp",
     "KeyboardLayout.cpp",
-    "LegacyJumpListItem.cpp",
     "LSPAnnotator.cpp",
     "nsAppShell.cpp",
     "nsClipboard.cpp",
@@ -132,7 +131,6 @@ UNIFIED_SOURCES += [
 SOURCES += [
     "CompositorWidgetParent.cpp",
     "InProcessWinCompositorWidget.cpp",
-    "LegacyJumpListBuilder.cpp",
     "MediaKeysEventSourceFactory.cpp",
     "nsBidiKeyboard.cpp",
     "nsFilePicker.cpp",
