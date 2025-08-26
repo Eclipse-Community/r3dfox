@@ -288,6 +288,7 @@ void RenderCompositor::GetWindowVisibility(WindowVisibility* aVisibility) {
   if (!widget) {
     return;
   }
+  aVisibility->size_mode = ToWrWindowSizeMode(widget->GetWindowSizeMode());
   aVisibility->is_fully_occluded = widget->GetWindowIsFullyOccluded();
 #endif
 }
