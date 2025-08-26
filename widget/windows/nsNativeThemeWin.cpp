@@ -710,10 +710,13 @@ mozilla::Maybe<nsUXThemeClass> nsNativeThemeWin::GetThemeClass(
       return Some(eUXBrowserTabBarRebar);
     case StyleAppearance::Toolbar:
     case StyleAppearance::Toolbarbutton:
+    case StyleAppearance::Separator:
       return Some(eUXToolbar);
     case StyleAppearance::ProgressBar:
+    case StyleAppearance::Progresschunk:
       return Some(eUXProgress);
     case StyleAppearance::Range:
+    case StyleAppearance::RangeThumb:
       return Some(eUXTrackbar);
     case StyleAppearance::SpinnerUpbutton:
     case StyleAppearance::SpinnerDownbutton:
@@ -912,6 +915,17 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       aState = PBBS_NORMAL;
       return NS_OK;
     }
+    case StyleAppearance::Progresschunk: {
+      nsIFrame* parentFrame = aFrame->GetParent();
+      if (IsVerticalProgress(parentFrame)) {
+        aPart = PP_FILLVERT;
+      } else {
+        aPart = PP_FILL;
+      }
+
+      aState = PBBVS_NORMAL;
+      return NS_OK;
+    }
     case StyleAppearance::Toolbarbutton: {
       aPart = BP_BUTTON;
       if (!aFrame) {
@@ -945,6 +959,11 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
 
       return NS_OK;
     }
+    case StyleAppearance::Separator: {
+      aPart = TP_SEPARATOR;
+      aState = TS_NORMAL;
+      return NS_OK;
+    }
     case StyleAppearance::Range: {
       if (IsRangeHorizontal(aFrame)) {
         aPart = TKP_TRACK;
@@ -952,6 +971,33 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       } else {
         aPart = TKP_TRACKVERT;
         aState = TRVS_NORMAL;
+      }
+      return NS_OK;
+    }
+    case StyleAppearance::RangeThumb: {
+      if (IsRangeHorizontal(aFrame)) {
+        aPart = TKP_THUMBBOTTOM;
+      } else {
+        aPart = IsFrameRTL(aFrame) ? TKP_THUMBLEFT : TKP_THUMBRIGHT;
+      }
+      ElementState elementState = GetContentState(aFrame, aAppearance);
+      if (!aFrame) {
+        aState = TS_NORMAL;
+      } else if (elementState.HasState(ElementState::DISABLED)) {
+        aState = TKP_DISABLED;
+      } else {
+        if (elementState.HasState(
+                ElementState::ACTIVE))  // Hover is not also a requirement for
+                                        // the thumb, since the drag is not
+                                        // canceled when you move outside the
+                                        // thumb.
+          aState = TS_ACTIVE;
+        else if (elementState.HasState(ElementState::FOCUSRING))
+          aState = TKP_FOCUSED;
+        else if (elementState.HasState(ElementState::HOVER))
+          aState = TS_HOVER;
+        else
+          aState = TS_NORMAL;
       }
       return NS_OK;
     }
@@ -1551,6 +1597,9 @@ RENDER_AGAIN:
     SetPixel(hdc, widgetRect.right - 1, widgetRect.top, color);
     SetPixel(hdc, widgetRect.right - 1, widgetRect.bottom - 1, color);
     SetPixel(hdc, widgetRect.left, widgetRect.bottom - 1, color);
+  } else if (aAppearance == StyleAppearance::Progresschunk) {
+    DrawThemedProgressMeter(aFrame, aAppearance, theme, hdc, part, state,
+                            &widgetRect, &clipRect);
   }
   // If part is negative, the element wishes us to not render a themed
   // background, instead opting to be drawn specially below.
@@ -1655,6 +1704,8 @@ LayoutDeviceIntMargin nsNativeThemeWin::GetWidgetBorder(
       aAppearance == StyleAppearance::Radiomenuitem ||
       aAppearance == StyleAppearance::Menupopup ||
       aAppearance == StyleAppearance::Menuimage ||
+      aAppearance == StyleAppearance::Menuitemtext ||
+      aAppearance == StyleAppearance::Separator ||
       aAppearance == StyleAppearance::MozWindowTitlebar ||
       aAppearance == StyleAppearance::MozWindowTitlebarMaximized ||
       aAppearance == StyleAppearance::MozWinBorderlessGlass) {
@@ -1884,6 +1935,7 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
     case StyleAppearance::MozWinCommunicationsToolbox:
     case StyleAppearance::MozWinBrowsertabbarToolbox:
     case StyleAppearance::Toolbar:
+    case StyleAppearance::Progresschunk:
     case StyleAppearance::Listbox:
     case StyleAppearance::Treeview:
     case StyleAppearance::Menuitemtext:
@@ -1936,6 +1988,23 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
       // down, so use the min-size request value (of 0).
       sizeReq = TS_MIN;
       break;
+
+    case StyleAppearance::RangeThumb: {
+      LayoutDeviceIntSize result(12, 20);
+      if (!IsRangeHorizontal(aFrame)) {
+        std::swap(result.width, result.height);
+      }
+      ScaleForFrameDPI(&result, aFrame);
+      return result;
+    }
+
+    case StyleAppearance::Separator: {
+      // that's 2px left margin, 2px right margin and 2px separator
+      // (the margin is drawn as part of the separator, though)
+      LayoutDeviceIntSize result(6, 0);
+      ScaleForFrameDPI(&result, aFrame);
+      return result;
+    }
 
     case StyleAppearance::Button:
       // We should let HTML buttons shrink to their min size.
@@ -2031,7 +2100,9 @@ bool nsNativeThemeWin::WidgetAttributeChangeRequiresRepaint(
       aAppearance == StyleAppearance::MozWinCommunicationsToolbox ||
       aAppearance == StyleAppearance::MozWinBrowsertabbarToolbox ||
       aAppearance == StyleAppearance::Toolbar ||
+      aAppearance == StyleAppearance::Progresschunk ||
       aAppearance == StyleAppearance::ProgressBar ||
+      aAppearance == StyleAppearance::Separator ||
       aAppearance == StyleAppearance::MozWinBorderlessGlass) {
     return false;
   }
@@ -2140,6 +2211,7 @@ nsITheme::Transparency nsNativeThemeWin::GetWidgetTransparency(
   switch (aAppearance) {
     case StyleAppearance::MozWinBorderlessGlass:
     case StyleAppearance::ProgressBar:
+    case StyleAppearance::Progresschunk:
     case StyleAppearance::Range:
       return eTransparent;
     default:
@@ -2190,6 +2262,7 @@ bool nsNativeThemeWin::ClassicThemeSupportsWidget(nsIFrame* aFrame,
     case StyleAppearance::Checkbox:
     case StyleAppearance::Radio:
     case StyleAppearance::Range:
+    case StyleAppearance::RangeThumb:
     case StyleAppearance::Groupbox:
     case StyleAppearance::Menulist:
     case StyleAppearance::MozMenulistArrowButton:
@@ -2198,6 +2271,7 @@ bool nsNativeThemeWin::ClassicThemeSupportsWidget(nsIFrame* aFrame,
     case StyleAppearance::Listbox:
     case StyleAppearance::Treeview:
     case StyleAppearance::ProgressBar:
+    case StyleAppearance::Progresschunk:
     case StyleAppearance::Menuitem:
     case StyleAppearance::Checkmenuitem:
     case StyleAppearance::Radiomenuitem:
@@ -2311,6 +2385,16 @@ LayoutDeviceIntSize nsNativeThemeWin::ClassicGetMinimumWidgetSize(
       result.width = ::GetSystemMetrics(SM_CXVSCROLL);
       result.height = 8;  // No good metrics available for this
       break;
+    case StyleAppearance::RangeThumb: {
+      if (IsRangeHorizontal(aFrame)) {
+        result.width = 12;
+        result.height = 20;
+      } else {
+        result.width = 20;
+        result.height = 12;
+      }
+      break;
+    }
     case StyleAppearance::MozMenulistArrowButton:
       result.width = ::GetSystemMetrics(SM_CXVSCROLL);
       break;
@@ -2323,6 +2407,7 @@ LayoutDeviceIntSize nsNativeThemeWin::ClassicGetMinimumWidgetSize(
     case StyleAppearance::PasswordInput:
     case StyleAppearance::Textfield:
     case StyleAppearance::Textarea:
+    case StyleAppearance::Progresschunk:
     case StyleAppearance::ProgressBar:
       // no minimum widget size
       break;
@@ -2502,6 +2587,8 @@ nsresult nsNativeThemeWin::ClassicGetThemePartAndState(
     case StyleAppearance::Textarea:
     case StyleAppearance::Menulist:
     case StyleAppearance::Range:
+    case StyleAppearance::RangeThumb:
+    case StyleAppearance::Progresschunk:
     case StyleAppearance::ProgressBar:
     case StyleAppearance::Menubar:
     case StyleAppearance::Menupopup:
@@ -2779,6 +2866,18 @@ RENDER_AGAIN:
       InflateRect(&widgetRect, -1, -1);
       ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_BTNFACE + 1));
       break;
+    case StyleAppearance::RangeThumb: {
+      ElementState elementState = GetContentState(aFrame, aAppearance);
+
+      ::DrawEdge(hdc, &widgetRect, EDGE_RAISED,
+                 BF_RECT | BF_SOFT | BF_MIDDLE | BF_ADJUST);
+      if (elementState.HasState(ElementState::DISABLED)) {
+        DrawCheckedRect(hdc, widgetRect, COLOR_3DFACE, COLOR_3DHILIGHT,
+                        (HBRUSH)COLOR_3DHILIGHT);
+      }
+
+      break;
+    }
     // Draw scale track background
     case StyleAppearance::Range: {
       const int32_t trackWidth = 4;
@@ -2802,6 +2901,30 @@ RENDER_AGAIN:
       ::DrawEdge(hdc, &widgetRect, EDGE_SUNKEN, BF_RECT | BF_ADJUST);
       ::FillRect(hdc, &widgetRect, (HBRUSH)GetStockObject(GRAY_BRUSH));
 
+      break;
+    }
+    case StyleAppearance::Progresschunk: {
+      nsIFrame* stateFrame = aFrame->GetParent();
+      ElementState elementState = GetContentState(stateFrame, aAppearance);
+
+      const bool indeterminate =
+          elementState.HasState(ElementState::INDETERMINATE);
+      bool vertical = IsVerticalProgress(stateFrame);
+
+      nsIContent* content = aFrame->GetContent();
+      if (!indeterminate || !content) {
+        ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_HIGHLIGHT + 1));
+        break;
+      }
+
+      RECT overlayRect = CalculateProgressOverlayRect(
+          aFrame, &widgetRect, vertical, indeterminate, true);
+
+      ::FillRect(hdc, &overlayRect, (HBRUSH)(COLOR_HIGHLIGHT + 1));
+
+      if (!QueueAnimatedContentForRefresh(aFrame->GetContent(), 30)) {
+        NS_WARNING("unable to animate progress widget!");
+      }
       break;
     }
     case StyleAppearance::Menubar:
