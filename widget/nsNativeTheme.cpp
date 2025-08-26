@@ -547,17 +547,3 @@ bool nsNativeTheme::IsWidgetScrollbarPart(StyleAppearance aAppearance) {
       return false;
   }
 }
-
-/*static*/
-bool nsNativeTheme::IsWidgetAlwaysNonNative(nsIFrame* aFrame,
-                                            StyleAppearance aAppearance) {
-  return IsWidgetScrollbarPart(aAppearance) ||
-         aAppearance == StyleAppearance::FocusOutline ||
-         aAppearance == StyleAppearance::Menuarrow ||
-         aAppearance == StyleAppearance::Toolbarbutton ||
-         aAppearance == StyleAppearance::ProgressBar ||
-         aAppearance == StyleAppearance::Meter ||
-         aAppearance == StyleAppearance::Range ||
-         aAppearance == StyleAppearance::Listbox ||
-         (aFrame && aFrame->StyleUI()->mMozTheme == StyleMozTheme::NonNative);
-}
