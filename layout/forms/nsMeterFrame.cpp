@@ -76,17 +76,6 @@ NS_QUERYFRAME_HEAD(nsMeterFrame)
   NS_QUERYFRAME_ENTRY(nsIAnonymousContentCreator)
 NS_QUERYFRAME_TAIL_INHERITING(nsContainerFrame)
 
-void nsMeterFrame::BuildDisplayList(nsDisplayListBuilder* aBuilder,
-                                    const nsDisplayListSet& aLists) {
-  if (IsThemed()) {
-    DisplayBorderBackgroundOutline(aBuilder, aLists);
-  } else {
-    // XXX nsProgressFrame uses BuildDisplayListForInline, does it matter?
-    // Which one is right?
-    nsContainerFrame::BuildDisplayList(aBuilder, aLists);
-  }
-}
-
 void nsMeterFrame::Reflow(nsPresContext* aPresContext,
                           ReflowOutput& aDesiredSize,
                           const ReflowInput& aReflowInput,
@@ -200,6 +189,15 @@ nscoord nsMeterFrame::IntrinsicISize(const IntrinsicSizeInput& aInput,
 }
 
 bool nsMeterFrame::ShouldUseNativeStyle() const {
+  nsIFrame* barFrame = mBarDiv->GetPrimaryFrame();
+
+  // Use the native style if these conditions are satisfied:
+  // - both frames use the native appearance;
+  // - neither frame has author specified rules setting the border or the
+  //   background.
   return StyleDisplay()->EffectiveAppearance() == StyleAppearance::Meter &&
-         !Style()->HasAuthorSpecifiedBorderOrBackground();
+         !Style()->HasAuthorSpecifiedBorderOrBackground() && barFrame &&
+         barFrame->StyleDisplay()->EffectiveAppearance() ==
+             StyleAppearance::Meterchunk &&
+         !barFrame->Style()->HasAuthorSpecifiedBorderOrBackground();
 }
