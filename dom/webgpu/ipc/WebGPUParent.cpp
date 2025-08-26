@@ -84,25 +84,17 @@ extern void* wgpu_server_get_shared_texture_handle(WGPUWebGPUParentPtr aParent,
                                                    WGPUTextureId aId) {
   auto* parent = static_cast<WebGPUParent*>(aParent);
 
-  auto texture = parent->GetSharedTexture(aId);
-  if (!texture) {
+  auto externalTexture = parent->GetSharedTexture(aId);
+  if (!externalTexture) {
     MOZ_ASSERT_UNREACHABLE("unexpected to be called");
     return nullptr;
   }
-
-  auto* textureD3D11 = texture->AsSharedTextureD3D11();
+  auto* textureD3D11 = externalTexture->AsSharedTextureD3D11();
   if (!textureD3D11) {
     MOZ_ASSERT_UNREACHABLE("unexpected to be called");
     return nullptr;
   }
-  void* sharedHandle = textureD3D11->GetSharedTextureHandle();
-  if (!sharedHandle) {
-    MOZ_ASSERT_UNREACHABLE("unexpected to be called");
-    gfxCriticalNoteOnce << "Failed to get shared handle";
-    return nullptr;
-  }
-
-  return sharedHandle;
+  return textureD3D11->GetSharedTextureHandle();
 }
 #endif
 
@@ -1767,6 +1759,18 @@ std::shared_ptr<SharedTexture> WebGPUParent::CreateSharedTexture(
   UniquePtr<SharedTexture> texture =
       SharedTexture::Create(this, aDeviceId, aWidth, aHeight, aFormat, aUsage);
   if (!texture) {
+    return nullptr;
+  }
+
+  auto* textureD3D11 = texture->AsSharedTextureD3D11();
+  if (!textureD3D11) {
+    MOZ_ASSERT_UNREACHABLE("unexpected to be called");
+    return nullptr;
+  }
+  auto* sharedHandle = textureD3D11->GetSharedTextureHandle();
+  if (!sharedHandle) {
+    MOZ_ASSERT_UNREACHABLE("unexpected to be called");
+    gfxCriticalNoteOnce << "Failed to get shared handle";
     return nullptr;
   }
 
