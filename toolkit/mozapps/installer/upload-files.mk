@@ -224,7 +224,7 @@ ifneq (android,$(MOZ_WIDGET_TOOLKIT))
 endif
 
 ifeq ($(OS_TARGET), WINNT)
-  INSTALLER_PACKAGE = $(DIST)/$(PKG_PATH)$(PKG_INST_BASENAME).exe
+  INSTALLER_PACKAGE = $(DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 endif
 
 # These are necessary because some of our packages/installers contain spaces
@@ -241,7 +241,8 @@ ESCAPE_WILDCARD = $(subst $(space),?,$(1))
 CHECKSUM_ALGORITHM_PARAM = -d sha512 -d md5 -d sha1
 
 # This variable defines where the checksum file will be located
-CHECKSUM_FILE = '$(ABS_DIST)/$(PKG_PATH)/$(CHECKSUMS_FILE_BASENAME).checksums'
+CHECKSUM_FILE = '$(DIST)/$(PKG_PATH)/$(CHECKSUMS_FILE_BASENAME).checksums'
+CHECKSUM_FILES = $(CHECKSUM_FILE)
 
 # Upload MAR tools only if AB_CD is unset or en_US
 ifeq (,$(AB_CD:en-US=))
@@ -300,7 +301,7 @@ endif
 endif
 
 ifdef MOZ_STUB_INSTALLER
-  UPLOAD_FILES += $(call QUOTED_WILDCARD,$(DIST)/$(PKG_PATH)$(PKG_STUB_BASENAME).exe)
+  UPLOAD_FILES += $(call QUOTED_WILDCARD,$(DIST)/$(PKG_INST_PATH)$(PKG_STUB_BASENAME).exe)
 endif
 
 # Upload `.xpt` artifacts for use in artifact builds.
