@@ -57,6 +57,8 @@ skip-if = ["os == 'android'"]
 skip-if = ["os == 'android'"]
 # The TOU notification flow is desktop only
 
+["test_TelemetryAndroidEnvironment.js"]
+
 ["test_TelemetryClientID_reset.js"]
 skip-if = ["os == 'android'"] # Disabled as Android/GeckoView doesn't run TelemetryController
 
