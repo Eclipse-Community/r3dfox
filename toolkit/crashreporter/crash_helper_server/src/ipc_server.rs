@@ -3,14 +3,11 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use anyhow::Result;
-use crash_helper_common::{errors::IPCError, messages, IPCConnector, IPCEvent, IPCListener};
+use crash_helper_common::{
+    errors::IPCError, messages, wait_for_events, IPCConnector, IPCEvent, IPCListener, Pid,
+};
 
-use crate::crash_generation::{CrashGenerator, MessageResult};
-
-#[cfg(any(target_os = "android", target_os = "linux", target_os = "macos"))]
-mod unix;
-#[cfg(target_os = "windows")]
-mod windows;
+use crate::crash_generation::CrashGenerator;
 
 #[derive(PartialEq)]
 pub enum IPCServerState {
@@ -18,32 +15,22 @@ pub enum IPCServerState {
     ClientDisconnected,
 }
 
-#[derive(PartialEq)]
-enum IPCEndpoint {
-    Parent, // A connection to the parent process
-    #[allow(dead_code)]
-    Child, // A connection to the child process
-    External, // A connection to an external process
-}
-
-struct IPCConnection {
-    connector: IPCConnector,
-    endpoint: IPCEndpoint,
-}
-
 pub(crate) struct IPCServer {
     listener: IPCListener,
-    connections: Vec<IPCConnection>,
+    connectors: Vec<IPCConnector>,
+    client_pid: Pid,
 }
 
 impl IPCServer {
-    pub(crate) fn new(listener: IPCListener, connector: IPCConnector) -> IPCServer {
+    pub(crate) fn new(
+        client_pid: Pid,
+        listener: IPCListener,
+        connector: IPCConnector,
+    ) -> IPCServer {
         IPCServer {
             listener,
-            connections: vec![IPCConnection {
-                connector,
-                endpoint: IPCEndpoint::Parent,
-            }],
+            connectors: vec![connector],
+            client_pid,
         }
     }
 
@@ -51,7 +38,7 @@ impl IPCServer {
         &mut self,
         generator: &mut CrashGenerator,
     ) -> Result<IPCServerState, IPCError> {
-        let events = self.wait_for_events()?;
+        let events = wait_for_events(&mut self.listener, &mut self.connectors)?;
 
         // We reverse the order of events, so that we start processing them
         // from the highest indexes toward the lowest. If we did the opposite
@@ -59,13 +46,14 @@ impl IPCServer {
         for event in events.into_iter().rev() {
             match event {
                 IPCEvent::Connect(connector) => {
-                    self.connections.push(IPCConnection {
-                        connector,
-                        endpoint: IPCEndpoint::External,
-                    });
+                    self.connectors.push(connector);
                 }
                 IPCEvent::Header(index, header) => {
-                    let res = self.handle_message(index, &header, generator);
+                    let connector = self
+                        .connectors
+                        .get_mut(index)
+                        .expect("Invalid connector index");
+                    let res = Self::handle_message(connector, &header, generator);
                     if let Err(error) = res {
                         log::error!(
                             "Error {error} while handling a message of {:?} kind",
@@ -74,10 +62,16 @@ impl IPCServer {
                     }
                 }
                 IPCEvent::Disconnect(index) => {
-                    let connection = self.connections.remove(index);
-                    if connection.endpoint == IPCEndpoint::Parent {
+                    let connector = self
+                        .connectors
+                        .get_mut(index)
+                        .expect("Invalid connector index");
+                    if connector.endpoint_pid() == self.client_pid {
                         // The main process disconnected, leave
                         return Ok(IPCServerState::ClientDisconnected);
+                    } else {
+                        // This closes the connection
+                        let _ = self.connectors.remove(index);
                     }
                 }
             }
@@ -87,34 +81,21 @@ impl IPCServer {
     }
 
     fn handle_message(
-        &mut self,
-        index: usize,
+        connector: &mut IPCConnector,
         header: &messages::Header,
         generator: &mut CrashGenerator,
     ) -> Result<()> {
-        let connection = self
-            .connections
-            .get_mut(index)
-            .expect("Invalid connector index");
-        let connector = &mut connection.connector;
         let (data, ancillary_data) = connector.recv(header.size)?;
 
-        let reply = match connection.endpoint {
-            IPCEndpoint::Parent => generator.parent_message(header.kind, &data, ancillary_data),
-            IPCEndpoint::Child => generator.child_message(header.kind, &data, ancillary_data),
-            IPCEndpoint::External => generator.external_message(header.kind, &data, ancillary_data),
-        }?;
+        let reply = generator.client_message(
+            header.kind,
+            &data,
+            ancillary_data,
+            connector.endpoint_pid(),
+        )?;
 
-        match reply {
-            MessageResult::Reply(reply) => connector.send_message(reply.as_ref())?,
-            MessageResult::Connection(connector) => {
-                self.connections.push(IPCConnection {
-                    connector,
-                    endpoint: IPCEndpoint::Child,
-                });
-            }
-
-            MessageResult::None => {}
+        if let Some(reply) = reply {
+            connector.send_message(reply.as_ref())?;
         }
 
         Ok(())
