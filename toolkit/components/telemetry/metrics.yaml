@@ -48,7 +48,6 @@ legacy.telemetry:
       - 'baseline'
       - 'nimbus-targeting-context'
       - 'third-party-modules'
-      - 'temp-fog-initial-state'
 
   profile_group_id:
     type: uuid
