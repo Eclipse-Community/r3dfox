@@ -64,6 +64,7 @@ class NativeJumpListBackend : public JumpListBackend {
 
     mscom::EnsureMTA([&]() {
       RefPtr<ICustomDestinationList> destList;
+      CoInitialize(nullptr);
       HRESULT hr = ::CoCreateInstance(
           CLSID_DestinationList, nullptr, CLSCTX_INPROC_SERVER,
           IID_ICustomDestinationList, getter_AddRefs(destList));
@@ -556,6 +557,7 @@ void JumpListBuilder::DoPopulateJumpList(
 
   if (aTaskDescriptions.Length()) {
     RefPtr<IObjectCollection> taskCollection;
+    CoInitialize(nullptr);
     hr = CoCreateInstance(CLSID_EnumerableObjectCollection, nullptr,
                           CLSCTX_INPROC_SERVER, IID_IObjectCollection,
                           getter_AddRefs(taskCollection));
@@ -596,6 +598,7 @@ void JumpListBuilder::DoPopulateJumpList(
   if (aCustomDescriptions.Length()) {
     // Then build the custom list
     RefPtr<IObjectCollection> customCollection;
+    CoInitialize(nullptr);
     hr = CoCreateInstance(CLSID_EnumerableObjectCollection, nullptr,
                           CLSCTX_INPROC_SERVER, IID_IObjectCollection,
                           getter_AddRefs(customCollection));
@@ -778,6 +781,7 @@ nsresult JumpListBuilder::GetShellLinkFromDescription(
   // http://msdn.microsoft.com/en-us/library/bb774950(VS.85).aspx
 
   // Create a IShellLink
+  CoInitialize(nullptr);
   hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER,
                         IID_IShellLinkW, (LPVOID*)&psl);
   if (FAILED(hr)) {
