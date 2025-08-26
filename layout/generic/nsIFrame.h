@@ -621,9 +621,7 @@ enum class LayoutFrameClassFlags : uint16_t {
   SVG = 1 << 3,
   SVGContainer = 1 << 4,
   BidiInlineContainer = 1 << 5,
-  // The frame is for a replaced element, such as an image. Note that HTML
-  // <button> elements don't have this flag but still behave as replaced, see
-  // nsIFrame::IsReplaced().
+  // The frame is for a replaced element, such as an image
   Replaced = 1 << 6,
   // A replaced element that has replaced-element sizing characteristics (i.e.,
   // like images or iframes), as opposed to inline-block sizing characteristics
@@ -3574,6 +3572,7 @@ class nsIFrame : public nsQueryFrame {
   CLASS_FLAG_METHOD(IsSVGContainerFrame, SVGContainer);
   CLASS_FLAG_METHOD(IsBidiInlineContainer, BidiInlineContainer);
   CLASS_FLAG_METHOD(IsLineParticipant, LineParticipant);
+  CLASS_FLAG_METHOD(IsReplaced, Replaced);
   CLASS_FLAG_METHOD(HasReplacedSizing, ReplacedSizing);
   CLASS_FLAG_METHOD(IsTablePart, TablePart);
   CLASS_FLAG_METHOD0(CanContainOverflowContainers)
@@ -3610,8 +3609,6 @@ class nsIFrame : public nsQueryFrame {
 #ifdef __clang__
 #  pragma clang diagnostic pop
 #endif
-
-  bool IsReplaced() const;
 
   /**
    * Returns a transformation matrix that converts points in this frame's
