@@ -45,7 +45,7 @@
   --input-box-shadow-color-warning: oklch(from var(--color-yellow-30) l c h / 30%);
   --card-padding: var(--space-large);
 
-  -moz-theme: non-native;
+  /*-moz-theme: non-native;*/
   color-scheme: light dark;
   @media not (forced-colors) {
     accent-color: var(--color-accent-primary);
