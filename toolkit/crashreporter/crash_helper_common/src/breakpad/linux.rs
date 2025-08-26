@@ -11,6 +11,7 @@ use std::{ffi::c_char, fmt, os::fd::RawFd};
 
 pub type Pid = pid_t;
 pub type BreakpadChar = c_char;
+pub type AncillaryData = RawFd;
 pub type BreakpadRawData = RawFd;
 
 pub struct BreakpadData {
