@@ -1404,6 +1404,11 @@ popupnotificationcontent {
   }
 }
 
+/* Hide erroneous separators in panelUI */
+panel toolbarseparator {
+  appearance: none;
+}
+
 /* Picture-in-Picture panel */
 
 #PictureInPicturePanel {
