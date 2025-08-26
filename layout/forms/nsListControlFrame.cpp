@@ -38,6 +38,9 @@
 using namespace mozilla;
 using namespace mozilla::dom;
 
+// Static members
+nsListControlFrame* nsListControlFrame::mFocused = nullptr;
+
 //---------------------------------------------------------
 nsListControlFrame* NS_NewListControlFrame(PresShell* aPresShell,
                                            ComputedStyle* aStyle) {
@@ -103,10 +106,6 @@ HTMLOptionElement* nsListControlFrame::GetCurrentOption() const {
   return mEventListener->GetCurrentOption();
 }
 
-bool nsListControlFrame::IsFocused() const {
-  return Select().State().HasState(ElementState::FOCUS);
-}
-
 /**
  * This is called by the SelectsAreaFrame, which is the same
  * as the frame returned by GetOptionsContainer. It's the frame which is
@@ -115,9 +114,7 @@ bool nsListControlFrame::IsFocused() const {
  * frame
  */
 void nsListControlFrame::PaintFocus(DrawTarget* aDrawTarget, nsPoint aPt) {
-  if (!IsFocused()) {
-    return;
-  }
+  if (mFocused != this) return;
 
   nsIFrame* containerFrame = GetOptionsContainer();
   if (!containerFrame) {
@@ -163,12 +160,16 @@ void nsListControlFrame::PaintFocus(DrawTarget* aDrawTarget, nsPoint aPt) {
 }
 
 void nsListControlFrame::InvalidateFocus() {
-  if (nsIFrame* containerFrame = GetOptionsContainer()) {
+  if (mFocused != this) return;
+
+  nsIFrame* containerFrame = GetOptionsContainer();
+  if (containerFrame) {
     containerFrame->InvalidateFrame();
   }
 }
 
 NS_QUERYFRAME_HEAD(nsListControlFrame)
+  NS_QUERYFRAME_ENTRY(nsIFormControlFrame)
   NS_QUERYFRAME_ENTRY(nsISelectControlFrame)
   NS_QUERYFRAME_ENTRY(nsListControlFrame)
 NS_QUERYFRAME_TAIL_INHERITING(ScrollContainerFrame)
@@ -732,10 +733,16 @@ void nsListControlFrame::ResetList(bool aAllowScrolling) {
   // Combobox will redisplay itself with the OnOptionSelected event
 }
 
-void nsListControlFrame::ElementStateChanged(ElementState aStates) {
-  if (aStates.HasState(ElementState::FOCUS)) {
-    InvalidateFocus();
+void nsListControlFrame::SetFocus(bool aOn, bool aRepaint) {
+  InvalidateFocus();
+
+  if (aOn) {
+    mFocused = this;
+  } else {
+    mFocused = nullptr;
   }
+
+  InvalidateFocus();
 }
 
 void nsListControlFrame::GetOptionText(uint32_t aIndex, nsAString& aStr) {
@@ -948,6 +955,21 @@ class AsyncReset final : public Runnable {
   bool mScroll;
 };
 
+nsresult nsListControlFrame::SetFormProperty(nsAtom* aName,
+                                             const nsAString& aValue) {
+  if (nsGkAtoms::selected == aName) {
+    return NS_ERROR_INVALID_ARG;  // Selected is readonly according to spec.
+  } else if (nsGkAtoms::selectedindex == aName) {
+    // You shouldn't be calling me for this!!!
+    return NS_ERROR_INVALID_ARG;
+  }
+
+  // We should be told about selectedIndex by the DOM element through
+  // OnOptionSelected
+
+  return NS_OK;
+}
+
 bool nsListControlFrame::ReflowFinished() {
   if (mNeedToReset && !mReflowWasInterrupted) {
     mNeedToReset = false;
@@ -1010,7 +1032,7 @@ nscoord nsListControlFrame::CalcIntrinsicBSize(nscoord aBSizeOfARow,
 
 #ifdef ACCESSIBILITY
 void nsListControlFrame::FireMenuItemActiveEvent(nsIContent* aPreviousOption) {
-  if (!IsFocused()) {
+  if (mFocused != this) {
     return;
   }
 

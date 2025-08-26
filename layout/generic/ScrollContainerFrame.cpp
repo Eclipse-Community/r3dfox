@@ -88,6 +88,7 @@
 #include "nsILayoutHistoryState.h"
 #include "nsINode.h"
 #include "nsIScrollPositionListener.h"
+#include "nsITextControlFrame.h"
 #include "nsIScrollbarMediator.h"
 #include "nsIXULRuntime.h"
 #include "nsLayoutUtils.h"
