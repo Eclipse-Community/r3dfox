@@ -33,5 +33,9 @@ void LockImpl::Lock() {
   ::AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
 }
 
+void LockImpl::Unlock() {
+  ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
+}
+
 }  // namespace internal
 }  // namespace base
