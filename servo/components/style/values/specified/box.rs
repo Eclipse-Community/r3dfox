@@ -1596,6 +1596,9 @@ pub enum Appearance {
     /// The textfield of a spin control
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     SpinnerTextfield,
+    /// A status bar in a main application window.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Statusbar,
     /// The tabs scroll arrows (left/right).
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     TabScrollArrowBack,
