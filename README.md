@@ -4,9 +4,9 @@ r3dfox is a fork of the open source web browser Mozilla Firefox made specificall
 
 Limited compatibility with One Core API on Windows XP is offered at the current time, however this is not tested consistently. Any issues that may arise that are hard to diagnose may be left to the extended kernel provider to fix.
 
-Local (GitHub) Downloads (New Repo): [![Github All Releases](https://img.shields.io/github/downloads/Eclipse-Community/r3dfox/total.svg)]()
+Local (GitHub) Downloads ([New Repo](https://github.com/Eclipse-Community/r3dfox)): [![Github All Releases](https://img.shields.io/github/downloads/Eclipse-Community/r3dfox/total.svg)]()
 
-Local (GitHub) Downloads (Old Repo): [![Github All Releases](https://img.shields.io/github/downloads/Eclipse-Community/r3dfox-old/total.svg)]()
+Local (GitHub) Downloads ([Old Repo](https://github.com/Eclipse-Community/r3dfox-old)): [![Github All Releases](https://img.shields.io/github/downloads/Eclipse-Community/r3dfox-old/total.svg)]()
 
 SourceForge Downloads: ![SourceForge Downloads](https://img.shields.io/sourceforge/dt/r3dfox)
 
