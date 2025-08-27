@@ -2798,7 +2798,14 @@ with only_when(target_is_windows):
     def dxc_supports_target(target):
         return target.cpu in ("x86_64", "aarch64")
 
-    @depends(
+    option(
+        "--enable-dxcompiler",
+        help="{Enable|Disable} DXC for WebGPU on Windows",
+        when=dxc_supports_target,
+    )
+
+    @depends_if(
+        "--enable-dxcompiler",
         target,
         artifact_builds,
         valid_windows_sdk_dir,
@@ -2807,8 +2814,10 @@ with only_when(target_is_windows):
     )
     @checking("for dxcompiler.dll")
     @imports("os.path")
-    def dxcompiler(target, artifact, windows_sdk_dir, dxc_path):
+    def dxcompiler(enable_dxc, target, artifact, windows_sdk_dir, dxc_path):
         if not windows_sdk_dir and not artifact:
+            return namespace(enabled=False)
+        if not enable_dxc:
             return namespace(enabled=False)
         arch = {
             "x86_64": "x64",
@@ -4201,23 +4210,6 @@ with only_when(target_is_windows & compile_environment):
 # ONNX runtime support
 # ==============================================================
 
-
-@depends(target)
-def onnxruntime_task_name(target):
-    # FIXME: see bug 1973674
-    os = target.raw_os
-    cpu = target.raw_cpu
-    if os.startswith("darwin"):
-        target = f"{cpu}-apple-darwin"
-    elif os.startswith("ios-sim"):
-        target = f"{cpu}-apple-ios-sim"
-    elif os.startswith("ios"):
-        target = f"{cpu}-apple-ios"
-    else:
-        target = target.toolchain
-    return f"onnxruntime-{target}"
-
-
 with only_when(~artifact_builds):
     option(
         "--with-onnx-runtime",
@@ -4227,11 +4219,14 @@ with only_when(~artifact_builds):
 
     @depends("--with-onnx-runtime")
     def need_boostrap_onnxruntime(with_onnx_runtime):
-        return (with_onnx_runtime and len(with_onnx_runtime) == 0) or (
-            with_onnx_runtime.origin == "default"
-        )
+        return with_onnx_runtime and len(with_onnx_runtime) == 0
 
-    @depends(
+    @depends(target)
+    def onnxruntime_task_name(target):
+        return f"onnxruntime-{target.toolchain}"
+
+
+    @depends_if(
         "--with-onnx-runtime",
         library_name_info.dll,
         target.toolchain,
@@ -4240,15 +4235,13 @@ with only_when(~artifact_builds):
     @checking("ONNX install path")
     @imports("os")
     def onnx_runtime_path(with_onnx_runtime, dllinfo, toolchain, bootstrap):
-        if not with_onnx_runtime and with_onnx_runtime.origin != "default":
+        if not with_onnx_runtime:
             return
 
         if len(with_onnx_runtime):
             dirname = with_onnx_runtime[0]
         elif bootstrap:
             dirname = bootstrap
-        elif with_onnx_runtime.origin == "default":
-            return
         else:
             die(
                 f"Cannot find onnxruntime for {toolchain}. Provide one with --with-onnx-runtime=location"
