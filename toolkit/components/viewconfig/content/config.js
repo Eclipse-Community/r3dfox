@@ -402,7 +402,7 @@ async function onConfigLoad() {
   keyVKReturn.addEventListener("command", ModifySelected);
 
   let textBox = document.getElementById("textbox");
-  textBox.addEventListener("command", FilterPrefs);
+  textBox.addEventListener("MozInputSearch:search", FilterPrefs);
 
   let configFocuSearch = document.getElementById("configFocuSearch");
   configFocuSearch.addEventListener("command", function() {
