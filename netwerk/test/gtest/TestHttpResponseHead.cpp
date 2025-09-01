@@ -179,5 +179,18 @@ TEST(ContentTypeParsing, CommentHandling3)
   ASSERT_TRUE(contentCharset.EqualsLiteral("gbk"));
 }
 
+TEST(TestHttpResponseHead, MultipleCacheControl)
+{
+  nsHttpResponseHead originalHead;
+  Unused << originalHead.ParseStatusLine("HTTP/1.1 200 OK"_ns);
+  Unused << originalHead.ParseHeaderLine("content-type: text/plain"_ns);
+  Unused << originalHead.ParseHeaderLine("content-length: 1408"_ns);
+  Unused << originalHead.ParseHeaderLine("cache-control: no-cache"_ns);
+  Unused << originalHead.ParseHeaderLine("cache-control: no-store"_ns);
+
+  ASSERT_EQ(originalHead.NoStore(), true);
+  ASSERT_EQ(originalHead.NoCache(), true);
+}
+
 }  // namespace net
 }  // namespace mozilla

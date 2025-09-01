@@ -62,3 +62,10 @@ TEST(TestCacheControlParser, EmptyMaxStale)
   ASSERT_EQ(max_stale, PR_UINT32_MAX);
   ASSERT_TRUE(cc.Private());
 }
+
+TEST(TestCacheControlParser, NoCacheAfterNoStore)
+{
+  CacheControlParser cc("no-store, no-cache"_ns);
+  ASSERT_TRUE(cc.NoCache());
+  ASSERT_TRUE(cc.NoStore());
+}

@@ -426,6 +426,8 @@ skip-if = ["true"]
 
 ["test_cache2-32-clear-origin.js"]
 
+["test_cache2_nostore.js"]
+
 ["test_cache_204_response.js"]
 
 ["test_cache_jar.js"]
