@@ -378,3 +378,4 @@ toolkit/crashreporter/minidump-analyzer/target/
 
 # Ignore mozperftest artifacts folder
 /artifacts/
+gfx/wr/webrender/default_*.profraw
