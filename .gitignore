@@ -389,3 +389,5 @@ toolkit/crashreporter/minidump-analyzer/target/
 
 # Ignore personal preferences files
 CLAUDE.local.md
+
+gfx/wr/webrender/default_*.profraw
