@@ -2296,7 +2296,7 @@ pref("browser.translation.neverForLanguages", "");
 
 // Enable Firefox translations powered by the Bergamot translations
 // engine https://browser.mt/.
-pref("browser.translations.enable", false);
+pref("browser.translations.enable", true);
 
 // Enable the new Firefox Translations Settings UI Design
 pref("browser.translations.newSettingsUI.enable", true);
@@ -2727,7 +2727,7 @@ pref("browser.sessionstore.restore_tabs_lazily", true);
 pref("browser.suppress_first_window_animation", true);
 
 // Preference that determines whether Screenshots uses the dedicated browser component
-pref("screenshots.browser.component.enabled", false);
+pref("screenshots.browser.component.enabled", true);
 
 // Preference that determines what button to focus
 pref("screenshots.browser.component.last-saved-method", "download");
@@ -3271,7 +3271,7 @@ pref("browser.firefoxbridge.extensionOrigins",
 #endif
 
 // Turn on interaction measurements
-pref("browser.places.interactions.enabled", true);
+pref("browser.places.interactions.enabled", false);
 
 // If the user has seen the Firefox View feature tour this value reflects
 // the id of the last screen they saw and whether they completed the tour
