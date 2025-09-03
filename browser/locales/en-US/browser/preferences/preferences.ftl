@@ -193,6 +193,12 @@ r3dfox-view-image =
 r3dfox-nav-text =
     .label = Replace context menu navigation icons with text options
 
+r3dfox-translations-enable =
+    .label = Enable in-browser language translations
+
+r3dfox-screenshot-component =
+    .label = Enable in-browser screenshot component
+
 r3dfox-hover-preview =
     .label = Modern style tab hover preview
 
