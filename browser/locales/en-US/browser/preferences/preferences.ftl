@@ -186,6 +186,12 @@ r3dfox-nav-text =
 r3dfox-tab-groups =
     .label = Enable tab groups
 
+r3dfox-translations-enable =
+    .label = Enable in-browser language translations
+
+r3dfox-screenshot-component =
+    .label = Enable in-browser screenshot component
+
 r3dfox-hover-preview =
     .label = Modern style tab hover preview
 
