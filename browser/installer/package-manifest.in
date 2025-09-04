@@ -440,7 +440,3 @@ bin/libfreebl_64int_3.so
 ; Test workers unpack artifact build packages and need `jogfile.json`
 @RESPATH@/jogfile.json
 #endif
-
-#if defined(DESKTOP_LAUNCHER_ENABLED)
-@BINPATH@/desktop-launcher/desktop-launcher@BIN_SUFFIX@
-#endif
