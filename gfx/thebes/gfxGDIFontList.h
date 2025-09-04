@@ -302,13 +302,13 @@ class gfxGDIFontList final : public gfxPlatformFontList {
                                   FontVisibility aVisibility) const override;
 
   bool FindAndAddFamiliesLocked(
-      FontVisibilityProvider* aFontVisibilityProvider, mozilla::StyleGenericFontFamily aGeneric,
+      nsPresContext* aPresContext, mozilla::StyleGenericFontFamily aGeneric,
       const nsACString& aFamily, nsTArray<FamilyAndGeneric>* aOutput,
       FindFamiliesFlags aFlags, gfxFontStyle* aStyle = nullptr,
       nsAtom* aLanguage = nullptr, gfxFloat aDevToCssSize = 1.0)
       MOZ_REQUIRES(mLock) override;
 
-  gfxFontEntry* LookupLocalFont(FontVisibilityProvider* aFontVisibilityProvider,
+  gfxFontEntry* LookupLocalFont(nsPresContext* aPresContext,
                                 const nsACString& aFontName,
                                 WeightRange aWeightForEntry,
                                 StretchRange aStretchForEntry,
@@ -327,7 +327,7 @@ class gfxGDIFontList final : public gfxPlatformFontList {
                               FontListSizes* aSizes) const override;
 
  protected:
-  FontFamily GetDefaultFontForPlatform(FontVisibilityProvider* aFontVisibilityProvider,
+  FontFamily GetDefaultFontForPlatform(nsPresContext* aPresContext,
                                        const gfxFontStyle* aStyle,
                                        nsAtom* aLanguage = nullptr)
       MOZ_REQUIRES(mLock) override;
