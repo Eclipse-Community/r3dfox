@@ -233,7 +233,7 @@ r3dfox-port-blocking-desc = Supposedly for "security", to disallow accessing web
 r3dfox-dwrite =
     .label = Use Skia GDI font rendering (BETA)
 
-r3dfox-dwrite-desc = Disable DirectWrite font rendering. Not recommended unless you know what you are doing. Currently buggy. https://github.com/Eclipse-Community/r3dfox/issues/290
+r3dfox-dwrite-desc = Disable DirectWrite font rendering. Not recommended unless you know what you are doing. Currently buggy. https://github.com/Eclipse-Community/r3dfox/issues/19
 
 r3dfox-hsts =
     .label = Disable HTTP Strict Transport Security (HSTS)
