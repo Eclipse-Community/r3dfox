@@ -660,7 +660,7 @@ int CALLBACK gfxGDIFontList::EnumFontFamExProc(ENUMLOGFONTEXW* lpelfe,
   return 1;
 }
 
-gfxFontEntry* gfxGDIFontList::LookupLocalFont(FontVisibilityProvider* aFontVisibilityProvider,
+gfxFontEntry* gfxGDIFontList::LookupLocalFont(nsPresContext* aPresContext,
                                               const nsACString& aFontName,
                                               WeightRange aWeightForEntry,
                                               StretchRange aStretchForEntry,
@@ -826,7 +826,7 @@ gfxFontEntry* gfxGDIFontList::MakePlatformFont(const nsACString& aFontName,
 }
 
 bool gfxGDIFontList::FindAndAddFamiliesLocked(
-    FontVisibilityProvider* aFontVisibilityProvider, StyleGenericFontFamily aGeneric,
+    nsPresContext* aPresContext, StyleGenericFontFamily aGeneric,
     const nsACString& aFamily, nsTArray<FamilyAndGeneric>* aOutput,
     FindFamiliesFlags aFlags, gfxFontStyle* aStyle, nsAtom* aLanguage,
     gfxFloat aDevToCssSize) {
@@ -836,7 +836,7 @@ bool gfxGDIFontList::FindAndAddFamiliesLocked(
 
   gfxFontFamily* ff = mFontSubstitutes.GetWeak(keyName);
   FontVisibility level =
-      aFontVisibilityProvider ? aFontVisibilityProvider->GetFontVisibility() : FontVisibility::User;
+      aPresContext ? aPresContext->GetFontVisibility() : FontVisibility::User;
   if (ff && IsVisibleToCSS(*ff, level)) {
     aOutput->AppendElement(FamilyAndGeneric(ff, aGeneric));
     return true;
@@ -847,7 +847,7 @@ bool gfxGDIFontList::FindAndAddFamiliesLocked(
   }
 
   return gfxPlatformFontList::FindAndAddFamiliesLocked(
-      aFontVisibilityProvider, aGeneric, aFamily, aOutput, aFlags, aStyle, aLanguage,
+      aPresContext, aGeneric, aFamily, aOutput, aFlags, aStyle, aLanguage,
       aDevToCssSize);
 }
 
@@ -859,7 +859,7 @@ gfxGDIFontList::GetFilteredPlatformFontLists() {
 }
 
 FontFamily gfxGDIFontList::GetDefaultFontForPlatform(
-    FontVisibilityProvider* aFontVisibilityProvider, const gfxFontStyle* aStyle,
+    nsPresContext* aPresContext, const gfxFontStyle* aStyle,
     nsAtom* aLanguage) {
   FontFamily ff;
 
@@ -869,7 +869,7 @@ FontFamily gfxGDIFontList::GetDefaultFontForPlatform(
   BOOL status =
       ::SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
   if (status) {
-    ff = FindFamily(aFontVisibilityProvider,
+    ff = FindFamily(aPresContext,
                     NS_ConvertUTF16toUTF8(ncm.lfMessageFont.lfFaceName));
     if (!ff.IsNull()) {
       return ff;
@@ -880,7 +880,7 @@ FontFamily gfxGDIFontList::GetDefaultFontForPlatform(
   HGDIOBJ hGDI = ::GetStockObject(DEFAULT_GUI_FONT);
   LOGFONTW logFont;
   if (hGDI && ::GetObjectW(hGDI, sizeof(logFont), &logFont)) {
-    ff = FindFamily(aFontVisibilityProvider, NS_ConvertUTF16toUTF8(logFont.lfFaceName));
+    ff = FindFamily(aPresContext, NS_ConvertUTF16toUTF8(logFont.lfFaceName));
   }
 
   return ff;
