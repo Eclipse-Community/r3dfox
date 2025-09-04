@@ -116,7 +116,8 @@
 
 # Only build on platforms that have WinHTTP.h (i.e. not mingw)
 #ifdef HAVE_WINHTTP_H
-!define DESKTOP_LAUNCHER_ENABLED
+#!define DESKTOP_LAUNCHER_ENABLED
+# Disable until Bug 1985118 is resolved.
 #endif
 
 #ifdef MOZ_BITS_DOWNLOAD
