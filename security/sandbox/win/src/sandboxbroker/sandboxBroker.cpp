@@ -1035,12 +1035,12 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
   // avoid changing their meaning.
   MOZ_RELEASE_ASSERT(aSandboxLevel >= 1,
                      "Should not be called with aSandboxLevel < 1");
-  if (aSandboxLevel >= 20) && (IsWin7OrLater())) {
+  if ((aSandboxLevel >= 20) && (IsWin7OrLater())) {
     jobLevel = sandbox::JobLevel::kLockdown;
     accessTokenLevel = sandbox::USER_LOCKDOWN;
     initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
     delayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_UNTRUSTED;
-  } else if (aSandboxLevel >= 8) && (IsWin7OrLater())) {
+  } else if ((aSandboxLevel >= 8) && (IsWin7OrLater())) {
     jobLevel = sandbox::JobLevel::kLockdown;
     accessTokenLevel = sandbox::USER_RESTRICTED;
     initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
