@@ -80,12 +80,13 @@ pref("general.useragent.compatMode.firefox", true);
 pref("general.useragent.site_specific_overrides", true);
 pref("general.useragent.override.aistudio.google.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.gemini.google.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0");
-pref("general.useragent.override.chase.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.chase.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.discord.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.gmx.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.mail.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.routenote.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.snapchat.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.vk.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.whatsapp.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 
 pref("general.config.obscure_value", 13); // for MCD .cfg files
@@ -776,7 +777,7 @@ pref("nglayout.enable_drag_images", true);
 pref("browser.fixup.alternate.prefix", "www.");
 pref("browser.fixup.alternate.protocol", "https");
 pref("browser.fixup.alternate.suffix", ".com");
-pref("browser.fixup.fallback-to-https", true);
+pref("browser.fixup.fallback-to-https", false);
 
 // NOTE: On most platforms we save print settins to prefs with the name of the
 // printer in the pref name (Android being the notable exception, where prefs
@@ -3314,7 +3315,7 @@ pref("extensions.webextensions.identity.redirectDomain", "extensions.allizom.org
 pref("extensions.webextensions.restrictedDomains", "accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com");
 
 // Extensions are prevented from accessing Quarantined Domains by default.
-pref("extensions.quarantinedDomains.enabled", true);
+pref("extensions.quarantinedDomains.enabled", false);
 pref("extensions.quarantinedDomains.list", "");
 
 // Include origin permissions in the install prompt for MV3 extensions.
