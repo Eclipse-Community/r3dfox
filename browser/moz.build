@@ -42,10 +42,6 @@ export("DIST_SUBDIR")
 # These defines are read in firefox.js
 DEFINES["APP_VERSION"] = CONFIG["MOZ_APP_VERSION"]
 
-# We only include the desktop launcher in non-mingw Windows builds
-if CONFIG["OS_ARCH"] == "WINNT" and CONFIG["CC_TYPE"] == "clang-cl":
-    DEFINES["DESKTOP_LAUNCHER_ENABLED"] = True
-
 for cdm in CONFIG["MOZ_EME_MODULES"]:
     DEFINES["MOZ_%s_EME" % cdm.upper()] = True
 
