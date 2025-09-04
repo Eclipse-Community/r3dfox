@@ -1758,10 +1758,8 @@ pref("browser.partnerlink.campaign.topsites", "amzn_2020_a1");
 // Activates preloading of the new tab url.
 pref("browser.newtab.preload", true);
 
-// Do not enable the preonboarding experience on Linux
-#ifdef XP_LINUX
-  pref("browser.preonboarding.enabled", false);
-#endif
+// Do not enable the preonboarding experience
+pref("browser.preonboarding.enabled", false);
 
 // Show "Download Firefox for mobile" QR code modal on newtab
 pref("browser.newtabpage.activity-stream.mobileDownloadModal.enabled", false);
