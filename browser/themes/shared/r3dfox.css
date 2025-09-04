@@ -524,6 +524,11 @@
         height: 27px !important;
       }
 
+      #PersonalToolbar .toolbarbutton-1 > .toolbarbutton-icon {
+        margin-top: -4px;
+        margin-bottom: -4px;
+      }
+
       #urlbar-container {
         min-height: 20px !important; height: 28px !important;
       }
