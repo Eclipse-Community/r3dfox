@@ -1497,7 +1497,6 @@ tab-group {
   &::part(scrollbutton-down) {
     appearance: none;
     background-clip: padding-box;
-    border: 4px solid transparent;
     border-radius: calc(var(--tab-border-radius) + 4px);
     fill: var(--toolbarbutton-icon-fill);
     margin: 0;
