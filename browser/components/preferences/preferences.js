@@ -12,6 +12,7 @@
 /* import-globals-from sync.js */
 /* import-globals-from experimental.js */
 /* import-globals-from moreFromMozilla.js */
+/* import-globals-from r3dfox.js */
 /* import-globals-from findInPage.js */
 /* import-globals-from /browser/base/content/utilityOverlay.js */
 /* import-globals-from /toolkit/content/preferencesBindings.js */
@@ -344,6 +345,7 @@ function init_all() {
   register_module("paneSearch", gSearchPane);
   register_module("panePrivacy", gPrivacyPane);
   register_module("paneContainers", gContainersPane);
+  register_module("paneR3dfox", gR3dfoxPane);
 
   for (let [id, config] of Object.entries(CONFIG_PANES)) {
     SettingPaneManager.registerPane(id, config);
