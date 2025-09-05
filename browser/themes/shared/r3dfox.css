@@ -527,8 +527,8 @@
       }
 
       #PersonalToolbar .toolbarbutton-1 > .toolbarbutton-icon {
-        margin-top: -4px;
-        margin-bottom: -4px;
+        margin-top: -4px !important;
+        margin-bottom: -4px !important;
       }
 
       #urlbar-container {
