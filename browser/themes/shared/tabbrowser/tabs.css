@@ -1644,6 +1644,8 @@ tab-group {
 
     appearance: none;
     padding: 0 4px;
+    background-clip: padding-box;
+    border-radius: calc(var(--tab-border-radius) + 4px);
     fill: var(--toolbarbutton-icon-fill);
     margin: 0;
   }
