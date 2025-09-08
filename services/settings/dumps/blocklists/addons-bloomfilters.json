@@ -5,6 +5,28 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "{ec74b6ee-9edc-4471-a804-b134abfcb10e}:1.0.4",
+          "MeFix@example.com:1.0.0",
+          "MeFix@example.com:1.1.0",
+          "{371b2ed2-8803-46cf-91de-dc95cd8d8e56}:1.0",
+          "{48a8b352-f228-4cd2-9a9c-bcbfb03a7aca}:1.0",
+          "sy_Andy@eci.com:1.0.0",
+          "janitorai-keybinds@gambler:1.1",
+          "yandex-tracker-interceptor@yourdomain.com:1.0",
+          "@mobidevtools-local:0.4.8"
+        ]
+      },
+      "schema": 1757313385037,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1757334905961,
+      "id": "28156f3f-7baa-41f6-85b3-6a6229faa7a3",
+      "last_modified": 1757334989449
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "@dinkey.chicken-takeover:1.0.3",
           "otter-rpc@otter.win:0.1.0",
           "{e7083bf4-cece-4b01-b6b1-493899dbc963}:2.6.5.1"
@@ -4360,5 +4382,5 @@
       "last_modified": 1755023922753
     }
   ],
-  "timestamp": 1757313384936
+  "timestamp": 1757334989449
 }
