@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import datetime
 import json
 import os
+from unittest.mock import MagicMock
 
 import mozunit
 import pytest
@@ -70,7 +72,14 @@ def test_query_paths_no_chunks(run_mach, capfd, show_chunk_numbers):
 
 @pytest.mark.skipif(os.name == "nt", reason="fzf not installed on host")
 @pytest.mark.parametrize("variant", ["", "spi-nw"])
-def test_query_paths_variants(run_mach, capfd, variant):
+def test_query_paths_variants(monkeypatch, run_mach, capfd, variant):
+    # Freeze time to avoid test failures due to an expired variant
+    datetime_mock = MagicMock(wraps=datetime.datetime)
+    datetime_mock.today.return_value = datetime.datetime.strptime(
+        "2025-08-01", "%Y-%m-%d"
+    )
+    monkeypatch.setattr(datetime, "datetime", datetime_mock)
+
     if variant:
         variant = "-%s" % variant
 
