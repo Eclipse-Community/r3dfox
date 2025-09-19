@@ -11783,6 +11783,13 @@
   value: true
   mirror: always
 
+# When true, the hashing of the certificate will be done with the hashing
+# algorithm specified in the cert instead of SHA256.
+- name: network.auth.sspi_detect_hash
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
 # See the full list of values in nsICookieService.idl.
 - name: network.cookie.cookieBehavior
   type: RelaxedAtomicInt32
