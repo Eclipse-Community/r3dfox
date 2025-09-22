@@ -90,36 +90,36 @@ BEGIN_TEST(testAssemblerCodeGen_x64_cmp8) {
 
   static const char* expected =
       "3a c3                                 cmp %bl, %al\n"
-      "3a c7                                 cmp %bh, %al\n"  // Bug
-      "3a f8                                 cmp %al, %bh\n"  // Bug
-      "3a ff                                 cmp %bh, %bh\n"  // Bug
+      "40 3a c7                              cmp %dil, %al\n"
+      "40 3a f8                              cmp %al, %dil\n"
+      "40 3a ff                              cmp %dil, %dil\n"
       "45 3a d5                              cmp %r13b, %r10b\n"
 
       "38 18                                 cmpb %bl, (%rax)\n"
-      "38 78 01                              cmpb %bh, 0x01(%rax)\n"  // Bug
+      "40 38 78 01                           cmpb %dil, 0x01(%rax)\n"
       "38 47 10                              cmpb %al, 0x10(%rdi)\n"
-      "38 7f 20                              cmpb %bh, 0x20(%rdi)\n"  // Bug
+      "40 38 7f 20                           cmpb %dil, 0x20(%rdi)\n"
       "45 38 5a 30                           cmpb %r11b, 0x30(%r10)\n"
-      "38 7c 24 40                           cmpb %bh, 0x40(%rsp)\n"  // Bug
+      "40 38 7c 24 40                        cmpb %dil, 0x40(%rsp)\n"
 
       "38 0c 98                              cmpb %cl, (%rax,%rbx,4)\n"
-      "38 7c d8 01                           cmpb %bh, 0x01(%rax,%rbx,8)\n"  // Bug
-      "38 7c 07 02                           cmpb %bh, 0x02(%rdi,%rax,1)\n"  // Bug
-      "38 7c 78 03                           cmpb %bh, 0x03(%rax,%rdi,2)\n"  // Bug
+      "40 38 7c d8 01                        cmpb %dil, 0x01(%rax,%rbx,8)\n"
+      "40 38 7c 07 02                        cmpb %dil, 0x02(%rdi,%rax,1)\n"
+      "40 38 7c 78 03                        cmpb %dil, 0x03(%rax,%rdi,2)\n"
       "47 38 64 9a 04                        cmpb %r12b, 0x04(%r10,%r11,4)\n"
-      "38 7c c4 05                           cmpb %bh, 0x05(%rsp,%rax,8)\n"  // Bug
+      "40 38 7c c4 05                        cmpb %dil, 0x05(%rsp,%rax,8)\n"
 
       "38 04 25 34 12 00 00                  cmpb %al, 0x0000000000001234\n"
-      "38 34 25 34 12 00 00                  cmpb %dh, 0x0000000000001234\n"  // Bug
+      "40 38 34 25 34 12 00 00               cmpb %sil, 0x0000000000001234\n"
       "44 38 3c 25 34 12 00 00               cmpb %r15b, 0x0000000000001234\n"
 
       "84 c0                                 test %al, %al\n"
       "84 db                                 test %bl, %bl\n"
-      "84 ff                                 test %bh, %bh\n"  // Bug
+      "40 84 ff                              test %dil, %dil\n"
       "45 84 c0                              test %r8b, %r8b\n"
       "3c 01                                 cmp $0x01, %al\n"
       "80 fb ff                              cmp $-0x01, %bl\n"
-      "80 ff 02                              cmp $0x02, %bh\n"  // Bug
+      "40 80 ff 02                           cmp $0x02, %dil\n"
       "41 80 f8 fe                           cmp $-0x02, %r8b\n"
 
       "0f 0b                                 ud2\n";
