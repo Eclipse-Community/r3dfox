@@ -3214,6 +3214,13 @@
   value: false
   mirror: always
 
+# Whether the type attribute in an <object> is used as a hint for the Content-Type
+# of the loading document.
+- name: dom.object_embed.type_hint.enabled
+  type: bool
+  value: false
+  mirror: always
+
 # Whether origin trials are enabled.
 - name: dom.origin-trials.enabled
   type: bool
