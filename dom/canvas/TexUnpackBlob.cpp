@@ -387,7 +387,7 @@ bool TexUnpackBlob::ConvertIfNeeded(
 
   const auto& unpacking = mDesc.unpacking;
 
-  if (!rowLength || !rowCount) return true;
+  if (!rowLength || !rowCount || srcStride <= 0 || dstStride <= 0) return true;
 
   const auto srcIsPremult = (mDesc.srcAlphaType == gfxAlphaType::Premult);
   auto dstIsPremult = unpacking.premultiplyAlpha;
@@ -957,9 +957,20 @@ bool TexUnpackSurface::TexOrSubImage(bool isSubImage, bool needsRespec,
       const auto& data = sdb.data();
       MOZ_ASSERT(data.type() == layers::MemoryOrShmem::TShmem);
       const auto& shmem = data.get_Shmem();
-      surf = gfx::Factory::CreateWrappingDataSourceSurface(
-          shmem.get<uint8_t>(), layers::ImageDataSerializer::GetRGBStride(rgb),
+      size_t shmemSize = shmem.Size<uint8_t>();
+      int32_t stride = layers::ImageDataSerializer::GetRGBStride(rgb);
+      if (stride <= 0) {
+        gfxCriticalError() << "TexUnpackSurface failed to get rgb stride";
+        return false;
+      }
+      size_t bufSize = layers::ImageDataSerializer::ComputeRGBBufferSize(
           rgb.size(), rgb.format());
+      if (!bufSize || bufSize > shmemSize) {
+        gfxCriticalError() << "TexUnpackSurface failed to get rgb buffer size";
+        return false;
+      }
+      surf = gfx::Factory::CreateWrappingDataSourceSurface(
+          shmem.get<uint8_t>(), stride, rgb.size(), rgb.format());
     } else if (SDIsNullRemoteDecoder(sd)) {
       const auto& sdrd = sd.get_SurfaceDescriptorGPUVideo()
                              .get_SurfaceDescriptorRemoteDecoder();
@@ -1013,12 +1024,10 @@ bool TexUnpackSurface::TexOrSubImage(bool isSubImage, bool needsRespec,
   // -
 
   const auto dstFormat = FormatForPackingInfo(dstPI);
-  const auto dstBpp = BytesPerPixel(dstPI);
+  const size_t dstBpp = BytesPerPixel(dstPI);
   const size_t dstUsedBytesPerRow = dstBpp * surf->GetSize().width;
-  auto dstStride = dstUsedBytesPerRow;
-  if (dstFormat == srcFormat) {
-    dstStride = srcStride;  // Try to match.
-  }
+  size_t dstStride = dstFormat == srcFormat ? srcStride  // Try To match
+                                            : dstUsedBytesPerRow;
 
   // -
 
