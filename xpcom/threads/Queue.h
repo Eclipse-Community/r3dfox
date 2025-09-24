@@ -145,7 +145,7 @@ class Queue {
 #if defined(EXTRA_ASSERTS) && DEBUG
     size_t original_length = Count();
 #endif
-    MOZ_ASSERT(!IsEmpty());
+    MOZ_RELEASE_ASSERT(!IsEmpty());
 
     T result = std::move(mHead->mEvents[mOffsetHead]);
     mHead->mEvents[mOffsetHead].~T();
@@ -175,24 +175,24 @@ class Queue {
   }
 
   T& FirstElement() {
-    MOZ_ASSERT(!IsEmpty());
+    MOZ_RELEASE_ASSERT(!IsEmpty());
     return mHead->mEvents[mOffsetHead];
   }
 
   const T& FirstElement() const {
-    MOZ_ASSERT(!IsEmpty());
+    MOZ_RELEASE_ASSERT(!IsEmpty());
     return mHead->mEvents[mOffsetHead];
   }
 
   T& LastElement() {
-    MOZ_ASSERT(!IsEmpty());
+    MOZ_RELEASE_ASSERT(!IsEmpty());
     uint16_t offset =
         mHead == mTail ? mOffsetHead + mHeadLength - 1 : mTailLength - 1;
     return mTail->mEvents[offset];
   }
 
   const T& LastElement() const {
-    MOZ_ASSERT(!IsEmpty());
+    MOZ_RELEASE_ASSERT(!IsEmpty());
     uint16_t offset =
         mHead == mTail ? mOffsetHead + mHeadLength - 1 : mTailLength - 1;
     return mTail->mEvents[offset];
