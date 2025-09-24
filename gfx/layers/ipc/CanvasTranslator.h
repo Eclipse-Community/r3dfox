@@ -174,8 +174,8 @@ class CanvasTranslator final : public gfx::InlineTranslator,
    *
    * @param aTextureId the texture ID to remove
    */
-  void RemoveTexture(int64_t aTextureId, RemoteTextureTxnType aTxnType = 0,
-                     RemoteTextureTxnId aTxnId = 0);
+  void RemoveTexture(int64_t aTextureId, RemoteTextureTxnType aTxnType,
+                     RemoteTextureTxnId aTxnId, bool aFinalize = true);
 
   bool LockTexture(int64_t aTextureId, OpenMode aMode,
                    bool aInvalidContents = false);
@@ -386,13 +386,17 @@ class CanvasTranslator final : public gfx::InlineTranslator,
     RemoteTextureOwnerId mRemoteTextureOwnerId;
     bool mNotifiedRequiresRefresh = false;
     // Ref-count of how active uses of the DT. Avoids deletion when locked.
-    int32_t mLocked = 1;
+    int32_t mKeepAlive = 1;
     OpenMode mTextureLockMode = OpenMode::OPEN_NONE;
 
     gfx::DrawTargetWebgl* GetDrawTargetWebgl(
         bool aCheckForFallback = true) const;
   };
   std::unordered_map<int64_t, TextureInfo> mTextureInfo;
+
+  void AddTextureKeepAlive(const RemoteTextureOwnerId& aId);
+  void RemoveTextureKeepAlive(const RemoteTextureOwnerId& aId);
+
   nsRefPtrHashtable<nsPtrHashKey<void>, gfx::DataSourceSurface> mDataSurfaces;
   gfx::ReferencePtr mMappedSurface;
   UniquePtr<gfx::DataSourceSurface::ScopedMap> mPreparedMap;

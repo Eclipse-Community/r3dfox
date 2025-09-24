@@ -468,7 +468,9 @@ bool CanvasTranslator::TryDrawTargetWebglFallback(
           info.mRefPtr, aTextureId, info.mRemoteTextureOwnerId,
           aWebgl->GetSize(), aWebgl->GetFormat())) {
     aWebgl->CopyToFallback(dt);
-    AddDrawTarget(info.mRefPtr, dt);
+    if (info.mRefPtr) {
+      AddDrawTarget(info.mRefPtr, dt);
+    }
     return true;
   }
   return false;
@@ -848,7 +850,7 @@ void CanvasTranslator::CacheSnapshotShmem(int64_t aTextureId, bool aDispatch) {
   if (gfx::DrawTargetWebgl* webgl = GetDrawTargetWebgl(aTextureId)) {
     if (auto shmemHandle = webgl->TakeShmemHandle()) {
       // Lock the DT so that it doesn't get removed while shmem is in transit.
-      mTextureInfo[aTextureId].mLocked++;
+      AddTextureKeepAlive(aTextureId);
       nsCOMPtr<nsIThread> thread =
           gfx::CanvasRenderThread::GetCanvasRenderThread();
       RefPtr<CanvasTranslator> translator = this;
@@ -856,9 +858,11 @@ void CanvasTranslator::CacheSnapshotShmem(int64_t aTextureId, bool aDispatch) {
                         webgl->GetShmemSize())
           ->Then(
               thread, __func__,
-              [=](bool) { translator->RemoveTexture(aTextureId); },
+              [=](bool) {
+                translator->RemoveTextureKeepAlive(aTextureId);
+              },
               [=](ipc::ResponseRejectReason) {
-                translator->RemoveTexture(aTextureId);
+                translator->RemoveTextureKeepAlive(aTextureId);
               });
     }
   }
@@ -1000,7 +1004,9 @@ already_AddRefed<gfx::DrawTarget> CanvasTranslator::CreateDrawTarget(
                                   aFormat);
   }
 
-  AddDrawTarget(aRefPtr, dt);
+  if (dt && aRefPtr) {
+    AddDrawTarget(aRefPtr, dt);
+  }
   return dt.forget();
 }
 
@@ -1011,9 +1017,23 @@ already_AddRefed<gfx::DrawTarget> CanvasTranslator::CreateDrawTarget(
   return nullptr;
 }
 
+void CanvasTranslator::AddTextureKeepAlive(const aTextureId& aId) {
+  auto result = mTextureInfo.find(aId);
+  if (result == mTextureInfo.end()) {
+    return;
+  }
+  auto& info = result->second;
+  ++info.mKeepAlive;
+}
+
+void CanvasTranslator::RemoveTextureKeepAlive(const aTextureId& aId) {
+  RemoveTexture(aId, 0, 0, false);
+}
+
 void CanvasTranslator::RemoveTexture(int64_t aTextureId,
                                      RemoteTextureTxnType aTxnType,
-                                     RemoteTextureTxnId aTxnId) {
+                                     RemoteTextureTxnId aTxnId,
+                                     bool aFinalize) {
   // Don't erase the texture if still in use
   auto result = mTextureInfo.find(aTextureId);
   if (result == mTextureInfo.end()) {
@@ -1024,10 +1044,17 @@ void CanvasTranslator::RemoveTexture(int64_t aTextureId,
     mRemoteTextureOwner->WaitForTxn(info.mRemoteTextureOwnerId, aTxnType,
                                     aTxnId);
   }
-  if (--info.mLocked > 0) {
+  // Remove the DrawTarget only if this is being called from a recorded event
+  // or if there are no remaining keepalives. If this is being called only to
+  // remove a keepalive without forcing removal, then the DrawTarget is still
+  // being used by the recording.
+  if ((aFinalize || info.mKeepAlive <= 1) && info.mRefPtr) {
+    RemoveDrawTarget(info.mRefPtr);
+    info.mRefPtr = ReferencePtr();
+  }
+  if (--info.mKeepAlive > 0) {
     return;
   }
-  RemoveDrawTarget(info.mRefPtr);
   if (info.mTextureData) {
     if (info.mFallbackDrawTarget) {
       info.mTextureData->ReturnDrawTarget(info.mFallbackDrawTarget.forget());
