@@ -1011,6 +1011,10 @@ void TextureClient::EndDraw() {
   mData->EndDraw();
 }
 
+void TextureData::ReturnDrawTarget(already_AddRefed<gfx::DrawTarget> aDT) {
+  RefPtr<gfx::DrawTarget> dt(aDT);
+}
+
 already_AddRefed<gfx::SourceSurface> TextureClient::BorrowSnapshot() {
   MOZ_ASSERT(mIsLocked);
 
