@@ -1953,7 +1953,8 @@ static JS::CompartmentIterResult FindSameOriginCompartment(
   }
 
   auto* compartmentPrivate = xpc::CompartmentPrivate::Get(aCompartment);
-  if (!compartmentPrivate->CanShareCompartmentWith(data->principal)) {
+  if (!compartmentPrivate ||
+      !compartmentPrivate->CanShareCompartmentWith(data->principal)) {
     // Can't reuse this one, keep going.
     return JS::CompartmentIterResult::KeepGoing;
   }
