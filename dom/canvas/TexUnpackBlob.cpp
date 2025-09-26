@@ -387,7 +387,12 @@ bool TexUnpackBlob::ConvertIfNeeded(
 
   const auto& unpacking = mDesc.unpacking;
 
-  if (!rowLength || !rowCount || srcStride <= 0 || dstStride <= 0) return true;
+  if (!rowLength || !rowCount) return true;
+
+  if (srcStride <= 0 || dstStride <= 0) {
+    webgl->ErrorInvalidOperation("Invalid stride.");
+    return false;
+  }
 
   const auto srcIsPremult = (mDesc.srcAlphaType == gfxAlphaType::Premult);
   auto dstIsPremult = unpacking.premultiplyAlpha;
