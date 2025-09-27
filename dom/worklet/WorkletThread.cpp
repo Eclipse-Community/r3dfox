@@ -195,7 +195,11 @@ void WorkletJSContext::ReportError(JSErrorReport* aReport,
   RefPtr<AsyncErrorReporter> reporter = new AsyncErrorReporter(xpcReport);
 
   JSContext* cx = Context();
-  if (JS_IsExceptionPending(cx)) {
+  // NOTE: This function is used both for errors and warnings, and warnings
+  //       can be reported while there's a pending exception.
+  //       Warnings are always reported with non-null JSErrorReport.
+  if (!aReport || !aReport->isWarning()) {
+    MOZ_ASSERT(JS_IsExceptionPending(cx));
     JS::ExceptionStack exnStack(cx);
     if (JS::StealPendingExceptionStack(cx, &exnStack)) {
       JS::Rooted<JSObject*> stack(cx);
