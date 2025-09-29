@@ -438,7 +438,7 @@ bool PropertyEnumerator::enumerateNativeProperties(JSContext* cx) {
         continue;
       }
 
-      PropertyIndex index = iter->isDataProperty()
+      PropertyIndex index = iter->isDataProperty() && iter->writable()
                                 ? PropertyIndex::ForSlot(pobj, iter->slot())
                                 : PropertyIndex::Invalid();
       if (!enumerate<CheckForDuplicates>(cx, id, iter->enumerable(), index)) {
