@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2025-09-23_13-07-02_UTC
-// COMMIT: 6defc0e19dbbe27dc2a0798256077d0b82d9c455
+// VERSION: 2025-09-25_23-29-58_UTC
+// COMMIT: 106b086f3ea59059096edba38a758c7a7a1f8664
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -12449,6 +12449,8 @@ cafjs.com
 canva-apps.cn
 my.canvasite.cn
 canva-apps.com
+rice-labs.com
+canva.run
 my.canva.site
 
 // Carrd : https://carrd.co
@@ -15914,6 +15916,7 @@ js.wpenginepowered.com
 
 // XenonCloud GbR : https://xenoncloud.net
 // Submitted by Julian Uphoff <publicsuffixlist@xenoncloud.net>
+*.xenonconnect.de
 half.host
 
 // XnBay Technology : http://www.xnbay.com/

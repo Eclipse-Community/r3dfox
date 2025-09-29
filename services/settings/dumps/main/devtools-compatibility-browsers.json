@@ -1,6 +1,33 @@
 {
   "data": [
     {
+      "name": "WebView on iOS",
+      "schema": 1758931504573,
+      "status": "beta",
+      "version": "26.1",
+      "browserid": "webview_ios",
+      "id": "715b8853-603d-4ca8-a18c-3e24169f8895",
+      "last_modified": 1759122888958
+    },
+    {
+      "name": "Safari",
+      "schema": 1758852945474,
+      "status": "beta",
+      "version": "26.1",
+      "browserid": "safari",
+      "id": "4e69de42-b3b9-4a6e-a764-3038552d0ecb",
+      "last_modified": 1759122888954
+    },
+    {
+      "name": "Safari on iOS",
+      "schema": 1758931504510,
+      "status": "beta",
+      "version": "26.1",
+      "browserid": "safari_ios",
+      "id": "c67d6870-269b-4aa5-9a1b-03662a4b5771",
+      "last_modified": 1759122888950
+    },
+    {
       "name": "Firefox for Android",
       "schema": 1758326704716,
       "status": "planned",
@@ -352,5 +379,5 @@
       "last_modified": 1665656484764
     }
   ],
-  "timestamp": 1758530878231
+  "timestamp": 1759122888958
 }
