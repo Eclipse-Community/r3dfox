@@ -463,7 +463,7 @@ sonatype-nexus:
     description: Sonatype Nexus Maven repository service
     fetch:
         type: static-url
-        url: https://download.sonatype.com/nexus/oss/nexus-2.14.18-01-bundle.tar.gz
+        url: https://tooltool.mozilla-releng.net/sha512/25e022dafb1a35ab36ccf730f16b1865cbf48976ba34619ada336853fffe6c239548d67948a5ed3cf1a09566fa30e15c783186ea054b8a9449da5dcc954858ce
         sha256: 350af8b270bec7fda5861a15b8a5b7870fd8903d0b9a210754113d5a966ce6a6
         size: 83493896
         artifact-name: sonatype-nexus.tar.zst
