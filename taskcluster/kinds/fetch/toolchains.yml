@@ -463,9 +463,10 @@ sonatype-nexus:
     description: Sonatype Nexus Maven repository service
     fetch:
         type: static-url
-        url: https://tooltool.mozilla-releng.net/sha512/25e022dafb1a35ab36ccf730f16b1865cbf48976ba34619ada336853fffe6c239548d67948a5ed3cf1a09566fa30e15c783186ea054b8a9449da5dcc954858ce
-        sha256: 350af8b270bec7fda5861a15b8a5b7870fd8903d0b9a210754113d5a966ce6a6
-        size: 83493896
+        # https://download.sonatype.com/nexus/oss/nexus-2.15.2-03-bundle.tar.gz
+        url: https://tooltool.mozilla-releng.net/sha512/8d0cd58839f95b8fa02eba82fd532b15795b59e93968bcfcf179383849cf3a09f3c2a76480c5583ebf4ee1b1528bfccbda5ad6d92f175817ebc6179d85a93b5b
+        sha256: cec1d80dad0be8a34a902aa00e666da547f51e83dc3a4a28b50b3ec36fe433a8
+        size: 89526162
         artifact-name: sonatype-nexus.tar.zst
         strip-components: 1
         add-prefix: sonatype-nexus/
