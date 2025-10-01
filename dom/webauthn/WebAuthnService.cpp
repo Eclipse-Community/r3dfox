@@ -115,10 +115,18 @@ WebAuthnService::MakeCredential(uint64_t aTransactionId,
             }
 
             nsIWebAuthnRegisterResult* result = aValue.ResolveValue();
-            // If the RP requested attestation, we need to show a consent prompt
-            // before returning any identifying information. The platform may
-            // have already done this for us, so we need to inspect the
-            // attestation object at this point.
+            // We can return whatever result we have if the authenticator
+            // handled attestation consent for us.
+            bool attestationConsentPromptShown = false;
+            Unused << result->GetAttestationConsentPromptShown(
+                &attestationConsentPromptShown);
+            if (attestationConsentPromptShown) {
+              guard->ref().parentRegisterPromise.ref()->Resolve(result);
+              guard->reset();
+              return;
+            }
+            // If the RP requested attestation and the response contains
+            // identifying information, then we need to show a consent prompt.
             bool resultIsIdentifying = true;
             Unused << result->HasIdentifyingAttestation(&resultIsIdentifying);
             if (attestationRequested && resultIsIdentifying) {
@@ -127,6 +135,7 @@ WebAuthnService::MakeCredential(uint64_t aTransactionId,
                                                  aBrowsingContextId);
               return;
             }
+            // In all other cases we strip out identifying information.
             result->Anonymize();
             guard->ref().parentRegisterPromise.ref()->Resolve(result);
             guard->reset();
