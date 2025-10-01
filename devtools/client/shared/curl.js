@@ -474,15 +474,10 @@ const CurlUtils = {
         // by the previous replace.
         .replace(/%(?=[a-zA-Z0-9_])/g, "%^")
 
-        // We replace \r and \r\n with \n, this allows to consistently escape all new
-        // lines in the next replace
-        .replace(/\r\n?/g, "\n")
-
-        // Lastly we replace new lines with ^ and TWO new lines because the first
-        // new line is there to enact the escape command the second is the character
-        // to escape (in this case new line).
-        // The extra " enables escaping new lines with ^ within quotes in cmd.exe.
-        .replace(/\n/g, '"^\r\n\r\n"') +
+      // Lastly we replace new lines with ^ and TWO new lines because the first
+      // new line is there to enact the escape command the second is the character
+      // to escape (in this case new line).
+        .replace(/\r?\n|\r/g, '^\n\n') +
       encapsChars
     );
   },

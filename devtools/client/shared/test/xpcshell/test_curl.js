@@ -356,8 +356,10 @@ function quote(str) {
 
 function escapeNewline(txt) {
   if (isWin()) {
-    // Add `"` to close quote, then escape newline outside of quote, then start new quote
-    return txt.replace(/[\r\n]{1,2}/g, '"^$&$&"');
+    // For windows we replace new lines with ^ and TWO new lines because the first
+    // new line is there to enact the escape command the second is the character
+    // to escape (in this case new line).
+    return txt.replace(/\r?\n|\r/g, "^\n\n");
   }
   return txt.replace(/\r/g, "\\r").replace(/\n/g, "\\n");
 }

@@ -208,19 +208,19 @@ function testRemoveBinaryDataFromMultipartText(data) {
   const EXPECTED_WIN_RESULT = [
     '^"',
     boundary,
-    '"^\u000d\u000A\u000d\u000A"',
+    '^\u000A\u000A',
     'Content-Disposition: form-data; name=^\\^"param1^\\^"',
-    '"^\u000d\u000A\u000d\u000A""^\u000d\u000A\u000d\u000A"',
+    '^\u000A\u000A^\u000A\u000A',
     "value1",
-    '"^\u000d\u000A\u000d\u000A"',
+    '^\u000A\u000A',
     boundary,
-    '"^\u000d\u000A\u000d\u000A"',
+    '^\u000A\u000A',
     'Content-Disposition: form-data; name=^\\^"file^\\^"; filename=^\\^"filename.png^\\^"',
-    '"^\u000d\u000A\u000d\u000A"',
+    '^\u000A\u000A',
     "Content-Type: image/png",
-    '"^\u000d\u000A\u000d\u000A""^\u000d\u000A\u000d\u000A"',
+    '^\u000A\u000A^\u000A\u000A',
     boundary + "--",
-    '"^\u000d\u000A\u000d\u000A"',
+    '^\u000A\u000A',
     '^"',
   ].join("");
 
@@ -336,7 +336,7 @@ function testEscapeStringWin() {
   const newLines = "line1\r\nline2\r\rline3\n\nline4";
   is(
     CurlUtils.escapeStringWin(newLines),
-    '^\"line1\"^\r\n\r\n\"line2\"^\r\n\r\n\"\"^\r\n\r\n\"line3\"^\r\n\r\n\"\"^\r\n\r\n\"line4^\"',
+    '^\"line1^\n\nline2^\n\n^\n\nline3^\n\n^\n\nline4^\"',
     "Newlines should be escaped."
   );
 
@@ -357,7 +357,7 @@ function testEscapeStringWin() {
   const evilCommand = `query=evil\r\rcmd" /c timeout /t 3 & calc.exe\r\r`;
   is(
     CurlUtils.escapeStringWin(evilCommand),
-    '^\"query=evil\"^\r\n\r\n\"\"^\r\n\r\n\"cmd^\\^\" /c timeout /t 3 ^& calc.exe\"^\r\n\r\n\"\"^\r\n\r\n\"^\"',
+    '^\"query=evil^\n\n^\n\ncmd^\\^\" /c timeout /t 3 ^& calc.exe^\n\n^\n\n^\"',
     "The evil command is escaped properly"
   );
 }
