@@ -31,14 +31,12 @@ void WebAuthnService::ShowAttestationConsentPrompt(
       NS_NewRunnableFunction(__func__, [self, aTransactionId]() {
         self->SetHasAttestationConsent(
             aTransactionId,
-            StaticPrefs::
-                security_webauth_webauthn_testing_allow_direct_attestation());
+            StaticPrefs::security_webauthn_always_allow_direct_attestation());
       }));
 #else
   nsCOMPtr<nsIRunnable> runnable(NS_NewRunnableFunction(
       __func__, [self, aOrigin, aTransactionId, aBrowsingContextId]() {
-        if (StaticPrefs::
-                security_webauth_webauthn_testing_allow_direct_attestation()) {
+        if (StaticPrefs::security_webauthn_always_allow_direct_attestation()) {
           self->SetHasAttestationConsent(aTransactionId, true);
           return;
         }

@@ -87,7 +87,7 @@ user_pref("security.webauth.webauthn_enable_softtoken", true);
 // Disable hardware WebAuthn authenticators.
 user_pref("security.webauth.webauthn_enable_usbtoken", false);
 // Disable the WebAuthn direct attestation consent prompt.
-user_pref("security.webauth.webauthn_testing_allow_direct_attestation", true);
+user_pref("security.webauthn.always_allow_direct_attestation", true);
 // Enable WebAuthn conditional mediation.
 user_pref("security.webauthn.enable_conditional_mediation", true);
 // Disable captive portal service

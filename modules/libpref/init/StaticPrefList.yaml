@@ -14976,8 +14976,8 @@
   mirror: always
   rust: true
 
-# Skip direct attestation consent prompts (for tests).
-- name: security.webauth.webauthn_testing_allow_direct_attestation
+# Skip direct attestation consent prompts
+- name: security.webauthn.always_allow_direct_attestation
   type: RelaxedAtomicBool
   value: false
   mirror: always

@@ -1835,6 +1835,7 @@ export var Policies = {
         "security.tls.hello_downgrade_check",
         "security.tls.version.enable-deprecated",
         "security.warn_submit_secure_to_insecure",
+        "security.webauthn.always_allow_direct_attestation",
       ];
       const blockedPrefs = [
         "app.update.channel",
