@@ -3456,9 +3456,13 @@ inline bool RecordedSourceSurfaceCreation::PlayEvent(
     return false;
   }
 
-  RefPtr<SourceSurface> src = Factory::CreateWrappingDataSourceSurface(
-      mData, mSize.width * BytesPerPixel(mFormat), mSize, mFormat,
+  CheckedInt32 stride = CheckedInt32(mSize.width) * BytesPerPixel(mFormat);
+  RefPtr<SourceSurface> src;
+  if (!mSize.IsEmpty() && stride.isValid() && stride.value() > 0) {
+    src = Factory::CreateWrappingDataSourceSurface(
+      mData, stride.value(), mSize, mFormat,
       [](void* aClosure) { delete[] static_cast<uint8_t*>(aClosure); }, mData);
+  }
   if (src) {
     mDataOwned = false;
   }
@@ -3498,18 +3502,23 @@ RecordedSourceSurfaceCreation::RecordedSourceSurfaceCreation(S& aStream)
     return;
   }
 
-  size_t size = 0;
+  CheckedInt<size_t> size;
   if (mSize.width >= 0 && mSize.height >= 0) {
-    size = size_t(mSize.width) * size_t(mSize.height) * BytesPerPixel(mFormat);
-    mData = new (fallible) uint8_t[size];
+    CheckedInt32 stride = CheckedInt32(mSize.width) * BytesPerPixel(mFormat);
+    if (stride.isValid() && stride.value() >= 0) {
+      size = CheckedInt<size_t>(stride.value()) * size_t(mSize.height);
+      if (size.isValid()) {
+        mData = new (fallible) uint8_t[size.value()];
+      }
+    }
   }
   if (!mData) {
     gfxCriticalNote
         << "RecordedSourceSurfaceCreation failed to allocate data of size "
-        << size;
+        << (size.isValid() ? size.value() : 0);
     aStream.SetIsBad();
   } else {
-    aStream.read((char*)mData, size);
+    aStream.read((char*)mData, size.value());
   }
 }
 

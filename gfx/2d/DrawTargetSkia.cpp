@@ -1733,8 +1733,11 @@ bool DrawTargetSkia::Init(const IntSize& aSize, SurfaceFormat aFormat) {
   // we need to have surfaces that have a stride aligned to 4 for interop with
   // cairo
   SkImageInfo info = MakeSkiaImageInfo(aSize, aFormat);
+  if (info.bytesPerPixel() != BytesPerPixel(aFormat)) {
+    return false;
+  }
   size_t stride = GetAlignedStride<4>(info.width(), info.bytesPerPixel());
-  if (!stride) {
+  if (!stride || stride < info.minRowBytes64()) {
     return false;
   }
   SkSurfaceProps props(0, GetSkPixelGeometry());
@@ -1803,9 +1806,14 @@ bool DrawTargetSkia::Init(unsigned char* aData, const IntSize& aSize,
   MOZ_ASSERT((aFormat != SurfaceFormat::B8G8R8X8) || aUninitialized ||
              VerifyRGBXFormat(aData, aSize, aStride, aFormat));
 
+  SkImageInfo info = MakeSkiaImageInfo(aSize, aFormat);
+  if (info.bytesPerPixel() != BytesPerPixel(aFormat) ||
+      aStride <= 0 || size_t(aStride) < info.minRowBytes64()) {
+    return false;
+  }
+
   SkSurfaceProps props(0, GetSkPixelGeometry());
-  mSurface = AsRefPtr(SkSurfaces::WrapPixels(MakeSkiaImageInfo(aSize, aFormat),
-                                             aData, aStride, &props));
+  mSurface = AsRefPtr(SkSurfaces::WrapPixels(info, aData, aStride, &props));
   if (!mSurface) {
     return false;
   }
@@ -1829,6 +1837,13 @@ bool DrawTargetSkia::Init(RefPtr<DataSourceSurface>&& aSurface) {
   IntSize size = aSurface->GetSize();
   MOZ_ASSERT((format != SurfaceFormat::B8G8R8X8) ||
              VerifyRGBXFormat(map->GetData(), size, map->GetStride(), format));
+
+  SkImageInfo info = MakeSkiaImageInfo(size, format);
+  if (info.bytesPerPixel() != BytesPerPixel(format) ||
+      size_t(map->GetStride()) < info.minRowBytes64()) {
+    delete map;
+    return false;
+  }
 
   SkSurfaceProps props(0, GetSkPixelGeometry());
   mSurface = AsRefPtr(SkSurfaces::WrapPixels(

@@ -374,8 +374,14 @@ void SharedContextWebgl::ClearCachesIfNecessary() {
 // not exceed the available texture limits and that shader creation succeeded.
 bool DrawTargetWebgl::Init(const IntSize& size, const SurfaceFormat format,
                            const RefPtr<SharedContextWebgl>& aSharedContext) {
-  MOZ_ASSERT(format == SurfaceFormat::B8G8R8A8 ||
-             format == SurfaceFormat::B8G8R8X8);
+  switch (format) {
+    case SurfaceFormat::B8G8R8A8:
+    case SurfaceFormat::B8G8R8X8:
+      break;
+    default:
+      MOZ_ASSERT_UNREACHABLE("Unsupported format for DrawTargetWebgl.");
+      return false;
+  }
 
   mSize = size;
   mFormat = format;
