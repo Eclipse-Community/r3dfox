@@ -215,6 +215,9 @@ fn sec_key_create_signature(
         )
     };
     if signature.is_null() {
+        if error.is_null() {
+            return Err(error_here!(ErrorType::ExternalError));
+        }
         let error = unsafe { CFError::wrap_under_create_rule(error) };
         return Err(error_here!(
             ErrorType::ExternalError,
@@ -224,8 +227,12 @@ fn sec_key_create_signature(
     Ok(unsafe { CFData::wrap_under_create_rule(signature) })
 }
 
-fn sec_key_copy_attributes<T: TCFType>(key: &SecKey) -> CFDictionary<CFString, T> {
-    unsafe { CFDictionary::wrap_under_create_rule(SecKeyCopyAttributes(key.as_concrete_TypeRef())) }
+fn sec_key_copy_attributes<T: TCFType>(key: &SecKey) -> Result<CFDictionary<CFString, T>, Error> {
+    let attributes = unsafe { SecKeyCopyAttributes(key.as_concrete_TypeRef()) };
+    if attributes.is_null() {
+        return Err(error_here!(ErrorType::ExternalError));
+    }
+    Ok(unsafe { CFDictionary::wrap_under_create_rule(attributes) })
 }
 
 fn sec_key_copy_external_representation(key: &SecKey) -> Result<CFData, Error> {
@@ -233,6 +240,9 @@ fn sec_key_copy_external_representation(key: &SecKey) -> Result<CFData, Error> {
     let representation =
         unsafe { SecKeyCopyExternalRepresentation(key.as_concrete_TypeRef(), &mut error) };
     if representation.is_null() {
+        if error.is_null() {
+            return Err(error_here!(ErrorType::ExternalError));
+        }
         let error = unsafe { CFError::wrap_under_create_rule(error) };
         return Err(error_here!(
             ErrorType::ExternalError,
@@ -729,7 +739,7 @@ impl Sign for Key {
 }
 
 fn get_key_attribute<T: TCFType + Clone>(key: &SecKey, attr: CFStringRef) -> Result<T, Error> {
-    let attributes: CFDictionary<CFString, T> = sec_key_copy_attributes(key);
+    let attributes: CFDictionary<CFString, T> = sec_key_copy_attributes(key)?;
     match attributes.find(attr as *const _) {
         Some(value) => Ok((*value).clone()),
         None => Err(error_here!(ErrorType::ExternalError)),
