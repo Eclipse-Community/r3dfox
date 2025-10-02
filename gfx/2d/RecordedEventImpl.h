@@ -1496,7 +1496,7 @@ class RecordedFontDescriptor
   bool mHasDesc;
 
   FontType mType;
-  std::vector<uint8_t> mData;
+  RecordedEventArray<uint8_t> mData;
   uint32_t mIndex;
   ReferencePtr mRefPtr;
 
@@ -1539,7 +1539,7 @@ class RecordedUnscaledFontCreation
   ReferencePtr mRefPtr;
   uint64_t mFontDataKey;
   uint32_t mIndex;
-  std::vector<uint8_t> mInstanceData;
+  RecordedEventArray<uint8_t> mInstanceData;
 
   template <class S>
   MOZ_IMPLICIT RecordedUnscaledFontCreation(S& aStream);
@@ -1606,8 +1606,8 @@ class RecordedScaledFontCreation
   ReferencePtr mRefPtr;
   ReferencePtr mUnscaledFont;
   Float mGlyphSize;
-  std::vector<uint8_t> mInstanceData;
-  std::vector<FontVariation> mVariations;
+  RecordedEventArray<uint8_t> mInstanceData;
+  RecordedEventArray<FontVariation> mVariations;
 
   template <class S>
   MOZ_IMPLICIT RecordedScaledFontCreation(S& aStream);
@@ -1695,8 +1695,7 @@ class RecordedFilterNodeSetAttribute
         mNode(aNode),
         mIndex(aIndex),
         mArgType(aArgType) {
-    mPayload.resize(sizeof(T));
-    memcpy(&mPayload.front(), &aArgument, sizeof(T));
+    mPayload.Assign(reinterpret_cast<const uint8_t*>(&aArgument), sizeof(T));
   }
 
   RecordedFilterNodeSetAttribute(FilterNode* aNode, uint32_t aIndex,
@@ -1705,8 +1704,8 @@ class RecordedFilterNodeSetAttribute
         mNode(aNode),
         mIndex(aIndex),
         mArgType(ARGTYPE_FLOAT_ARRAY) {
-    mPayload.resize(sizeof(Float) * aSize);
-    memcpy(&mPayload.front(), aFloat, sizeof(Float) * aSize);
+    mPayload.Assign(reinterpret_cast<const uint8_t*>(aFloat),
+                    sizeof(Float) * aSize);
   }
 
   bool PlayEvent(Translator* aTranslator) const override;
@@ -1723,7 +1722,7 @@ class RecordedFilterNodeSetAttribute
 
   uint32_t mIndex;
   ArgType mArgType;
-  std::vector<uint8_t> mPayload;
+  RecordedEventArray<uint8_t> mPayload;
 
   template <class S>
   MOZ_IMPLICIT RecordedFilterNodeSetAttribute(S& aStream);
@@ -1785,8 +1784,8 @@ class RecordedLink : public RecordedEventDerived<RecordedLink> {
  private:
   friend class RecordedEvent;
 
-  std::string mLocalDest;
-  std::string mURI;
+  RecordedEventCString mLocalDest;
+  RecordedEventCString mURI;
   Rect mRect;
 
   template <class S>
@@ -1810,7 +1809,7 @@ class RecordedDestination : public RecordedEventDerived<RecordedDestination> {
  private:
   friend class RecordedEvent;
 
-  std::string mDestination;
+  RecordedEventCString mDestination;
   Point mPoint;
 
   template <class S>
@@ -4021,10 +4020,8 @@ void RecordedFontDescriptor::Record(S& aStream) const {
   WriteElement(aStream, mType);
   WriteElement(aStream, mRefPtr);
   WriteElement(aStream, mIndex);
-  WriteElement(aStream, (size_t)mData.size());
-  if (mData.size()) {
-    aStream.write((char*)mData.data(), mData.size());
-  }
+  WriteElement(aStream, mData.size());
+  mData.Write(aStream);
 }
 
 inline void RecordedFontDescriptor::OutputSimpleEventInfo(
@@ -4035,7 +4032,7 @@ inline void RecordedFontDescriptor::OutputSimpleEventInfo(
 inline void RecordedFontDescriptor::SetFontDescriptor(const uint8_t* aData,
                                                       uint32_t aSize,
                                                       uint32_t aIndex) {
-  mData.assign(aData, aData + aSize);
+  mData.Assign(aData, aSize);
   mIndex = aIndex;
 }
 
@@ -4046,14 +4043,14 @@ RecordedFontDescriptor::RecordedFontDescriptor(S& aStream)
   ReadElement(aStream, mRefPtr);
   ReadElement(aStream, mIndex);
 
-  size_t size;
+  size_t size = 0;
   ReadElement(aStream, size);
   if (!aStream.good()) {
     return;
   }
-  if (size) {
-    mData.resize(size);
-    aStream.read((char*)mData.data(), size);
+  if (size && !mData.Read(aStream, size)) {
+    aStream.SetIsBad();
+    return;
   }
 }
 
@@ -4079,10 +4076,8 @@ void RecordedUnscaledFontCreation::Record(S& aStream) const {
   WriteElement(aStream, mRefPtr);
   WriteElement(aStream, mFontDataKey);
   WriteElement(aStream, mIndex);
-  WriteElement(aStream, (size_t)mInstanceData.size());
-  if (mInstanceData.size()) {
-    aStream.write((char*)mInstanceData.data(), mInstanceData.size());
-  }
+  WriteElement(aStream, mInstanceData.size());
+  mInstanceData.Write(aStream);
 }
 
 inline void RecordedUnscaledFontCreation::OutputSimpleEventInfo(
@@ -4093,7 +4088,7 @@ inline void RecordedUnscaledFontCreation::OutputSimpleEventInfo(
 inline void RecordedUnscaledFontCreation::SetFontInstanceData(
     const uint8_t* aData, uint32_t aSize) {
   if (aSize) {
-    mInstanceData.assign(aData, aData + aSize);
+    mInstanceData.Assign(aData, aSize);
   }
 }
 
@@ -4104,14 +4099,14 @@ RecordedUnscaledFontCreation::RecordedUnscaledFontCreation(S& aStream)
   ReadElement(aStream, mFontDataKey);
   ReadElement(aStream, mIndex);
 
-  size_t size;
+  size_t size = 0;
   ReadElement(aStream, size);
   if (!aStream.good()) {
     return;
   }
-  if (size) {
-    mInstanceData.resize(size);
-    aStream.read((char*)mInstanceData.data(), size);
+  if (size && !mInstanceData.Read(aStream, size)) {
+    aStream.SetIsBad();
+    return;
   }
 }
 
@@ -4160,15 +4155,10 @@ void RecordedScaledFontCreation::Record(S& aStream) const {
   WriteElement(aStream, mRefPtr);
   WriteElement(aStream, mUnscaledFont);
   WriteElement(aStream, mGlyphSize);
-  WriteElement(aStream, (size_t)mInstanceData.size());
-  if (mInstanceData.size()) {
-    aStream.write((char*)mInstanceData.data(), mInstanceData.size());
-  }
-  WriteElement(aStream, (size_t)mVariations.size());
-  if (mVariations.size()) {
-    aStream.write((char*)mVariations.data(),
-                  sizeof(FontVariation) * mVariations.size());
-  }
+  WriteElement(aStream, mInstanceData.size());
+  mInstanceData.Write(aStream);
+  WriteElement(aStream, mVariations.size());
+  mVariations.Write(aStream);
 }
 
 inline void RecordedScaledFontCreation::OutputSimpleEventInfo(
@@ -4180,10 +4170,10 @@ inline void RecordedScaledFontCreation::SetFontInstanceData(
     const uint8_t* aData, uint32_t aSize, const FontVariation* aVariations,
     uint32_t aNumVariations) {
   if (aSize) {
-    mInstanceData.assign(aData, aData + aSize);
+    mInstanceData.Assign(aData, aSize);
   }
   if (aNumVariations) {
-    mVariations.assign(aVariations, aVariations + aNumVariations);
+    mVariations.Assign(aVariations, aNumVariations);
   }
 }
 
@@ -4194,25 +4184,24 @@ RecordedScaledFontCreation::RecordedScaledFontCreation(S& aStream)
   ReadElement(aStream, mUnscaledFont);
   ReadElement(aStream, mGlyphSize);
 
-  size_t size;
+  size_t size = 0;
   ReadElement(aStream, size);
   if (!aStream.good()) {
     return;
   }
-  if (size) {
-    mInstanceData.resize(size);
-    aStream.read((char*)mInstanceData.data(), size);
+  if (size && !mInstanceData.Read(aStream, size)) {
+    aStream.SetIsBad();
+    return;
   }
 
-  size_t numVariations;
+  size_t numVariations = 0;
   ReadElement(aStream, numVariations);
   if (!aStream.good()) {
     return;
   }
-  if (numVariations) {
-    mVariations.resize(numVariations);
-    aStream.read((char*)mVariations.data(),
-                 sizeof(FontVariation) * numVariations);
+  if (numVariations && !mVariations.Read(aStream, numVariations)) {
+    aStream.SetIsBad();
+    return;
   }
 }
 
@@ -4290,12 +4279,12 @@ inline bool RecordedFilterNodeSetAttribute::PlayEvent(
     return false;
   }
 
-#define REPLAY_SET_ATTRIBUTE(type, argtype)                      \
-  case ARGTYPE_##argtype:                                        \
-    if (mPayload.size() < sizeof(type)) {                        \
-      return false;                                              \
-    }                                                            \
-    ReplaySetAttribute(node, mIndex, *(type*)&mPayload.front()); \
+#define REPLAY_SET_ATTRIBUTE(type, argtype)                    \
+  case ARGTYPE_##argtype:                                      \
+    if (mPayload.size() < sizeof(type)) {                      \
+      return false;                                            \
+    }                                                          \
+    ReplaySetAttribute(node, mIndex, *(type*)mPayload.data()); \
     break
 
   switch (mArgType) {
@@ -4314,7 +4303,7 @@ inline bool RecordedFilterNodeSetAttribute::PlayEvent(
     REPLAY_SET_ATTRIBUTE(DeviceColor, COLOR);
     case ARGTYPE_FLOAT_ARRAY:
       node->SetAttribute(mIndex,
-                         reinterpret_cast<const Float*>(&mPayload.front()),
+                         reinterpret_cast<const Float*>(mPayload.data()),
                          mPayload.size() / sizeof(Float));
       break;
   }
@@ -4327,8 +4316,8 @@ void RecordedFilterNodeSetAttribute::Record(S& aStream) const {
   WriteElement(aStream, mNode);
   WriteElement(aStream, mIndex);
   WriteElement(aStream, mArgType);
-  WriteElement(aStream, uint64_t(mPayload.size()));
-  aStream.write((const char*)&mPayload.front(), mPayload.size());
+  WriteElement(aStream, mPayload.size());
+  mPayload.Write(aStream);
 }
 
 template <class S>
@@ -4338,14 +4327,16 @@ RecordedFilterNodeSetAttribute::RecordedFilterNodeSetAttribute(S& aStream)
   ReadElement(aStream, mIndex);
   ReadElementConstrained(aStream, mArgType, ArgType::ARGTYPE_UINT32,
                          ArgType::ARGTYPE_FLOAT_ARRAY);
-  uint64_t size;
+  size_t size = 0;
   ReadElement(aStream, size);
   if (!aStream.good()) {
     return;
   }
 
-  mPayload.resize(size_t(size));
-  aStream.read((char*)&mPayload.front(), size);
+  if (size && !mPayload.Read(aStream, size)) {
+    aStream.SetIsBad();
+    return;
+  }
 }
 
 inline void RecordedFilterNodeSetAttribute::OutputSimpleEventInfo(
@@ -4404,48 +4395,44 @@ inline bool RecordedLink::PlayEvent(Translator* aTranslator) const {
   if (!dt) {
     return false;
   }
-  dt->Link(mLocalDest.c_str(), mURI.c_str(), mRect);
+  dt->Link(mLocalDest.data(), mURI.data(), mRect);
   return true;
 }
 
 template <class S>
 void RecordedLink::Record(S& aStream) const {
   WriteElement(aStream, mRect);
-  uint32_t len = mLocalDest.length();
-  WriteElement(aStream, len);
-  if (len) {
-    aStream.write(mLocalDest.data(), len);
-  }
-  len = mURI.length();
-  WriteElement(aStream, len);
-  if (len) {
-    aStream.write(mURI.data(), len);
-  }
+  WriteElement(aStream, mLocalDest.size());
+  mLocalDest.Write(aStream);
+  WriteElement(aStream, mURI.size());
+  mURI.Write(aStream);
 }
 
 template <class S>
 RecordedLink::RecordedLink(S& aStream) : RecordedEventDerived(LINK) {
   ReadElement(aStream, mRect);
-  uint32_t len;
-  ReadElement(aStream, len);
-  mLocalDest.resize(size_t(len));
-  if (len && aStream.good()) {
-    aStream.read(&mLocalDest.front(), len);
+  size_t localDestLen = 0;
+  ReadElement(aStream, localDestLen);
+  if (!aStream.good() ||
+      (localDestLen && !mLocalDest.Read(aStream, localDestLen))) {
+    aStream.SetIsBad();
+    return;
   }
-  ReadElement(aStream, len);
-  mURI.resize(size_t(len));
-  if (len && aStream.good()) {
-    aStream.read(&mURI.front(), len);
+  size_t uriLen = 0;
+  ReadElement(aStream, uriLen);
+  if (!aStream.good() || (uriLen && !mURI.Read(aStream, uriLen))) {
+    aStream.SetIsBad();
+    return;
   }
 }
 
 inline void RecordedLink::OutputSimpleEventInfo(
     std::stringstream& aStringStream) const {
   if (mLocalDest.empty()) {
-    aStringStream << "Link [" << mURI << " @ " << mRect << "]";
+    aStringStream << "Link [" << mURI.data() << " @ " << mRect << "]";
   } else {
-    aStringStream << "Link [" << mLocalDest << " / " << mURI << " @ " << mRect
-                  << "]";
+    aStringStream << "Link [" << mLocalDest.data() << " / " << mURI.data()
+                  << " @ " << mRect << "]";
   }
 }
 
@@ -4454,35 +4441,33 @@ inline bool RecordedDestination::PlayEvent(Translator* aTranslator) const {
   if (!dt) {
     return false;
   }
-  dt->Destination(mDestination.c_str(), mPoint);
+  dt->Destination(mDestination.data(), mPoint);
   return true;
 }
 
 template <class S>
 void RecordedDestination::Record(S& aStream) const {
   WriteElement(aStream, mPoint);
-  uint32_t len = mDestination.length();
-  WriteElement(aStream, len);
-  if (len) {
-    aStream.write(mDestination.data(), len);
-  }
+  WriteElement(aStream, mDestination.size());
+  mDestination.Write(aStream);
 }
 
 template <class S>
 RecordedDestination::RecordedDestination(S& aStream)
     : RecordedEventDerived(DESTINATION) {
   ReadElement(aStream, mPoint);
-  uint32_t len;
+  size_t len = 0;
   ReadElement(aStream, len);
-  mDestination.resize(size_t(len));
-  if (len && aStream.good()) {
-    aStream.read(&mDestination.front(), len);
+  if (!aStream.good() || (len && !mDestination.Read(aStream, len))) {
+    aStream.SetIsBad();
+    return;
   }
 }
 
 inline void RecordedDestination::OutputSimpleEventInfo(
     std::stringstream& aStringStream) const {
-  aStringStream << "Destination [" << mDestination << " @ " << mPoint << "]";
+  aStringStream << "Destination [" << mDestination.data() << " @ " << mPoint
+                << "]";
 }
 
 #define FOR_EACH_EVENT(f)                                          \

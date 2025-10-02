@@ -512,6 +512,85 @@ class RecordedStrokeOptionsMixin {
   UniquePtr<Float[]> mDashPatternStorage;
 };
 
+template <typename T>
+class RecordedEventArray {
+ public:
+  T* data() { return mData.get(); }
+  const T* data() const { return mData.get(); }
+  size_t size() const { return mSize; }
+  bool empty() const { return !mSize; }
+
+  void Assign(const T* aData, size_t aSize) {
+    mSize = aSize;
+    mData = MakeUnique<T[]>(aSize);
+    PodCopy(mData.get(), aData, aSize);
+  }
+
+  bool TryAlloc(size_t aSize) {
+    if (mSize > 0) {
+      MOZ_ASSERT_UNREACHABLE();
+      return false;
+    }
+    mData = MakeUniqueFallible<T[]>(aSize);
+    if (!mData) {
+      return false;
+    }
+    mSize = aSize;
+    return true;
+  }
+
+  template <typename S>
+  void Write(S& aStream) const {
+    if (mSize) {
+      aStream.write(reinterpret_cast<const char*>(mData.get()),
+                    sizeof(T) * mSize);
+    }
+  }
+
+  template <typename S>
+  bool Read(S& aStream, size_t aSize) {
+    if (!aStream.good() || !TryAlloc(aSize)) {
+      return false;
+    }
+    aStream.read(reinterpret_cast<char*>(mData.get()), sizeof(T) * mSize);
+    if (!aStream.good()) {
+      Clear();
+      return false;
+    }
+    return true;
+  }
+
+  void Clear() {
+    mSize = 0;
+    mData.reset();
+  }
+
+ protected:
+  size_t mSize = 0;
+  UniquePtr<T[]> mData;
+};
+
+class RecordedEventCString : public RecordedEventArray<char> {
+ public:
+  explicit RecordedEventCString(const char* aStr = nullptr) {
+    if (aStr) {
+      if (size_t len = strlen(aStr)) {
+        Assign(aStr, len + 1);
+      }
+    }
+  }
+
+  template <typename S>
+  bool Read(S& aStream, size_t aSize) {
+    if (!RecordedEventArray<char>::Read(aStream, aSize) ||
+        (size() > 0 && !memchr(data(), '\0', size()))) {
+      Clear();
+      return false;
+    }
+    return true;
+  }
+};
+
 template <class Derived>
 class RecordedEventDerived : public RecordedEvent {
   using RecordedEvent::RecordedEvent;
