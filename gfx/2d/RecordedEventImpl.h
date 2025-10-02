@@ -244,7 +244,8 @@ class RecordedFillRect : public RecordedEventDerived<RecordedFillRect> {
   DrawOptions mOptions;
 };
 
-class RecordedStrokeRect : public RecordedEventDerived<RecordedStrokeRect> {
+class RecordedStrokeRect : public RecordedEventDerived<RecordedStrokeRect>,
+                           public RecordedStrokeOptionsMixin {
  public:
   RecordedStrokeRect(const Rect& aRect, const Pattern& aPattern,
                      const StrokeOptions& aStrokeOptions,
@@ -277,7 +278,8 @@ class RecordedStrokeRect : public RecordedEventDerived<RecordedStrokeRect> {
   DrawOptions mOptions;
 };
 
-class RecordedStrokeLine : public RecordedEventDerived<RecordedStrokeLine> {
+class RecordedStrokeLine : public RecordedEventDerived<RecordedStrokeLine>,
+                           public RecordedStrokeOptionsMixin {
  public:
   RecordedStrokeLine(const Point& aBegin, const Point& aEnd,
                      const Pattern& aPattern,
@@ -313,7 +315,8 @@ class RecordedStrokeLine : public RecordedEventDerived<RecordedStrokeLine> {
   DrawOptions mOptions;
 };
 
-class RecordedStrokeCircle : public RecordedEventDerived<RecordedStrokeCircle> {
+class RecordedStrokeCircle : public RecordedEventDerived<RecordedStrokeCircle>,
+                             public RecordedStrokeOptionsMixin {
  public:
   RecordedStrokeCircle(Circle aCircle, const Pattern& aPattern,
                        const StrokeOptions& aStrokeOptions,
@@ -470,7 +473,8 @@ class RecordedFillGlyphs : public RecordedDrawGlyphs<RecordedFillGlyphs> {
   }
 };
 
-class RecordedStrokeGlyphs : public RecordedDrawGlyphs<RecordedStrokeGlyphs> {
+class RecordedStrokeGlyphs : public RecordedDrawGlyphs<RecordedStrokeGlyphs>,
+                             public RecordedStrokeOptionsMixin {
  public:
   RecordedStrokeGlyphs(ReferencePtr aScaledFont, const Pattern& aPattern,
                        const StrokeOptions& aStrokeOptions,
@@ -534,7 +538,8 @@ class RecordedMask : public RecordedEventDerived<RecordedMask> {
   DrawOptions mOptions;
 };
 
-class RecordedStroke : public RecordedEventDerived<RecordedStroke> {
+class RecordedStroke : public RecordedEventDerived<RecordedStroke>,
+                       public RecordedStrokeOptionsMixin {
  public:
   RecordedStroke(ReferencePtr aPath, const Pattern& aPattern,
                  const StrokeOptions& aStrokeOptions,
@@ -944,7 +949,8 @@ class RecordedDrawSurfaceWithShadow
   CompositionOp mOp;
 };
 
-class RecordedDrawShadow : public RecordedEventDerived<RecordedDrawShadow> {
+class RecordedDrawShadow : public RecordedEventDerived<RecordedDrawShadow>,
+                           public RecordedStrokeOptionsMixin {
  public:
   RecordedDrawShadow(ReferencePtr aPath, const Pattern& aPattern,
                      const ShadowOptions& aShadow, const DrawOptions& aOptions,
@@ -1974,7 +1980,7 @@ inline void RecordedEvent::StorePattern(PatternStorage& aDestination,
 }
 
 template <class S>
-void RecordedEvent::RecordStrokeOptions(
+void RecordedStrokeOptionsMixin::RecordStrokeOptions(
     S& aStream, const StrokeOptions& aStrokeOptions) const {
   JoinStyle joinStyle = aStrokeOptions.mLineJoin;
   CapStyle capStyle = aStrokeOptions.mLineCap;
@@ -1995,34 +2001,42 @@ void RecordedEvent::RecordStrokeOptions(
 }
 
 template <class S>
-void RecordedEvent::ReadStrokeOptions(S& aStream,
-                                      StrokeOptions& aStrokeOptions) {
-  uint64_t dashLength;
+void RecordedStrokeOptionsMixin::ReadStrokeOptions(
+    S& aStream, StrokeOptions& aStrokeOptions) {
+  uint64_t dashLength64 = 0;
   JoinStyle joinStyle;
   CapStyle capStyle;
 
-  ReadElement(aStream, dashLength);
+  ReadElement(aStream, dashLength64);
   ReadElement(aStream, aStrokeOptions.mLineWidth);
   ReadElement(aStream, aStrokeOptions.mMiterLimit);
   ReadElementConstrained(aStream, joinStyle, JoinStyle::BEVEL,
                          JoinStyle::MITER_OR_BEVEL);
   ReadElementConstrained(aStream, capStyle, CapStyle::BUTT, CapStyle::SQUARE);
-  // On 32 bit we truncate the value of dashLength.
-  // See also bug 811850 for history.
-  aStrokeOptions.mDashLength = size_t(dashLength);
   aStrokeOptions.mLineJoin = joinStyle;
   aStrokeOptions.mLineCap = capStyle;
 
-  if (!aStrokeOptions.mDashLength || !aStream.good()) {
+  // On 32 bit we truncate the value of dashLength.
+  // See also bug 811850 for history.
+  size_t dashLength = size_t(dashLength64);
+  if (!dashLength || !aStream.good()) {
     return;
   }
 
   ReadElement(aStream, aStrokeOptions.mDashOffset);
 
-  mDashPatternStorage.resize(aStrokeOptions.mDashLength);
-  aStrokeOptions.mDashPattern = &mDashPatternStorage.front();
-  aStream.read((char*)aStrokeOptions.mDashPattern,
-               sizeof(Float) * aStrokeOptions.mDashLength);
+  mDashPatternStorage = MakeUniqueFallible<Float[]>(dashLength);
+  if (!mDashPatternStorage) {
+    aStream.SetIsBad();
+    return;
+  }
+  aStream.read((char*)mDashPatternStorage.get(), sizeof(Float) * dashLength);
+  if (!aStream.good()) {
+    aStream.SetIsBad();
+    return;
+  }
+  aStrokeOptions.mDashLength = dashLength;
+  aStrokeOptions.mDashPattern = mDashPatternStorage.get();
 }
 
 template <class S>
