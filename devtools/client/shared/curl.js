@@ -474,10 +474,10 @@ const CurlUtils = {
         // by the previous replace.
         .replace(/%(?=[a-zA-Z0-9_])/g, "%^")
 
-      // Lastly we replace new lines with ^ and TWO new lines because the first
-      // new line is there to enact the escape command the second is the character
-      // to escape (in this case new line).
-        .replace(/\r?\n|\r/g, '^\n\n') +
+        // Lastly we replace new lines with ^ and TWO new lines because the first
+        // new line is there to enact the escape command the second is the character
+        // to escape (in this case new line).
+        .replace(/\r?\n|\r/g, "^\n\n") +
       encapsChars
     );
   },
