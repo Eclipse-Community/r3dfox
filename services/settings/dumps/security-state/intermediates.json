@@ -19323,24 +19323,6 @@
       "last_modified": 1666727868260
     },
     {
-      "schema": 1666727339046,
-      "derHash": "/yAcoSyHpvDLpkPpq7PJVMkVWt0xObLi6u0RS/n3XTE=",
-      "subject": "CN=COMODO RSA Domain Validation Secure Server CA 2,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB",
-      "subjectDN": "MIGSMQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE4MDYGA1UEAxMvQ09NT0RPIFJTQSBEb21haW4gVmFsaWRhdGlvbiBTZWN1cmUgU2VydmVyIENBIDI=",
-      "whitelist": false,
-      "attachment": {
-        "hash": "0e5888672dc235ecb49291515f1535331145bafac3937935291ca7a7503b3cfe",
-        "size": 2154,
-        "filename": "EULHwYvGhknyznoBvyvgbidiBH3JX3eFHHlIO3YK8Ek=.pem",
-        "location": "security-state-staging/intermediates/5c8056e2-7f02-452a-a514-695f16f72486.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "EULHwYvGhknyznoBvyvgbidiBH3JX3eFHHlIO3YK8Ek=",
-      "crlite_enrolled": false,
-      "id": "4e1f664c-f28d-4b71-95e8-c89ac5edb71e",
-      "last_modified": 1666727868247
-    },
-    {
       "schema": 1666727332312,
       "derHash": "5/vS2obeMa5/4FHGQ/xF0x5nRUsqXNjkPG1lZyOujOo=",
       "subject": "CN=FujiSSL SHA2 Extended Validation Secure Site CA,OU=Controlled by Sectigo exclusively for Nijimo K.K.,O=Nijimo K.K.,L=Shibuya-ku,ST=Tokyo,C=JP",
@@ -20059,24 +20041,6 @@
       "crlite_enrolled": false,
       "id": "057ea451-c972-4b2e-a64b-010d5c64b5ac",
       "last_modified": 1666727867427
-    },
-    {
-      "schema": 1666727443480,
-      "derHash": "zWwQig5kHyyhIqqm0D+CZ1nK58b4AOq/dtxItnzQg84=",
-      "subject": "CN=COMODO ECC Domain Validation Secure Server CA 2,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB",
-      "subjectDN": "MIGSMQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE4MDYGA1UEAxMvQ09NT0RPIEVDQyBEb21haW4gVmFsaWRhdGlvbiBTZWN1cmUgU2VydmVyIENBIDI=",
-      "whitelist": false,
-      "attachment": {
-        "hash": "fdc9f35f8aa108a206630dc736519f9dfbfe8d377befd1434e04057351cb23b8",
-        "size": 1317,
-        "filename": "x9SZw6TwIqfmvrLZ_kz1o0Ossjmn728BnBKpUFqGNVM=.pem",
-        "location": "security-state-staging/intermediates/bd12ec7e-95c9-43a1-8ba0-bb79c0c971cb.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "x9SZw6TwIqfmvrLZ/kz1o0Ossjmn728BnBKpUFqGNVM=",
-      "crlite_enrolled": false,
-      "id": "0e9934e0-e8f1-4282-9296-be48b24cc9bf",
-      "last_modified": 1666727867412
     },
     {
       "schema": 1666727338705,
@@ -23571,24 +23535,6 @@
       "last_modified": 1663786626496
     },
     {
-      "schema": 1663786383741,
-      "derHash": "kUfDjgO0bIzl3dsCyqKTLx4WdcCgAVKRODNu0Q2ZmDo=",
-      "subject": "CN=COMODO RSA Domain Validation Secure Server CA 3,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB",
-      "subjectDN": "MIGSMQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE4MDYGA1UEAxMvQ09NT0RPIFJTQSBEb21haW4gVmFsaWRhdGlvbiBTZWN1cmUgU2VydmVyIENBIDM=",
-      "whitelist": false,
-      "attachment": {
-        "hash": "76b55e319beb0a0b3a30c9556ebb53fcad7f327f6c14a4903a10bfc2c9cfe8b8",
-        "size": 2158,
-        "filename": "InQsVwxFxCARGa9oRQJcZVg2VPAXkUYSVkDc3jhuVUM=.pem",
-        "location": "security-state-staging/intermediates/ea431013-e9c9-46d0-b171-4bfaa692ba0b.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "InQsVwxFxCARGa9oRQJcZVg2VPAXkUYSVkDc3jhuVUM=",
-      "crlite_enrolled": false,
-      "id": "1e04130f-d460-40fd-9186-6bd19a55934d",
-      "last_modified": 1663786626468
-    },
-    {
       "schema": 1663786375695,
       "derHash": "DjTMNfZt4MBuHZAeJYCWFULsLi+rF1eDfQnP42VHlmw=",
       "subject": "CN=ISSAuth RSA EV CA,O=INTEGRITY Security Services LLC,C=US",
@@ -23787,24 +23733,6 @@
       "last_modified": 1663786626225
     },
     {
-      "schema": 1663786354329,
-      "derHash": "kdAFBjP2JXL2eWFIhnZE7jEUCtciZuD5MFp8b9QED58=",
-      "subject": "CN=COMODO ECC Domain Validation Secure Server CA 3,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB",
-      "subjectDN": "MIGSMQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE4MDYGA1UEAxMvQ09NT0RPIEVDQyBEb21haW4gVmFsaWRhdGlvbiBTZWN1cmUgU2VydmVyIENBIDM=",
-      "whitelist": false,
-      "attachment": {
-        "hash": "a61e122807ad3a61a777dc8f4c749d88f4409f31804006b1eb5a70944c7efc57",
-        "size": 1317,
-        "filename": "yRx6JkdTon5X6I6GmE6-8BL0QUZRKbcRvDM_vt2Beyg=.pem",
-        "location": "security-state-staging/intermediates/85aef9ad-5fb3-41c1-8be0-97335974816d.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "yRx6JkdTon5X6I6GmE6+8BL0QUZRKbcRvDM/vt2Beyg=",
-      "crlite_enrolled": false,
-      "id": "8949c218-e8ec-4e70-a3ef-6a4f7c989fe7",
-      "last_modified": 1663786626211
-    },
-    {
       "schema": 1663786346195,
       "derHash": "ZeeA3/y1OHDqTtnhhLz5v8pGSEi00n5e7fY5GOabO4c=",
       "subject": "CN=Don Dominio / MrDomain RSA OV CA,O=Soluciones Corporativas IP\\, SL,L=Manacor,ST=Illes Balears,C=ES",
@@ -23965,24 +23893,6 @@
       "crlite_enrolled": false,
       "id": "b1de5c18-5b01-4982-81e2-4234f49315af",
       "last_modified": 1663786626080
-    },
-    {
-      "schema": 1663786329097,
-      "derHash": "kMZx4I5oI7hkbC7BgCN2msD8NDijPBAfZoO5XeMYBSQ=",
-      "subject": "CN=COMODO ECC Extended Validation Secure Server CA 2,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB",
-      "subjectDN": "MIGUMQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE6MDgGA1UEAxMxQ09NT0RPIEVDQyBFeHRlbmRlZCBWYWxpZGF0aW9uIFNlY3VyZSBTZXJ2ZXIgQ0EgMg==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "2d0f4b22b6568077c96779daabd7d06484ff21f2d47d3b497b237d1e36faaf6f",
-        "size": 1366,
-        "filename": "8BVB_xN70KohDkSwXqSXWyZjE3Wl2yUIqPlb8CShV54=.pem",
-        "location": "security-state-staging/intermediates/c9f2ed62-6fd3-482a-8672-f51217ff5dd7.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "8BVB/xN70KohDkSwXqSXWyZjE3Wl2yUIqPlb8CShV54=",
-      "crlite_enrolled": false,
-      "id": "c61ce58d-5a36-4cd6-b9fd-ebb5d8bcb7ee",
-      "last_modified": 1663786626059
     },
     {
       "schema": 1663786324767,
@@ -24271,24 +24181,6 @@
       "crlite_enrolled": false,
       "id": "7a4aafe4-e9da-46b6-95f3-754181e2a9e7",
       "last_modified": 1663786625708
-    },
-    {
-      "schema": 1663786282996,
-      "derHash": "qyyT4BzCFYB/BM2/w2KAjYiUCnss7nAjjTVtjZSVbfk=",
-      "subject": "CN=COMODO RSA Extended Validation Secure Server CA 2,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB",
-      "subjectDN": "MIGUMQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE6MDgGA1UEAxMxQ09NT0RPIFJTQSBFeHRlbmRlZCBWYWxpZGF0aW9uIFNlY3VyZSBTZXJ2ZXIgQ0EgMg==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "8e70b65da05caf7f28d7bcfb3ec44605864986d6ec0bf12372711eda665619b8",
-        "size": 2207,
-        "filename": "_KV5PqHI-A-AHDl7BRjU7Yfi8xL4XtBw8FQAx1HWgH4=.pem",
-        "location": "security-state-staging/intermediates/26a042d6-fc2e-44df-a739-754b6e28914a.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "/KV5PqHI+A+AHDl7BRjU7Yfi8xL4XtBw8FQAx1HWgH4=",
-      "crlite_enrolled": false,
-      "id": "02e75ed1-98e8-41e9-9a28-8a2924ba9fb8",
-      "last_modified": 1663786625701
     },
     {
       "schema": 1663786285532,
@@ -30573,5 +30465,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1758855422595
+  "timestamp": 1759384622673
 }

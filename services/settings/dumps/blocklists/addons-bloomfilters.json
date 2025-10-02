@@ -5,6 +5,355 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "anti-phishing@example.com:1.0.0",
+          "anti-phishing@example.com:1.0.1",
+          "anti-phishing@example.com:1.0.2",
+          "{007bf4f0-789e-43f1-bc62-c0524d8c1dbd}:1.0",
+          "astrea-addons-v2@astrea.net.br:25.920.1",
+          "astrea-addons-v2@astrea.net.br:25.10.25",
+          "astrea-addons-v2@astrea.net.br:25.10.24",
+          "astrea-addons-v2@astrea.net.br:25.10.3",
+          "astrea-addons-v2@astrea.net.br:25.10.2",
+          "astrea-addons-v2@astrea.net.br:25.1001.3",
+          "astrea-addons-v2@astrea.net.br:25.1001.2",
+          "astrea-addons-v2@astrea.net.br:25.1001.1",
+          "astrea-addons-v2@astrea.net.br:25.930.1",
+          "astrea-addons-v2@astrea.net.br:25.924.1",
+          "astrea-addons-v2@astrea.net.br:25.922.3",
+          "astrea-addons-v2@astrea.net.br:25.922.4",
+          "astrea-addons-v2@astrea.net.br:25.922.2",
+          "astrea-addons-v2@astrea.net.br:25.922.1",
+          "astrea-addons-v2@astrea.net.br:25.921.3",
+          "astrea-addons-v2@astrea.net.br:25.921.2",
+          "astrea-addons-v2@astrea.net.br:25.921.1",
+          "astrea-addons-v2@astrea.net.br:25.920.2",
+          "astrea-addons-v2@astrea.net.br:26.0.4",
+          "astrea-addons-v2@astrea.net.br:26.0.3",
+          "astrea-addons-v2@astrea.net.br:26.0.2",
+          "astrea-addons-v2@astrea.net.br:26.0.1",
+          "astrea-addons-v2@astrea.net.br:26.0.0",
+          "astrea-addons-v2@astrea.net.br:25.9.26",
+          "astrea-addons-v2@astrea.net.br:25.9.22",
+          "astrea-addons-v2@astrea.net.br:25.9.21"
+        ]
+      },
+      "schema": 1759371352562,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759386904918,
+      "id": "15da0dcf-137a-41e4-a7e6-2102e7f9d0e9",
+      "last_modified": 1759386980445
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "copilot-injector@example.com:1.0",
+          "{5a4bd797-e796-4918-9e02-8e19e1b44d56}:1.0",
+          "{5a4bd797-e796-4918-9e02-8e19e1b44d56}:1.1",
+          "textolay@wyltre.com:1.0",
+          "{806abef4-5b76-4a82-945c-77d9d501f124}:28.0.0",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.1",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.2",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.3",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.4",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.5",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.6",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.7",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.8",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.9",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.1.10",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.2.0",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.2.1",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.2.2",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.2.3",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.2.4",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.3.0",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.3.1",
+          "{bea31321-7d20-4dc1-a53f-5affb7b85a24}:0.3.2"
+        ]
+      },
+      "schema": 1759343794745,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759365305808,
+      "id": "e6efb0ab-29ee-409a-8e3f-e6d72bf03ec4",
+      "last_modified": 1759365390675
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "nudge-security-extension-internal@nudge.security:0.9.931",
+          "nudge-security-extension-internal@nudge.security:0.9.93",
+          "nudge-security-extension-internal@nudge.security:0.9.92",
+          "TaskScriberFirefox@wisc.edu:1.2.5",
+          "TaskScriberFirefox@wisc.edu:1.2.6",
+          "TaskScriberFirefox@wisc.edu:1.3.0",
+          "TaskScriberFirefox@wisc.edu:1.3.2",
+          "{b73e1539-5437-4c01-a48c-017943054227}:1.0.0"
+        ]
+      },
+      "schema": 1759322193878,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759343706165,
+      "id": "9931407c-e6df-4e0c-bfa7-b465b0b979d5",
+      "last_modified": 1759343794497
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{6620a205-8539-400b-a371-bdf4897eede9}:1.0",
+          "{5888365f-4949-4529-8580-a80bbec4fd7a}:1.0",
+          "{56f260e5-12c3-45b1-a0b1-98f904352f9d}:1.1",
+          "{277fef10-46df-4bd9-b126-91988ec51a90}:1.9.0",
+          "totp@mo:1.2.8",
+          "{277fef10-46df-4bd9-b126-91988ec51a90}:1.10.0",
+          "totp@mo:1.2.9",
+          "session-creator@advisor360.com:1.0.3",
+          "@paris-fr-toolbox-extension.dicom.paris:1.0",
+          "butterknife@example.com:1.0"
+        ]
+      },
+      "schema": 1759300593824,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759322105624,
+      "id": "6230f2f9-5c3b-42bd-9251-ae9d38745253",
+      "last_modified": 1759322193675
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "vocab-highlighter@example.com:1.0",
+          "{11b6bd81-c812-4f3d-8d49-1979222de482}:1.0",
+          "quotes-app@example.com:1.0.0"
+        ]
+      },
+      "schema": 1759284938824,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759300506316,
+      "id": "b6938853-d4cb-4299-b01e-3e94e11616c8",
+      "last_modified": 1759300593681
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "theme_switcher@moreka.org:1.1",
+          "Android@bravenhancer.com:17.1.7",
+          "enhancer@goldenfox.com:17.1.7",
+          "ghcpblock@shad.moe:1.0",
+          "r6-liquipedia-delete-falcons@example.com:1.0",
+          "r6-liquipedia-delete-falcons@example.com:1.0.1",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.0.3",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.0.4",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.0.5",
+          "{7d37f4c3-c6cf-4b18-a748-ed4a6e7eb281}:1.46.0",
+          "{7d37f4c3-c6cf-4b18-a748-ed4a6e7eb281}:1.42.2",
+          "{7d37f4c3-c6cf-4b18-a748-ed4a6e7eb281}:1.42.1",
+          "{7d37f4c3-c6cf-4b18-a748-ed4a6e7eb281}:1.42.0",
+          "clifford-rym@example.com:1.0",
+          "clifford-rym@example.com:1.1",
+          "clifford-rym@example.com:1.2",
+          "clifford-rym@example.com:1.2.0",
+          "clifford-rym@example.com:1.2.2",
+          "{a32e3f62-1743-4afd-bb1b-1d8c0c80dceb}:0.0.1",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.0.6",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.0.7",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.0.9",
+          "{26e93e52-973c-4453-9919-69ebc0717214}:1.0",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.1.1",
+          "{38c4a320-2e37-4465-a0d2-690689ae3efa}:1.2.0"
+        ]
+      },
+      "schema": 1759257397513,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759278905124,
+      "id": "b077db42-ddd7-4674-9f54-40b3bafd4c36",
+      "last_modified": 1759278984786
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{0b3afebf-c4d9-4222-b6a4-76697374a90d}:1.0",
+          "kinozalhelper@elektrikis.id.lv:2.22.2",
+          "warmy-email-checker@warmy.io:1.1.25"
+        ]
+      },
+      "schema": 1759235783403,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759257306246,
+      "id": "1caa62e0-330c-46d0-b5e1-a5ecc563b9dc",
+      "last_modified": 1759257397312
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{a9d3c7f1-2e4b-45c8-9f6d-3b7e1c5d8f2a}:112.9.1",
+          "{e7b3f9c2-4d1a-45f8-9a6c-2b1d7f4c3a5e}:88.67.8",
+          "{e7b3f9c2-4d1a-45f8-9a6c-2b1d7f4c3a5e}:88.67.9",
+          "{2e6fa3c1-e4fb-4015-9c18-1c635c19643d}:77.10.2",
+          "{4dcfc926-c602-46f7-9ae2-0a9a4f70ba12}:1",
+          "{7e01863a-cfa7-4493-a6b8-be2992a5a649}:1",
+          "{6072fc1c-8fae-4f8c-911c-c9b068bda7c2}:1",
+          "simplecolorchanger-9876@addon.com:1.0",
+          "{1f3a6c0d-4206-446f-bce9-4bf8965af4a5}:19.1",
+          "{b2c3f2f1-1a4d-4b8a-8df5-b0b6c8b2a1e8}:12.23.1",
+          "{b2c3f2f1-1a4d-4b8a-8df5-b0b6c8b2a1e6}:12.23.1"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "autologinarun@example.com:1.0",
+          "{252024b6-4cac-454f-9a5c-50c44df9eb6e}:1.0",
+          "autologinarun2@example.com:1.0",
+          "{d5cdc3c0-d059-47df-a0bf-6317995d4a5b}:1.0.0",
+          "{d5cdc3c0-d059-47df-a0bf-6317995d4a5b}:1.0.1",
+          "{b90850de-53fb-4b4a-8ecb-c0995b530e29}:1.0.0",
+          "{99c3a10f-4d88-4d26-9332-1b3411b3d536}:0.2.7",
+          "{c6cec315-7273-46a0-830a-cb369ce2b535}:0.0.0",
+          "sin.amru.gao.kerena@gmail.com:1.4",
+          "clicker10_3@gmail.com:1.0",
+          "clicker10_3@gmail.com:1.8.4",
+          "omga-ai-explainer@pouriahosseini.news:0.5.0"
+        ]
+      },
+      "schema": 1759198541643,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759235705853,
+      "id": "32a03f4f-f553-4080-a2d5-e5eb9b28817d",
+      "last_modified": 1759235783183
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{f51d9f61-0836-4a3c-bdac-56c5672c625f}:1.0",
+          "bookmarks@tools.zek:0.0.1",
+          "mycustomaddon@example.com:1.1.0",
+          "{57ac8695-8fc0-4df1-ab07-3ac768ec471d}:1.0.1"
+        ]
+      },
+      "schema": 1759170985551,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759192506102,
+      "id": "c78f671a-7fcf-4606-b631-9f14a48d2687",
+      "last_modified": 1759192590975
+    },
+    {
+      "stash": {
+        "blocked": [
+          "jrab@jbrlog.jrab:0.1.0",
+          "jrab@jbrlog.jrab:0.1.1",
+          "jrab@jbrlog.jrab:0.1.2",
+          "jrab@jbrlog.jrab:0.1.3",
+          "jrab@jbrlog.jrab:0.1.4",
+          "jrab@jbrlog.jrab:0.1.5",
+          "zhimx@loko.dev:0.8.2",
+          "zhimx@loko.dev:0.8.3",
+          "zhimx@loko.dev:0.8.4",
+          "zhimx@loko.dev:0.8.5",
+          "zhimx@loko.dev:0.8.5.4",
+          "zhimx@loko.dev:0.8.6",
+          "zhimx@loko.dev:0.8.6.1",
+          "zhimx@loko.dev:0.8.6.2",
+          "zhimx@loko.dev:0.8.6.5",
+          "zhimx@loko.dev:0.8.6.6",
+          "zhimx@loko.dev:0.8.6.7",
+          "zhimx@loko.dev:0.8.6.8",
+          "zhimx@loko.dev:0.8.6.9",
+          "zhimx@loko.dev:0.8.7",
+          "zhimx@loko.dev:0.8.7.1",
+          "zhimx@loko.dev:0.8.7.2",
+          "zhimx@loko.dev:0.8.7.3",
+          "zhimx@loko.dev:0.8.7.4",
+          "zhimx@loko.dev:0.8.8",
+          "zhimx@loko.dev:0.11.3",
+          "http-log@loko.dev:1.0",
+          "http-log@loko.dev:0.1.0",
+          "http-log@loko.dev:0.1.1",
+          "http-log@loko.dev:0.1.2",
+          "http-log@loko.dev:0.1.3",
+          "http-log@loko.dev:0.1.4",
+          "http-log@loko.dev:0.1.4.1",
+          "http-log@loko.dev:0.1.5"
+        ],
+        "unblocked": [
+          "warmy-email-checker@warmy.io:1.1.25"
+        ],
+        "softblocked": [
+          "MedBandeau@docplus.fr:1.6.1",
+          "MedBandeau@docplus.fr:1.6.3",
+          "{2e0bc24c-ae51-4d0e-b2b0-2d13fe0d4ea6}:2025.9.0",
+          "{f1736bec-9978-4a8b-8704-6b74e1535aea}:1.0",
+          "{f1736bec-9978-4a8b-8704-6b74e1535aea}:1.1",
+          "{f1736bec-9978-4a8b-8704-6b74e1535aea}:1.1.1",
+          "{933b12b1-c0c0-4e59-997e-2a9b89eebace}:160.10.2",
+          "wishio.oficial@gmail.com:1.0.0",
+          "wishio.oficial@gmail.com:1.0.2",
+          "wishio.oficial@gmail.com:1.0.3",
+          "wishio.oficial@gmail.com:1.0.4",
+          "end-date-extension@example.com:1.0"
+        ]
+      },
+      "schema": 1759149390445,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759170905387,
+      "id": "13d34305-2eae-449b-91b1-e3f8217ef3b4",
+      "last_modified": 1759170985272
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{413afd40-f9e4-481f-8aac-7ce83550fa85}:12.23.1",
+          "{b0f38e1d-59d0-4173-b899-6c80f45630b6}:12.8.1",
+          "{9f6cf7b2-87b1-4779-9912-f3f55a7ff431}:12.8.1"
+        ],
+        "unblocked": [
+          "tabkraken@furby.industries:0.2",
+          "tabkraken@furby.industries:0.2.1",
+          "tabkraken@furby.industries:0.2.3",
+          "tabkraken@furby.industries:0.2.4",
+          "tabkraken@furby.industries:0.2.5",
+          "tabkraken@furby.industries:0.3.0"
+        ],
+        "softblocked": [
+          "{b2c3f2f1-1a4d-4b8a-8df5-b0b6c8b2a1e4}:12.23.1",
+          "kot-assistant@example.com:0.10.0",
+          "{15db47b9-31ff-47c5-b055-f311a866478d}:1.0",
+          "{07e0d86e-5dd5-4b58-9c27-b65e39f4a3c7}:0.2",
+          "{07e0d86e-5dd5-4b58-9c27-b65e39f4a3c7}:0.3",
+          "{07e0d86e-5dd5-4b58-9c27-b65e39f4a3c7}:0.4",
+          "{07e0d86e-5dd5-4b58-9c27-b65e39f4a3c7}:0.5",
+          "{07e0d86e-5dd5-4b58-9c27-b65e39f4a3c7}:1.0",
+          "{07e0d86e-5dd5-4b58-9c27-b65e39f4a3c7}:1.1",
+          "{0347fa0c-018d-4ee0-8d68-9334e5a0d291}:1.2.0",
+          "{7bdbaa73-82c4-4c4d-8dde-dde15542a932}:0.0.0.2",
+          "{8c26d5ff-57be-4aa1-be8e-b190294d0d06}:0.0.0.2",
+          "unfluencer@example.com:1.0",
+          "{5dc57577-0e4e-4b97-9d98-6685480f016f}:1.0",
+          "{b592eaf5-ed73-49d8-a8ac-69f6a2e677a5}:1.4.0"
+        ]
+      },
+      "schema": 1759127797136,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759149305940,
+      "id": "c36bb57b-0f08-4da3-bbfd-4fa54a2f9bb3",
+      "last_modified": 1759149390214
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "{5ee4f39c-477d-4c48-9ecc-29a5e782606a}:12.8.1",
           "{e9074d69-f9b1-4888-befc-39fc9eff7695}:12.8.1",
           "{eaf9d22d-8e06-4847-8cbf-c16631d3fc94}:12.8.1",
@@ -7183,5 +7532,5 @@
       "last_modified": 1755023922753
     }
   ],
-  "timestamp": 1759127796927
+  "timestamp": 1759386980445
 }
