@@ -12,6 +12,7 @@
 #include <linux/ipc.h>
 #include <linux/net.h>
 #include <linux/sched.h>
+#include <linux/sockios.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -22,6 +23,8 @@
 #include <sys/utsname.h>
 #include <time.h>
 #include <unistd.h>
+// This has to go after <sys/socket.h> for annoying reasons
+#include <linux/wireless.h>
 
 #include <algorithm>
 #include <utility>
@@ -2065,14 +2068,19 @@ class SocketProcessSandboxPolicy final : public SandboxPolicyCommon {
         auto shifted_type = request & kIoctlTypeMask;
 
         // Rust's stdlib seems to use FIOCLEX instead of equivalent fcntls.
-        return If(request == FIOCLEX, Allow())
+        return Switch(request)
+            .Case(FIOCLEX, Allow())
             // Rust's stdlib also uses FIONBIO instead of equivalent fcntls.
-            .ElseIf(request == FIONBIO, Allow())
+            .Case(FIONBIO, Allow())
             // This is used by PR_Available in nsSocketInputStream::Available.
-            .ElseIf(request == FIONREAD, Allow())
-            // Allow anything that isn't a tty ioctl, for now; bug 1302711
-            // will cover changing this to a default-deny policy.
-            .ElseIf(shifted_type != kTtyIoctls, Allow())
+            .Case(FIONREAD, Allow())
+            // WebRTC needs interface information (bug 1975576)
+            .CASES((SIOCGIFNAME, SIOCGIFFLAGS, SIOCETHTOOL, SIOCGIWRATE),
+                   Allow())
+            .Default(
+                // Allow anything that isn't a tty ioctl, for now; bug 1302711
+                // will cover changing this to a default-deny policy.
+                .ElseIf(shifted_type != kTtyIoctls, Allow())
             .Else(SandboxPolicyCommon::EvaluateSyscall(sysno));
       }
 
