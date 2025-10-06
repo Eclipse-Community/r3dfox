@@ -5,6 +5,440 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "of-quick-replies@example.com:2.0.0",
+          "{0313cb0b-28d8-4548-bd3a-90b015728344}:1.0",
+          "{0313cb0b-28d8-4548-bd3a-90b015728344}:1.1",
+          "{0313cb0b-28d8-4548-bd3a-90b015728344}:1.2",
+          "{2ed44e8a-9988-4e65-a1d1-69511d2609fa}:1.0",
+          "yt-timedtext-srt@example:0.1.0",
+          "{239a28dc-2f14-4da4-ace3-d41641d0c62e}:0.0.2",
+          "{e65db9ad-d948-436f-aaea-0eed3daac7c3}:2.0.14",
+          "{e65db9ad-d948-436f-aaea-0eed3daac7c3}:2.0.15"
+        ]
+      },
+      "schema": 1759716950630,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759732506646,
+      "id": "32a61cd6-2adf-4bb4-817e-70481f91c46b",
+      "last_modified": 1759732597526
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{05052d2c-64e6-4f4b-a10a-253aded2e2e4}:1.0.0",
+          "media-collector@yrrah.com:9.0.2",
+          "media-collector@yrrah.com:9.0.1",
+          "usertoihsoyct@airborne-commando:1.0",
+          "scsclient@sentido-labs.com:0.0.28",
+          "scsclient@sentido-labs.com:0.0.29",
+          "scsclient@sentido-labs.com:0.0.30",
+          "scsclient@sentido-labs.com:0.1.0",
+          "scsclient@sentido-labs.com:0.1.1",
+          "scsclient@sentido-labs.com:0.1.2",
+          "{bb94893c-175b-4ee7-a01a-f0a0724bc01b}:1.0"
+        ]
+      },
+      "schema": 1759689388415,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759710905701,
+      "id": "132b49ce-2302-4a7c-a8cf-25bc7750e017",
+      "last_modified": 1759710988818
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "rawlinks@rawbot.zone:0.1",
+          "rawlinks@rawbot.zone:0.2",
+          "rawlinks@rawbot.zone:0.3",
+          "rawlinks@rawbot.zone:0.4",
+          "rawlinks@rawbot.zone:0.5",
+          "{ee1c1548-6d54-4a6f-8efe-4b6e26919a87}:1.0",
+          "{ee1c1548-6d54-4a6f-8efe-4b6e26919a87}:1.1",
+          "voiranimeHistoriqueBlack@zeno:2.0.0",
+          "voiranimeHistoriqueBlack@zeno:2.1.0",
+          "voiranimeHistoriqueBlack@zeno:2.2.0",
+          "voiranimeHistoriqueBlack@zeno:4.0.0",
+          "voiranimeHistoriqueBlack@zeno:4.1.0",
+          "snap-my-tabs@example.com:0.3.0",
+          "canva-cleaner@simo.com:1.0",
+          "amoled-pure-black-theme@local:1.0.0",
+          "{43af7a6c-bb4e-4dd6-b95b-87ecbe2f1708}:1.0.2",
+          "snap-my-tabs@example.com:0.1.0",
+          "dualtranslate@example.com:1.4.0",
+          "dualtranslate@example.com:1.5.0"
+        ]
+      },
+      "schema": 1759667790126,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759689305852,
+      "id": "5569370b-f938-4d31-bc2a-815ca4e7cea7",
+      "last_modified": 1759689388241
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "f0710c0b-f8bd-4611-883b-7cdf7c09b167@walkme.com:4.0.275.0",
+          "f0710c0b-f8bd-4611-883b-7cdf7c09b167@walkme.com:4.0.275.1",
+          "f0710c0b-f8bd-4611-883b-7cdf7c09b167@walkme.com:4.0.275.2",
+          "f0710c0b-f8bd-4611-883b-7cdf7c09b167@walkme.com:4.0.275.4",
+          "f0710c0b-f8bd-4611-883b-7cdf7c09b167@walkme.com:4.0.275.5",
+          "f0710c0b-f8bd-4611-883b-7cdf7c09b167@walkme.com:4.0.275.6",
+          "f0710c0b-f8bd-4611-883b-7cdf7c09b167@walkme.com:4.0.275.7",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.0",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.1",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.2",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.3",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.4",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.5",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.6",
+          "25964b13-b5e3-434c-ba0a-b812076947ee@walkme.com:4.0.275.7",
+          "78896be05a7911f0af9113fb460463d7@walkme.com:4.0.263.0",
+          "{ff011dc5-9749-40cc-a240-0884945e225d}:1.0",
+          "{39e081a4-f76d-46ed-a6a4-30ebda549940}:1.0",
+          "{173c437d-6350-420c-9b26-bd218659f478}:1.0",
+          "{173c437d-6350-420c-9b26-bd218659f478}:2.0",
+          "{173c437d-6350-420c-9b26-bd218659f478}:3.0"
+        ]
+      },
+      "schema": 1759646189761,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759667706371,
+      "id": "ab922047-cea5-4e50-98c2-cddbb93fc298",
+      "last_modified": 1759667789851
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "pdf-coretax-hanim@local:2.6",
+          "{d61dcb37-bb12-430a-a85b-caff74299a60}:1.0",
+          "{4ebb9fe7-1231-4a62-8d1e-d66f0b4eadc1}:1.0",
+          "{9767a3a5-e43c-4b12-a142-f7be3f22f9ca}:1.1",
+          "{697fea19-9d66-4e8f-8987-b99cad8f6fcc}:1.3.5",
+          "{0de7c60a-11ff-4fa3-854e-4e042fb4e705}:1.3.7",
+          "{f43c7041-55a2-4092-a71a-8a492f222ead}:1.3.7",
+          "{703fda67-9bdb-4bc8-bf79-adc017d9cc4e}:1.3.6",
+          "{c8466ef7-22d2-4119-8055-aa5a7f2e8445}:1.3.7",
+          "{e987e183-8a06-4d2f-a06c-9325e79a7236}:1.3.7",
+          "{761e0a90-f55b-4271-9602-31cd4a5cc9b0}:1.3.7",
+          "{3fc92218-3f28-4360-b2d1-61c1619c6536}:1.3.7",
+          "{95f3eb4f-58f0-4615-bed4-5bc2dcf0851e}:1.3.7",
+          "{55071552-9e8e-4cfa-83ff-2f9d24632b42}:1.3.7",
+          "{1f106ed3-ea3c-4507-896a-3b4c5f6fe035}:1.3.7",
+          "{e7f3c401-6d3d-494f-8a5a-0730106abbcb}:1.3.8"
+        ]
+      },
+      "schema": 1759630550294,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759646105623,
+      "id": "5ed50621-09da-4ecf-8cf5-dd3d712976f0",
+      "last_modified": 1759646189609
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "kl3sk@gmx.net:1.0",
+          "{135c3428-66bc-4b5b-9503-282dc00802e8}:1.0",
+          "{135c3428-66bc-4b5b-9503-282dc00802e8}:1.1",
+          "bear-blocker@example.com:1.0",
+          "bear-blocker@example.com:1.0.1",
+          "{90f95a17-8d05-4a98-8ce6-8283decf2780}:1.88",
+          "stevesajeev123@gmail.com:1.0"
+        ]
+      },
+      "schema": 1759602993827,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759624505768,
+      "id": "7e069dc8-2865-48e6-a158-433d479863df",
+      "last_modified": 1759624590137
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{d13f35d4-460a-4ae7-b0fe-78f4a886bf45}:1.0",
+          "{d13f35d4-460a-4ae7-b0fe-78f4a886bf45}:2.0",
+          "{eb569665-7463-4ff6-aea6-67a52c0c86bf}:0.1.0",
+          "{a0166e4a-64ef-441c-8b0e-7297381aba11}:1.0.3",
+          "{a0166e4a-64ef-441c-8b0e-7297381aba11}:1.0.5",
+          "{05b2f23f-05bd-4688-bc5a-70393b6d6b37}:1.0.1",
+          "{05b2f23f-05bd-4688-bc5a-70393b6d6b37}:1.0.2",
+          "{05b2f23f-05bd-4688-bc5a-70393b6d6b37}:1.0.3",
+          "{05b2f23f-05bd-4688-bc5a-70393b6d6b37}:1.0.4",
+          "{4e6788b2-56ed-4f43-b789-70aa1ed30b92}:1.4.7",
+          "{4e6788b2-56ed-4f43-b789-70aa1ed30b92}:1.4.8",
+          "{0f6af791-55ec-4dbc-b35a-2f18384855df}:1.0"
+        ]
+      },
+      "schema": 1759581392286,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759602905745,
+      "id": "c17cd190-8328-4df0-b232-339d8de42f46",
+      "last_modified": 1759602993620
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "jp-en-translator@example.com:1.0",
+          "imagetranslator@example.com:1.0",
+          "tiklama-efekti@senin-kullanici-adin.com:1.0",
+          "{96f93b98-086f-405e-af88-4a36e7e8becb}:1.0",
+          "{96f93b98-086f-405e-af88-4a36e7e8becb}:1.5",
+          "{91807c12-65e5-43ad-b873-f31f88e795db}:0.0.7.6",
+          "{ac87cfd8-47b1-4401-b32e-f033af5ed96b}:0.7.0"
+        ]
+      },
+      "schema": 1759559795266,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759581305897,
+      "id": "967d5d91-845a-4b9c-9eeb-794daa7cab6e",
+      "last_modified": 1759581392142
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{9c66dec2-cacf-4e52-843c-69032582b51a}:12.8.1",
+          "whois.gweb@gmail.com:1.3.4",
+          "roblox-friends-manager-unique-2025@example.com:1.0.6",
+          "job-capture-demo@example.com:1.2.0",
+          "url-word-blocker@jamesnellis.dev:1.0",
+          "odysseus@example.com:1.0",
+          "odysseus@example.com:1.1",
+          "{1a289379-8ec5-449c-ba99-9df793d0ad23}:2.0",
+          "k0mm.du@gmail.com:3.0.3"
+        ]
+      },
+      "schema": 1759544152137,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759559705950,
+      "id": "405a335e-8cb4-4b78-8c57-a1e5502b79ff",
+      "last_modified": 1759559795111
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "IPFire_LegendFilter@example.com:0.0.14",
+          "astrea-addons-v2@astrea.net.br:25.10.21",
+          "astrea-addons-v2@astrea.net.br:25.10.22",
+          "astrea-addons-v2@astrea.net.br:25.10.23",
+          "astrea-addons-v2@astrea.net.br:25.10.3.1",
+          "astrea-addons-v2@astrea.net.br:25.10.3.2",
+          "{9867712d-5808-4d00-9a4b-d1fa0d3149c7}:1.0",
+          "{9867712d-5808-4d00-9a4b-d1fa0d3149c7}:1.0.1",
+          "{9867712d-5808-4d00-9a4b-d1fa0d3149c7}:2.0",
+          "{9867712d-5808-4d00-9a4b-d1fa0d3149c7}:2.1",
+          "{9867712d-5808-4d00-9a4b-d1fa0d3149c7}:2.2",
+          "astrea-addons-v2@astrea.net.br:25.10.3.3",
+          "astrea-addons-v2@astrea.net.br:25.10.3.4",
+          "iitm-netaccess-autologin@netaccess.com:1.0",
+          "iitm@netaccess.com:5.0.2",
+          "spotme@yourdomain.com:1.1",
+          "{8c224bab-b634-47a7-90ad-e1bf3a340665}:2.0",
+          "{8c224bab-b634-47a7-90ad-e1bf3a340665}:1.0",
+          "pdf-coretax-hanim@local:2.1",
+          "{8c224bab-b634-47a7-90ad-e1bf3a340665}:2.2"
+        ]
+      },
+      "schema": 1759516592878,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759538106413,
+      "id": "c74fdf25-020a-4325-9c35-774009f11e79",
+      "last_modified": 1759538193466
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{aca071f4-2414-40ff-8d38-d1b811039504}:1.0.0",
+          "{aca071f4-2414-40ff-8d38-d1b811039504}:1.0.1",
+          "proxy-auth@dvhtrung.local:1.0.3",
+          "greenleaf@pollutioncenter:1.0",
+          "{ed894b8b-1be4-4c44-8821-30b874e7e4fa}:1.0.0",
+          "{0806ec68-9579-48df-a0fb-29eb8d289cc9}:1.0.0",
+          "turbozver@nure-ext:1.0.2",
+          "{1492abee-593d-4fb2-bc38-b2cbd1b56353}:1.0",
+          "{f50d7ee9-5aa3-4b93-b83b-0ab643d97c62}:1.0",
+          "{f50d7ee9-5aa3-4b93-b83b-0ab643d97c62}:3.0",
+          "{6b88683c-1596-4245-8c4e-2ab83918db3a}:1.3",
+          "{6b88683c-1596-4245-8c4e-2ab83918db3a}:1.4",
+          "{3cea4ea5-a2b1-4fb7-8b67-b7a6f2045cfb}:1.0",
+          "IPFire_LegendFilter@example.com:0.0.10",
+          "IPFire_LegendFilter@example.com:0.0.7",
+          "IPFire_LegendFilter@example.com:0.0.6",
+          "IPFire_LegendFilter@example.com:0.0.5",
+          "IPFire_LegendFilter@example.com:0.0.8",
+          "IPFire_LegendFilter@example.com:0.0.4",
+          "IPFire_LegendFilter@example.com:0.0.3",
+          "IPFire_LegendFilter@example.com:0.0.2",
+          "IPFire_LegendFilter@example.com:0.0.1",
+          "{d4f438f9-cb90-4f04-8982-8871bc0c10e7}:1.0",
+          "{3af8f70b-8eaf-4e79-b650-ac455d916a10}:1.0",
+          "{ce975a4f-4f91-42ef-aa5a-fd0b908e7741}:1.0",
+          "IPFire_LegendFilter@example.com:0.0.13",
+          "IPFire_LegendFilter@example.com:0.0.11",
+          "IPFire_LegendFilter@example.com:0.0.12"
+        ]
+      },
+      "schema": 1759494990977,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759516506139,
+      "id": "6a5fad9e-81d1-4309-ba5c-e0b8886b4dba",
+      "last_modified": 1759516592654
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "seiva-inkopsknapp@example.com:2.3.3",
+          "twitter-helper@example.com:1.0",
+          "overrider@overrider.com:2.0",
+          "overrider@overrider.com:1.8",
+          "{702e81ad-7869-4724-a751-a454e16f98ee}:1.0",
+          "{bdb16cda-b9af-41f9-ae48-490836743e58}:1.0",
+          "{b2852ffd-e208-4a7b-bfab-ae6407ab0ed0}:1.0.0"
+        ]
+      },
+      "schema": 1759473394300,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759494905876,
+      "id": "ebf7bd23-442a-4e99-95e1-b146f8aa9fdf",
+      "last_modified": 1759494990765
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "chinese-novel-translator@example.com:1.0.0",
+          "{d02de1d8-ff5b-43f2-94c9-c806a364d93a}:3.0",
+          "{d02de1d8-ff5b-43f2-94c9-c806a364d93a}:1.0",
+          "{8a3104a2-02c2-464c-b069-82344e5ed4ec}:2.15.0",
+          "{7a3104a2-02c2-464c-b069-82344e5ed4ec}:2.15.0",
+          "youtube-timestamp@nasyue.github.io:1.0.0",
+          "{e59fe69b-59d4-478d-aa04-b2b9cf234d05}:2024.2.0.0",
+          "{e59fe69b-59d4-478d-aa04-b2b9cf234d05}:2024.3.0.0",
+          "alwaysplain@el10.cc:1.3.0",
+          "alwaysplain@el10.cc:1.3.1",
+          "msteamsprejoinhelper@el10.cc:1.1",
+          "{6318a1f1-b856-4b98-bd81-07b5cefcdc43}:2.6.0",
+          "{6318a1f1-b856-4b98-bd81-07b5cefcdc43}:2.6.1",
+          "{6318a1f1-b856-4b98-bd81-07b5cefcdc43}:2.6.2",
+          "{f590f5ab-10a7-4773-b10c-35145a19c99f}:1.0"
+        ]
+      },
+      "schema": 1759457751854,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759473305614,
+      "id": "d225207f-6354-47c5-9520-9651b4ea725b",
+      "last_modified": 1759473394065
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{765c4611-9013-456d-9bdb-ba0fc59a6591}:1.0",
+          "{d2619eee-4474-4100-852d-faa741d9a22b}:1.0",
+          "{d2619eee-4474-4100-852d-faa741d9a22b}:2.4",
+          "{4590d8b8-3569-46e3-a571-cabfbaeab2c1}:3.1.3",
+          "{8b17a0de-b6f1-4c3f-aabf-b15dfe1ff6fa}:1.0",
+          "{454f4dc0-be7c-48e2-bc93-96cb4eedcc9d}:1.0",
+          "{454f4dc0-be7c-48e2-bc93-96cb4eedcc9d}:1.3",
+          "{454f4dc0-be7c-48e2-bc93-96cb4eedcc9d}:1.5",
+          "{87b89b93-2914-45d5-af79-919d2d9b9bd6}:1.0.4",
+          "{cfb08567-fb60-47ac-8e49-b428526e743d}:1.0.4",
+          "newtab@ghostery.com:1.0.4",
+          "{654c2d66-9e27-4d39-91ff-b4a868decad0}:1.0",
+          "{65d166e0-52ba-4847-bd3d-dc05496dda1a}:1.0"
+        ]
+      },
+      "schema": 1759430196468,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759451706104,
+      "id": "8fde1f5e-3abe-4417-ae06-2736c04c6c48",
+      "last_modified": 1759451794470
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{29bc2bd7-ff2c-4dd0-bdd9-aed6dde09aa0}:1.0",
+          "{29bc2bd7-ff2c-4dd0-bdd9-aed6dde09aa0}:1.1",
+          "{29bc2bd7-ff2c-4dd0-bdd9-aed6dde09aa0}:1.3",
+          "removepaywall@salvatorenoschese.it:1.0.0",
+          "addon@mexashare_srv:0.0.0.12",
+          "{84b24c34-8d97-43f6-9533-335a0b683469}:0.4.0",
+          "{96cb1061-0399-40fe-aff1-7d6b905fc836}:1.6.0",
+          "{21dec1b6-8f2c-4a91-b552-3a1b2e97b983}:2.0.0",
+          "{21dec1b6-8f2c-4a91-b552-3a1b2e97b983}:2.0.13",
+          "{21dec1b6-8f2c-4a91-b552-3a1b2e97b983}:2.0.14"
+        ]
+      },
+      "schema": 1759408592006,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759430105560,
+      "id": "7f632396-b0c8-465f-89c1-b7d01013235a",
+      "last_modified": 1759430196327
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "myStocksQ@przemek.com:0.3",
+          "myStocksQ@przemek.com:0.31",
+          "myStocksQ@przemek.com:0.32",
+          "hide-shorts-stories-reels-video@iamibrahimriaz.com:1.1",
+          "{aba2c6e0-b547-4053-8622-6d44ae8b4a66}:0.0.1",
+          "wallet@ambire.com:5.7.1",
+          "wallet@ambire.com:5.10.2",
+          "wallet@ambire.com:5.11.2",
+          "wallet@ambire.com:5.12",
+          "wallet@ambire.com:5.13.0",
+          "wallet@ambire.com:5.14.1",
+          "wallet@ambire.com:5.15.0",
+          "wallet@ambire.com:5.16.0",
+          "wallet@ambire.com:5.16.1",
+          "wallet@ambire.com:5.18.0",
+          "wallet@ambire.com:5.18.1",
+          "wallet@ambire.com:5.20.0",
+          "wallet@ambire.com:5.23.2",
+          "{0e0d1430-663a-49ec-95a4-db17e16cb334}:1.8",
+          "{e936bb98-a8d3-4778-9c7f-005923bc50b9}:1.0",
+          "{11cfeafc-b41e-4161-8afb-a318f76e7706}:1.0.18",
+          "{8d7c45b6-f7cf-4dfb-b4c9-e6bdbebafd8f}:1.0.18"
+        ]
+      },
+      "schema": 1759386980683,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1759408505683,
+      "id": "022ee89e-3c3d-4469-b7d7-0767bbc28cc1",
+      "last_modified": 1759408591847
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "anti-phishing@example.com:1.0.0",
           "anti-phishing@example.com:1.0.1",
           "anti-phishing@example.com:1.0.2",
@@ -7532,5 +7966,5 @@
       "last_modified": 1755023922753
     }
   ],
-  "timestamp": 1759386980445
+  "timestamp": 1759732597526
 }
