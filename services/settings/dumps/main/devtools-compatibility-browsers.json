@@ -1,6 +1,15 @@
 {
   "data": [
     {
+      "name": "Samsung Internet",
+      "schema": 1759889746802,
+      "status": "beta",
+      "version": "29.0",
+      "browserid": "samsunginternet_android",
+      "id": "c30b100b-baa9-418f-b196-11e2cc06c7ad",
+      "last_modified": 1759989898794
+    },
+    {
       "name": "Edge",
       "schema": 1759536305651,
       "status": "planned",
@@ -379,5 +388,5 @@
       "last_modified": 1665656484764
     }
   ],
-  "timestamp": 1759736266415
+  "timestamp": 1759989898794
 }
