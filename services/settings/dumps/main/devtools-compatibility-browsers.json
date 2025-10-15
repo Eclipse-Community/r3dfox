@@ -1,6 +1,15 @@
 {
   "data": [
     {
+      "name": "Opera Android",
+      "schema": 1760141104124,
+      "status": "current",
+      "version": "92",
+      "browserid": "opera_android",
+      "id": "2d5b3e9f-ae53-4833-adac-d2fdb3267611",
+      "last_modified": 1760336031485
+    },
+    {
       "name": "Samsung Internet",
       "schema": 1759889746802,
       "status": "beta",
@@ -325,15 +334,6 @@
       "last_modified": 1757918638101
     },
     {
-      "name": "Opera Android",
-      "schema": 1755648303899,
-      "status": "current",
-      "version": "91",
-      "browserid": "opera_android",
-      "id": "ea20fdb2-749c-40db-86ef-be115a411cae",
-      "last_modified": 1755841815012
-    },
-    {
       "name": "Firefox for Android",
       "schema": 1753574703338,
       "status": "esr",
@@ -388,5 +388,5 @@
       "last_modified": 1665656484764
     }
   ],
-  "timestamp": 1759989898794
+  "timestamp": 1760336031485
 }
