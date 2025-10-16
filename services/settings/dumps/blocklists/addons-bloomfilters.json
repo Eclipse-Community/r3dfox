@@ -5,6 +5,429 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "chatlab@example.com:1.1.0"
+        ]
+      },
+      "schema": 1760580956139,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760596505919,
+      "id": "94fdc37b-6722-4e2e-85db-6a1a03b708fc",
+      "last_modified": 1760596591639
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "loretomawaka@gmail.com:0.1.2",
+          "chatgpt-search@example.com:1.0.0",
+          "{aa1d2fc1-fa10-4b6b-a196-58bdfe64c7b4}:2.5",
+          "{f06c4ce5-9756-4457-a56f-dc22e7fa4a98}:1.0",
+          "{032abae0-7699-4fa3-9e92-441dc927d01f}:1.0"
+        ]
+      },
+      "schema": 1760553396595,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760574905634,
+      "id": "93d1c450-4da3-4b2f-87d2-58cad5ecc000",
+      "last_modified": 1760574994586
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "xpoint-dl-helper@example.local:1.0.0",
+          "xpoint-dl-helper@example.local:1.0.1",
+          "{ae02715c-a400-474c-b419-4b3c8975c926}:1.0",
+          "{c8c52724-1ab8-4407-91c8-993529f2e80c}:1.0",
+          "{c8c52724-1ab8-4407-91c8-993529f2e80c}:2.0",
+          "{c8c52724-1ab8-4407-91c8-993529f2e80c}:3.0",
+          "{c8c52724-1ab8-4407-91c8-993529f2e80c}:4.0",
+          "goindole@gmail.com:0.0.1",
+          "goindole@gmail.com:0.0.2",
+          "goindole@gmail.com:0.0.3",
+          "magnolia@12.34:4.2.2.8",
+          "confirmguard@local:1.3",
+          "confirmguard@local:1.41",
+          "{3b00442b-991a-4776-ba81-b1c093b708a5}:1.0",
+          "{6a2242c3-bed9-4952-90bd-746cce38f82f}:1.0"
+        ]
+      },
+      "schema": 1760531795178,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760553306218,
+      "id": "37962627-7faa-4bca-8650-bcbda3b53131",
+      "last_modified": 1760553396432
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{3be98368-6079-4dfa-9d6a-9dfa934b2398}:12.8.1",
+          "{81ed6076-fe12-4f32-8d78-5b46ebc1d4fc}:12.23.1",
+          "{c791ead4-a5a0-4f1e-93e4-b450ea21aca5}:12.8.1",
+          "{e6a90687-8f5d-444e-9281-3ceb0ec7ca0d}:12.8.1",
+          "{6a32333e-c108-4368-9a36-670403d38609}:12.8.1",
+          "{c99ef8e8-5e01-44b4-b702-9b1f533f6417}:12.8.1",
+          "{906bdcac-7198-4fbf-871e-ca5f9351de84}:12.8.1"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "{3cb0155f-44ef-4c3d-954f-f15c24ddb4fc}:0.6.57",
+          "{ffbe3889-488f-43f2-93d0-fa5bfdec96be}:1.1",
+          "safeprompt2025@example.com:1.0.0",
+          "{b2d63098-a174-46d0-8a5e-be9f1e8be0d5}:4.0.0",
+          "{80d547da-1b7f-4fba-bc9e-55e8305fa37d}:1.0",
+          "{80d547da-1b7f-4fba-bc9e-55e8305fa37d}:2.0",
+          "{bba9701b-3bfc-4383-b301-2911f699ff1d}:1.1",
+          "{b1003e05-e321-458a-9fda-19646353524a}:1.0",
+          "@passwordserverautofilladdon:1.1.99",
+          "@passwordserverautofilladdon:1.30.99",
+          "@passwordserverautofilladdon:1.44.99"
+        ]
+      },
+      "schema": 1760510194849,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760531707030,
+      "id": "ffd29c46-dcf4-4ea4-8a12-c7f8df05e57e",
+      "last_modified": 1760531794830
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{ae0ded4f-7b4d-4f76-b343-b041d7bfe566}:1.8.9.12",
+          "{ae0ded4f-7b4d-4f76-b343-b041d7bfe566}:1.9.22",
+          "{7271da5d-0fcb-4db3-95d6-2663391e85ce}:1.0",
+          "{5c82ec27-6d77-491b-b113-04969fdbf788}:1.0",
+          "{4c31cc19-18ce-4d94-ad96-619c6e148127}:0.1.5",
+          "{ac32664c-5fdf-47f5-81f3-c2d2f7c4775c}:0.1.0",
+          "slash-to-clear2@example.com:1.0.0",
+          "slash-to-clear2@example.com:1.0.1"
+        ]
+      },
+      "schema": 1760494552842,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760510105743,
+      "id": "ffe266a6-fea9-4eb2-985b-4d1d492ec34d",
+      "last_modified": 1760510194620
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "html-capture@example.com:1.0",
+          "{54845092-e5ea-4502-a509-f0593cba32d6}:1.0",
+          "tv-single-tab@example.com:1.0.3",
+          "tv-single-tab@example.com:1.0.1",
+          "tv-single-tab-firefox@example.com:1.0.2",
+          "flow-metrics@assecobs.pl:1.0.3",
+          "ipvfoo@pmarks.net:2.26",
+          "{85d4cdd2-5e26-4caa-bbc1-80749367b4f3}:1.0.7.0",
+          "fragment@example.com:0.1.7",
+          "html-capture@example.com:1.1",
+          "{a68d7abe-0233-4b5c-9dcc-a897364c223b}:1.0",
+          "{ae0ded4f-7b4d-4f76-b343-b041d7bfe566}:1.9.2"
+        ]
+      },
+      "schema": 1760466992310,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760488506034,
+      "id": "ae08dfe4-3f6e-47bc-90ad-e9641ee76374",
+      "last_modified": 1760488591956
+    },
+    {
+      "stash": {
+        "blocked": [
+          "jsurlextractor@gmail.com:1.0",
+          "minigamejump@fastaddon.app:1.0"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "orbit-tab-groups@example.com:1.0.0",
+          "{f0131af2-282e-4eec-9357-5255acfb5521}:1.0.0",
+          "{8ae363c6-7a21-4ba2-bc05-1092e53553af}:1.0",
+          "{e9291b99-a215-4c6a-b324-f11176c9c18f}:25.42",
+          "{d9e92793-42ad-489c-a649-0e7016567ce8}:5.5.1",
+          "{2c06c219-86c6-4a6d-8db5-8e867dac816a}:1.0",
+          "{b0a674f9-f848-9cfd-0feb-583d211308b0}:1.1.5",
+          "{b0a674f9-f848-9cfd-0feb-583d211308b0}:1.1.6",
+          "mjsingh1997@gmail.com:1.1.0",
+          "mjsingh1997@gmail.com:1.1.1",
+          "mjsingh1997@gmail.com:1.1.2",
+          "mjsingh1997@gmail.com:1.1.3"
+        ]
+      },
+      "schema": 1760449159506,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760466905936,
+      "id": "592a26f7-dc0d-4da1-8685-ffc7f51f2a18",
+      "last_modified": 1760466992135
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{6fbf4725-3c00-4679-adb4-f57fba55a8ff}:12.8.1",
+          "{7c839452-0bc7-4dea-a1ca-e081c6d2b29f}:12.23.1",
+          "{b9d0a678-31ea-44ee-86a9-4e0debbc9ce8}:12.8.1",
+          "{10cb8f1d-da37-4876-b221-bfc2f0fa930b}:12.8.1",
+          "{8b306ed7-74ca-4bcc-845a-9c58dd39c76a}:12.8.1",
+          "{c497316c-e695-447a-8bdf-2e16c305de51}:12.8.1",
+          "{eb4bed54-46d4-4b6b-8846-f84df7ffea22}:12.8.1",
+          "{fb004733-3b8b-425e-9b54-19cd5ca12722}:12.8.1",
+          "{093a5983-7fbc-4f22-bc66-0008dfc2935c}:12.23.1",
+          "{8b110bd6-83ca-4cf1-9a09-331138edcf43}:12.8.1",
+          "{65180d1f-a679-4043-8a19-13905dbff01f}:12.8.1",
+          "{c88a0c1e-0505-4776-b2a1-4db43264ba3f}:12.8.1",
+          "{7c2053bc-aa4c-4869-9f5e-f52957814542}:12.8.1",
+          "{457ca7ad-55d9-4387-b235-df4d2dda6b3a}:12.8.1",
+          "{39e4da89-8172-46e1-ba52-a25835201876}:12.8.1",
+          "{05a3b0c1-804b-49d6-bf59-4869d31f6dae}:12.23.1",
+          "{5eab80c0-2247-4607-945d-f03a984a7ed0}:12.8.1",
+          "{fd7799f5-b194-4f48-acd9-7769701f395d}:12.8.1",
+          "{3b3fd997-8467-4ba8-86f8-dd7e809c5861}:12.8.1",
+          "{df9842e2-6fe7-40d9-b6b9-3c5259a32147}:12.8.1",
+          "{7d2df701-4a8d-425c-98a4-adb67989213d}:12.8.1"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "{04a697e5-6e83-4d26-8094-978dc4de93bb}:0.0.1",
+          "{04a697e5-6e83-4d26-8094-978dc4de93bb}:0.1.0",
+          "{16c149a5-8707-407f-bd4f-a65fe244d9b6}:1.9.1",
+          "{16c149a5-8707-407f-bd4f-a65fe244d9b6}:1.9.2",
+          "{16c149a5-8707-407f-bd4f-a65fe244d9b6}:1.9.2.1",
+          "{16c149a5-8707-407f-bd4f-a65fe244d9b6}:1.9.2.2",
+          "{12c8532b-0bdd-428c-b57f-25dd835b9df5}:1.0.4",
+          "fc-toolbar@icyicke.com:1.1.0",
+          "cmeter@bemobile.ua:0",
+          "cmeter@bemobile.ua:0.0.4",
+          "cmeter@bemobile.ua:0.0.5",
+          "cmeter@bemobile.ua:0.6.12",
+          "cmeter@bemobile.ua:0.6.13",
+          "cmeter@bemobile.ua:0.6.14",
+          "cmeter@bemobile.ua:0.6.15",
+          "cmeter@bemobile.ua:0.6.16",
+          "cmeter@bemobile.ua:0.6.17",
+          "cmeter@bemobile.ua:0.6.18",
+          "cmeter@bemobile.ua:0.6.19",
+          "cmeter@bemobile.ua:0.6.20",
+          "cmeter@bemobile.ua:0.6.21",
+          "cmeter@bemobile.ua:0.6.22",
+          "cmeter@bemobile.ua:0.6.23",
+          "cmeter@bemobile.ua:0.6.24",
+          "cmeter@bemobile.ua:0.6.25",
+          "cmeter@bemobile.ua:0.6.26",
+          "cmeter@bemobile.ua:0.6.27",
+          "cmeter@bemobile.ua:0.6.28",
+          "cmeter@bemobile.ua:0.6.34",
+          "cmeter@bemobile.ua:0.6.35",
+          "cmeter@bemobile.ua:0.6.36",
+          "cmeter@bemobile.ua:0.6.37",
+          "cmeter@bemobile.ua:0.6.38",
+          "cmeter@bemobile.ua:0.6.39",
+          "cmeter@bemobile.ua:0.6.40",
+          "cmeter@bemobile.ua:0.6.53",
+          "cmeter@bemobile.ua:0.6.54",
+          "cmeter@bemobile.ua:0.6.55",
+          "cmeter@bemobile.ua:0.6.56",
+          "cmeter@bemobile.ua:0.6.57",
+          "cahkerjo@webextension:1.0",
+          "plutotwo-2025@dolo.local:2025.1.12",
+          "plutotwo-2025@dolo.local:2025.1.29",
+          "plutotwo-2025@dolo.local:2025.1.27",
+          "plutotwo-2025@dolo.local:2025.1.25",
+          "plutotwo-2025@dolo.local:2025.1.24",
+          "plutotwo-2025@dolo.local:2025.1.26",
+          "plutotwo-2025@dolo.local:2025.1.23",
+          "plutotwo-2025@dolo.local:2025.1.22",
+          "plutotwo-2025@dolo.local:2025.1.21",
+          "plutotwo-2025@dolo.local:2025.1.18",
+          "plutotwo-2025@dolo.local:2025.1.17",
+          "plutotwo-2025@dolo.local:2025.1.16",
+          "plutotwo-2025@dolo.local:2025.1.15",
+          "plutotwo-2025@dolo.local:2025.1.11",
+          "plutotwo-2025@dolo.local:2025.1.20",
+          "plutotwo-2025@dolo.local:2025.1.30",
+          "plutotwo-2025@dolo.local:2025.1.28",
+          "plutotwo-2025@dolo.local:2025.1.31",
+          "plutotwo-2025@dolo.local:2025.1.32",
+          "nasaka8360@arqsis.com:1.1.0",
+          "{7768e75e-b170-4f59-9a7b-e33f1e6c5473}:1.0",
+          "{73febf3d-9d49-4028-99ad-67c707cb859b}:2.0.0"
+        ]
+      },
+      "schema": 1760423798168,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760445306454,
+      "id": "4c422091-6d07-400c-a161-3cccdbc74487",
+      "last_modified": 1760445399427
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{9b50891a-149c-4cd0-b450-167fdd18437d}:1.0",
+          "forecast-extension@terraminer.com:1.6.14",
+          "{dbb59a86-6fb5-4463-92e4-6dd70b885fc3}:3.0"
+        ]
+      },
+      "schema": 1760408153207,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760423706310,
+      "id": "49427ddf-4f49-409e-9672-c59d6be9745c",
+      "last_modified": 1760423797926
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{863dfbc1-34d6-43d5-9004-8e0f67abfb6c}:1.24.4paris7299",
+          "{e8118a92-708a-4d80-9325-357954a28e33}:1.0"
+        ]
+      },
+      "schema": 1760380592175,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760402106085,
+      "id": "f28ded93-e10c-4aac-b56e-1097e0bd9604",
+      "last_modified": 1760402197053
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "PwnFoxes@0xief.id:1.0.0",
+          "flow-metrics@assecobs.pl:1.0.1",
+          "vine-monitor@danielemancini.local:1.0",
+          "jirvana@assecobs.pl:1.0.0",
+          "@Nextzoneautofill-Xcruze:14.14.5",
+          "{6cdae692-17c3-4069-a441-19569fae9494}:1.2.1",
+          "{8deb7727-8f85-43b7-88b4-04dd3e4d1566}:1.0",
+          "{8deb7727-8f85-43b7-88b4-04dd3e4d1566}:2.0"
+        ]
+      },
+      "schema": 1760358991734,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760380505731,
+      "id": "0ac25152-9b85-4611-a5c4-e09f038813c0",
+      "last_modified": 1760380591921
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{b7db1d98-9eb0-4c01-a1e5-e0be085cb8c5}:12.8.1",
+          "{0515211e-d45b-4e07-9bf9-b928d068c90e}:12.23.1",
+          "{4e6447c5-a8ae-4aae-9e57-e3830e4b06bf}:12.8.1",
+          "{a29951a3-a4a4-447f-88e7-525507f72c60}:12.8.1",
+          "{1ef7f83f-63ce-445b-b7ac-e9c8c9351bd9}:12.8.1",
+          "{c20db0de-8536-4248-8237-6c64de35361e}:12.8.1",
+          "{483f877a-7976-4664-9655-4ed6d649da9e}:12.8.1",
+          "{0dcca95e-5266-42e4-af3a-37fc80eb311b}:12.8.1",
+          "{7e09d82a-f7dd-4849-a2a9-673cb602a112}:12.23.1",
+          "{08952066-f065-48f7-8492-926493e39c4b}:12.8.1",
+          "{5c3f4b9e-2a2b-41a8-acb0-5829ebf37faa}:12.8.1",
+          "{42677434-aab8-46dd-a2a0-d7e0c8779d8d}:12.8.1",
+          "{70f9b963-5ac1-4075-b55c-35cbea958da1}:12.8.1",
+          "{98f7538e-7c4c-41e9-875e-7ae8edd4e626}:12.8.1"
+        ],
+        "unblocked": [
+          "sparx-wallet@developer.mozilla.org:1.5.3",
+          "sparx-wallet@developer.mozilla.org:1.6.4",
+          "sparx-wallet@developer.mozilla.org:1.6.6",
+          "webextension-flask@metamask.io:10.14.7flask0",
+          "webextension-flask@metamask.io:10.15.0flask0",
+          "webextension-flask@metamask.io:10.15.1flask0",
+          "webextension-flask@metamask.io:10.16.1flask0",
+          "webextension-flask@metamask.io:10.16.2flask0",
+          "webextension-flask@metamask.io:10.17.0flask0",
+          "webextension-flask@metamask.io:10.18.0flask0",
+          "webextension-flask@metamask.io:10.18.4flask0",
+          "webextension-flask@metamask.io:10.20.0flask0",
+          "webextension-flask@metamask.io:10.21.1flask0",
+          "webextension-flask@metamask.io:10.22.0flask0",
+          "webextension-flask@metamask.io:10.22.2flask0",
+          "webextension-flask@metamask.io:10.23.2flask0",
+          "webextension-flask@metamask.io:10.25.0flask0",
+          "webextension-flask@metamask.io:10.26.1flask0",
+          "webextension-flask@metamask.io:10.28.2flask0",
+          "webextension-flask@metamask.io:10.29.0flask0",
+          "webextension-flask@metamask.io:10.31.0flask0",
+          "webextension-flask@metamask.io:10.32.0flask0",
+          "webextension-flask@metamask.io:10.33.0flask0",
+          "webextension-flask@metamask.io:10.34.4flask0",
+          "webextension-flask@metamask.io:11.0.0flask0",
+          "webextension-flask@metamask.io:11.1.2flask0",
+          "webextension-flask@metamask.io:11.2.0flask0",
+          "webextension-flask@metamask.io:11.3.0flask0",
+          "webextension-flask@metamask.io:11.4.1flask0",
+          "webextension-flask@metamask.io:11.5.0flask0",
+          "webextension-flask@metamask.io:11.6.2flask0",
+          "webextension-flask@metamask.io:11.7.0flask0",
+          "webextension-flask@metamask.io:11.7.5flask0",
+          "webextension-flask@metamask.io:11.9.0flask0",
+          "webextension-flask@metamask.io:11.10.1flask0",
+          "webextension-flask@metamask.io:11.12.0flask0",
+          "webextension-flask@metamask.io:11.13.1flask0",
+          "webextension-flask@metamask.io:11.14.0flask0",
+          "webextension-flask@metamask.io:11.16.0flask0",
+          "webextension-flask@metamask.io:11.16.9flask0",
+          "webextension-flask@metamask.io:11.16.10flask0",
+          "webextension-flask@metamask.io:12.0.0flask0",
+          "webextension-flask@metamask.io:12.1.1flask0",
+          "webextension-flask@metamask.io:12.3.1.150",
+          "webextension-flask@metamask.io:12.5.0.150",
+          "webextension-flask@metamask.io:12.6.0.150",
+          "webextension-flask@metamask.io:12.9.0.150",
+          "webextension-flask@metamask.io:12.10.1.150",
+          "webextension-flask@metamask.io:12.11.0.150",
+          "webextension-flask@metamask.io:12.12.0.150",
+          "webextension-flask@metamask.io:12.13.0.150",
+          "webextension-flask@metamask.io:12.14.2.150",
+          "webextension-flask@metamask.io:12.18.0.150",
+          "webextension-flask@metamask.io:12.18.1.150",
+          "webextension-flask@metamask.io:12.18.3.150",
+          "webextension-flask@metamask.io:12.20.0.150",
+          "webextension-flask@metamask.io:12.22.1.150",
+          "webextension-flask@metamask.io:12.22.2.150",
+          "webextension-flask@metamask.io:13.0.1.150",
+          "webextension-flask@metamask.io:13.1.0.150"
+        ],
+        "softblocked": [
+          "{e2760642-4078-401f-90fa-5e33afe97127}:1.1",
+          "{4b0df869-4dc2-4329-8609-0c8b6c3e3b1b}:1.0",
+          "arbgmm@gmail.com:31.5",
+          "arbgmm@gmail.com:31.5.1",
+          "arbgmm@gmail.com:31.5.2",
+          "multi-isbn-checker@seagull.studio:0.0.1",
+          "decidim-test-assistant@example.com:0.1.0",
+          "decidim-test-assistant@example.com:0.2.0",
+          "decidim-test-assistant@example.com:0.2.1",
+          "email-security@rushabhkirad.com:1.0.0",
+          "isbn-checker@seagull.studio:1.0.1",
+          "isbn-checker@seagull.studio:1.0.2",
+          "isbn-checker@seagull.studio:1.1.3",
+          "{47fff07c-cee7-4d51-b399-fd5432e08856}:1.5",
+          "{47fff07c-cee7-4d51-b399-fd5432e08856}:1.4",
+          "{47fff07c-cee7-4d51-b399-fd5432e08856}:1.2",
+          "{47fff07c-cee7-4d51-b399-fd5432e08856}:1.1",
+          "{cdbdd614-109a-48ef-891f-d1a18cdf9921}:1.0"
+        ]
+      },
+      "schema": 1760337392620,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1760358905730,
+      "id": "721a7e2b-a6a0-4ca6-bcb1-c259fdec72ef",
+      "last_modified": 1760358991280
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "css-selector-helper@example.com:2.0.2",
           "{6a38461c-8a46-442f-ba3f-de76a3293411}:12.1",
           "cors-proxy@dot-dashboard.local:1.0",
@@ -8891,5 +9314,5 @@
       "last_modified": 1755023922753
     }
   ],
-  "timestamp": 1760337392300
+  "timestamp": 1760596591639
 }

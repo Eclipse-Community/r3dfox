@@ -1,6 +1,15 @@
 {
   "data": [
     {
+      "name": "Bun",
+      "schema": 1760486703305,
+      "status": "current",
+      "version": "1.3.0",
+      "browserid": "bun",
+      "id": "21692e09-c542-4096-a4de-5b0fdb3e58e9",
+      "last_modified": 1760513905109
+    },
+    {
       "name": "Opera Android",
       "schema": 1760141104124,
       "status": "current",
@@ -89,15 +98,6 @@
       "browserid": "chrome_android",
       "id": "196eb3bc-6b04-4a4e-875f-b46ff5d5e6da",
       "last_modified": 1759390855828
-    },
-    {
-      "name": "Bun",
-      "schema": 1759363502767,
-      "status": "current",
-      "version": "1.2.23",
-      "browserid": "bun",
-      "id": "153169fe-490e-482d-a3d9-ce19f85c75bb",
-      "last_modified": 1759390855824
     },
     {
       "name": "WebView Android",
@@ -388,5 +388,5 @@
       "last_modified": 1665656484764
     }
   ],
-  "timestamp": 1760336031485
+  "timestamp": 1760513905109
 }
