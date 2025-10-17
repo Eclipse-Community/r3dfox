@@ -86,6 +86,7 @@ using namespace mozilla::dom;
 
 StaticRefPtr<nsIIOService> nsScriptSecurityManager::sIOService;
 std::atomic<bool> nsScriptSecurityManager::sStrictFileOriginPolicy = true;
+std::atomic<bool> nsScriptSecurityManager::sSameOriginPolicy = true;
 
 namespace {
 
@@ -602,7 +603,7 @@ nsScriptSecurityManager::CheckSameOriginURI(nsIURI* aSourceURI,
                                             bool aFromPrivateWindow) {
   // Please note that aFromPrivateWindow is only 100% accurate if
   // reportError is true.
-  if (!SecurityCompareURIs(aSourceURI, aTargetURI)) {
+  if (sSameOriginPolicy && !SecurityCompareURIs(aSourceURI, aTargetURI)) {
     if (reportError) {
       ReportError("CheckSameOriginError", aSourceURI, aTargetURI,
                   aFromPrivateWindow);
@@ -1544,9 +1545,12 @@ nsScriptSecurityManager::CanGetService(JSContext* cx, const nsCID& aCID) {
 const char sJSEnabledPrefName[] = "javascript.enabled";
 const char sFileOriginPolicyPrefName[] =
     "security.fileuri.strict_origin_policy";
+const char sSameOriginPolicyPrefName[] =
+    "security.same_origin_policy.enabled";
 
 static const char* kObservedPrefs[] = {sJSEnabledPrefName,
                                        sFileOriginPolicyPrefName,
+                                       sSameOriginPolicyPrefName,
                                        "capability.policy.", nullptr};
 
 /////////////////////////////////////////////
@@ -1684,6 +1688,8 @@ inline void nsScriptSecurityManager::ScriptSecurityPrefChanged(
       Preferences::GetBool(sJSEnabledPrefName, mIsJavaScriptEnabled);
   sStrictFileOriginPolicy =
       Preferences::GetBool(sFileOriginPolicyPrefName, false);
+  sSameOriginPolicy =
+      Preferences::GetBool(sSameOriginPolicyPrefName, true);
   mFileURIAllowlist.reset();
 }
 
