@@ -222,6 +222,13 @@
 
       XPCOMUtils.defineLazyPreferenceGetter(
         this,
+        "_dropToPinEnabled",
+        "browser.tabs.dropToPin.enabled",
+        true
+      );
+
+      XPCOMUtils.defineLazyPreferenceGetter(
+        this,
         "_sidebarVisibility",
         "sidebar.visibility",
         "always-show"
@@ -2806,7 +2813,7 @@
         translate = Math.min(Math.max(translate, startBound), endBound);
       }
 
-      if (!gBrowser.pinnedTabCount && !this.dragToPinPromoCard.shouldRender) {
+      if (!gBrowser.pinnedTabCount && this._dropToPinEnabled && !this.dragToPinPromoCard.shouldRender) {
         let pinnedDropIndicatorMargin = parseFloat(
           window.getComputedStyle(this.pinnedDropIndicator).marginInline
         );
