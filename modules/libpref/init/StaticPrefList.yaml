@@ -1073,7 +1073,7 @@
 # Does the user want smart-sizing?
 - name: browser.cache.disk.smart_size.enabled
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # Disk cache capacity in kilobytes. It's used only when
@@ -1631,7 +1631,7 @@
 # See bug 1772569
 - name: browser.download.open_pdf_attachments_inline
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # See bug 1811830
@@ -5470,7 +5470,7 @@
 # Is support for the Web Audio API enabled?
 - name: dom.webaudio.enabled
   type: bool
-  value: true
+  value: false
   mirror: always
 
 - name: dom.webkitBlink.dirPicker.enabled
