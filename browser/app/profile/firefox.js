@@ -978,6 +978,7 @@ pref("browser.link.alternative_click.block_javascript", true);
 pref("browser.tabs.closeTabByDblclick", false);
 pref("browser.tabs.closeWindowWithLastTab", true);
 pref("browser.tabs.allowTabDetach", true);
+pref("browser.tabs.dropToPin.enabled", false);
 // Open related links to a tab, e.g., link in current tab, at next to the
 // current tab if |insertRelatedAfterCurrent| is true.  Otherwise, always
 // append new tab to the end.
