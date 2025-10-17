@@ -702,6 +702,9 @@ nsresult nsCORSListenerProxy::CheckRequestApproved(nsIRequest* aRequest) {
   topChannel.swap(mHttpChannel);
 
   if (StaticPrefs::content_cors_disable()) {
+    if (StaticPrefs::content_cors_bypass_preflight_request()) {
+      return NS_OK;
+    }
     LogBlockedRequest(aRequest, "CORSDisabled", nullptr,
                       nsILoadInfo::BLOCKING_REASON_CORSDISABLED, topChannel);
     return NS_ERROR_DOM_BAD_URI;
@@ -1706,6 +1709,10 @@ nsresult nsCORSListenerProxy::StartCORSPreflight(
   *aPreflightChannel = nullptr;
 
   if (StaticPrefs::content_cors_disable()) {
+    if (StaticPrefs::content_cors_bypass_preflight_request()) {
+      aCallback->OnPreflightSucceeded(); 
+      return NS_OK;
+    }
     nsCOMPtr<nsIHttpChannel> http = do_QueryInterface(aRequestChannel);
     LogBlockedRequest(aRequestChannel, "CORSDisabled", nullptr,
                       nsILoadInfo::BLOCKING_REASON_CORSDISABLED, http);
