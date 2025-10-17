@@ -1947,6 +1947,11 @@
   value: false
   mirror: always
 
+- name: content.cors.bypass_preflight_request
+  type: bool
+  value: false
+  mirror: always
+
 # Back off timer notification after count.
 # -1 means never.
 - name: content.notify.backoffcount
@@ -14770,6 +14775,12 @@
 # Upgrade videos when the upgrading is enabled.
 - name: security.mixed_content.upgrade_display_content.video
   type: bool
+  value: true
+  mirror: always
+
+# Whether same-origin policy for all URIs is in effect. "False" is traditional.
+- name: security.same_origin_policy.enabled
+  type: RelaxedAtomicBool
   value: true
   mirror: always
 
