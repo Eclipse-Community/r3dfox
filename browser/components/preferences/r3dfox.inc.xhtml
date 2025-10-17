@@ -251,11 +251,32 @@
   <description class="indent tip-caption" data-l10n-id="r3dfox-csp-desc"/>
 
   <hbox align="center">
+    <checkbox id="r3dfoxcorsbase"
+              data-l10n-id="r3dfox-cors-base"
+              preference="content.cors.disable"/>
+  </hbox>
+  <description class="indent tip-caption" data-l10n-id="r3dfox-cors-base-desc"/>
+
+  <hbox align="center">
+    <checkbox id="r3dfoxcorspreflight"
+              data-l10n-id="r3dfox-cors-preflight"
+              preference="content.cors.bypass_preflight_request"/>
+  </hbox>
+  <description class="indent tip-caption" data-l10n-id="r3dfox-cors-preflight-desc"/>
+
+  <hbox align="center">
     <checkbox id="r3dfoxhsts"
               data-l10n-id="r3dfox-hsts"
               preference="network.stricttransportsecurity.enabled"/>
   </hbox>
   <description class="indent tip-caption" data-l10n-id="r3dfox-hsts-desc"/>
+
+  <hbox align="center">
+    <checkbox id="r3dfoxsameorigin"
+              data-l10n-id="r3dfox-same-origin"
+              preference="security.same_origin_policy.enabled"/>
+  </hbox>
+  <description class="indent tip-caption" data-l10n-id="r3dfox-same-origin-desc"/>
 
   <hbox align="center">
     <checkbox id="r3dfoxportblocking"
