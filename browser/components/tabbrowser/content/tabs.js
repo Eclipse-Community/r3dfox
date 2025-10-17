@@ -199,6 +199,13 @@
 
       XPCOMUtils.defineLazyPreferenceGetter(
         this,
+        "_dropToPinEnabled",
+        "browser.tabs.dropToPin.enabled",
+        true
+      );
+
+      XPCOMUtils.defineLazyPreferenceGetter(
+        this,
         "_sidebarVisibility",
         "sidebar.visibility",
         "always-show"
