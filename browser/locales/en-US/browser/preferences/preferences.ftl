@@ -240,6 +240,21 @@ r3dfox-hsts =
 
 r3dfox-hsts-desc = HSTS is a security feature, websites with missing, expired, or wrong certificates may require disabling HSTS to access. Not recommended unless you know what you are doing.
 
+r3dfox-cors-base =
+    .label = Disable Cross-Origin Resource Sharing (CORS)
+
+r3dfox-cors-base-desc = CORS is a security feature, improperly designed websites may require disabling CORS. Not recommended unless you know what you are doing.
+
+r3dfox-cors-preflight =
+    .label = Disable Cross-Origin Resource Sharing Preflight requests (CORS)
+
+r3dfox-cors-preflight-desc = Bypasses CORS Preflight requests, improperly designed websites may require this as well as disabling CORS. Not recommended unless you know what you are doing.
+
+r3dfox-same-origin =
+    .label = Disable Same-Origin Policy (SOP)
+
+r3dfox-same-origin-desc = SOP is a security feature, improperly designed websites may require disabling SOP. Not recommended unless you know what you are doing.
+
 r3dfox-e10s =
     .label = Disable content multiprocess (e10s) (BETA)
 
