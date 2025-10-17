@@ -332,6 +332,9 @@
   #main-menubar:not([lwtheme]) {
     color: white !important;
   }
+  .titlebar-button {
+    color: white !important;
+  }
   @media (-moz-windows-glass) {
     #toolbar-menubar {
       text-shadow: 0 0 .5em black, 0 0 .5em black, 0 1px 0 rgba(0,0,0,.4) !important;
@@ -348,6 +351,9 @@
     --lwt-text-color: black !important;
   }
   #main-menubar:not([lwtheme]) {
+    color: black !important;
+  }
+  .titlebar-button {
     color: black !important;
   }
   @media (-moz-windows-glass) {
