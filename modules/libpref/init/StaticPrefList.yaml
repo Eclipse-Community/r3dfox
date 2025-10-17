@@ -2207,6 +2207,11 @@
   value: false
   mirror: always
 
+- name: content.cors.bypass_preflight_request
+  type: bool
+  value: false
+  mirror: always
+
 # If true, we'll use the triggering principal rather than the loading principal
 # when doing CORS checks.  Doing so is generally not correct, but we shipped
 # with this behavior for a long time, so we're leaving it preffable in case
@@ -16807,6 +16812,12 @@
 
 # Pref for mixed display content upgrading (images, audio, video).
 - name: security.mixed_content.upgrade_display_content
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
+# Whether same-origin policy for all URIs is in effect. "False" is traditional.
+- name: security.same_origin_policy.enabled
   type: RelaxedAtomicBool
   value: true
   mirror: always
