@@ -1899,7 +1899,7 @@
         translate = Math.min(Math.max(translate, startBound), endBound);
       }
 
-      if (!gBrowser.pinnedTabCount && !this._dragToPinPromoCard.shouldRender) {
+      if (!gBrowser.pinnedTabCount && this._dropToPinEnabled && !this._dragToPinPromoCard.shouldRender) {
         let pinnedDropIndicatorMargin = parseFloat(
           window.getComputedStyle(this._pinnedDropIndicator).marginInline
         );
