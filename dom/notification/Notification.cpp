@@ -496,6 +496,9 @@ NotificationPermissionRequest::Run() {
           dom_webnotifications_privateBrowsing_enableDespiteLimitations()) {
     mPermission = NotificationPermission::Denied;
     blocked = true;
+  } else if (!StaticPrefs::dom_webnotifications_allowcrossoriginiframe() &&
+             !mPrincipal->Subsumes(mTopLevelPrincipal)) {
+    mPermission = NotificationPermission::Denied;
   } else {
     // File are automatically granted permission.
 
