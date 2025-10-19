@@ -39,6 +39,8 @@ export var NativeManifests = {
         let dirs = [
           Services.dirsvc.get("XREUserNativeManifests", Ci.nsIFile).path,
           Services.dirsvc.get("XRESysNativeManifests", Ci.nsIFile).path,
+          Services.dirsvc.get("XREMozUserNativeManifests", Ci.nsIFile).path,
+          Services.dirsvc.get("XREMozSysNativeManifests", Ci.nsIFile).path,
         ];
         this._lookup = (type, name, context) =>
           this._tryPaths(type, name, dirs, context);
