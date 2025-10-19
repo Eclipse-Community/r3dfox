@@ -286,8 +286,6 @@ function init_all() {
     this.removeAttribute("keyboard-navigation");
   });
 
-  maybeDisplayPoliciesNotice();
-
   window.addEventListener("hashchange", onHashChange);
 
   document.getElementById("focusSearch1").addEventListener("command", () => {
