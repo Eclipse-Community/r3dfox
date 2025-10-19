@@ -1300,6 +1300,15 @@ var FullPageTranslationsPanel = new (class {
     );
   }
 
+  openDisableTranslations() {
+    const window =
+      gBrowser.selectedBrowser.browsingContext.top.embedderElement.ownerGlobal;
+    window.openTrustedLinkIn(
+      "about:preferences#general-translations-enable",
+      "tab"
+    );
+  }
+
   /**
    * Redirect the user to about:preferences
    */
