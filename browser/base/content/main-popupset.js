@@ -352,6 +352,9 @@ document.addEventListener(
         case "translations-panel-settings-never-translate-site":
           FullPageTranslationsPanel.onNeverTranslateSite();
           break;
+        case "translations-panel-disable-translations":
+          FullPageTranslationsPanel.openDisableTranslations();
+          break;
         case "translations-panel-manage-languages":
           FullPageTranslationsPanel.openManageLanguages();
           break;

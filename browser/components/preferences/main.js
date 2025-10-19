@@ -170,6 +170,10 @@ Preferences.addAll([
   { id: "dom.ipc.processCount.web", type: "int" },
   { id: "layers.acceleration.disabled", type: "bool", inverted: true },
 
+  /* Fullpage Translations */
+  { id: "browser.translations.enable", type: "bool" },
+  { id: "browser.translations.automaticallyPopup", type: "bool" },
+
   // Files and Applications
   { id: "pref.downloads.disable_button.edit_actions", type: "bool" },
 
@@ -2128,6 +2132,10 @@ var gMainPane = {
       () => this.writeCheckSpelling()
     );
     Preferences.addSyncFromPrefListener(
+      document.getElementById("translations-manage-enable"),
+      () => this.readEnableTranslations()
+    );
+    Preferences.addSyncFromPrefListener(
       document.getElementById("linkTargeting"),
       () => this.readLinkTarget()
     );
@@ -2360,23 +2368,32 @@ var gMainPane = {
       Preferences.get("browser.display.document_color_use").value != 2;
   },
 
+  readEnableTranslations(skipInit = false) {
+    const translationsEnabled = Preferences.get("browser.translations.enable").value;
+    document.getElementById("innerTranslationsGroup").hidden = !translationsEnabled;
+    if (!this._translationsInitialized && !skipInit)
+      this.initTranslations();
+  },
+
+  _translationsInitialized: false,
+
   /**
    * Initialize the translations view.
    */
   async initTranslations() {
+    this.readEnableTranslations(true);
+
     if (!Services.prefs.getBoolPref("browser.translations.enable")) {
       return;
     }
+
+    this._translationsInitialized = true;
 
     /**
      * Which phase a language download is in.
      *
      * @typedef {"downloaded" | "loading" | "uninstalled"} DownloadPhase
      */
-
-    // Immediately show the group so that the async load of the component does
-    // not cause the layout to jump. The group will be empty initially.
-    document.getElementById("translationsGroup").hidden = false;
 
     class TranslationsState {
       /**
@@ -4614,6 +4631,22 @@ var gMainPane = {
     // they don't visit, and users won't visit the web app's URL template,
     // they'll only visit URLs derived from that template (i.e. with %s
     // in the template replaced by the URL of the content being handled).
+
+    let inPrompt = false;
+    Preferences.get("browser.translations.enable").on("change", () => {
+      if(!Preferences.get("browser.translations.enable").value)
+      if(!inPrompt) {
+        inPrompt = true;
+        confirmRestartPrompt(false, 1, true, false).then(buttonIndex => {
+          inPrompt = false;
+          if (buttonIndex == CONFIRM_RESTART_PROMPT_RESTART_NOW) {
+            Services.startup.quit(
+              Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart
+            );
+          }
+        });
+      }
+    });
 
     if (
       /^https?$/.test(uri.scheme) &&

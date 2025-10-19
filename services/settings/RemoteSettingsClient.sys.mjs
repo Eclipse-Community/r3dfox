@@ -212,6 +212,11 @@ class AttachmentDownloader extends Downloader {
    * @see Downloader.download
    */
   async download(record, options) {
+    if (!lazy.Utils.isCollectionAllowed(this.bucketName, this.collectionName)) {
+      throw Error(
+        `Download attempt to RS collection "${this.identifier}" was blocked.`
+      );
+    }
     await lazy.UptakeTelemetry.report(
       TELEMETRY_COMPONENT,
       lazy.UptakeTelemetry.STATUS.DOWNLOAD_START,
@@ -315,6 +320,7 @@ export class RemoteSettingsClient extends EventEmitter {
       localFields = [],
       keepAttachmentsIds = [],
       lastCheckTimePref,
+      serverUrl,
     } = {}
   ) {
     // Remote Settings cannot be used in child processes (no access to disk,
@@ -344,6 +350,7 @@ export class RemoteSettingsClient extends EventEmitter {
     this._lastCheckTimePref = lastCheckTimePref;
     this._verifier = null;
     this._syncRunning = false;
+    this._serverUrl = serverUrl;
 
     // This attribute allows signature verification to be disabled, when running tests
     // or when pulling data from a dev server.
@@ -386,9 +393,12 @@ export class RemoteSettingsClient extends EventEmitter {
   }
 
   httpClient() {
-    const api = new lazy.KintoHttpClient(lazy.Utils.SERVER_URL, {
-      fetchFunc: lazy.Utils.fetch, // Use fetch() wrapper.
-    });
+    const api = new lazy.KintoHttpClient(
+      this._serverUrl || lazy.Utils.SERVER_URL,
+      {
+        fetchFunc: lazy.Utils.fetch, // Use fetch() wrapper.
+      }
+    );
     return api.bucket(this.bucketName).collection(this.collectionName);
   }
 
@@ -653,10 +663,14 @@ export class RemoteSettingsClient extends EventEmitter {
       return;
     }
 
+    if (!lazy.Utils.isCollectionAllowed(this.bucketName, this.collectionName)) {
+      return;
+    }
+
     // We want to know which timestamp we are expected to obtain in order to leverage
     // cache busting. We don't provide ETag because we don't want a 304.
     const { changes } = await lazy.Utils.fetchLatestChanges(
-      lazy.Utils.SERVER_URL,
+      this._serverUrl || lazy.Utils.SERVER_URL,
       {
         filters: {
           collection: this.collectionName,
@@ -1040,6 +1054,14 @@ export class RemoteSettingsClient extends EventEmitter {
    * Import the JSON files from services/settings/dump into the local DB.
    */
   async _importJSONDump() {
+    if (
+      !lazy.Utils.isCollectionAllowedFromDump(
+        this.bucketName,
+        this.collectionName
+      )
+    ) {
+      return 0;
+    }
     lazy.console.info(`${this.identifier} try to restore dump`);
     const result = await lazy.RemoteSettingsWorker.importJSONDump(
       this.bucketName,
