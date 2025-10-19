@@ -647,7 +647,7 @@ play-drm-content =
     .label = Play DRM-controlled content
     .accesskey = P
 
-play-drm-content-learn-more = Learn more
+play-drm-content-learn-more = Why we disable it
 
 update-application-title = { -brand-short-name } Updates
 
@@ -655,7 +655,7 @@ update-application-description = Keep { -brand-short-name } up to date for the b
 
 # Variables:
 # $version (string) - Firefox version
-update-application-version = Version { $version } <a data-l10n-name="learn-more">What’s new</a>
+update-application-version = Version { $version } <a data-l10n-name="learn-more">Visit the repositories</a>
 
 update-history =
     .label = Show Update History…
@@ -1419,8 +1419,6 @@ addressbar-restore-dismissed-suggestions-button =
 ## Privacy Section - Content Blocking
 
 content-blocking-enhanced-tracking-protection = Enhanced Tracking Protection
-
-content-blocking-section-top-level-description = Trackers follow you around online to collect information about your browsing habits and interests. { -brand-short-name } blocks many of these trackers and other malicious scripts.
 
 content-blocking-learn-more = Learn more
 
