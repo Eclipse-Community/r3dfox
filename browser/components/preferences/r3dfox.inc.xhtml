@@ -190,6 +190,17 @@
   <label><html:h2 data-l10n-id="r3dfox-advanced-header"/></label>
 
   <hbox align="center">
+    <label id="r3dfoxSandboxLevel" data-l10n-id="r3dfox-sandbox-level" control="r3dfoxSandboxLevelType"/>
+    <menulist id="r3dfoxSandboxLevelType" preference="security.sandbox.content.level">
+      <menupopup>
+        <menuitem label="Default (8)" value="8"/>
+        <menuitem label="Lower (7)" value="7"/>
+      </menupopup>
+    </menulist>
+  </hbox>
+  <description id="r3dfoxSandboxLevelDescription" class="tip-caption" data-l10n-id="r3dfox-sandbox-level-desc"/>
+
+  <hbox align="center">
     <label id="r3dfoxAccessibility" data-l10n-id="r3dfox-accessibility" control="r3dfoxAccessibilityType"/>
     <menulist id="r3dfoxAccessibilityType" preference="accessibility.force_disabled">
       <menupopup>
