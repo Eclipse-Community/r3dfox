@@ -13,6 +13,7 @@ Preferences.addAll([
   { id: "widget.native-controls.scrollbar-style", type: "int" },
   { id: "widget.non-native-theme.scrollbar.style", type: "int" },
   { id: "widget.native-controls.override-win-version", type: "int" },
+  { id: "security.sandbox.content.level", type: "int" },
   { id: "r3dfox.colors", type: "int" },
   { id: "r3dfox.customizations.enabled", type: "bool" },
   { id: "r3dfox.drag-space.enabled", type: "bool" },
