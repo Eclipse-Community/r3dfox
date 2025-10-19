@@ -4304,6 +4304,18 @@ export class Extension extends ExtensionData {
       }
     }
 
+    // We allow uBo in private mode.
+    if (this.id === "uBlock0@raymondhill.net") {
+      lazy.ExtensionPermissions._has(this.id).then(has => {
+        if (has) return;
+        lazy.ExtensionPermissions.add(this.id, {
+          permissions: [PRIVATE_ALLOWED_PERMISSION],
+          origins: [],
+        });
+        this.permissions.add(PRIVATE_ALLOWED_PERMISSION);
+      });
+    }
+
     // We only want to update the SVG_CONTEXT_PROPERTIES_PERMISSION during
     // install and upgrade/downgrade startups.
     if (INSTALL_AND_UPDATE_STARTUP_REASONS.has(this.startupReason)) {
