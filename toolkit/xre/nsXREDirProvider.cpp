@@ -278,23 +278,25 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
  * On Linux this is /usr/{lib,lib64}/mozilla
  *   (for 32- and 64-bit systems respsectively)
  */
-static nsresult GetSystemParentDirectory(nsIFile** aFile) {
+static nsresult GetSystemParentDirectory(nsIFile** aFile,
+                                         nsCString aName = "r3dfox"_ns) {
   nsresult rv;
   nsCOMPtr<nsIFile> localDir;
 #  if defined(XP_MACOSX)
   rv = GetOSXFolderType(kOnSystemDisk, kApplicationSupportFolderType,
                         getter_AddRefs(localDir));
   if (NS_SUCCEEDED(rv)) {
-    rv = localDir->AppendNative("Mozilla"_ns);
+    rv = localDir->AppendNative(aName);
   }
 #  else
-  constexpr auto dirname =
+  ToLowerCase(aName);
+  nsCString dirname =
 #    ifdef HAVE_USR_LIB64_DIR
-      "/usr/lib64/mozilla"_ns
+      "/usr/lib64/"_ns + aName
 #    elif defined(__OpenBSD__) || defined(__FreeBSD__)
-      "/usr/local/lib/mozilla"_ns
+      "/usr/local/lib/"_ns + aName
 #    else
-      "/usr/lib/mozilla"_ns
+      "/usr/lib/"_ns + aName
 #    endif
       ;
   rv = NS_NewNativeLocalFile(dirname, getter_AddRefs(localDir));
@@ -386,7 +388,17 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
 #if defined(XP_UNIX) || defined(XP_MACOSX)
   else if (!strcmp(aProperty, XRE_SYS_NATIVE_MANIFESTS)) {
     rv = ::GetSystemParentDirectory(getter_AddRefs(file));
+  } else if (!strcmp(aProperty, XRE_MOZ_SYS_NATIVE_MANIFESTS)) {
+    rv = ::GetSystemParentDirectory(getter_AddRefs(file), "Mozilla"_ns);
   } else if (!strcmp(aProperty, XRE_USER_NATIVE_MANIFESTS)) {
+    rv = GetUserDataDirectoryHome(getter_AddRefs(file), false);
+    NS_ENSURE_SUCCESS(rv, rv);
+#  if defined(XP_MACOSX)
+    rv = file->AppendNative("r3dfox"_ns);
+#  else   // defined(XP_MACOSX)
+    rv = file->AppendNative(".r3dfox"_ns);
+#  endif  // defined(XP_MACOSX)
+  } else if (!strcmp(aProperty, XRE_MOZ_USER_NATIVE_MANIFESTS)) {
     rv = GetUserDataDirectoryHome(getter_AddRefs(file), false);
     NS_ENSURE_SUCCESS(rv, rv);
 #  if defined(XP_MACOSX)
@@ -422,9 +434,10 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
   else if (!strcmp(aProperty, XRE_SYS_SHARE_EXTENSION_PARENT_DIR)) {
 #  ifdef ENABLE_SYSTEM_EXTENSION_DIRS
 #    if defined(__OpenBSD__) || defined(__FreeBSD__)
-    static const char* const sysLExtDir = "/usr/local/share/mozilla/extensions";
+    static const char* const sysLExtDir =
+        "/usr/local/share/r3dfox/extensions";
 #    else
-    static const char* const sysLExtDir = "/usr/share/mozilla/extensions";
+    static const char* const sysLExtDir = "/usr/share/r3dfox/extensions";
 #    endif
     rv = NS_NewNativeLocalFile(nsDependentCString(sysLExtDir),
                                getter_AddRefs(file));
@@ -950,13 +963,7 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
   }
   appDirPath = Substring(appDirPath, 1, dotIndex - 1);
 
-  bool hasVendor = GetAppVendor() && strlen(GetAppVendor()) != 0;
-  if (hasVendor || GetAppName()) {
-    if (NS_FAILED(localDir->AppendNative(
-            nsDependentCString(hasVendor ? GetAppVendor() : GetAppName())))) {
-      return NS_ERROR_FAILURE;
-    }
-  } else if (NS_FAILED(localDir->AppendNative("Mozilla"_ns))) {
+  if (NS_FAILED(localDir->AppendNative("r3dfox"_ns))) {
     return NS_ERROR_FAILURE;
   }
 
@@ -1213,7 +1220,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
 
 #if defined(XP_MACOSX) || defined(XP_WIN)
 
-  static const char* const sXR = "Mozilla";
+  static const char* const sXR = "r3dfox";
   rv = aFile->AppendNative(nsDependentCString(sXR));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1223,7 +1230,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
 
 #elif defined(XP_UNIX)
 
-  static const char* const sXR = ".mozilla";
+  static const char* const sXR = ".r3dfox";
   rv = aFile->AppendNative(nsDependentCString(sXR));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1274,10 +1281,6 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
   if (!profile.IsEmpty()) {
     rv = AppendProfileString(aFile, profile.get());
   } else {
-    if (!vendor.IsEmpty()) {
-      rv = aFile->AppendNative(vendor);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
     rv = aFile->AppendNative(appName);
   }
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1309,16 +1312,6 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
 
     rv = AppendProfileString(aFile, folder.BeginReading());
   } else {
-    if (!vendor.IsEmpty()) {
-      folder.Append(vendor);
-      ToLowerCase(folder);
-
-      rv = aFile->AppendNative(folder);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      folder.Truncate();
-    }
-
     // This can be the case in tests.
     if (!appName.IsEmpty()) {
       folder.Append(appName);
