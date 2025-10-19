@@ -78,6 +78,18 @@ ChromeUtils.defineLazyGetter(lazy, "allowServerURLOverride", () => {
   return false;
 });
 
+ChromeUtils.defineLazyGetter(lazy, "allowedCollections", () =>
+  Services.prefs
+    .getStringPref("librewolf.services.settings.allowedCollections", "")
+    .split(",")
+);
+
+ChromeUtils.defineLazyGetter(lazy, "allowedCollectionsFromDump", () =>
+  Services.prefs
+    .getStringPref("librewolf.services.settings.allowedCollectionsFromDump", "")
+    .split(",")
+);
+
 XPCOMUtils.defineLazyPreferenceGetter(
   lazy,
   "gServerURL",
@@ -139,6 +151,7 @@ export var Utils = {
     // Load dumps only if pulling data from the production server, or in tests.
     return (
       this.SERVER_URL == AppConstants.REMOTE_SETTINGS_SERVER_URL ||
+      this.SERVER_URL == "https://%.invalid" ||
       lazy.isRunningTests
     );
   },
@@ -205,6 +218,75 @@ export var Utils = {
     } catch (ex) {
       log.warn("Could not determine network status.", ex);
     }
+    return false;
+  },
+
+  /**
+   * Internal code to determine whether the bucket and collection are allowed to
+   * be loaded by the remote settings client for a given list of allowed
+   * bucket/collection combinations.
+   * @param {string} bucket
+   * @param {string} collection
+   * @param {Array<string>} allowedCollections
+   * @returns {boolean} whether the bucket and collection are allowed to load
+   */
+  _isCollectionAllowedInternal(bucket, collection, allowedCollections) {
+    bucket = this.actualBucketName(bucket);
+    return (
+      allowedCollections.includes(`${bucket}/${collection}`) ||
+      allowedCollections.includes(`${bucket}/*`) ||
+      allowedCollections.includes("*")
+    );
+  },
+
+  /**
+   * Determines whether the bucket and collection are allowed to be loaded by the
+   * remote settings client.
+   * @param {string} bucket
+   * @param {string} collection
+   * @returns {boolean} whether the bucket and collection are allowed to load
+   */
+  isCollectionAllowed(bucket, collection) {
+    if (
+      this._isCollectionAllowedInternal(
+        bucket,
+        collection,
+        lazy.allowedCollections
+      )
+    ) {
+      return true;
+    }
+    console.warn(
+      `Connection attempt to RS collection "${bucket}/${collection}" was blocked/filtered.`
+    );
+    return false;
+  },
+
+  /**
+   * Determines whether the bucket and collection are allowed to be loaded from
+   * an in-tree remote settings dump.
+   * @param {string} bucket
+   * @param {string} collection
+   * @returns {boolean} whether the bucket and collection are allowed to load
+   */
+  isCollectionAllowedFromDump(bucket, collection) {
+    if (
+      this._isCollectionAllowedInternal(
+        bucket,
+        collection,
+        lazy.allowedCollectionsFromDump
+      ) ||
+      this._isCollectionAllowedInternal(
+        bucket,
+        collection,
+        lazy.allowedCollections
+      )
+    ) {
+      return true;
+    }
+    console.warn(
+      `Access attempt to RS collection "${bucket}/${collection}" from local dump was blocked/filtered.`
+    );
     return false;
   },
 
@@ -298,9 +380,9 @@ export var Utils = {
    * const attachmentsURL = await Downloader.baseAttachmentsURL();
    * console.log(attachmentsURL);
    */
-  async baseAttachmentsURL() {
-    if (!_cdnURLs[Utils.SERVER_URL]) {
-      const resp = await Utils.fetch(`${Utils.SERVER_URL}/`);
+  async baseAttachmentsURL(serverUrl = Utils.SERVER_URL) {
+    if (!_cdnURLs[serverUrl]) {
+      const resp = await Utils.fetch(`${serverUrl}/`);
       const serverInfo = await resp.json();
       // Server capabilities expose attachments configuration.
       const {
@@ -309,10 +391,9 @@ export var Utils = {
         },
       } = serverInfo;
       // Make sure the URL always has a trailing slash.
-      _cdnURLs[Utils.SERVER_URL] =
-        base_url + (base_url.endsWith("/") ? "" : "/");
+      _cdnURLs[serverUrl] = base_url + (base_url.endsWith("/") ? "" : "/");
     }
-    return _cdnURLs[Utils.SERVER_URL];
+    return _cdnURLs[serverUrl];
   },
 
   /**
@@ -486,7 +567,9 @@ export var Utils = {
     }
 
     return {
-      changes,
+      changes: changes.filter(change =>
+        this.isCollectionAllowed(change.bucket, change.collection)
+      ),
       currentEtag: `"${timestamp}"`,
       serverTimeMillis,
       backoffSeconds,
