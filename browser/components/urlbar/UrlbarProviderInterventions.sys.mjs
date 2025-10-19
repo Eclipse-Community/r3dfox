@@ -446,7 +446,7 @@ class ProviderInterventions extends UrlbarProvider {
         ]),
       });
       for (let [id, phrases] of Object.entries(DOCUMENTS)) {
-        queryScorer.addDocument({ id, phrases });
+//        queryScorer.addDocument({ id, phrases });
       }
       return queryScorer;
     },
