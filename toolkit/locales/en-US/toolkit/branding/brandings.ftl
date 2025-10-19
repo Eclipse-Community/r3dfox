@@ -20,10 +20,10 @@
 -mozmonitor-brand-name = Mozilla Monitor
 -pocket-brand-name = Pocket
 -send-brand-name = Firefox Send
--screenshots-brand-name = Firefox Screenshots
+-screenshots-brand-name = Screenshots
 -mozilla-vpn-brand-name = Mozilla VPN
--profiler-brand-name = Firefox Profiler
--translations-brand-name = Firefox Translations
+-profiler-brand-name = Profiler
+-translations-brand-name = Translations
 -focus-brand-name = Firefox Focus
 -relay-brand-name = Firefox Relay
 -relay-brand-short-name = Relay
@@ -35,14 +35,6 @@
 # The particle "by" can be localized, "Fakespot" and "Mozilla" should not be localized or transliterated.
 -fakespot-brand-full-name = Fakespot by Mozilla
 
-# “Suggest” can be localized, “Firefox” must be treated as a brand
-# and kept in English.
--firefox-suggest-brand-name = r3dfox suggest
-
-# ”Home" can be localized, “Firefox” must be treated as a brand
-# and kept in English.
--firefox-home-brand-name = r3dfox home
-
-# View" can be localized, “Firefox” must be treated as a brand
-# and kept in English.
--firefoxview-brand-name = r3dfox view
+-firefox-suggest-brand-name = Suggestions
+-firefox-home-brand-name = Homepage
+-firefoxview-brand-name = Tab View
