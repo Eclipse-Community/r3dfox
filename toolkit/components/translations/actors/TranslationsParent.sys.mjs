@@ -2157,7 +2157,9 @@ export class TranslationsParent extends JSWindowActorParent {
     }
 
     /** @type {RemoteSettingsClient} */
-    const client = lazy.RemoteSettings("translations-models");
+    const client = lazy.RemoteSettings("translations-models", {
+      serverUrl: "https://firefox.settings.services.mozilla.com/v1",
+    });
     TranslationsParent.#translationModelsRemoteClient = client;
     client.on("sync", TranslationsParent.#handleTranslationsModelsSync);
 
@@ -2643,7 +2645,10 @@ export class TranslationsParent extends JSWindowActorParent {
 
       /** @type {{buffer: ArrayBuffer}} */
       const { buffer } = await client.attachments.download(
-        await TranslationsParent.#bergamotWasmRecord
+        await TranslationsParent.#bergamotWasmRecord,
+        {
+          serverUrl: "https://firefox.settings.services.mozilla.com/v1",
+        }
       );
 
       const duration = Date.now() - start;
@@ -2718,7 +2723,9 @@ export class TranslationsParent extends JSWindowActorParent {
     )) {
       const download = () => {
         lazy.console.log("Downloading record", record.name, record.id);
-        return client.attachments.download(record);
+        return client.attachments.download(record, {
+          serverUrl: "https://firefox.settings.services.mozilla.com/v1",
+        });
       };
       queue.push({ download });
     }
@@ -2742,7 +2749,10 @@ export class TranslationsParent extends JSWindowActorParent {
         onFailure: () => {
           console.error("Failed to download", record.name);
         },
-        download: () => client.attachments.download(record),
+        download: () =>
+          client.attachments.download(record, {
+            serverUrl: "https://firefox.settings.services.mozilla.com/v1",
+          }),
       });
     }
 
@@ -3055,7 +3065,9 @@ export class TranslationsParent extends JSWindowActorParent {
         await chaosMode(1 / 3);
 
         /** @type {{buffer: ArrayBuffer }} */
-        const { buffer } = await client.attachments.download(record);
+        const { buffer } = await client.attachments.download(record, {
+          serverUrl: "https://firefox.settings.services.mozilla.com/v1",
+        });
 
         languageModelFiles[record.fileType] = {
           buffer,
