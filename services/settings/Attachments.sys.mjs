@@ -160,6 +160,7 @@ export class Downloader {
    * @param {Boolean} [options.fallbackToDump] Use the remote settings dump as a
    *                                         potential source of the attachment.
    *                                         (default: `false`)
+   * @param {string} options.serverUrl
    * @throws {Downloader.DownloadError} if the file could not be fetched.
    * @throws {Downloader.BadContentError} if the downloaded content integrity is not valid.
    * @throws {Downloader.ServerInfoError} if the server response is not valid.
@@ -341,6 +342,7 @@ export class Downloader {
       fallbackToDump = false,
       avoidDownload = false,
       cacheResult = true,
+      serverUrl,
     } = options || {};
     if (!attachmentId) {
       // Check for pre-condition. This should not happen, but it is explicitly
@@ -401,6 +403,7 @@ export class Downloader {
         const newBuffer = await this.downloadAsBytes(record, {
           retries,
           checkHash,
+          serverUrl,
         });
         if (cacheResult) {
           const blob = new Blob([newBuffer]);
@@ -512,6 +515,7 @@ export class Downloader {
    * @param {Object} options Some download options.
    * @param {Number} options.retries Number of times download should be retried (default: `3`)
    * @param {Boolean} options.checkHash Check content integrity (default: `true`)
+   * @param {String} options.serverUrl
    * @throws {Downloader.DownloadError} if the file could not be fetched.
    * @throws {Downloader.BadContentError} if the downloaded content integrity is not valid.
    * @returns {ArrayBuffer} the file content.
@@ -520,17 +524,17 @@ export class Downloader {
     const {
       attachment: { location, hash, size },
     } = record;
+    const { retries = 3, checkHash = true, serverUrl } = options;
 
     let baseURL;
     try {
-      baseURL = await lazy.Utils.baseAttachmentsURL();
+      baseURL = await lazy.Utils.baseAttachmentsURL(serverUrl);
     } catch (error) {
       throw new Downloader.ServerInfoError(error);
     }
 
     const remoteFileUrl = baseURL + location;
 
-    const { retries = 3, checkHash = true } = options;
     let retried = 0;
     while (true) {
       try {
