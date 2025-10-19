@@ -96,7 +96,6 @@ var gBrowserInit = {
       if (nativeMenubar) {
         toolbarMenubar.removeAttribute("autohide");
       } else {
-        toolbarMenubar.removeAttribute("autohide");
         document.l10n.setAttributes(
           toolbarMenubar,
           "toolbar-context-menu-menu-bar-cmd"
