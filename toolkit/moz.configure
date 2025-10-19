@@ -22,19 +22,21 @@ def check_moz_app_id(moz_app_id, build_project):
 
 project_flag(
     env="MOZ_APP_VENDOR",
+    default="LibreWolf",
     nargs=1,
     help='Used for application.ini\'s "Vendor" field, which also impacts profile location and user-visible fields',
 )
 
 project_flag(
     env="MOZ_APP_UA_NAME",
-    default="",
+    default="Firefox",
     nargs=1,
     help="Application name in the User Agent string",
 )
 
 project_flag(
     "MOZ_APP_PROFILE",
+    default="librewolf",
     nargs=1,
     help='Used for application.ini\'s "Profile" field, which controls profile location',
 )
@@ -931,9 +933,10 @@ set_config("MOZ_SYSTEM_AV1", True, when="--with-system-av1")
 option("--disable-jxl", help="Disable jxl image support")
 
 
-@depends("--disable-jxl", milestone.is_nightly)
-def jxl(value, is_nightly):
-    if is_nightly and value:
+@depends("--disable-jxl")
+def jxl(value):
+    enabled = bool(value)
+    if enabled:
         return True
 
 

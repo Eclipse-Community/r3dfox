@@ -381,7 +381,6 @@ var CustomizableUIInternal = {
       {
         type: CustomizableUI.TYPE_TOOLBAR,
         defaultPlacements: [
-          "firefox-view-button",
           "tabbrowser-tabs",
           "new-tab-button",
           "alltabs-button",
@@ -739,18 +738,6 @@ var CustomizableUIInternal = {
       // Place the menu item as the first item to the left of the hamburger menu
       if (navbarPlacements) {
         navbarPlacements.push("fxa-toolbar-menu-button");
-      }
-    }
-
-    // Add firefox-view if not present
-    if (currentVersion < 18) {
-      let tabstripPlacements =
-        gSavedState.placements[CustomizableUI.AREA_TABSTRIP];
-      if (
-        tabstripPlacements &&
-        !tabstripPlacements.includes("firefox-view-button")
-      ) {
-        tabstripPlacements.unshift("firefox-view-button");
       }
     }
 
