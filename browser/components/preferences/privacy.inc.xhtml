@@ -236,7 +236,7 @@
                         is="highlightable-button"
                         data-l10n-id="content-blocking-reload-tabs-button"/>
               </html:div>
-              <vbox class="content-blocking-warning info-box-container">
+              <vbox class="content-blocking-warning info-box-container" hidden="true">
                 <hbox>
                   <image class="content-blocking-warning-image"/>
                   <label class="content-blocking-warning-title" data-l10n-id="content-blocking-warning-title-2"/>
@@ -1074,8 +1074,8 @@
 
 <!-- addons, forgery (phishing) UI Security -->
 <groupbox id="browsingProtectionGroup" data-category="panePrivacy" hidden="true">
-  <label><html:h2 data-l10n-id="security-browsing-protection"/></label>
-  <hbox align = "center">
+  <label><html:h2 data-l10n-id="security-browsing-protection" hidden="true"/></label>
+  <hbox align = "center" hidden="true">
     <checkbox id="enableSafeBrowsing"
               data-l10n-id="security-enable-safe-browsing"
               class="tail-with-learn-more"/>
@@ -1086,7 +1086,7 @@
             support-page="phishing-malware"
     />
   </hbox>
-  <vbox class="indent">
+  <vbox class="indent" hidden="true">
     <checkbox id="blockDownloads"
               data-l10n-id="security-block-downloads"/>
     <checkbox id="blockUncommonUnwanted"
