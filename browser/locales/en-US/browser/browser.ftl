@@ -1468,3 +1468,6 @@ trustpanel-cryptominer-not-blocking-tab-header = { $count ->
   *[other] { -brand-product-name } allowed { $count } cryptominers
 }
 trustpanel-cryptominer-tab-list-header = These sites are trying to cryptomine:
+
+
+identity-allow-site-data = r3dfox: Always store cookies/data for this site
