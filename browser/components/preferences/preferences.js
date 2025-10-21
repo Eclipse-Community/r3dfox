@@ -9,6 +9,7 @@
 /* import-globals-from containers.js */
 /* import-globals-from translations.js */
 /* import-globals-from privacy.js */
+/* import-globals-from librewolf.js */
 /* import-globals-from sync.js */
 /* import-globals-from experimental.js */
 /* import-globals-from moreFromMozilla.js */
@@ -198,6 +199,7 @@ function init_all() {
   register_module("panePrivacy", gPrivacyPane);
   register_module("paneContainers", gContainersPane);
   register_module("paneR3dfox", gR3dfoxPane);
+  register_module("paneLibrewolf", gLibrewolfPane);
 
   if (Services.prefs.getBoolPref("browser.translations.newSettingsUI.enable")) {
     register_module("paneTranslations", gTranslationsPane);
