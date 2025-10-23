@@ -335,7 +335,9 @@ void CallbackHelper::OnCaptureEnded() {
   nsIEventTarget* target = mParent->GetBackgroundEventTarget();
 
   MOZ_ALWAYS_SUCCEEDS(target->Dispatch(NS_NewRunnableFunction(
-      __func__, [&] { Unused << mParent->SendCaptureEnded(mStreamId); })));
+      __func__, [parent = RefPtr(mParent), id = mStreamId] {
+        Unused << parent->SendCaptureEnded(id);
+      })));
 }
 
 void CallbackHelper::OnFrame(const webrtc::VideoFrame& aVideoFrame) {
