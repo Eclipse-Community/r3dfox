@@ -649,6 +649,12 @@ var TESTS = [
         ["extensions.postDownloadThirdPartyPrompt", true],
         // recommended.xpi is signed with AMO staging signature.
         ["xpinstall.signatures.dev-root", true],
+        // Disable the blocklist because recommended.xpi is signed
+        // only with the staging signature and it may end up hitting
+        // a false positive on the Blocklist bloomfilter computed
+        // from all add-ons known by AMO as signed with the
+        // production key (e.g. see Bug 1996059).
+        ["extensions.blocklist.enabled", false],
       ],
     });
 
