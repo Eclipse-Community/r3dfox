@@ -228,7 +228,7 @@ menuseparator + #sidebar-extensions-separator {
 }
 
 .webextension-menuitem {
-  --menuitem-icon: var(--webextension-menuitem-image);
+  list-style-image: var(--webextension-menuitem-image, inherit) !important;
 }
 
 /* Sidebar animation */

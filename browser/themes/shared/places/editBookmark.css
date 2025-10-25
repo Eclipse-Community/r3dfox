@@ -26,14 +26,16 @@
   height: 16px;
 }
 
-menulist.folder-icon {
-  list-style-image: url("chrome://global/skin/icons/folder.svg") !important;
-}
-
 .folder-icon {
+  list-style-image: url("chrome://global/skin/icons/folder.svg") !important;
   -moz-context-properties: fill;
   fill: currentColor;
-  --menuitem-icon: url("chrome://global/skin/icons/folder.svg");
+
+  /* This is needed because windows and Linux hide icons inside menulists
+   * unconditionally (why?) */
+  > .menu-icon {
+    display: flex;
+  }
 }
 
 #editBMPanel_tagsSelector > richlistitem > image {
@@ -74,20 +76,14 @@ menulist.folder-icon {
 
 /* Bookmark panel dropdown icons */
 
-#editBMPanel_folderMenuList[selectedGuid="toolbar_____"] {
+#editBMPanel_folderMenuList[selectedGuid="toolbar_____"],
+#editBMPanel_toolbarFolderItem {
   list-style-image: url("chrome://browser/skin/places/bookmarksToolbar.svg") !important;
 }
 
-#editBMPanel_toolbarFolderItem {
-  --menuitem-icon: url("chrome://browser/skin/places/bookmarksToolbar.svg");
-}
-
-#editBMPanel_folderMenuList[selectedGuid="menu________"] {
-  list-style-image: url("chrome://browser/skin/places/bookmarksMenu.svg") !important;
-}
-
+#editBMPanel_folderMenuList[selectedGuid="menu________"],
 #editBMPanel_bmRootItem {
-  --menuitem-icon: url("chrome://browser/skin/places/bookmarksMenu.svg");
+  list-style-image: url("chrome://browser/skin/places/bookmarksMenu.svg") !important;
 }
 
 #bookmarkpropertiesdialog #editBookmarkPanelContent > label:not(.editBMPanel_nameRow),
