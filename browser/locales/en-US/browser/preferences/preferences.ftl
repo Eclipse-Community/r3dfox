@@ -1796,11 +1796,12 @@ choose-download-folder-title = Choose Download Folder:
 ## LibreWolf preferences
 
 # Sidebar
-pane-librewolf-title = LibreWolf
+pane-librewolf-title = Extra Configurations
 category-librewolf =
     .tooltiptext = about:config changes, logically grouped and easily accessible
 # Main content
-librewolf-header = LibreWolf Preferences
+librewolf-header = Extra Privacy Configurations
+librewolf-settings-about = These settings are from Librewolf, now included in { -brand-short-name }. This page is kept as stock as possible to make future updates easier. Totally not because I'm too dumb to integrate these into the r3dfox configurations page.
 librewolf-warning-title = Heads up!
 librewolf-warning-description = We carefully choose default settings to focus on privacy and security. When changing these settings, read the descriptions to understand the implications of those changes.
 # Page Layout
@@ -1863,4 +1864,4 @@ librewolf-open-profile = Open user profile directory
 
 ## Privacy & Security preferences
 
-content-blocking-section-top-level-description = LibreWolf supports - and it enables by default - Enhanced Tracking Protection in Strict mode. This is one of the most important settings in the browser, as it provides state partitioning, strict blocking lists and other neat privacy features. We do not recommend changing to other modes.
+content-blocking-section-top-level-description = { -brand-short-name } supports - and it enables by default - Enhanced Tracking Protection in Strict mode. This is one of the most important settings in the browser, as it provides state partitioning, strict blocking lists and other neat privacy features. We do not recommend changing to other modes.
