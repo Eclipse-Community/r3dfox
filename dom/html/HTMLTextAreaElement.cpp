@@ -24,8 +24,10 @@
 #include "nsFocusManager.h"
 #include "nsIConstraintValidation.h"
 #include "nsIControllers.h"
+#include "nsIFormControlFrame.h"
 #include "nsIFormControl.h"
 #include "nsIFrame.h"
+#include "nsITextControlFrame.h"
 #include "nsIMutationObserver.h"
 #include "nsLayoutUtils.h"
 #include "nsLinebreakConverter.h"
@@ -117,15 +119,19 @@ void HTMLTextAreaElement::Select() {
     }
   }
 
-  SetSelectionRange(0, UINT32_MAX, Optional<nsAString>(), IgnoreErrors());
+  SetSelectionRange(0, UINT32_MAX, mozilla::dom::Optional<nsAString>(),
+                    IgnoreErrors());
 }
 
-void HTMLTextAreaElement::SelectAll() {
-  // FIXME(emilio): Should we try to call Select(), which will avoid flushing?
-  if (nsTextControlFrame* tf =
-          do_QueryFrame(GetPrimaryFrame(FlushType::Frames))) {
-    tf->SelectAll();
+NS_IMETHODIMP
+HTMLTextAreaElement::SelectAll(nsPresContext* aPresContext) {
+  nsIFormControlFrame* formControlFrame = GetFormControlFrame(true);
+
+  if (formControlFrame) {
+    formControlFrame->SetFormProperty(nsGkAtoms::select, u""_ns);
   }
+
+  return NS_OK;
 }
 
 bool HTMLTextAreaElement::IsHTMLFocusable(IsFocusableFlags aFlags,
@@ -411,7 +417,9 @@ nsMapRuleToAttributesFunc HTMLTextAreaElement::GetAttributeMappingFunction()
 }
 
 bool HTMLTextAreaElement::IsDisabledForEvents(WidgetEvent* aEvent) {
-  return IsElementDisabledForEvents(aEvent, GetPrimaryFrame());
+  nsIFormControlFrame* formControlFrame = GetFormControlFrame(false);
+  nsIFrame* formFrame = do_QueryFrame(formControlFrame);
+  return IsElementDisabledForEvents(aEvent, formFrame);
 }
 
 void HTMLTextAreaElement::GetEventTargetParent(EventChainPreVisitor& aVisitor) {
