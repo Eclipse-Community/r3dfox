@@ -4,13 +4,14 @@
 
 #include "sandbox/win/src/service_resolver.h"
 
-#include <windows.h>
 
 #include <ntstatus.h>
 #include <stddef.h>
-#include <winternl.h>
 
 #include <memory>
+
+#include "sandbox/win/src/sandbox_nt_util.h"
+#include "sandbox/win/src/win_utils.h"
 
 namespace {
 #if defined(_M_X64)
@@ -254,6 +255,7 @@ NTSTATUS ServiceResolverThunk::PerformPatch(void* local_thunk,
                                             void* remote_thunk) {
   // Patch the original code.
   ServiceEntry local_service;
+  DCHECK_NT(GetInternalThunkSize() <= sizeof(local_service));
   if (!SetInternalThunk(&local_service, sizeof(local_service), nullptr,
                         interceptor_))
     return STATUS_UNSUCCESSFUL;
@@ -282,8 +284,9 @@ NTSTATUS ServiceResolverThunk::PerformPatch(void* local_thunk,
   return STATUS_SUCCESS;
 }
 
-bool ServiceResolverThunk::VerifyJumpTargetForTesting(void*) const {
-  return true;
+bool Wow64ResolverThunk::IsFunctionAService(void* local_thunk) const {
+  NOTREACHED_NT();
+  return false;
 }
 
 }  // namespace sandbox
