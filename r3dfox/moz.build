@@ -1,5 +1,5 @@
 FINAL_TARGET_FILES += [
-  "librewolf.cfg",
+  "config.cfg",
 ]
 
 FINAL_TARGET_FILES.distribution += [
