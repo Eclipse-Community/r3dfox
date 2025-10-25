@@ -5689,7 +5689,7 @@ bool ValidSurfaceDescriptorForRemoteCanvas2d(
             .get_SurfaceDescriptorRemoteDecoder()
             .subdesc()
             .get_SurfaceDescriptorD3D10()
-            .handle() = nullptr;
+            .handle() = 0;
       } else if (ssd.handle()) {
         return false;
       }

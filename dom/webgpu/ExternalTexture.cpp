@@ -702,7 +702,7 @@ ExternalTextureSourceHost::CreateFromD3D10Desc(
       handle = textureMap->GetSharedHandleOfCopiedTexture(gpuProcessTextureId.ref());
     }
   } else if (aSd.handle()) {
-    handle.emplace(aSd.handle()->GetHandle());
+    handle.emplace((void *)aSd.handle());
   }
 
   if (!handle) {
@@ -862,7 +862,7 @@ ExternalTextureSourceHost::CreateFromDXGIYCbCrDesc(
       ErrorBuffer error;
       ffi::wgpu_server_device_import_texture_from_shared_handle(
           aParent->GetContext(), aDeviceId, aDesc.mTextureIds[i], &textureDesc,
-          handles[i]->GetHandle(), error.ToFFI());
+          (void *)handles[i], error.ToFFI());
       // From here on there's no need to return early with `CreateError()` in
       // case of an error, as an error creating a texture or view will be
       // propagated to any views or external textures created from them.
