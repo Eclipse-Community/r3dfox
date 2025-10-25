@@ -699,7 +699,7 @@ ExternalTextureSourceHost::CreateFromD3D10Desc(
   if (gpuProcessTextureId) {
     auto* textureMap = layers::GpuProcessD3D11TextureMap::Get();
     if (textureMap) {
-      handle = textureMap->GetSharedHandle(gpuProcessTextureId.ref());
+      handle = textureMap->GetSharedHandleOfCopiedTexture(gpuProcessTextureId.ref());
     }
   } else if (aSd.handle()) {
     handle.emplace(aSd.handle()->GetHandle());
