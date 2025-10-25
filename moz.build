@@ -221,4 +221,4 @@ SPHINX_TREES["update-infrastructure"] = "docs/update-infrastructure"
 
 include("build/templates.mozbuild")
 
-DIRS += ["lw"]
+DIRS += ["r3dfox"]
