@@ -272,10 +272,10 @@
 ; Remote Settings JSON dumps
 @RESPATH@/browser/defaults/settings
 
-; LibreWolf specific files.
+; r3dfox specific files.
 @RESPATH@/defaults/pref/local-settings.js
 @RESPATH@/distribution/policies.json
-@RESPATH@/librewolf.cfg
+@RESPATH@/config.cfg
 
 # channel-prefs.js has been removed on macOS.
 #ifndef XP_MACOSX
