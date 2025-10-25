@@ -72,6 +72,14 @@
   list-style-image: none;
 }
 
+/* ----- BOOKMARK MENUS ----- */
+
+#bookmarksToolbarFolderMenu,
+#BMB_bookmarksToolbar,
+#panelMenu_bookmarksToolbar {
+  list-style-image: url("chrome://browser/skin/places/bookmarksToolbar.svg");
+}
+
 /* Inactive elements are faded out on OSX */
 .toolbarbutton-1:not(:hover):-moz-window-inactive,
 .bookmark-item:not(:hover):-moz-window-inactive,

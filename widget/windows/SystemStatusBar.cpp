@@ -14,7 +14,6 @@
 #include "mozilla/LinkedList.h"
 #include "mozilla/StaticPtr.h"
 #include "mozilla/widget/IconLoader.h"
-#include "mozilla/widget/NativeMenu.h"
 #include "mozilla/dom/XULButtonElement.h"
 #include "nsComputedDOMStyle.h"
 #include "nsIContentPolicy.h"
@@ -110,9 +109,47 @@ void StatusBarEntry::Destroy() {
 nsresult StatusBarEntry::Init() {
   MOZ_ASSERT(NS_IsMainThread());
 
+  // First, look at the content node's "image" attribute.
+  nsAutoString imageURIString;
+  bool hasImageAttr = mMenu->GetAttr(nsGkAtoms::image, imageURIString);
+
+  nsresult rv;
+  nsCOMPtr<nsIURI> iconURI;
+  if (!hasImageAttr) {
+    // If the content node has no "image" attribute, get the
+    // "list-style-image" property from CSS.
+    RefPtr<mozilla::dom::Document> document = mMenu->GetComposedDoc();
+    if (!document) {
+      return NS_ERROR_FAILURE;
+    }
+
+    RefPtr<const ComputedStyle> sc =
+        nsComputedDOMStyle::GetComputedStyle(mMenu);
+    if (!sc) {
+      return NS_ERROR_FAILURE;
+    }
+
+    iconURI = sc->StyleList()->GetListStyleImageURI();
+  } else {
+    uint64_t dummy = 0;
+    nsContentPolicyType policyType;
+    nsCOMPtr<nsIPrincipal> triggeringPrincipal = mMenu->NodePrincipal();
+    nsContentUtils::GetContentPolicyTypeForUIImageLoading(
+        mMenu, getter_AddRefs(triggeringPrincipal), policyType, &dummy);
+    if (policyType != nsIContentPolicy::TYPE_INTERNAL_IMAGE) {
+      return NS_ERROR_ILLEGAL_VALUE;
+    }
+
+    // If this menu item shouldn't have an icon, the string will be empty,
+    // and NS_NewURI will fail.
+    rv = NS_NewURI(getter_AddRefs(iconURI), imageURIString);
+    if (NS_FAILED(rv)) return rv;
+  }
+
   mIconLoader = new IconLoader(this);
-  if (auto icon = NativeMenu::GetIcon(*mMenu)) {
-    mIconLoader->LoadIcon(icon.mURI, mMenu);
+
+  if (iconURI) {
+    rv = mIconLoader->LoadIcon(iconURI, mMenu);
   }
 
   HWND iconWindow;

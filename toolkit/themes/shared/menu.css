@@ -2,9 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
 menupopup,
 panel {
-  --menu-arrow-opacity: 1;
+  --menu-icon-opacity: 1;
   --menu-arrow-size: 1em;
   --menuitem-border-radius: 3px;
   --menuitem-margin: 0px;
@@ -37,7 +39,7 @@ panel {
     --menu-arrow-size: max(1em, 16px);
 
     @media (prefers-color-scheme: light) {
-      --menu-arrow-opacity: 0.7;
+      --menu-icon-opacity: 0.7;
     }
   }
 }
@@ -219,8 +221,6 @@ menucaption {
   flex-shrink: 0;
   list-style-image: none;
   max-width: 42em;
-  /* Prevents the icon from being inherited to submenus. */
-  --menuitem-icon: normal;
 }
 
 menu,
@@ -264,7 +264,7 @@ menupopup > menu::after {
 
   -moz-context-properties: fill, fill-opacity;
   fill: currentColor;
-  fill-opacity: var(--menu-arrow-opacity);
+  fill-opacity: var(--menu-icon-opacity);
 
   margin-inline: 1em 0;
   @media (-moz-platform: linux) {
@@ -326,13 +326,6 @@ menuitem[highlightable] > .menu-text {
 .menu-icon {
   width: 16px;
   height: 16px;
-  box-sizing: border-box;
-
-  /* Empty icons shouldn't take up any space */
-  display: none;
-  /* This avoids showing the broken image border for non-iconic items when
-   * adding a gutter */
-  visibility: hidden;
 
   @media (-moz-platform: linux) {
     /* Matches inline menuitem padding */
@@ -346,14 +339,10 @@ menuitem[highlightable] > .menu-text {
     margin-block: -2px;
     margin-inline-end: 6px;
   }
-
-  menuitem:where(.menuitem-iconic, [image]) > &,
-  menu:where(.menu-iconic) > & {
-    &:where(:not([srcset])) {
-      content: var(--menuitem-icon);
-    }
-    display: revert;
-    visibility: inherit;
+  /* Empty icons shouldn't take up any space */
+  menuitem:not(.menuitem-iconic, [image]) > &,
+  menu:not(.menu-iconic) > & {
+    display: none;
   }
 }
 
@@ -361,14 +350,12 @@ menuitem[highlightable] > .menu-text {
 
 /* On linux, we use regular checkboxes and radio buttons */
 @media (-moz-platform: linux) {
-  menuitem:is([type="checkbox"], [checked="true"]) > .menu-icon {
-    visibility: inherit;
+  menuitem:is([type="checkbox"], [checked="true"]) .menu-icon {
     appearance: auto;
     -moz-default-appearance: checkbox;
   }
 
-  menuitem[type="radio"] > .menu-icon {
-    visibility: inherit;
+  menuitem[type="radio"] .menu-icon {
     appearance: auto;
     -moz-default-appearance: radio;
   }
@@ -381,11 +368,10 @@ menuitem[highlightable] > .menu-text {
      Windows versions looks pretty bad with the Win10 styles, so for now we'll
      insert a generic checkmark icon for both types. */
   menuitem[checked="true"] > .menu-icon {
-    visibility: inherit;
     -moz-context-properties: fill, fill-opacity;
     fill: currentColor;
-    fill-opacity: var(--menu-arrow-opacity);
-    content: url("chrome://global/skin/icons/menu-check.svg");
+    fill-opacity: var(--menu-icon-opacity);
+    list-style-image: url("chrome://global/skin/icons/menu-check.svg");
   }
 }
 

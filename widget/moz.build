@@ -257,7 +257,6 @@ UNIFIED_SOURCES += [
     "IMEData.cpp",
     "InProcessCompositorWidget.cpp",
     "InputData.cpp",
-    "NativeMenu.cpp",
     "nsAutoRollup.cpp",
     "nsBaseAppShell.cpp",
     "nsBaseClipboard.cpp",

@@ -410,7 +410,7 @@ body {
 #menu_newProfile {
   -moz-context-properties: fill;
   fill: currentColor;
-  --menuitem-icon: url(chrome://global/skin/icons/plus.svg);
+  list-style-image: url(chrome://global/skin/icons/plus.svg);
 }
 
 .menuitem-iconic-profile {
@@ -1399,11 +1399,4 @@ popupnotificationcontent {
 
 #PictureInPicturePanelFooter {
   margin: 8px 16px 16px;
-}
-
-/* Bookmarks roots menu-items */
-
-#BMB_bookmarksToolbar,
-#bookmarksToolbarFolderMenu {
-  --menuitem-icon: url("chrome://browser/skin/places/bookmarksToolbar.svg");
 }

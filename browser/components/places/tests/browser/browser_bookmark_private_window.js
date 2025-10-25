@@ -36,8 +36,9 @@ add_task(async function test_add_bookmark_from_private_window() {
   await shownPromise;
 
   // Check if the bookmark star changes its state after click.
-  Assert.ok(
-    bookmarkStar.hasAttribute("starred"),
+  Assert.equal(
+    bookmarkStar.getAttribute("starred"),
+    "true",
     "Bookmark star changed its state correctly."
   );
 
