@@ -2,6 +2,7 @@ const CHROME_ONLY_TOGGLES = [
   "-moz-is-glyph",
   "-moz-in-android-pip-mode",
   "-moz-print-preview",
+  "-moz-non-native-content-theme",
   "-moz-overlay-scrollbars",
   "-moz-mac-big-sur-theme",
   "-moz-menubar-drag",
