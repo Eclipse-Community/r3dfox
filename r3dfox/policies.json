@@ -1,60 +1,22 @@
 {
     "__COMMENT__ More Information": "https://github.com/mozilla/policy-templates/blob/master/README.md",
     "policies": {
+        "DisplayMenuBar": true,
         "AppUpdateURL": "https://localhost",
-        "DisableAppUpdate": true,
-        "OverrideFirstRunPage": "",
-        "OverridePostUpdatePage": "",
-        "DisableSystemAddonUpdate": true,
-        "DisableProfileImport": false,
         "DisableFirefoxStudies": true,
         "DisableTelemetry": true,
         "DisableFeedbackCommands": true,
         "DisablePocket": true,
-        "DisableSetDesktopBackground": false,
-        "DisableDeveloperTools": false,
-        "NoDefaultBookmarks": true,
-        "SkipTermsOfUse": true, 
-        "WebsiteFilter": {
-            "Block": [
-                "https://localhost/*"
-            ],
-            "Exceptions": [
-                "https://localhost/*"
-            ]
-        },
+        "SkipTermsOfUse": true,
         "ExtensionSettings": {
             "uBlock0@raymondhill.net": {
                 "install_url": "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi",
                 "installation_mode": "normal_installed",
                 "private_browsing": true
-            },
-            "google@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "bing@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "amazondotcom@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "ebay@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "twitter@search.mozilla.org": {
-                "installation_mode": "blocked"
             }
         },
         "SearchEngines": {
             "PreventInstalls": false,
-            "Remove": [
-                "Google",
-                "Bing",
-                "Amazon.com",
-                "eBay",
-                "Twitter",
-                "Perplexity"
-            ],
             "Default": "DuckDuckGo",
             "Add": [
                 {
@@ -87,15 +49,6 @@
                     "IconURL": "data:image/x-icon;base64,AAABAAIAEBAAAAEAIACpAQAAJgAAACAgAAABACAAQwMAAM8BAACJUE5HDQoaCgAAAA1JSERSAAAAEAAAABAIBgAAAB/z/2EAAAFwSURBVDiNhdO9jw1RGAbw3xnHx9pL1kcmSIiIiMZWGhGNSjR6tU7lqiT8ARJZkdCKloJmo1JYIugIW/lsJLINsbe4m7X3KObMNZm9w5NMMnPe53nOeZ/zThj0y/14giP+jYQB3uAOHmI1tkhD/O4w2IBpnMIxTAvhbtNghKt4kcltxCy8iKO4LKWnTYM1vMer3tzSOvXgUkmwgI+4j8M4UeS+HuAWFjuOr3dzbPoaH7AJB2NvbukHrnUJJ2CIX/l9S4TlfgkBO7C5S5lIgSlszEsh1kpVSNdxWnUTAUWlGz/y2r7aNA765S7sxAyO41CureBbNt6be16HAhewgMeYbdQWcQYncburrQLb8g6783eNVcn3fIpnJg9Yqnv8H9Y6eMN6DiYVg1DnqzDOeowVfI14h2VsbxEOqDL4grOqMJv4hJcRzzGP8y3CHtxT9b61VfuJG8UofI559yuq6TqH0t+faaohSpn7VnUrj0ZF8geL31hEmGrLBAAAAABJRU5ErkJggolQTkcNChoKAAAADUlIRFIAAAAgAAAAIAgGAAAAc3p69AAAAwpJREFUWIXF109oXFUUx/HPeTOt/TPFRtOpqPhn4ULEP3tFUSriQncuFEUQdKFumiB058KNiI0rC65cKFgXLgRFkCIR2q6kCiIiCP6hapuSVuOkTZrMHBcvkw6TzGQmf+oXLrw37557fu/eM7/7bsyO74fRzJzEXTaHRfyLP3EKn+FYZut8VAq1t6eWOxablLCbKkaUL/Qc3sfRiOJANrNoHNy35QK62YVH8UFEPFMsiraIfgISrXW2XtyAN1vb4n4RKKeqF5/ikzVErkYF1+JOPIQ7usa4CQdxqjFWv9hPwHf4sDYx1afL6jTG68hCxq0Yx4vY3tHlYdyHk1tSA7XDU2qHz7WkX3AIH3d1GcED9J/e5oaFvDMFDRzBdNfju4VKW0DiMhYwr/z/frNRAR38sNQ6uVnmjmommElexZ4oxZwVKwLWRSVDiMZitH7Fgx2PdhM7qrWJs5RvfnIzEnbTjLT0UjPd2sKVJdhSUrLSH0KIq+WEPVnhAzPj+xStQkbuUlpobiTBUnAGOwYSULSCct2exyv6W+swOm4cSAAIpP02b3vuycoaiOVp273VyaF6cbxezXQ7diITkW7D433i/sHvHfd7lFO8ffXufQQkI8l7ys2hvd47lQXYi8nkJUt2HdTwFF5XXg9MsdT2KjeI65dav+RwOZqmI03vmZiaxm/kEUwOk7wtYH3ElctKVCQX8dPVE9DBzsN/iVLR5SHCUsr/0wmbSbPI0qg35HbrZJacK7LcCReGDt+45NPEXBHykpVfK2tRUbFciHOv7W3/3u8bs5vvlUtQzOHHIQXcguvaN4vN7ZRmNKh1X8BxqEYkfI2XlQY0CPfiLXzRGKsv4BocwCMDxn+FbyEaY3VKIzqKxwYcoM2ishoK5XlgEE7jaRyvTUwp5uZnEH/jDfw8pIAqtg2R/AwORTZPtKu4GH13Tmq5sHDuBF5QTs/8kELWYhZf4tlCfCSqWZs4hw5DnR0fla0q0arjSTyBe1BX1kasGLY37eP5H8rj+ec4ltE6H1lVmziz3PE/sLDwSHn2B2cAAAAASUVORK5CYII="
                 },
                 {
-                    "Name": "StartPage",
-                    "Description": "The world's most private search engine",
-                    "Alias": "",
-                    "Method": "GET",
-                    "URLTemplate": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch",
-                    "IconURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADb0lEQVRYhb2VXWgUVxiGv2gtWHrXBqExO2d2z5leWC80ilRKDTHunAPWhEi0gYY2mZkorYm7Z260oCiiFaQ3/RNqG/CvqAheKLSUUgpWqBdCKdbc+XMji4mhmk2MXTdvL9r4U+dsZtasH3x3877v852/IapUuzDHz6HF0/jU1/g10CgEIUq+xoMgxLAf4qIX4ksvj3c6O/FiRa8k1dyMF4IQm/0QV4MQiNkFP4+P+/rw0jOFewN4I9D4PUHwk61xrSePVVWF9+agAo2xqsMfdcnLwU8U7ufQHGhMzkL4dJe9EN3xwrdiga9xq4LZXV/jkK+xsTePZT05LPXzaPvvcBZMOj/EvQ/yWDwzgMZRo4nG0a4+vGrSduYxP9DYF4QoG/QXKoa/349M8O+1ippgb6wlJCIvh25fY8rgs6bS9LuiRJ7GT0SoiwtARORpfG5YhWNGURDifJSoR2NlknAiop5+1Psh7kdczYJR5IcYiRAMJw1/OJDGL1EDdYWGc7R9LyY/+QzlLwYxdfgkcPoscO5H/FYtwMQ9HBmfAMaKwOhfwPBt4GYBuH4ddqQAQBFP1+VqAQCcifADgAaT4HLExyXAfPXM1TSvvTNX6NiQH29bPzC2tr2/uLZ9y/i6joERAHMjJVeGrn79/Q/ncejb09i95yA2fbQHbeu3YsmKjTuTxltc9dqOwv+bOfJno6iRq2ykSKiJVCbbFDc8lWpNM0eORHlZXH5YSVtnO+oPA/mIlVEtMSZfYgt1I8rDFvJWfX3zy5UNMqqFCVU2rESZCXU8lZZvEdHj+1hncXcpE+qg7ci/I8MdBYu78f6KjLv7TSaPYOQ4E3KICfWnLdSdGb935KlY4dMTMaEGZzJN0kzI74hoTiIIW7g7bEeVZg/C/SoJABERNablcsbdC7MFYXEV+6/6JIjIvs2EGmRCFcz7rEYZd0+kuHyPOfKmESLjhlVBTJdlZe1GvibLHPkuE7LLymTVa7Z8nR7b44Xp1sXMUaOG8zBl8WzvM0HEAuXyTebIomElSpaQHTWHaOTStR113wAxmUq7rTWHSHF3AxPqQTSEHGMiu6LmECwjNzEhpwyP1O0UdxfVHoLLbRUeqks1ByAisoQ8YNiK0nMBICKyufzmqbdByHPPDYCI5jIu99lCDTNHFhl3TzQ0rH7lHy2g5RVQKFbLAAAAAElFTkSuQmCC",
-                    "SuggestURLTemplate": "https://www.startpage.com/osuggestions?q={searchTerms}"
-                },
-                {
                     "Name": "Mojeek",
                     "Description": "A web search engine that provides unbiased, fast, and relevant search results combined with a no tracking privacy policy",
                     "Alias": "",
@@ -104,10 +57,6 @@
                     "IconURL": "data:image/x-icon;base64,AAABAAIAEBAAAAEAIACRAQAAJgAAACAgAAABACAAaQMAALcBAACJUE5HDQoaCgAAAA1JSERSAAAAEAAAABAIBgAAAB/z/2EAAAFYSURBVDiNpdJPS1RxFMbxzx2HkUKnnP4QBC5bBEH7JBKE/ryG1i1cBa2S6A1E9QKqjSu37YpAIkhFRGjXPo1SkizBScppMc8vLjItygOXc+73d85zHn73csio7r66pNqv/mu4h0aGW+hguAjjOEYPzLTD/zQ1MY0bGMd7PMVVTKKLJ3iDW7iSmed4hJ0mbuIihnAB1zCCvTg6j884F9ZK/zqeNXAbU5iNsybuR2gRx+LuHq5jCQ1cRtXAMhawE4HXeJC8FDYfNo+3YfuiVPKZ1Cv4kbpc2LvYhxPJ6+gVgRZOp16rsSL6cQD7UHdwNMo9/QuDIziV+lONnUzfWl1gFGPYxWaNdfQ/5UZNoB2BsxgvAmN5utgK62RbF1/CdvE1ix9jrpmDPbzIcHHwM2y75mAbD3En76vVzMsJ+n/lUKz9yuEgVqKd/L046GVjPQaxEt/+wv89fgPfOlBhjwLBfgAAAABJRU5ErkJggolQTkcNChoKAAAADUlIRFIAAAAgAAAAIAgGAAAAc3p69AAAAzBJREFUWIXt1k1oHVUUB/DfvPfyYYMRa2NfoVXqx0JwoyiChGIQjejG0u4Ul67EFuvGIrpQW9y5cCO6EKHoym5soQs3tkoVEnGhK0VFqKlN0qb5aprkjYs783rfnfeaLNyZPwwz99z/PfM/955zZtjC/x0ZHD0zelPSsfFzm+Lc1FeWkedtXtscL8iQc0vxuByGFdQxUMwt9xKU55ksywcL/jWsdxNcCrgbYxjFPcWiP/AlTmMVu/E89qGJNfyME3nmfHZD6giexhPYW4i9gFM4iXmo1WrefeobDRzHAdxXRF5iHw7iLfyC9/BQEugYDma5I/gcz+FNPFIEEeMAnsRrmGm1WqCBx3B/t23ENrxdRHt7D04T7+NRvIgdPXh1vIQ/i6BADR9iqRhfUT3XW5OXr6tiNw4nL+/GU4jcWw4a+Bon8JdwTg/jAwwlC2fwKb7DHrwq5EuKmHcvXsFdidgH8Ts0VmsDc32tlUNuRD6Dy4mABeHsPotsV/GxzrOex6EioBKz+Cji9WFnOVnra63Que3DQinG+EpIshiTmEtsJ/FFYjtfBBRjtS3g2Pg55VXgDiH5SqwXjlcR8+pCDsW8U8U95jUS3goutgWUD6+fHisfR4TaLTErlGGK7RiMxvP4tQtvJAloEVMVAf319q7sTBRfxjSVlnxnInROyJ+UtyvhXSn9dQiI0EzG00ISptils3HNCom5Ee9SzNuMgEtCL+/mOOUtbYI3FfNSAX3C1qYL1hJb1sXxRVxPbDXVgC7E/lIBg0LSpALknR/GAVEtR7z069mv2pr/ThXGGFLt+VOQdRyjbRs5joSm/tr5dPTMaEXAMG6LxmuKmq0vLae82HGrFJrnHUL7VZva43gA49jTSCa362zBK0JyeWf/RMobjsbXS6HHnzkrsS8m79gvfOqH8Ea6Azt0NpdFobxSjOiMbEnRAxJcxURiqwuJPoRnUwFNoRJKLKj2e6rNZUFoMClyfILfesw10yOYxJFiMsM/ukf2U8KbVhxVF0zgBbws/PisCL973+JsNwGTPRzF+LG4eiJpx9/jB+HYWpn8Wl5UVdZ9+X+HjX7nt7CFfwHgod+nXh1W3gAAAABJRU5ErkJggg=="
                 }
             ]
-        },
-        "SupportMenu": {
-            "Title": "LibreWolf Issue Tracker",
-            "URL": "https://codeberg.org/librewolf/issues"
         }
     }
 }
