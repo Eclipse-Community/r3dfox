@@ -108,6 +108,7 @@
   },
 
   "theme_experiment": {
+    "stylesheet": "experiment.css",
     "colors": {
       "button": "--button-background-color",
       "button_hover": "--button-background-color-hover",
