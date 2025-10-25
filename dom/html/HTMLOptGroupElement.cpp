@@ -12,6 +12,7 @@
 #include "mozilla/dom/HTMLSelectElement.h"  // SafeOptionListMutation
 #include "nsGkAtoms.h"
 #include "nsIFrame.h"
+#include "nsIFormControlFrame.h"
 #include "nsStyleConsts.h"
 
 NS_IMPL_NS_NEW_HTML_ELEMENT(OptGroup)

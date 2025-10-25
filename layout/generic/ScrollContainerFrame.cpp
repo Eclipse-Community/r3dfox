@@ -87,6 +87,7 @@
 #include "nsIFrameInlines.h"
 #include "nsILayoutHistoryState.h"
 #include "nsINode.h"
+#include "nsITextControlFrame.h"
 #include "nsIScrollbarMediator.h"
 #include "nsIXULRuntime.h"
 #include "nsLayoutUtils.h"
