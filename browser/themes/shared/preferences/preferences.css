@@ -245,7 +245,7 @@ setting-group:has(> moz-card).spotlight {
 }
 
 #category-librewolf > .category-icon {
-  list-style-image: url("chrome://browser/skin/preferences/category-librewolf.svg");
+  list-style-image: url("chrome://browser/skin/preferences/category-general.svg");
 }
 
 #category-sync > .category-icon {
