@@ -4,6 +4,8 @@ const CHROME_ONLY_TOGGLES = [
   "-moz-print-preview",
   "-moz-non-native-content-theme",
   "-moz-overlay-scrollbars",
+  "-moz-windows-default-theme",
+  "-moz-mac-graphite-theme",
   "-moz-mac-big-sur-theme",
   "-moz-menubar-drag",
   "-moz-windows-accent-color-in-titlebar",
