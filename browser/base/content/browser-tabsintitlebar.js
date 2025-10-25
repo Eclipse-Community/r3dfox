@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var CustomTitlebar = {
+var TabsInTitlebar = {
   init() {
     this._readPref();
     Services.prefs.addObserver(this._prefName, this);
@@ -40,7 +40,7 @@ var CustomTitlebar = {
   },
 
   get enabled() {
-    return document.documentElement.hasAttribute("customtitlebar");
+    return document.documentElement.getAttribute("tabsintitlebar") == "true";
   },
 
   observe(subject, topic) {
@@ -67,10 +67,15 @@ var CustomTitlebar = {
       this.systemSupported &&
       !window.fullScreen &&
       !Object.keys(this._disallowed).length;
+    if (allowed) {
+      document.documentElement.setAttribute("tabsintitlebar", "true");
+      document.documentElement.setAttribute("chromemargin", "0,2,2,2");
+    } else {
+      document.documentElement.removeAttribute("tabsintitlebar");
+      document.documentElement.removeAttribute("chromemargin");
+    }
 
-    document.documentElement.toggleAttribute("customtitlebar", allowed);
-
-    ToolbarIconColor.inferFromText("customtitlebar", allowed);
+    ToolbarIconColor.inferFromText("tabsintitlebar", allowed);
     TabBarVisibility.update(true);
   },
 
