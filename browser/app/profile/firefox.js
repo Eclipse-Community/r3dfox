@@ -34,7 +34,7 @@ pref("extensions.strictCompatibility", false);
 
 pref("extensions.webextOptionalPermissionPrompts", true);
 // If enabled, install origin permission verification happens after addons are downloaded.
-pref("extensions.postDownloadThirdPartyPrompt", true);
+pref("extensions.postDownloadThirdPartyPrompt", false);
 
 // Preferences for AMO integration
 pref("extensions.getAddons.cache.enabled", true);
@@ -238,9 +238,9 @@ pref("lightweightThemes.getMoreURL", "https://addons.mozilla.org/%LOCALE%/firefo
 #endif
 
 // UI tour experience.
-pref("browser.uitour.enabled", true);
+pref("browser.uitour.enabled", false);
 pref("browser.uitour.loglevel", "Error");
-pref("browser.uitour.url", "https://www.mozilla.org/%LOCALE%/firefox/%VERSION%/tour/");
+pref("browser.uitour.url", "");
 // How long to show a Hearbeat survey (two hours, in seconds)
 pref("browser.uitour.surveyDuration", 7200);
 
@@ -281,7 +281,7 @@ pref("browser.compactmode.show", true);
 
 // At startup, check if we're the default browser and prompt user if not.
 pref("browser.shell.checkDefaultBrowser", true);
-pref("browser.shell.shortcutFavicons",true);
+pref("browser.shell.shortcutFavicons", false);
 pref("browser.shell.mostRecentDateSetAsDefault", "");
 pref("browser.shell.skipDefaultBrowserCheckOnFirstRun", true);
 pref("browser.shell.didSkipDefaultBrowserCheckOnFirstRun", false);
@@ -404,7 +404,7 @@ pref("browser.urlbar.intentThreshold", "0.5");
 pref("browser.urlbar.nerThreshold", "0.5");
 
 // Whether to warm up network connections for autofill or search results.
-pref("browser.urlbar.speculativeConnect.enabled", true);
+pref("browser.urlbar.speculativeConnect.enabled", false);
 
 // Whether bookmarklets should be filtered out of Address Bar matches.
 // This is enabled for security reasons, when true it is still possible to
@@ -453,7 +453,7 @@ pref("browser.urlbar.perplexity.hasBeenInSearchMode", false);
 pref("browser.urlbar.unifiedSearchButton.always", false);
 
 // Enable trending suggestions and recent searches.
-pref("browser.urlbar.trending.featureGate", true);
+pref("browser.urlbar.trending.featureGate", false);
 pref("browser.urlbar.trending.requireSearchMode", false);
 pref("browser.urlbar.recentsearches.featureGate", true);
 
@@ -461,7 +461,7 @@ pref("browser.urlbar.recentsearches.featureGate", true);
 pref("browser.urlbar.richSuggestions.featureGate", true);
 pref("browser.search.param.search_rich_suggestions", "fen");
 
-// Feature gate pref for weather suggestions in the urlbar.
+// Feature gate pref for weather suggestions in the urlbar. make sure not enabled later
 pref("browser.urlbar.weather.featureGate", false);
 
 // Enable clipboard suggestions feature, the pref should be removed once stable.
@@ -480,11 +480,11 @@ pref("browser.urlbar.weather.uiTreatment", 0);
 
 // If `browser.urlbar.weather.featureGate` is true, this controls whether
 // weather suggestions are turned on.
-pref("browser.urlbar.suggest.weather", true);
+pref("browser.urlbar.suggest.weather", false);
 
 // If `browser.urlbar.trending.featureGate` is true, this controls whether
 // trending suggestions are turned on.
-pref("browser.urlbar.suggest.trending", true);
+pref("browser.urlbar.suggest.trending", false);
 
 // Whether non-sponsored quick suggest results are shown in the urlbar. This
 // pref is exposed to the user in the UI, and it's sticky so that its
@@ -686,14 +686,14 @@ pref("browser.urlbar.suggest.semanticHistory.minLength", 5);
 
 // If `browser.urlbar.addons.featureGate` is true, this controls whether
 // addons suggestions are turned on.
-pref("browser.urlbar.suggest.addons", true);
+pref("browser.urlbar.suggest.addons", false);
 
 // Feature gate pref for MDN suggestions in the urlbar.
 pref("browser.urlbar.mdn.featureGate", false);
 
 // If `browser.urlbar.mdn.featureGate` is true, this controls whether
 // mdn suggestions are turned on.
-pref("browser.urlbar.suggest.mdn", true);
+pref("browser.urlbar.suggest.mdn", false);
 
 // Feature gate pref for Yelp suggestions in the urlbar.
 pref("browser.urlbar.yelp.featureGate", false);
@@ -750,7 +750,7 @@ pref("browser.download.loglevel", "Error");
 // feedback from their action.
 pref("browser.download.saveLinkAsFilenameTimeout", 4000);
 
-pref("browser.download.useDownloadDir", true);
+pref("browser.download.useDownloadDir", false);
 pref("browser.download.folderList", 1);
 pref("browser.download.manager.addToRecentDocs", true);
 pref("browser.download.manager.resumeOnWakeDelay", 10000);
@@ -857,7 +857,7 @@ pref("browser.privacySegmentation.preferences.show", false);
 pref("browser.sessionhistory.max_entries", 50);
 
 // Built-in default permissions.
-pref("permissions.manager.defaultsUrl", "resource://app/defaults/permissions");
+pref("permissions.manager.defaultsUrl", "");
 
 // Set default fallback values for site permissions we want
 // the user to be able to globally change.
@@ -903,7 +903,7 @@ pref("browser.link.open_newwindow.override.external", -1);
 // 0: no restrictions - divert everything
 // 1: don't divert window.open at all
 // 2: don't divert window.open with features
-pref("browser.link.open_newwindow.restriction", 2);
+pref("browser.link.open_newwindow.restriction", 0);
 
 // If true, this pref causes windows opened by window.open to be forced into new
 // tabs (rather than potentially opening separate windows, depending on
@@ -986,11 +986,7 @@ pref("browser.tabs.hoverPreview.showThumbnails", true);
 
 pref("browser.tabs.groups.enabled", true);
 
-#ifdef NIGHTLY_BUILD
-pref("browser.tabs.groups.smart.enabled", true);
-#else
 pref("browser.tabs.groups.smart.enabled", false);
-#endif
 
 // KMEANS_WITH_ANCHOR or NEAREST_NEIGHBOR or LOGISTIC_REGRESSION
 pref("browser.tabs.groups.smart.suggestOtherTabsMethod", "NEAREST_NEIGHBOR");
@@ -1007,7 +1003,7 @@ pref("browser.tabs.dragDrop.moveOverThresholdPercent", 80);
 
 pref("browser.tabs.firefox-view.logLevel", "Warn");
 
-pref("browser.tabs.groups.smart.userEnabled", true);
+pref("browser.tabs.groups.smart.userEnabled", false);
 
 // allow_eval_* is enabled on Firefox Desktop only at this
 // point in time
@@ -1028,11 +1024,7 @@ pref("security.allow_parent_unrestricted_js_loads", false);
 pref("browser.tabs.min_inactive_duration_before_unload", 600000);
 
 // Does middleclick paste of clipboard to new tab button
-#ifdef UNIX_BUT_NOT_MAC
-pref("browser.tabs.searchclipboardfor.middleclick", true);
-#else
 pref("browser.tabs.searchclipboardfor.middleclick", false);
-#endif
 
 #if defined(XP_MACOSX)
   // During low memory periods, poll with this frequency (milliseconds)
@@ -1100,7 +1092,7 @@ pref("browser.tabs.allow_transparent_browser", false);
 pref("dom.disable_open_during_load",              true);
 
 // allow JS to move and resize existing windows
-pref("dom.disable_window_move_resize",            false);
+pref("dom.disable_window_move_resize",            true);
 // prevent JS from monkeying with window focus, etc
 pref("dom.disable_window_flip",                   true);
 
@@ -1257,8 +1249,8 @@ pref("browser.history_swipe_animation.disabled", false);
 
 pref("mousewheel.with_meta.action", 1);
 
-pref("browser.xul.error_pages.expert_bad_cert", false);
-pref("browser.xul.error_pages.show_safe_browsing_details_on_load", false);
+pref("browser.xul.error_pages.expert_bad_cert", true);
+pref("browser.xul.error_pages.show_safe_browsing_details_on_load", true);
 
 // Enable captive portal detection.
 pref("network.captive-portal-service.enabled", false);
@@ -1288,11 +1280,11 @@ pref("accessibility.typeaheadfind.linksonly", false);
 pref("accessibility.typeaheadfind.flashBar", 1);
 
 // Whether we can show the "Firefox Labs" section.
-pref("browser.preferences.experimental", true);
+pref("browser.preferences.experimental", false);
 // Whether we had to hide the "Firefox Labs" section because it would be empty.
 pref("browser.preferences.experimental.hidden", false);
 // Whether we show the "More from Mozilla" section.
-pref("browser.preferences.moreFromMozilla", true);
+pref("browser.preferences.moreFromMozilla", false);
 
 // Used by settings to track whether the user customized advanced
 // performance settings. Not used directly elsewhere.
@@ -1450,7 +1442,7 @@ pref("places.frecency.unvisitedTypedBonus", 200);
 pref("places.frecency.origins.alternative.featureGate", false);
 
 // Whether to warm up network connections for places: menus and places: toolbar.
-pref("browser.places.speculativeConnect.enabled", true);
+pref("browser.places.speculativeConnect.enabled", false);
 
 // if true, use full page zoom instead of text zoom
 pref("browser.zoom.full", true);
@@ -1742,9 +1734,9 @@ pref("prompts.defaultModalType", 3);
 // Whether to use the discrete Top Sites component.
 pref("browser.topsites.component.enabled", false);
 
-pref("browser.topsites.useRemoteSetting", true);
+pref("browser.topsites.useRemoteSetting", false);
 // Fetch sponsored Top Sites from Mozilla Tiles Service (Contile)
-pref("browser.topsites.contile.enabled", true);
+pref("browser.topsites.contile.enabled", false);
 pref("browser.topsites.contile.endpoint", "https://contile.services.mozilla.com/v1/tiles");
 
 // Whether to enable the Share-of-Voice feature for Sponsored Topsites via Contile.
@@ -1779,7 +1771,7 @@ pref("browser.newtabpage.activity-stream.unifiedAds.adsFeed.tiles.enabled", fals
 pref("browser.newtabpage.activity-stream.unifiedAds.ohttp.enabled", false);
 
 // Weather widget for newtab
-pref("browser.newtabpage.activity-stream.showWeather", true);
+pref("browser.newtabpage.activity-stream.showWeather", false);
 pref("browser.newtabpage.activity-stream.weather.query", "");
 pref("browser.newtabpage.activity-stream.weather.display", "simple");
 
@@ -2024,6 +2016,9 @@ pref("browser.newtabpage.activity-stream.showSponsored", false);
 pref("browser.newtabpage.activity-stream.showSponsoredTopSites", false);
 pref("browser.newtabpage.activity-stream.system.showSponsored", false);
 
+// Remove default topssites fron newtab
+pref("browser.newtabpage.activity-stream.default.sites", "");
+
 // The pref controls if search hand-off is enabled for Activity Stream.
 pref("browser.newtabpage.activity-stream.improvesearch.handoffToAwesomebar", true);
 
@@ -2074,9 +2069,7 @@ pref("toolkit.startup.max_resumed_crashes", 3);
 
 // Whether to use RegisterApplicationRestart to restart the browser and resume
 // the session on next Windows startup
-#if defined(XP_WIN)
-  pref("toolkit.winRegisterApplicationRestart", true);
-#endif
+pref("toolkit.winRegisterApplicationRestart", false);
 
 // The values of preferredAction and alwaysAskBeforeHandling before pdf.js
 // became the default.
@@ -2103,7 +2096,7 @@ pref("sidebar.animation.expand-on-hover.duration-ms", 400);
 // This pref is used to store user customized tools in the sidebar launcher and shouldn't be changed.
 // See https://firefox-source-docs.mozilla.org/browser/components/sidebar/docs/index.html for ways
 // you can introduce a new tool to the sidebar launcher.
-pref("sidebar.main.tools", "");
+pref("sidebar.main.tools", "history");
 pref("sidebar.verticalTabs", false);
 pref("sidebar.visibility", "always-show");
 // Sidebar UI state is stored per-window via session restore. Use this pref
@@ -2114,7 +2107,7 @@ pref("sidebar.expandOnHover", true);
 pref("sidebar.old-sidebar.has-used", false);
 pref("sidebar.new-sidebar.has-used", false);
 
-pref("browser.ml.chat.enabled", true);
+pref("browser.ml.chat.enabled", false);
 pref("browser.ml.chat.hideLocalhost", true);
 pref("browser.ml.chat.prompt.prefix", '{"l10nId":"genai-prompt-prefix-selection"}');
 pref("browser.ml.chat.prompts.0", '{"id":"summarize","l10nId":"genai-prompts-summarize"}');
@@ -2161,7 +2154,7 @@ pref("browser.uiCustomization.state", "");
 
 // If set to false, FxAccounts and Sync will be unavailable.
 // A restart is mandatory after flipping that preference.
-pref("identity.fxaccounts.enabled", true);
+pref("identity.fxaccounts.enabled", false);
 
 // The remote FxA root content URL. Must use HTTPS.
 pref("identity.fxaccounts.remote.root", "https://accounts.firefox.com/");
@@ -2252,7 +2245,7 @@ pref("identity.fxaccounts.telemetry.clientAssociationPing.enabled", true);
 #endif
 
 pref("media.gmp-gmpopenh264.visible", true);
-pref("media.gmp-gmpopenh264.enabled", true);
+pref("media.gmp-gmpopenh264.enabled", false);
 
 pref("media.videocontrols.picture-in-picture.enabled", true);
 pref("media.videocontrols.picture-in-picture.audio-toggle.enabled", true);
@@ -2300,7 +2293,7 @@ pref("toolkit.telemetry.updatePing.enabled", false);
 pref("toolkit.telemetry.bhrPing.enabled", false);
 
 // Enable GMP support in the addon manager.
-pref("media.gmp-provider.enabled", true);
+pref("media.gmp-provider.enabled", false);
 
 // Enable Dynamic First-Party Isolation by default.
 pref("network.cookie.cookieBehavior", 5 /* BEHAVIOR_REJECT_TRACKER_AND_PARTITION_FOREIGN */);
@@ -2409,7 +2402,7 @@ pref("browser.contentblocking.features.strict", "tp,tpPrivate,cookieBehavior5,co
 pref("browser.contentblocking.customBlockList.preferences.ui.enabled", false);
 
 // Enable Protections report's Lockwise card by default.
-pref("browser.contentblocking.report.lockwise.enabled", true);
+pref("browser.contentblocking.report.lockwise.enabled", false);
 
 // Disable rotections report's Monitor card by default. The new Monitor API does
 // not support this feature as of now. See Bug 1815751.
@@ -2419,7 +2412,7 @@ pref("browser.contentblocking.report.monitor.enabled", false);
 pref("browser.contentblocking.report.proxy.enabled", false);
 
 // Disable the mobile promotion by default.
-pref("browser.contentblocking.report.show_mobile_app", true);
+pref("browser.contentblocking.report.show_mobile_app", false);
 
 // Locales in which Send to Device emails are supported
 // The most recent list of supported locales can be found at https://github.com/mozilla/bedrock/blob/6a08c876f65924651554decc57b849c00874b4e7/bedrock/settings/base.py#L963
@@ -2761,7 +2754,7 @@ pref("toolkit.coverage.opt-out", true);
 pref("toolkit.coverage.endpoint.base", "");
 
 // Discovery prefs
-pref("browser.discovery.enabled", true);
+pref("browser.discovery.enabled", false);
 pref("browser.discovery.containers.enabled", true);
 pref("browser.discovery.sites", "addons.mozilla.org");
 
@@ -2781,7 +2774,7 @@ pref("browser.toolbars.keyboard_navigation", true);
 // "newtab": Show on the New Tab Page
 // "always": Always show
 // "never": Never show
-pref("browser.toolbars.bookmarks.visibility", "newtab");
+pref("browser.toolbars.bookmarks.visibility", "always");
 
 // Visibility of the "Show Other Bookmarks" menuitem in the
 // bookmarks toolbar contextmenu.
@@ -2796,16 +2789,16 @@ pref("security.certerrors.felt-privacy-v1", false);
 // This pref will surface existing Firefox Account information
 // as a button next to the hamburger menu. It allows
 // quick access to sign-in and manage your Firefox Account.
-pref("identity.fxaccounts.toolbar.enabled", true);
+pref("identity.fxaccounts.toolbar.enabled", false);
 pref("identity.fxaccounts.toolbar.accessed", false);
-pref("identity.fxaccounts.toolbar.defaultVisible", true);
+pref("identity.fxaccounts.toolbar.defaultVisible", false);
 
 // Prefs to control Firefox Account panels that shows call to actions
 // for other supported Mozilla products
-pref("identity.fxaccounts.toolbar.pxiToolbarEnabled", true);
-pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.monitorEnabled", true);
-pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.relayEnabled", true);
-pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.vpnEnabled", true);
+pref("identity.fxaccounts.toolbar.pxiToolbarEnabled", false);
+pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.monitorEnabled", false);
+pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.relayEnabled", false);
+pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.vpnEnabled", false);
 
 // Prefs to control Mozilla account panels that shows an updated flow
 // for users who don't have sync enabled
@@ -3196,9 +3189,7 @@ pref("first-startup.timeout", 30000);
 // Enable the default browser agent.
 // The agent still runs as scheduled if this pref is disabled,
 // but it exits immediately before taking any action.
-#ifdef XP_WIN
-  pref("default-browser-agent.enabled", true);
-#endif
+pref("default-browser-agent.enabled", false);
 
 // Test Prefs that do nothing for testing
 #if defined(EARLY_BETA_OR_EARLIER)
@@ -3364,7 +3355,7 @@ pref("startup.homepage_override_url_nimbus", "");
 pref("startup.homepage_override_nimbus_maxVersion", "");
 pref("startup.homepage_override_nimbus_minVersion", "");
 // Pref to disable all What's New pages
-pref("startup.homepage_override_nimbus_disable_wnp", false);
+pref("startup.homepage_override_nimbus_disable_wnp", true);
 
 // Pref to enable the content relevancy feature.
 pref("toolkit.contentRelevancy.enabled", false);
