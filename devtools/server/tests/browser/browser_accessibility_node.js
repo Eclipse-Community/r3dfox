@@ -43,7 +43,6 @@ add_task(async function () {
       tag: "button",
       "margin-right": "0px",
       id: "button",
-      formatting: "block",
       "margin-bottom": "0px",
     },
   });
