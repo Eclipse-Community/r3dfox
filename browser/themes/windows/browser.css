@@ -34,6 +34,16 @@
       background-color: light-dark(rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0.6));
     }
 
+        /* Accent color in titlebar overrides Mica. */
+        @media not (-moz-windows-accent-color-in-titlebar) {
+          /* Hide the Firefox buttons since Windows draws their own.
+           * FIXME(emilio): Find a way of hiding the native buttons, or make them
+           * taller, this is very hacky. */
+          .titlebar-buttonbox {
+            opacity: 0;
+          }
+        }
+
     /* Using a semitransparent background preserves the tinting from the backdrop.
      * Note that the toolbar text color from browser-colors.css should be ok,
      * as the backdrop matches our color scheme. The .6 matches what we do for
