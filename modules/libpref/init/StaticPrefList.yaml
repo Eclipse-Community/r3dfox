@@ -19131,7 +19131,7 @@
 # * 3: Use both. (Never a default; not well-tested.)
 - name: widget.windows.fullscreen_marking_method
   type: RelaxedAtomicUint32
-  value: 2
+  value: 0
   mirror: always
 
 # Whether to open the Windows file and folder pickers "remotely" (in a utility
