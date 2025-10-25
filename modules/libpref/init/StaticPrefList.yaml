@@ -5533,11 +5533,7 @@
 # conditions in `dom/webgpu/tests/mochitest/*.toml` accordingly.
 - name: dom.webgpu.enabled
   type: RelaxedAtomicBool
-#ifdef XP_WIN
-  value: true
-#else
-  value: @IS_EARLY_BETA_OR_EARLIER@
-#endif
+  value: false
   mirror: always
 
 # Is WebGPU allowed to run in the parent process? This should be false if
@@ -6547,7 +6543,7 @@
 # Whether to use Geoclue location provider (if available on the system).
 - name: geo.provider.use_geoclue
   type: bool
-  value: true
+  value: false
   mirror: always
 
 # Whether to always provide high location accuracy, even if site
@@ -11093,7 +11089,7 @@
 # 0=Allowed, 1=Blocked, 5=All Blocked
 - name: media.autoplay.default
   type: int32_t
-  value: 1
+  value: 5
   mirror: always
 
 # File-backed MediaCache size.
@@ -11158,7 +11154,7 @@
 # file-backed MediaCache is used.
 - name: media.memory_cache_max_size
   type: uint32_t
-  value: 8192        # Measured in KiB
+  value: 65536       # Measured in KiB
   mirror: always
 
 # Don't create more memory-backed MediaCaches if their combined size would go
@@ -11284,17 +11280,7 @@
 # Encrypted Media Extensions
 - name: media.eme.enabled
   type: bool
-#if defined(XP_LINUX) && !defined(MOZ_WIDGET_ANDROID)
-  # On Linux EME is visible but disabled by default. This is so that the "Play
-  # DRM content" checkbox in the Firefox UI is unchecked by default. DRM
-  # requires downloading and installing proprietary binaries, which users on an
-  # open source operating systems didn't opt into. The first time a site using
-  # EME is encountered, the user will be prompted to enable DRM, whereupon the
-  # EME plugin binaries will be downloaded if permission is granted.
   value: false
-#else
-  value: true
-#endif
   mirror: always
 
 # Whether we expose the functionality proposed in
@@ -12748,11 +12734,7 @@
 
 - name: media.webrtc.hw.h264.enabled
   type: bool
-#if defined(MOZ_WIDGET_ANDROID)
   value: true
-#else
-  value: false
-#endif
   mirror: always
 
 - name: media.webrtc.codec.video.av1.enabled
@@ -13132,7 +13114,7 @@
 #   2 - allow the cross-origin authentication as well.
 - name: network.auth.subresource-http-auth-allow
   type: uint32_t
-  value: 2
+  value: 1
   mirror: always
 
 # Sub-resources HTTP-authentication for cross-origin images:
@@ -13209,21 +13191,21 @@
 # Changes cookieBehavior=5 to block third-party cookies by default
 - name: network.cookie.cookieBehavior.optInPartitioning
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # Changes cookieBehavior=5 to block third-party cookies in the private browsing
 # mode.
 - name: network.cookie.cookieBehavior.optInPartitioning.pbmode
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # Whether to block third-party tracker cookie and storage access when
 # cookieBehavior=5.
 - name: network.cookie.cookieBehavior.trackerCookieBlocking
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # Whether to support CHIPS(Cookies Having Independent Partitioned State).
@@ -13484,7 +13466,7 @@
 # 0=full URI, 1=scheme+host+port+path, 2=scheme+host+port.
 - name: network.http.referer.XOriginTrimmingPolicy
   type: uint32_t
-  value: 0
+  value: 2
   mirror: always
   do_not_use_directly: true
 
@@ -14094,7 +14076,7 @@
 # be limited by "network.http.speculative-parallel-limit".
 - name: network.early-hints.preconnect.max_connections
   type: uint32_t
-  value: 10
+  value: 0
   mirror: always
 
 # How long we should wait for EarlyHintPreloader to be used.
@@ -14324,7 +14306,7 @@
 # This preference can be used to turn off DNS prefetch.
 - name: network.dns.disablePrefetch
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # This preference controls whether .onion hostnames are
@@ -14447,7 +14429,7 @@
 # SOCKS4a proxy.
 - name: network.proxy.socks_remote_dns
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # When receiving a network change event, the time (in ms) we wait to reload the
@@ -14592,13 +14574,13 @@
 # 4 - reserved/off, 5 off by choice
 - name: network.trr.mode
   type: RelaxedAtomicUint32
-  value: 0
+  value: 5
   mirror: always
 
 # Default global TRR provider
 - name: network.trr.default_provider_uri
   type: String
-  value: "https://mozilla.cloudflare-dns.com/dns-query"
+  value: "https://doh.dns4all.eu/dns-query"
   mirror: never
 
 # If true, retry TRR for recoverable errors once.
@@ -14722,7 +14704,7 @@
 # Allow RFC1918 address in responses?
 - name: network.trr.allow-rfc1918
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # When true, it only sends AAAA when the system has IPv6 connectivity
@@ -16174,14 +16156,14 @@
 # false - Do not send header to indicate opting-in
 - name: privacy.globalprivacycontrol.enabled
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # Controls whether or not GPC signals are sent in private browsing mode.
 # This can be overridden by `privacy.globalprivacycontrol.enabled` as true.
 - name: privacy.globalprivacycontrol.pbmode.enabled
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # Controls whether or not GPC signals are sent. Meant to act as a third option
@@ -16189,7 +16171,7 @@
 # the Sec-GPC HTTP header.
 - name: privacy.globalprivacycontrol.functionality.enabled
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # Lower the priority of network loads for resources on the tracking protection
@@ -16284,7 +16266,7 @@
 # NOTE: We'd like this to be a "hidden" pref once StaticPrefs supports it.
 - name: privacy.resistFingerprinting.block_mozAddonManager
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # The log level for browser console messages logged in RFPHelper.sys.mjs. Change to
@@ -16560,7 +16542,7 @@
 # URIs. The query parameters are separated by a space.
 - name: privacy.query_stripping.strip_list
   type: String
-  value: ""
+  value: "__hsfp __hssc __hstc __s _hsenc _openstat dclid fbclid gbraid gclid hsCtaTracking igshid mc_eid ml_subscriber ml_subscriber_hash msclkid oft_c oft_ck oft_d oft_id oft_ids oft_k oft_lk oft_sk oly_anon_id oly_enc_id rb_clickid s_cid twclid vero_conv vero_id wbraid wickedid yclid"
   mirror: never
 
 # This controls if we will do the query string stripping for redirects.
@@ -17334,7 +17316,7 @@
 
 - name: security.tls.enable_0rtt_data
   type: RelaxedAtomicBool
-  value: true
+  value: false
   mirror: always
 
 - name: security.tls.enable_kyber
@@ -18398,7 +18380,7 @@
 
 - name: webgl.disabled
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 - name: webgl.enable-debug-renderer-info
