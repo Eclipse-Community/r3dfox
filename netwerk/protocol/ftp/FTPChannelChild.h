@@ -75,12 +75,12 @@ class FTPChannelChild final : public PFTPChannelChild,
 
   mozilla::ipc::IPCResult RecvOnStartRequest(const nsresult& aChannelStatus,
                                              const int64_t& aContentLength,
-                                             const nsCString& aContentType,
+                                             const nsACString& aContentType,
                                              const PRTime& aLastModified,
-                                             const nsCString& aEntityID,
+                                             const nsACString& aEntityID,
                                              const URIParams& aURI) override;
   mozilla::ipc::IPCResult RecvOnDataAvailable(const nsresult& aChannelStatus,
-                                              const nsCString& aData,
+                                              const nsACString& aData,
                                               const uint64_t& aOffset,
                                               const uint32_t& aCount) override;
   mozilla::ipc::IPCResult RecvOnStopRequest(const nsresult& aChannelStatus,
@@ -92,10 +92,10 @@ class FTPChannelChild final : public PFTPChannelChild,
 
   void DoOnStartRequest(const nsresult& aChannelStatus,
                         const int64_t& aContentLength,
-                        const nsCString& aContentType,
-                        const PRTime& aLastModified, const nsCString& aEntityID,
+                        const nsACString& aContentType,
+                        const PRTime& aLastModified, const nsACString& aEntityID,
                         const URIParams& aURI);
-  void DoOnDataAvailable(const nsresult& aChannelStatus, const nsCString& aData,
+  void DoOnDataAvailable(const nsresult& aChannelStatus, const nsACString& aData,
                          const uint64_t& aOffset, const uint32_t& aCount);
   void DoOnStopRequest(const nsresult& StatusCode, const nsCString& aErrorMsg,
                        bool aUseUTF8);
@@ -122,7 +122,7 @@ class FTPChannelChild final : public PFTPChannelChild,
 
   PRTime mLastModifiedTime;
   uint64_t mStartPos;
-  nsCString mEntityID;
+  nsACString mEntityID;
 
   // Set if SendSuspend is called. Determines if SendResume is needed when
   // diverting callbacks to parent.

@@ -170,9 +170,9 @@ FTPChannelChild::AsyncOpen(nsIStreamListener* aListener) {
   // add ourselves to the load group.
   if (mLoadGroup) mLoadGroup->AddRequest(this, nullptr);
 
-  mozilla::ipc::AutoIPCStream autoStream;
-  autoStream.Serialize(mUploadStream,
-                       static_cast<ContentChild*>(gNeckoChild->Manager()));
+  Maybe<mozilla::ipc::IPCStream> ipcStream;
+  mozilla::ipc::SerializeIPCStream(do_AddRef(mUploadStream), ipcStream,
+                                   /* aAllowLazy */ false);
 
   uint32_t loadFlags = 0;
   GetLoadFlags(&loadFlags);
@@ -181,7 +181,7 @@ FTPChannelChild::AsyncOpen(nsIStreamListener* aListener) {
   SerializeURI(nsBaseChannel::URI(), openArgs.uri());
   openArgs.startPos() = mStartPos;
   openArgs.entityID() = mEntityID;
-  openArgs.uploadStream() = autoStream.TakeOptionalValue();
+  openArgs.uploadStream() = ipcStream;
   openArgs.loadFlags() = loadFlags;
 
   nsCOMPtr<nsILoadInfo> loadInfo = LoadInfo();
@@ -223,13 +223,13 @@ nsresult FTPChannelChild::OpenContentStream(bool aAsync,
 
 mozilla::ipc::IPCResult FTPChannelChild::RecvOnStartRequest(
     const nsresult& aChannelStatus, const int64_t& aContentLength,
-    const nsCString& aContentType, const PRTime& aLastModified,
-    const nsCString& aEntityID, const URIParams& aURI) {
+    const nsACString& aContentType, const PRTime& aLastModified,
+    const nsACString& aEntityID, const URIParams& aURI) {
   LOG(("FTPChannelChild::RecvOnStartRequest [this=%p]\n", this));
 
   mEventQ->RunOrEnqueue(new NeckoTargetChannelFunctionEvent(
       this, [self = UnsafePtr<FTPChannelChild>(this), aChannelStatus,
-             aContentLength, aContentType, aLastModified, aEntityID, aURI]() {
+             aContentLength, aContentType = nsCString(aContentType), aLastModified, aEntityID = nsCString(aEntityID), aURI]() {
         self->DoOnStartRequest(aChannelStatus, aContentLength, aContentType,
                                aLastModified, aEntityID, aURI);
       }));
@@ -238,9 +238,9 @@ mozilla::ipc::IPCResult FTPChannelChild::RecvOnStartRequest(
 
 void FTPChannelChild::DoOnStartRequest(const nsresult& aChannelStatus,
                                        const int64_t& aContentLength,
-                                       const nsCString& aContentType,
+                                       const nsACString& aContentType,
                                        const PRTime& aLastModified,
-                                       const nsCString& aEntityID,
+                                       const nsACString& aEntityID,
                                        const URIParams& aURI) {
   mDuringOnStart = true;
   RefPtr<FTPChannelChild> self = this;
@@ -277,12 +277,12 @@ void FTPChannelChild::DoOnStartRequest(const nsresult& aChannelStatus,
 }
 
 mozilla::ipc::IPCResult FTPChannelChild::RecvOnDataAvailable(
-    const nsresult& aChannelStatus, const nsCString& aData,
+    const nsresult& aChannelStatus, const nsACString& aData,
     const uint64_t& aOffset, const uint32_t& aCount) {
   LOG(("FTPChannelChild::RecvOnDataAvailable [this=%p]\n", this));
 
   mEventQ->RunOrEnqueue(new NeckoTargetChannelFunctionEvent(
-      this, [self = UnsafePtr<FTPChannelChild>(this), aChannelStatus, aData,
+      this, [self = UnsafePtr<FTPChannelChild>(this), aChannelStatus, aData = nsCString(aData),
              aOffset, aCount]() {
         self->DoOnDataAvailable(aChannelStatus, aData, aOffset, aCount);
       }));
@@ -291,7 +291,7 @@ mozilla::ipc::IPCResult FTPChannelChild::RecvOnDataAvailable(
 }
 
 void FTPChannelChild::DoOnDataAvailable(const nsresult& aChannelStatus,
-                                        const nsCString& aData,
+                                        const nsACString& aData,
                                         const uint64_t& aOffset,
                                         const uint32_t& aCount) {
   LOG(("FTPChannelChild::DoOnDataAvailable [this=%p]\n", this));
@@ -530,11 +530,6 @@ void FTPChannelChild::SetupNeckoTarget() {
   nsCOMPtr<nsILoadInfo> loadInfo = LoadInfo();
   mNeckoTarget =
       nsContentUtils::GetEventTargetByLoadInfo(loadInfo, TaskCategory::Network);
-  if (!mNeckoTarget) {
-    return;
-  }
-
-  gNeckoChild->SetEventTargetForActor(this, mNeckoTarget);
 }
 
 }  // namespace net

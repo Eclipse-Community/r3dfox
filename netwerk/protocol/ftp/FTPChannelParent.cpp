@@ -114,8 +114,14 @@ bool FTPChannelParent::DoAsyncOpen(const URIParams& aURI,
     return SendFailedAsyncOpen(rv);
   }
 
+  nsAutoCString remoteType;
+  rv = GetRemoteType(remoteType);
+  if (NS_FAILED(rv)) {
+    return SendFailedAsyncOpen(rv);
+  }
+
   nsCOMPtr<nsILoadInfo> loadInfo;
-  rv = mozilla::ipc::LoadInfoArgsToLoadInfo(aLoadInfoArgs,
+  rv = mozilla::ipc::LoadInfoArgsToLoadInfo(aLoadInfoArgs, remoteType,
                                             getter_AddRefs(loadInfo));
   if (NS_FAILED(rv)) {
     return SendFailedAsyncOpen(rv);
@@ -308,13 +314,6 @@ FTPChannelParent::SetParentListener(ParentChannelListener* aListener) {
 NS_IMETHODIMP
 FTPChannelParent::NotifyClassificationFlags(uint32_t aClassificationFlags,
                                             bool aIsThirdParty) {
-  // One day, this should probably be filled in.
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-FTPChannelParent::NotifyFlashPluginStateChanged(
-    nsIHttpChannel::FlashPluginState aState) {
   // One day, this should probably be filled in.
   return NS_OK;
 }

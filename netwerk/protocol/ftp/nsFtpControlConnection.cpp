@@ -101,7 +101,7 @@ nsresult nsFtpControlConnection::Connect(nsIProxyInfo* proxyInfo,
   mSocket->SetQoSBits(gFtpHandler->GetControlQoSBits());
 
   // proxy transport events back to current thread
-  if (eventSink) mSocket->SetEventSink(eventSink, GetCurrentEventTarget());
+  if (eventSink) mSocket->SetEventSink(eventSink, GetCurrentSerialEventTarget());
 
   // open buffered, blocking output stream to socket.  so long as commands
   // do not exceed 1024 bytes in length, the writing thread (the main thread)
@@ -134,7 +134,7 @@ nsresult nsFtpControlConnection::WaitData(
   NS_ENSURE_STATE(mSocketInput);
 
   mListener = listener;
-  return mSocketInput->AsyncWait(this, 0, 0, GetCurrentEventTarget());
+  return mSocketInput->AsyncWait(this, 0, 0, GetCurrentSerialEventTarget());
 }
 
 nsresult nsFtpControlConnection::Disconnect(nsresult status) {
