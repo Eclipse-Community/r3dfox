@@ -140,7 +140,6 @@ def make_repackage_signing_description(config, jobs):
             "worker": {
                 "implementation": "scriptworker-signing",
                 "upstream-artifacts": upstream_artifacts,
-                "max-run-time": 3600,
             },
             "scopes": scopes,
             "dependencies": dependencies,

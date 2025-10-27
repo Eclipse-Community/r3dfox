@@ -88,7 +88,6 @@ def make_release_generate_checksums_signing_description(config, jobs):
             "worker": {
                 "implementation": "scriptworker-signing",
                 "upstream-artifacts": upstream_artifacts,
-                "max-run-time": 3600,
             },
             "scopes": [
                 signing_cert_scope,
