@@ -1,6 +1,15 @@
 {
   "data": [
     {
+      "name": "Bun",
+      "schema": 1761350704013,
+      "status": "current",
+      "version": "1.3.1",
+      "browserid": "bun",
+      "id": "5b1d3f1a-7b74-41f4-abaa-1e79f400adf3",
+      "last_modified": 1761551445786
+    },
+    {
       "name": "Firefox for Android",
       "schema": 1760745904292,
       "status": "planned",
@@ -71,15 +80,6 @@
       "browserid": "firefox",
       "id": "759d8212-1e45-4ccc-ac65-75ecfc260633",
       "last_modified": 1760945408193
-    },
-    {
-      "name": "Bun",
-      "schema": 1760486703305,
-      "status": "current",
-      "version": "1.3.0",
-      "browserid": "bun",
-      "id": "21692e09-c542-4096-a4de-5b0fdb3e58e9",
-      "last_modified": 1760513905109
     },
     {
       "name": "Opera Android",
@@ -388,5 +388,5 @@
       "last_modified": 1665656484764
     }
   ],
-  "timestamp": 1760945408222
+  "timestamp": 1761551445786
 }

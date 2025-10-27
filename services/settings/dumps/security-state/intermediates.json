@@ -17739,24 +17739,6 @@
       "last_modified": 1666727870437
     },
     {
-      "schema": 1666727373633,
-      "derHash": "4i5rJZCOEQemB68GDgsk5QxtlWL/BPRVvg+N9BpQMsA=",
-      "subject": "CN=SZAFIR Trusted CA2,O=Krajowa Izba Rozliczeniowa S.A.,C=PL",
-      "subjectDN": "MFQxCzAJBgNVBAYTAlBMMSgwJgYDVQQKDB9LcmFqb3dhIEl6YmEgUm96bGljemVuaW93YSBTLkEuMRswGQYDVQQDDBJTWkFGSVIgVHJ1c3RlZCBDQTI=",
-      "whitelist": false,
-      "attachment": {
-        "hash": "b998d1830338d9ca1bada5e5e1a33ef3a5f89c9c13ccfa1b8ea7a2f3aea980a1",
-        "size": 1825,
-        "filename": "Ea2smccTC5mFDdTrs5gKD6HaYthL4lhPx97QmLgbFQc=.pem",
-        "location": "security-state-staging/intermediates/d47f17a5-7858-4e12-ac5e-0454f2a87e62.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "Ea2smccTC5mFDdTrs5gKD6HaYthL4lhPx97QmLgbFQc=",
-      "crlite_enrolled": false,
-      "id": "43f6861b-21c6-4ebd-a31e-6d9e61e879af",
-      "last_modified": 1666727870423
-    },
-    {
       "schema": 1666727393606,
       "derHash": "mH/y47JaOhTLhD2Qezx/AHwnSSGvwQAX+F1PrnsMuLY=",
       "subject": "CN=DigiCert Assured ID TLS RSA4096 SHA256 2022 CA1,O=DigiCert\\, Inc.,C=US",
@@ -30717,5 +30699,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1761145022827
+  "timestamp": 1761490622610
 }
