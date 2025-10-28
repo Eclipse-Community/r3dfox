@@ -256,7 +256,7 @@ void RDDProcessHost::DestroyProcess() {
 void RDDProcessHost::ResolvePromise() {
   MOZ_ASSERT(NS_IsMainThread());
 
-  if (!mLaunchPromiseSettled) {
+  if (mLaunchPromise && !mLaunchPromiseSettled) {
     mLaunchPromise->Resolve(true, __func__);
     mLaunchPromiseSettled = true;
   }
@@ -268,7 +268,7 @@ void RDDProcessHost::ResolvePromise() {
 void RDDProcessHost::RejectPromise() {
   MOZ_ASSERT(NS_IsMainThread());
 
-  if (!mLaunchPromiseSettled) {
+  if (mLaunchPromise && !mLaunchPromiseSettled) {
     mLaunchPromise->Reject(NS_ERROR_FAILURE, __func__);
     mLaunchPromiseSettled = true;
   }
