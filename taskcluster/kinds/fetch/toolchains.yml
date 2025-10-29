@@ -668,12 +668,8 @@ windows-rs:
         add-prefix: windows-rs/
 
 libxml2:
-    description: Source of the libxml2 library
+    description: libxml2 2.9.12 source code
     fetch:
-        type: static-url
-        url: https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.9.12/libxml2-v2.9.12.tar.gz
-        sha256: 98bfa7a9a5e2a75638422050740448ee9f02bf4dc2075c9822d7747d5ff9e617
-        size: 5233674
-        artifact-name: libxml2.tar.zst
-        strip-components: 1
-        add-prefix: libxml2/
+        type: git
+        repo: https://gitlab.gnome.org/GNOME/libxml2
+        revision: b48e77cf4f6fa0792c5f4b639707a2b0675e461b
