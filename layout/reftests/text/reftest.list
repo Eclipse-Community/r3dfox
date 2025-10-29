@@ -361,5 +361,8 @@ pref(intl.icu4x.segmenter.enabled,false) == ethiopic-wordspace.html ethiopic-wor
 != webkit-text-security-5.html?square webkit-text-security-5.html?circle
 == webkit-text-security-placeholder.html webkit-text-security-placeholder-ref.html
 
+# Test for Kannada AAT shaping bug 1994921
+!= kannada-1.html kannada-1-notref.html
+
 # Reset default prefs.
 defaults
