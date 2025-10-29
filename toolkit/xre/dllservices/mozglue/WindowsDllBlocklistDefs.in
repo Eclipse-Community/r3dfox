@@ -357,6 +357,9 @@ BROWSER_PROCESS += [
 
     # old versions of KeyScrambler (bug 1994657)
     DllBlocklistEntry("KeyScramblerIE.dll", (3, 17, 0, 4)),
+
+    # 123SyncCloud/123CloudStorage shell extension (bug 1996038)
+    DllBlocklistEntry("MFCopyHook.dll", ALL_VERSIONS),
 ]
 
 CHILD_PROCESSES += [
