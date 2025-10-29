@@ -2477,6 +2477,12 @@ void TextControlState::UnbindFromFrame(nsTextControlFrame* aFrame) {
     DebugOnly<bool> ok = SetValue(value, ValueSetterOption::ByInternalAPI);
     // TODO Find something better to do if this fails...
     NS_WARNING_ASSERTION(ok, "SetValue() couldn't allocate memory");
+    // And mark the selection as dirty to make sure the selection will be
+    // restored properly in RestoreSelectionState. See bug 1993351.
+    if (IsSelectionCached()) {
+      SelectionProperties& props = GetSelectionProperties();
+      props.SetIsDirty();
+    }
   }
 }
 
