@@ -354,6 +354,9 @@ BROWSER_PROCESS += [
 
     # Qihoo 360 Total Security (bug 1934258)
     DllBlocklistEntry("chromesafe64.dll", (2, 0, 0, 26)),
+
+    # old versions of KeyScrambler (bug 1994657)
+    DllBlocklistEntry("KeyScramblerIE.dll", (3, 17, 0, 4)),
 ]
 
 CHILD_PROCESSES += [
