@@ -2580,7 +2580,7 @@ def repackage_msi(
 @CommandArgument(
     "--channel",
     type=str,
-    choices=["official", "beta", "aurora", "nightly", "unofficial"],
+    choices=["official", "beta", "esr", "aurora", "nightly", "unofficial"],
     help="Release channel.",
 )
 @CommandArgument(
