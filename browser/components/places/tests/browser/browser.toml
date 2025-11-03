@@ -193,6 +193,8 @@ skip-if = ["verify && debug && os == 'win'"]
 
 ["browser_paste_resets_cut_highlights.js"]
 
+["browser_recursive_hierarchies.js"]
+
 ["browser_remove_bookmarks.js"]
 
 ["browser_sidebar_bookmarks_telemetry.js"]
