@@ -10110,42 +10110,6 @@
       "last_modified": 1702353423368
     },
     {
-      "schema": 1700646486489,
-      "derHash": "hA6N0d/JwMUNKcqFEpkc8u19zd8SQQN1/QpdR/j79XY=",
-      "subject": "CN=CommScope Public Trust RSA Sub-CA-02-01,O=CommScope,C=US",
-      "subjectDN": "MFMxCzAJBgNVBAYTAlVTMRIwEAYDVQQKDAlDb21tU2NvcGUxMDAuBgNVBAMMJ0NvbW1TY29wZSBQdWJsaWMgVHJ1c3QgUlNBIFN1Yi1DQS0wMi0wMQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "762f4a00fafbf72cafcfbf2df28508633b74eab8d56655a38f34f22cda936dd0",
-        "size": 2560,
-        "filename": "KqL7He22QNw5xBoQbw-L4F7QQHXu2QEKXyV8S9IIM7Q=.pem",
-        "location": "security-state-staging/intermediates/4358f58e-e583-4cef-909e-09165bcf77e4.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "KqL7He22QNw5xBoQbw+L4F7QQHXu2QEKXyV8S9IIM7Q=",
-      "crlite_enrolled": false,
-      "id": "839cfa6e-a330-4c7a-9c3f-33e9a898e391",
-      "last_modified": 1700647023222
-    },
-    {
-      "schema": 1700646486205,
-      "derHash": "64nTCH12kS12FqyZxzuuusH7jkg1+LoVtUP3NEpMV/E=",
-      "subject": "CN=CommScope Public Trust ECC Sub-CA-01-01,O=CommScope,C=US",
-      "subjectDN": "MFMxCzAJBgNVBAYTAlVTMRIwEAYDVQQKDAlDb21tU2NvcGUxMDAuBgNVBAMMJ0NvbW1TY29wZSBQdWJsaWMgVHJ1c3QgRUNDIFN1Yi1DQS0wMS0wMQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "2be311121ba10df25faf0d5302d6bfd11db4831fdab8d31c6d8306841c759de9",
-        "size": 1414,
-        "filename": "2eDPH26eDI6d3-Tsjd41zsuO9Klm9C0IFnwK1xslzpw=.pem",
-        "location": "security-state-staging/intermediates/0d83f23e-7f91-4581-8469-5546f6804616.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "2eDPH26eDI6d3+Tsjd41zsuO9Klm9C0IFnwK1xslzpw=",
-      "crlite_enrolled": false,
-      "id": "4f712de1-16d2-4746-83e8-6e6dd3d87a4e",
-      "last_modified": 1700647023220
-    },
-    {
       "schema": 1700646485601,
       "derHash": "7ua69QsUvKBCArSWc35nb3E+dDH/1PyhMJ9mFIHsUg8=",
       "subject": "CN=TrustAsia OV TLS ECC CA G4,O=TrustAsia Technologies\\, Inc.,C=CN",
@@ -10162,42 +10126,6 @@
       "crlite_enrolled": false,
       "id": "e6a2fdb2-02c5-4708-be6f-fa2591ac19d7",
       "last_modified": 1700647023217
-    },
-    {
-      "schema": 1700646485912,
-      "derHash": "AhUxG8GC1ZcYgitF3fECE84mYak8PC0gPexlZ95Erjw=",
-      "subject": "CN=CommScope Public Trust RSA Sub-CA-01-02,O=CommScope,C=US",
-      "subjectDN": "MFMxCzAJBgNVBAYTAlVTMRIwEAYDVQQKDAlDb21tU2NvcGUxMDAuBgNVBAMMJ0NvbW1TY29wZSBQdWJsaWMgVHJ1c3QgUlNBIFN1Yi1DQS0wMS0wMg==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "76fa134521bf3180c607f441ea511de8222ac07021bcb04f2b51434a869b6020",
-        "size": 2560,
-        "filename": "uUmm1vqY4WOAXX3tIc9qA2Ai5Yr0EmaZlBwLTelbnzw=.pem",
-        "location": "security-state-staging/intermediates/75bd4b66-445f-4c60-b998-2891565d084d.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "uUmm1vqY4WOAXX3tIc9qA2Ai5Yr0EmaZlBwLTelbnzw=",
-      "crlite_enrolled": false,
-      "id": "d2ed46e8-b5af-4401-a731-badd42ed9265",
-      "last_modified": 1700647023215
-    },
-    {
-      "schema": 1700646485300,
-      "derHash": "WY0hJQ3EAC/X8fwO9TBjPUsWh9hZfAp6hv2w6NcKQEs=",
-      "subject": "CN=CommScope Public Trust ECC Sub-CA-02-01,O=CommScope,C=US",
-      "subjectDN": "MFMxCzAJBgNVBAYTAlVTMRIwEAYDVQQKDAlDb21tU2NvcGUxMDAuBgNVBAMMJ0NvbW1TY29wZSBQdWJsaWMgVHJ1c3QgRUNDIFN1Yi1DQS0wMi0wMQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "0861064b3940fe7c22d8860cbd8234786257b9ac114ebd823875c18db9e03559",
-        "size": 1414,
-        "filename": "FreBKmEXdNpyFMcG1o3nDNjwoZ5Vc924tuSbvWdZE64=.pem",
-        "location": "security-state-staging/intermediates/47074e7c-85a6-4995-b101-879fd3de19d0.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "FreBKmEXdNpyFMcG1o3nDNjwoZ5Vc924tuSbvWdZE64=",
-      "crlite_enrolled": false,
-      "id": "8f4225a5-796d-4d7a-8510-628d12fb66f6",
-      "last_modified": 1700647023212
     },
     {
       "schema": 1700646484689,
@@ -10234,42 +10162,6 @@
       "crlite_enrolled": false,
       "id": "543e7451-9e2c-46e4-86e4-5bd8d7e912ba",
       "last_modified": 1700647023207
-    },
-    {
-      "schema": 1700646485003,
-      "derHash": "gUc+GximiHdogYQbOuFgsq2TXOno1YMriiYlZEjbc3k=",
-      "subject": "CN=CommScope Public Trust ECC Sub-CA-01-02,O=CommScope,C=US",
-      "subjectDN": "MFMxCzAJBgNVBAYTAlVTMRIwEAYDVQQKDAlDb21tU2NvcGUxMDAuBgNVBAMMJ0NvbW1TY29wZSBQdWJsaWMgVHJ1c3QgRUNDIFN1Yi1DQS0wMS0wMg==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "46cae718f26fd00c333165e2fbd250a12a9d38a8bc2a9a6dc942fa9edf99c12b",
-        "size": 1414,
-        "filename": "tBre6NvedLp1Nvk3FtFIxgjhtkXFJ7lgj8u07sRBDk0=.pem",
-        "location": "security-state-staging/intermediates/3948e9d2-7cc4-4136-9b3f-72bc70afb1aa.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "tBre6NvedLp1Nvk3FtFIxgjhtkXFJ7lgj8u07sRBDk0=",
-      "crlite_enrolled": false,
-      "id": "8fb9c242-9ed1-4e18-997b-dd05d7fae35a",
-      "last_modified": 1700647023204
-    },
-    {
-      "schema": 1700646486816,
-      "derHash": "E4Du1mssMWYS1fbn72jC00YFgv6pTgDGwnWV+Rk049k=",
-      "subject": "CN=CommScope Public Trust RSA Sub-CA-01-01,O=CommScope,C=US",
-      "subjectDN": "MFMxCzAJBgNVBAYTAlVTMRIwEAYDVQQKDAlDb21tU2NvcGUxMDAuBgNVBAMMJ0NvbW1TY29wZSBQdWJsaWMgVHJ1c3QgUlNBIFN1Yi1DQS0wMS0wMQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "7c11c1b878f79f9e702f18c2a9340e77d2a3a26d92b6fbaefc47260195b201f2",
-        "size": 2560,
-        "filename": "PuzSWf62hnlXmDTvun4KqmESMLeim7gU8LRuyOQPieY=.pem",
-        "location": "security-state-staging/intermediates/8db659e4-ad44-4c01-a7d3-986d7aa7cd0c.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "PuzSWf62hnlXmDTvun4KqmESMLeim7gU8LRuyOQPieY=",
-      "crlite_enrolled": false,
-      "id": "24f99808-5e61-4042-87d3-feaa84f7b8ab",
-      "last_modified": 1700647023201
     },
     {
       "schema": 1700621585126,
@@ -14482,24 +14374,6 @@
       "crlite_enrolled": false,
       "id": "6ccb21c1-806e-410f-a6cb-594456ae82c0",
       "last_modified": 1666727874843
-    },
-    {
-      "schema": 1666727436119,
-      "derHash": "1yERA4jKbyC7qf0ajbpO+4wWOSo9662XxVPurwrKyqw=",
-      "subject": "CN=TeliaSonera Server CA v2,O=TeliaSonera,C=FI",
-      "subjectDN": "MEYxCzAJBgNVBAYTAkZJMRQwEgYDVQQKDAtUZWxpYVNvbmVyYTEhMB8GA1UEAwwYVGVsaWFTb25lcmEgU2VydmVyIENBIHYy",
-      "whitelist": false,
-      "attachment": {
-        "hash": "2f9dcba71811d0e494412cb5ac40c7215fd1e0e68794cf9d419462eb22bfdd4d",
-        "size": 2528,
-        "filename": "Fq3YMR2ibLgpoD509egJDn5cPXPfnXC5MUd2IWwV_qA=.pem",
-        "location": "security-state-staging/intermediates/e40e2f56-df5c-40a6-85f6-694d1d00f167.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "Fq3YMR2ibLgpoD509egJDn5cPXPfnXC5MUd2IWwV/qA=",
-      "crlite_enrolled": false,
-      "id": "3082ff87-55fc-4380-b33c-8f226a13dcec",
-      "last_modified": 1666727874827
     },
     {
       "schema": 1666727427156,
@@ -30738,5 +30612,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1761620226672
+  "timestamp": 1761922623184
 }
