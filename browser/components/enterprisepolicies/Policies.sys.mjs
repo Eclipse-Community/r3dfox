@@ -1112,7 +1112,7 @@ export var Policies = {
         // This policy is meant to change the default behavior, not to force it.
         // If this policy was already applied and the user chose to re-hide the
         // menu bar, do not show it again.
-        runOncePerModification("displayMenuBar", value, () => {
+        runOncePerModification("displayMenuBar", value + "", () => {
           Services.xulStore.setValue(
             BROWSER_DOCUMENT_URL,
             "toolbar-menubar",
