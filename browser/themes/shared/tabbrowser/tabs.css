@@ -894,9 +894,14 @@ tab-split-view-wrapper[dragtarget] {
   border-radius: calc(var(--tab-border-radius) - 3px);
 
   #tabbrowser-tabs[orient="horizontal"] &[pinned],
-  :root:not([sidebar-expand-on-hover]) #tabbrowser-tabs[orient="vertical"] &[pinned],
-  #tabbrowser-tabs[closebuttons="activetab"][orient="horizontal"] &:not([selected]) {
+  :root:not([sidebar-expand-on-hover]) #tabbrowser-tabs[orient="vertical"] &[pinned] {
     display: none;
+  }
+
+  @media (not -moz-pref("r3dfox.customizations.enabled")) {
+    #tabbrowser-tabs[closebuttons="activetab"][orient="horizontal"] &:not([selected]) {
+      display: none;
+    }
   }
 }
 
@@ -1988,6 +1993,8 @@ tab-group {
 
     appearance: none;
     padding: 0 4px;
+    background-clip: padding-box;
+    border-radius: calc(var(--tab-border-radius) + 4px);
     fill: var(--toolbarbutton-icon-fill);
     margin: 0;
   }
