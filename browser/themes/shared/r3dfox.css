@@ -429,7 +429,7 @@
     }
 
     @media -moz-pref("r3dfox.drag-space.enabled") {
-      :root:has(#toolbar-menubar[autohide="true"])[sizemode="normal"] {
+      :root:has(#toolbar-menubar[autohide])[sizemode="normal"] {
         --drag-space: 15px;
           /*#TabsToolbar > :is(.titlebar-buttonbox-container, .titlebar-spacer) {
           display: none !important;
