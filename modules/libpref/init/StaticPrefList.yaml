@@ -5533,7 +5533,7 @@
 # conditions in `dom/webgpu/tests/mochitest/*.toml` accordingly.
 - name: dom.webgpu.enabled
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # Is WebGPU allowed to run in the parent process? This should be false if
@@ -18380,7 +18380,7 @@
 
 - name: webgl.disabled
   type: RelaxedAtomicBool
-  value: true
+  value: false
   mirror: always
 
 - name: webgl.enable-debug-renderer-info
