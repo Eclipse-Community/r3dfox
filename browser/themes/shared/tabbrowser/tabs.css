@@ -800,9 +800,14 @@
   list-style-image: url(resource://content-accessible/close-12.svg);
 
   #tabbrowser-tabs[orient="horizontal"] &[pinned],
-  :root:not([sidebar-expand-on-hover]) #tabbrowser-tabs[orient="vertical"] &[pinned],
-  #tabbrowser-tabs[closebuttons="activetab"][orient="horizontal"] &:not([selected]) {
+  :root:not([sidebar-expand-on-hover]) #tabbrowser-tabs[orient="vertical"] &[pinned] {
     display: none;
+  }
+
+  @media (not -moz-pref("r3dfox.customizations.enabled")) {
+    #tabbrowser-tabs[closebuttons="activetab"][orient="horizontal"] &:not([selected]) {
+      display: none;
+    }
   }
 }
 
