@@ -281,6 +281,10 @@ setting-group:has(> moz-card).spotlight {
   }
 }
 
+#category-r3dfox > .category-icon {
+  list-style-image: url("chrome://browser/skin/preferences/category-r3dfox.svg");
+}
+
 /* All panes */
 
 .info-icon,
