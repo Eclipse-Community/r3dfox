@@ -89,19 +89,17 @@ var gBrowserInit = {
         document.documentElement.setAttribute("sizemode", "maximized");
       }
     }
-    {
+    if (!Services.appinfo.nativeMenubar) {
       const toolbarMenubar = document.getElementById("toolbar-menubar");
-      const nativeMenubar = Services.appinfo.nativeMenubar;
-      toolbarMenubar.collapsed = nativeMenubar;
-      if (nativeMenubar) {
-        toolbarMenubar.removeAttribute("autohide");
-      } else {
-        document.l10n.setAttributes(
-          toolbarMenubar,
-          "toolbar-context-menu-menu-bar-cmd"
-        );
-        toolbarMenubar.setAttribute("data-l10n-attrs", "toolbarname");
+      // set a default value
+      if (!toolbarMenubar.hasAttribute("autohide")) {
+        toolbarMenubar.setAttribute("autohide", true);
       }
+      document.l10n.setAttributes(
+        toolbarMenubar,
+        "toolbar-context-menu-menu-bar-cmd"
+      );
+      toolbarMenubar.setAttribute("data-l10n-attrs", "toolbarname");
     }
     // If opening a Taskbar Tab window, add an attribute to the top-level element
     // to inform window styling.

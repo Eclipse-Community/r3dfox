@@ -1100,13 +1100,13 @@ export var Policies = {
       ) {
         switch (param) {
           case "default-on":
-            value = false;
+            value = "false";
             break;
           case "default-off":
-            value = true;
+            value = "true";
             break;
           default:
-            value = !param;
+            value = (!param).toString();
             break;
         }
         // This policy is meant to change the default behavior, not to force it.
@@ -1117,25 +1117,25 @@ export var Policies = {
             BROWSER_DOCUMENT_URL,
             "toolbar-menubar",
             "autohide",
-            value ? "" : "-moz-missing\n"
+            value
           );
         });
       } else {
         switch (param) {
           case "always":
-            value = false;
+            value = "false";
             break;
           case "never":
             // Make sure Alt key doesn't show the menubar
             setAndLockPref("ui.key.menuAccessKeyFocuses", false);
-            value = true;
+            value = "true";
             break;
         }
         Services.xulStore.setValue(
           BROWSER_DOCUMENT_URL,
           "toolbar-menubar",
           "autohide",
-          value ? "" : "-moz-missing\n"
+          value
         );
         manager.disallowFeature("hideShowMenuBar");
       }

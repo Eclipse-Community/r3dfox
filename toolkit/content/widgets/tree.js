@@ -266,7 +266,7 @@
             currElement.getAttribute("label");
           popupChild.setAttribute("label", columnName);
           popupChild.setAttribute("colindex", currCol.index);
-          if (!currElement.hasAttribute("hidden")) {
+          if (currElement.getAttribute("hidden") != "true") {
             popupChild.setAttribute("checked", "true");
           }
           if (currCol.primary) {

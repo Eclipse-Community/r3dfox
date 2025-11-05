@@ -84,7 +84,7 @@ popupnotificationcontent {
   }
 }
 
-.popup-notification-secondary-button:not([dropmarkerhidden]) {
+.popup-notification-secondary-button:not([dropmarkerhidden="true"]) {
   border-start-end-radius: 0;
   border-end-end-radius: 0;
 

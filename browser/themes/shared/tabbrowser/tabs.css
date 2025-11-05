@@ -1217,8 +1217,6 @@ tab-group {
 
   &[collapsed] {
     --tab-group-line-color: light-dark(var(--tab-group-color), var(--tab-group-color-pale));
-    /* Override xul.css, we're using the collapsed attribute for our own purposes */
-    visibility: inherit;
   }
 }
 

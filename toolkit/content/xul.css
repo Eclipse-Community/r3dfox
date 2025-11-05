@@ -22,12 +22,12 @@
 }
 
 /* hide the content and destroy the frame */
-[hidden] {
+[hidden="true"] {
   display: none;
 }
 
 /* hide the content, but don't destroy the frames */
-[collapsed] {
+[collapsed="true"] {
   visibility: collapse;
 }
 
@@ -447,7 +447,7 @@ treecol {
   order: 1;
 }
 
-treecol[hidden] {
+treecol[hidden="true"] {
   visibility: collapse;
   display: flex;
 }

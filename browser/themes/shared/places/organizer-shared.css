@@ -19,14 +19,14 @@
 }
 
 /* Info box */
-#infoBox:not([hidden]) {
+#infoBox:not([hidden="true"]) {
   display: block;
 }
 
 #editBookmarkPanelContent {
   grid-template-columns: auto 1fr;
 
-  .caption-label:not([hidden]) {
+  .caption-label:not([hidden="true"]) {
     display: block;
     grid-column: 2;
   }

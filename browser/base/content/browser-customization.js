@@ -106,13 +106,13 @@ var AutoHideMenubar = {
 
   init() {
     this._node.addEventListener("toolbarvisibilitychange", this);
-    if (this._node.hasAttribute("autohide")) {
+    if (this._node.getAttribute("autohide") == "true") {
       this._enable();
     }
   },
 
   _updateState() {
-    if (this._node.hasAttribute("autohide")) {
+    if (this._node.getAttribute("autohide") == "true") {
       this._enable();
     } else {
       this._disable();
@@ -164,7 +164,7 @@ var AutoHideMenubar = {
 
   _setInactiveAsync() {
     this._inactiveTimeout = setTimeout(() => {
-      if (this._node.hasAttribute("autohide")) {
+      if (this._node.getAttribute("autohide") == "true") {
         this._inactiveTimeout = null;
         this._node.setAttribute("inactive", "true");
       }
