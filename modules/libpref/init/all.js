@@ -763,7 +763,7 @@ pref("nglayout.enable_drag_images", true);
 pref("browser.fixup.alternate.prefix", "www.");
 pref("browser.fixup.alternate.protocol", "https");
 pref("browser.fixup.alternate.suffix", ".com");
-pref("browser.fixup.fallback-to-https", true);
+pref("browser.fixup.fallback-to-https", false);
 
 // NOTE: On most platforms we save print settins to prefs with the name of the
 // printer in the pref name (Android being the notable exception, where prefs
