@@ -43,6 +43,20 @@
                 permissions-exceptions-manage-etp-desc,
               "/>
     </hbox>
+    <hbox id="rfpIncompatibilityWarning" class="info-box-container" hidden="true">
+      <vbox class="info-icon-container">
+        <html:img class="info-icon"></html:img>
+      </vbox>
+      <vbox flex="1">
+        <description>
+          <html:span data-l10n-id="content-blocking-rfp-incompatibility-warning"/>
+          <html:a is="moz-support-link"
+                  class="learnMore"
+                  support-page="resist-fingerprinting"
+          />
+        </description>
+      </vbox>
+    </hbox>
     <hbox id="fpiIncompatibilityWarning" class="info-box-container" hidden="true">
       <vbox class="info-icon-container">
         <html:img class="info-icon"></html:img>
@@ -57,7 +71,7 @@
       <radiogroup id="contentBlockingCategoryRadio"
                   preference="browser.contentblocking.category"
                   aria-labelledby="trackingProtectionMenuDesc">
-        <vbox id="contentBlockingOptionStandard" class="privacy-detailedoption info-box-container" hidden="true">
+        <vbox id="contentBlockingOptionStandard" class="privacy-detailedoption info-box-container">
           <hbox>
             <radio id="standardRadio"
                    value="standard"
@@ -238,7 +252,7 @@
             </vbox>
           </vbox>
         </vbox>
-        <vbox id="contentBlockingOptionCustom" class="privacy-detailedoption info-box-container" hidden="true">
+        <vbox id="contentBlockingOptionCustom" class="privacy-detailedoption info-box-container">
           <hbox>
             <radio id="customRadio"
                    value="custom"
@@ -371,20 +385,6 @@
         </vbox>
       </radiogroup>
     </vbox>
-    <hbox id="rfpIncompatibilityWarning" class="info-box-container" hidden="true">
-      <vbox class="info-icon-container">
-        <html:img class="info-icon"></html:img>
-      </vbox>
-      <vbox flex="1">
-        <description>
-          <html:span data-l10n-id="content-blocking-rfp-incompatibility-warning"/>
-          <html:a is="moz-support-link"
-                  class="learnMore"
-                  support-page="resist-fingerprinting"
-          />
-        </description>
-      </vbox>
-    </hbox>
   </vbox>
 </groupbox>
 <groupbox id="nonTechnicalPrivacyGroup" data-category="panePrivacy" hidden="true">
@@ -593,7 +593,7 @@
 <!-- History -->
 <groupbox id="historyGroup" data-category="panePrivacy" hidden="true">
   <label><html:h2 data-l10n-id="history-header"/></label>
-  <hbox align="center" hidden="true">
+  <hbox align="center">
     <label id="historyModeLabel"
            control="historyMode"
            data-l10n-id="history-remember-label"/>
@@ -640,9 +640,8 @@
         <vbox>
           <checkbox id="privateBrowsingAutoStart"
                     data-l10n-id="history-private-browsing-permanent"
-                    preference="browser.privatebrowsing.autostart"
-                    hidden="true" />
-          <vbox>
+                    preference="browser.privatebrowsing.autostart"/>
+          <vbox class="indent">
             <checkbox id="rememberHistory"
                       data-l10n-id="history-remember-browser-option"
                       preference="places.history.enabled"/>
