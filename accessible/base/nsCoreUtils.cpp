@@ -525,8 +525,7 @@ bool nsCoreUtils::IsColumnHidden(nsTreeColumn* aColumn) {
   }
 
   Element* element = aColumn->Element();
-  return element->AttrValueIs(kNameSpaceID_None, nsGkAtoms::hidden,
-                              nsGkAtoms::_true, eCaseMatters);
+  return element->GetBoolAttr(nsGkAtoms::hidden);
 }
 
 void nsCoreUtils::ScrollTo(PresShell* aPresShell, nsIContent* aContent,

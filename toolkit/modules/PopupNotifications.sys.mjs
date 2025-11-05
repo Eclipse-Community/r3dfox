@@ -1118,14 +1118,16 @@ PopupNotifications.prototype = {
         popupnotification.removeAttribute("origin");
       }
 
-      if (n.options.hideClose) {
-        popupnotification.setAttribute("closebuttonhidden", "true");
-      }
+      popupnotification.toggleAttribute(
+        "closebuttonhidden",
+        !!n.options.hideClose
+      );
 
       popupnotification.notification = n;
       let menuitems = [];
 
-      if (n.mainAction && n.secondaryActions && n.secondaryActions.length) {
+      const hasSecondaryActions = n.mainAction && n.secondaryActions.length;
+      if (hasSecondaryActions) {
         let telemetryStatId = TELEMETRY_STAT_ACTION_2;
 
         let secondaryAction = n.secondaryActions[0];
@@ -1155,13 +1157,14 @@ PopupNotifications.prototype = {
             telemetryStatId++;
           }
         }
-        popupnotification.setAttribute("secondarybuttonhidden", "false");
-      } else {
-        popupnotification.setAttribute("secondarybuttonhidden", "true");
       }
-      popupnotification.setAttribute(
+      popupnotification.toggleAttribute(
+        "secondarybuttonhidden",
+        !hasSecondaryActions
+      );
+      popupnotification.toggleAttribute(
         "dropmarkerhidden",
-        n.secondaryActions.length < 2 ? "true" : "false"
+        n.secondaryActions.length < 2
       );
 
       let checkbox = n.options.checkbox;

@@ -4881,7 +4881,7 @@ var CustomizableUIInternal = {
               container.getAttribute("type") == "menubar"
                 ? "autohide"
                 : "collapsed";
-            collapsed = container.getAttribute(attribute) == "true";
+            collapsed = container.hasAttribute(attribute);
             nondefaultState = collapsed != defaultCollapsed;
           }
           if (defaultCollapsed !== null && nondefaultState) {
@@ -4975,7 +4975,7 @@ var CustomizableUIInternal = {
       let hidingAttribute =
         toolbar.getAttribute("type") == "menubar" ? "autohide" : "collapsed";
 
-      if (toolbar.getAttribute(hidingAttribute) == "true") {
+      if (toolbar.hasAttribute(hidingAttribute)) {
         collapsedToolbars.add(toolbarId);
       }
     }

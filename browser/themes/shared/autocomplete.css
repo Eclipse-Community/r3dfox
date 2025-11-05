@@ -193,7 +193,7 @@
   }
 
   &[originaltype="generatedPassword"] {
-    &:not([collapsed="true"]) {
+    &:not([collapsed]) {
       /* Workaround bug 451997 and/or bug 492645 */
       display: block;
     }

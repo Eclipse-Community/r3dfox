@@ -276,11 +276,9 @@ var BookmarkPropertiesPanel = {
     // mutations and resize the dialog accordingly.
     this._mutationObserver = new MutationObserver(mutations => {
       for (let { target, oldValue } of mutations) {
-        let hidden = target.getAttribute("hidden") == "true";
-        if (
-          target.classList.contains("hideable") &&
-          hidden != (oldValue == "true")
-        ) {
+        let hidden = target.hasAttribute("hidden");
+        let wasHidden = oldValue !== null;
+        if (target.classList.contains("hideable") && hidden != wasHidden) {
           // To support both kind of dialogs (window and dialog-box) we need
           // both resizeBy and sizeToContent, otherwise either the dialog
           // doesn't resize, or it gets empty unused space.

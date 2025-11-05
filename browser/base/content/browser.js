@@ -3078,14 +3078,14 @@ function setToolbarVisibility(
     }
   }
 
-  if (toolbar.getAttribute(hidingAttribute) == (!isVisible).toString()) {
+  if (toolbar.hasAttribute(hidingAttribute) != isVisible) {
     // If this call will not result in a visibility change, return early
     // since dispatching toolbarvisibilitychange will cause views to get rebuilt.
     return;
   }
 
   toolbar.classList.toggle("instant", !animated);
-  toolbar.setAttribute(hidingAttribute, !isVisible);
+  toolbar.toggleAttribute(hidingAttribute, !isVisible);
   // For the bookmarks toolbar, we will have saved state above. For other
   // toolbars, we need to do it after setting the attribute, or we might
   // save the wrong state.

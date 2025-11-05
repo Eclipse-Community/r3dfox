@@ -150,7 +150,7 @@
   color: inherit;
 }
 
-.search-panel-tree[collapsed="true"] + .searchbar-separator {
+.search-panel-tree[collapsed] + .searchbar-separator {
   display: none;
 }
 

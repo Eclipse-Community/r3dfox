@@ -428,17 +428,15 @@ class nsXULElement : public nsStyledElement {
   }
 
   // WebIDL API
-  bool Autofocus() const { return BoolAttrIsTrue(nsGkAtoms::autofocus); }
-  void SetAutofocus(bool aAutofocus, ErrorResult& aRv) {
-    SetXULBoolAttr(nsGkAtoms::autofocus, aAutofocus, aRv);
+  bool Autofocus() const { return GetBoolAttr(nsGkAtoms::autofocus); }
+  void SetAutofocus(bool aAutofocus, mozilla::ErrorResult&) {
+    SetBoolAttr(nsGkAtoms::autofocus, aAutofocus);
   }
-  bool Hidden() const { return BoolAttrIsTrue(nsGkAtoms::hidden); }
-  void SetHidden(bool aHidden) {
-    SetXULBoolAttr(nsGkAtoms::hidden, aHidden, mozilla::IgnoreErrors());
-  }
-  bool Collapsed() const { return BoolAttrIsTrue(nsGkAtoms::collapsed); }
+  bool Hidden() const { return GetBoolAttr(nsGkAtoms::hidden); }
+  void SetHidden(bool aHidden) { SetBoolAttr(nsGkAtoms::hidden, aHidden); }
+  bool Collapsed() const { return GetBoolAttr(nsGkAtoms::collapsed); }
   void SetCollapsed(bool aCollapsed) {
-    SetXULBoolAttr(nsGkAtoms::collapsed, aCollapsed, mozilla::IgnoreErrors());
+    SetBoolAttr(nsGkAtoms::collapsed, aCollapsed);
   }
   void GetObserves(DOMString& aValue) const {
     GetXULAttr(nsGkAtoms::observes, aValue);
