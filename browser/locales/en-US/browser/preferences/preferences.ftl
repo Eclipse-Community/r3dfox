@@ -104,6 +104,10 @@ settings-pane-labs-header =
     .heading = { -firefoxlabs-brand-name }
 pane-experimental-description4 = Give our experimental features a try! They’re in development and evolving, which could impact how { -brand-short-name } works. We only receive data about your use of these features if you have <a data-l10n-name="data-collection">technical and interaction data</a> turned on.
 
+pane-r3dfox-title = r3dfox configurations
+category-r3dfox =
+    .tooltiptext = { pane-privacy-title }
+
 pane-experimental-reset =
   .label = Restore Defaults
   .accesskey = R
@@ -180,7 +184,180 @@ search-results-empty-message2 =
 
 search-results-help-link = Need help? Visit <a data-l10n-name="url">Mozilla Support</a>
 
-## General Section
+## General Section - r3dfox
+
+r3dfox-title = r3dfox specific options
+
+r3dfox-visual-header = Visual configurations
+
+r3dfox-native-checkbox =
+    .label = Use native styles
+
+r3dfox-native-checkbox-desc = This controls whether the scrollbar, checkboxes, and other elements use their native system counterparts or their non-native browser themed style.
+
+r3dfox-native-menulist = Menulist type
+
+r3dfox-native-scroll = Scrollbar type
+
+r3dfox-fake-scroll-type = Non-native scrollbar theme
+
+r3dfox-win-theme-type = Windows version theme override (requires restart)
+
+r3dfox-colors = r3dfox color schemes
+
+r3dfox-fog-type = Caption bar/Aero fog style
+
+r3dfox-caption-text = Override caption/window text color
+
+r3dfox-theme =
+    .label = Use r3dfox theme styles
+
+r3dfox-drag =
+    .label = Enable drag space on r3dfox theme styles
+
+r3dfox-backgrounds =
+    .label = Backgrounds for tabs and other toolbar items
+
+r3dfox-menubar =
+    .label = Transparent menubar
+
+r3dfox-navbar =
+    .label = Translucent design
+
+r3dfox-functional-header = Functionality configurations
+
+r3dfox-one-offs =
+    .label = Instant one off searches
+
+r3dfox-old-one-offs =
+    .label = Classic urlbar search UI
+
+r3dfox-view-image =
+    .label = Restore classic View Image context menu options
+
+r3dfox-nav-text =
+    .label = Replace context menu navigation icons with text options
+
+r3dfox-urlbar-formatting =
+    .label = Disable urlbar URL formatting
+
+r3dfox-tab-groups =
+    .label = Enable tab groups
+
+r3dfox-screenshot-component =
+    .label = Enable in-browser screenshot component
+
+r3dfox-hover-preview =
+    .label = Modern style tab hover preview
+
+r3dfox-drop-to-pin =
+    .label = Disable drop to pin tabs
+
+r3dfox-taskbar-tabs =
+    .label = Disable add tab to taskbar button in urlbar
+
+r3dfox-old-aboutconfig =
+    .label = Use the classic about:config page
+
+r3dfox-geo =
+    .label = Disable browser geolocation
+
+r3dfox-switch-to-tab =
+    .label = Change urlbar switch to tab into a button
+
+r3dfox-switch-to-tab-desc = This changes switching to an already open tab in the urlbar to be a button instead of being the default when you click the item.
+
+r3dfox-prompt-tab-modal =
+    .label = Use the native system message box for prompts
+
+r3dfox-prompt-tab-modal-desc = This changes website and authentication prompts to use the native system message box instead of a modal inside the browser.
+
+r3dfox-prompt-header-icon =
+    .label = Show the browser icon in the titlebar for system message box prompts
+
+r3dfox-prompt-sound =
+    .label = Play sounds for native system message box prompts
+
+r3dfox-advanced-header = Advanced configurations
+
+r3dfox-unload-ram =
+    .label = Enable tab unloading on low memory
+
+r3dfox-unload-ram-desc = If your system falls below the chosen RAM threshold, the browser will start unloading tabs to reduce it's RAM usage.
+
+r3dfox-unload-foreground =
+    .label = Enable unloading the foreground tab on low memory
+
+r3dfox-unload-foreground-desc = Allow the browser to unload the foreground tab, in the case that that the tab you're currently using is leaking RAM, or very low memory situations.
+
+r3dfox-unload-threshold = Browser low memory threshold
+
+r3dfox-unload-threshold-desc = If free memory falls below the set threshold, the browser will start unloading tabs. Higher amounts give more safety margin, but may result in tabs being unnecessarily unloaded, which may increase power usage when reloading them.
+
+r3dfox-unload-poll = Browser memory usage poll interval
+
+r3dfox-unload-poll-desc = How frequently the browser checks for the current amount of free RAM. Lower amounts means the browser checks more frequently, making it respond quicker if something starts rapidly consuming RAM, but this will also result in greater power usage since it checks more often. Unlikely to be noticeable on desktop, but it may worth considering a higher value when on battery power.
+
+r3dfox-accessibility = Accessibility services
+
+r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
+
+r3dfox-caption-width = Custom caption button Aero fog mask width
+
+r3dfox-caption-desc = For themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
+
+r3dfox-caption-height = Custom caption button Aero fog mask height
+
+r3dfox-sandbox-level = Security Sandbox Content Level
+
+r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8 or above. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
+
+r3dfox-webaudio =
+    .label = Disable Web Audio API
+
+r3dfox-webaudio-desc = Web Audio can be disabled for enhanced security, however a few websites may require it to be enabled.
+
+r3dfox-csp =
+    .label = Disable Content Security Policy (CSP)
+
+r3dfox-csp-desc = CSP is a security feature, improperly designed websites may require disabling CSP. Not recommended unless you know what you are doing.
+
+r3dfox-port-blocking =
+    .label = Disable Website Port Blocking
+
+r3dfox-port-blocking-desc = Supposedly for "security", to disallow accessing websites on specified blocked ports but it makes no sense. What can a website on a blocked port do that can't just be done on 80/443? https://fetch.spec.whatwg.org/#port-blocking
+
+r3dfox-dwrite =
+    .label = Use Skia GDI font rendering (BETA)
+
+r3dfox-dwrite-desc = Disable DirectWrite font rendering. Not recommended unless you know what you are doing. Currently buggy. https://github.com/Eclipse-Community/r3dfox/issues/19
+
+r3dfox-hsts =
+    .label = Disable HTTP Strict Transport Security (HSTS)
+
+r3dfox-hsts-desc = HSTS is a security feature, websites with missing, expired, or wrong certificates may require disabling HSTS to access. Not recommended unless you know what you are doing.
+
+r3dfox-cors-base =
+    .label = Disable Cross-Origin Resource Sharing (CORS)
+
+r3dfox-cors-base-desc = CORS is a security feature, improperly designed websites may require disabling CORS. Not recommended unless you know what you are doing.
+
+r3dfox-cors-preflight =
+    .label = Disable Cross-Origin Resource Sharing Preflight requests (CORS)
+
+r3dfox-cors-preflight-desc = Bypasses CORS Preflight requests, improperly designed websites may require this as well as disabling CORS. Not recommended unless you know what you are doing.
+
+r3dfox-same-origin =
+    .label = Disable Same-Origin Policy (SOP)
+
+r3dfox-same-origin-desc = SOP is a security feature, improperly designed websites may require disabling SOP. Not recommended unless you know what you are doing.
+
+r3dfox-e10s =
+    .label = Disable content multiprocess (e10s) (BETA)
+
+r3dfox-e10s-desc = Disables e10s/electrolysis content multiprocess. There are still multiple processes from other browser components with this enabled. Not recommended unless you know what you are doing.
+
+## General Section - Startup
 
 startup-group =
     .label = Startup
