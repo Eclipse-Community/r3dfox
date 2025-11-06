@@ -5,6 +5,396 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "{c2b1a7e9-3d42-4f7b-8a6c-9e1f4d3c4b8a}:6.66",
+          "{c2b1a7e9-3d42-4f7b-8a6c-9e1f4d3c4b9a}:6.69",
+          "{f74d56ba-92dc-4694-ae2b-d51d2f9c2d5d}:2.1.15",
+          "{f74d56ba-92dc-4694-ae2b-d51d2f9c2d5d}:2.1.16",
+          "{f74d56ba-92dc-4694-ae2b-d51d2f9c2d5d}:2.1.21",
+          "{f74d56ba-92dc-4694-ae2b-d51d2f9c2d5d}:2.1.23",
+          "{c2b1a7e9-3d42-5f7b-8a6c-9e1f4d4c4b9a}:6.73",
+          "{98ea9a51-e474-44c9-9347-fdc36ab8ede2}:1.0",
+          "{98ea9a51-e474-44c9-9347-fdc36ab8ede2}:2.0",
+          "{ccdcc9fc-add1-4619-bd2d-96b52ecf42d2}:1.0",
+          "html-capture-v2@votredomaine.com:1.6",
+          "{0794a945-04dc-4747-b51e-2494fd1e7e48}:1.0",
+          "{0794a945-04dc-4747-b51e-2494fd1e7e48}:2.0",
+          "nostr-web@shugur.com:1.1.0",
+          "focus-tab-indicator-new-red-dot@my-domain.org:5.0",
+          "focus-tab-indicator@my-domain.org:5.0",
+          "{0dbf9165-c4e0-4095-9f6b-b129e015aaf5}:1.0",
+          "focus-input-indicator@my-domain.org:5.0"
+        ]
+      },
+      "schema": 1762410990822,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762432505538,
+      "id": "5b5894b4-4e27-43a8-8049-6fb0a58f27d5",
+      "last_modified": 1762432595603
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "eusovops-monkey@oracle.com:1.3.2",
+          "eusovops-monkey@oracle.com:1.3.3",
+          "{23df26fa-0c84-4c3d-b217-3cc2bf2dbc8c}:23.12.12",
+          "{606ec7ef-4ae0-473e-92c0-949fb4528af2}:23.12.12",
+          "{bf468f39-91e5-4ec3-9b75-502d5fd2318e}:23.12.12",
+          "{9e30b44f-5592-4e24-b471-49fde14b7b39}:23.12.12",
+          "{24f9dae9-c942-4901-bb14-dd2b6ba00e27}:1.0.0",
+          "{24f9dae9-c942-4901-bb14-dd2b6ba00e27}:1.0.1",
+          "{24f9dae9-c942-4901-bb14-dd2b6ba00e27}:1.0.2",
+          "context-translator@example.com:1.0.0",
+          "context-translator@example.com:1.1.0",
+          "context-translator@example.com:1.1.1",
+          "context-translator@example.com:1.1.2",
+          "context-translator@example.com:1.1.3",
+          "context-translator@example.com:1.1.5",
+          "context-translator@example.com:1.1.6",
+          "context-translator@example.com:1.1.7"
+        ]
+      },
+      "schema": 1762395352017,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762410906264,
+      "id": "c79e038a-b3a9-4f88-b7fa-6815c1cc5436",
+      "last_modified": 1762410990706
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "atsimportlk@bcg.local:1.0",
+          "product@wbur.org:3.1.1",
+          "{ebc0b0c5-0819-4435-a333-70cb1b6fe9a1}:1.4",
+          "teclado-virtual@chuydev.addon:1.0",
+          "firemon-power-tools@firemon.com:3.1.0",
+          "firemon-power-tools@firemon.com:3.2.0",
+          "firemon-power-tools@firemon.com:3.3.0",
+          "{c2b1a7e9-3d42-4f7b-8a6c-9e1f2d3c4b9a}:3.7",
+          "donottellanyone@idontknow.ye:0.1.0",
+          "chatgpt-button@regioween:3.5",
+          "ignacio.martinezcastro@gmail.com:1.1",
+          "ignacio.martinezcastro@gmail.com:1.2",
+          "{78855cdb-6efa-4f86-98c4-6bea4bed15da}:240612.1",
+          "waincognito@gururaja.in:2.2.1",
+          "waincognito@gururaja.in:2.2.2",
+          "mailvelope@gururaja.in:6.1.0",
+          "chatgpt-button@regioween:1.0",
+          "{ace1d66d-7b82-4ce7-8dd7-e2dd02c832c6}:1.0",
+          "{fe474f99-6d2e-4379-918a-b33030b27363}:1.0"
+        ]
+      },
+      "schema": 1762367791343,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762389305732,
+      "id": "8452c308-5286-4bb8-a780-7d57810e315c",
+      "last_modified": 1762389382845
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "info@armenius.cy:1.1",
+          "info@armenius.cy:1.2",
+          "info@armenius.cy:1.0.0",
+          "{e45b8fee-35fc-45d7-9c7c-edbe70f765ad}:1.0",
+          "{e45b8fee-35fc-45d7-9c7c-edbe70f765ad}:1.1",
+          "{59f646f1-828b-48d2-94d0-a4726d531eee}:1.0",
+          "notebooklm-categorizer@github.muharamdani:1.2.0",
+          "firefob@hiredexpertsdr.com:1.0",
+          "firefob@hiredexpertsdr.com:1.1",
+          "distraction-curtain-pro-x7r9@jonesotens.com:2.2.0",
+          "{06d67711-1b73-41f0-8c52-96dafa2bc925}:1.0",
+          "favory@sp4ce.pw:1.0.0",
+          "{0c0fc991-ea93-4f4e-a24c-5d901cb353d7}:1.0",
+          "{48d0962d-5251-4f28-abe6-8bdc855734e6}:1.0",
+          "{a538702a-76f4-4823-9ff2-c3c2a8feaaca}:1.0",
+          "{8bdcc2ab-5c24-452d-baf5-179f9164c771}:1.15.2",
+          "{3fcebe42-d2d9-4d36-a5d0-9f095b21c97e}:1.0",
+          "{3fcebe42-d2d9-4d36-a5d0-9f095b21c97e}:2.0",
+          "favory@sp4ce.pw:1.0.1",
+          "favory@sp4ce.pw:1.0.2",
+          "{3182a113-0bf1-49e4-bbfd-0abca9b289ef}:1.0"
+        ]
+      },
+      "schema": 1762346196062,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762367705693,
+      "id": "9a9b892c-34d4-4fb1-b3be-2c053c227bd4",
+      "last_modified": 1762367791244
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{55318e49-1c1d-440f-977a-199f126d5398}:2.0",
+          "{47600d6c-75b2-428f-853c-3211a7cb0f89}:1.9",
+          "{4fba756c-a14d-4054-98f2-c57438f76fbc}:1.0",
+          "{4fba756c-a14d-4054-98f2-c57438f76fbc}:3.7.1"
+        ],
+        "unblocked": [
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1007.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1007.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1008.3",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.906.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.906.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.1120.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.1120.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.1120.3",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1006.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1007.2",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1007.3",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1007.4",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1008.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1008.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1008.4",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1008.5",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1009.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1009.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1009.2",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1011.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1011.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1029.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2021.1107.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.605.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.906.2",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.907.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.1005.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.1120.2",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2022.1120.4",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2023.122.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2023.131.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2023.201.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2023.201.1",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2023.218.0",
+          "{8873e5a1-115c-48d6-98c1-dd9313cde7e3}:1.2023.329.0"
+        ],
+        "softblocked": [
+          "twitch-lurker@extension.example.com:3.0.5",
+          "live-theme@subez.local:1.0",
+          "Android@bravenhancer.com:17.7.0",
+          "enhancer@goldenfox.com:17.7.0",
+          "themereload@subez.local:1.0"
+        ]
+      },
+      "schema": 1762324593074,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762346106042,
+      "id": "375878e8-edd9-422d-b130-2661b6b6832e",
+      "last_modified": 1762346195962
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{bcabc413-d216-40ec-8929-119212c1fd22}:1.0",
+          "autofullscreen@example.com:1.1",
+          "{808879ab-6683-4501-a6ff-e62771836a84}:1.0",
+          "{774584fa-54e2-437a-bf27-104f2bc04807}:1.27"
+        ]
+      },
+      "schema": 1762308943420,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762324506537,
+      "id": "11293d1f-7ebd-44e7-991c-66c40a86b22c",
+      "last_modified": 1762324592917
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "shipit@clio.systems:1.2.8",
+          "{91214131-7fb5-496a-a2d8-a3a2da761cee}:1.0",
+          "{5c665328-f549-4cca-9f6b-cc149720aea6}:1.8.3",
+          "{1a179436-0fec-48c7-96b6-064b64fe04e1}:1.0.4"
+        ]
+      },
+      "schema": 1762281395660,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762302907929,
+      "id": "ac2ebeee-33d0-44d2-8f94-70c3cb0c068f",
+      "last_modified": 1762302994916
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "2209eac2-0652-4ae3-bd9e-053fb3032787@example.com:1.4.33",
+          "{adb6da44-c43a-431d-ba3a-79eb6e335889}:1.0",
+          "{cbe5ee73-54a5-4cb2-a0b4-cf770922d356}:1.0",
+          "price-calculator@armenius.cy:1.0"
+        ]
+      },
+      "schema": 1762259781921,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762281306904,
+      "id": "2d8541f8-1d6e-4874-92f9-7ad611eade96",
+      "last_modified": 1762281395545
+    },
+    {
+      "stash": {
+        "blocked": [
+          "mirzo@mirzo.inc:1.0",
+          "mirzo@mirzo.inc:1.0.2",
+          "{8a26a4c3-6141-4d73-a643-db0564f58ec0}:12.8.1",
+          "{c8824b65-77b2-493a-96b1-722f71bc3370}:12.8.1",
+          "{3699c406-407b-4888-91e4-4250af1a03ac}:12.23.1",
+          "{839726dd-1e1c-4cc6-9db0-86bb18282047}:12.8.1",
+          "{dcd40f8c-af9b-463c-a4f0-c7f72b151569}:12.8.1",
+          "{6cd3ea72-e1c5-48b9-8f5b-6392bdfd8a9d}:12.8.1"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "html-capture-v2@votredomaine.com:1.2",
+          "html-capture-v2@votredomaine.com:1.3",
+          "{774584fa-54e2-437a-bf27-104f2bc04807}:1.24",
+          "{774584fa-54e2-437a-bf27-104f2bc04807}:1.25",
+          "{774584fa-54e2-437a-bf27-104f2bc04807}:1.26",
+          "html-capture-v2@votredomaine.com:1.4",
+          "html-capture-v2@votredomaine.com:1.5",
+          "SentinelShield@sutherland.com:3.0.2",
+          "molo1@qq.com:0.6.4",
+          "{d5f34e08-bfb2-40af-8bf0-06c388d02bc2}:1.4",
+          "{764a19c7-1e39-4968-86ec-3de302f93805}:1.0",
+          "{764a19c7-1e39-4968-86ec-3de302f93805}:2.0",
+          "{2f8fc7b4-a5b5-48ae-8140-91bde9668c40}:1.0",
+          "{2f8fc7b4-a5b5-48ae-8140-91bde9668c40}:2.0",
+          "english-to-persian@example.com:1.0",
+          "english-to-persian@example.com:1.1",
+          "42friends@local:1.0",
+          "workhourstracker@workhourstracker:1.0.1"
+        ]
+      },
+      "schema": 1762238191054,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762259705201,
+      "id": "02c6f1e6-0474-48f0-b224-495945e79d67",
+      "last_modified": 1762259781682
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "video-segment-looper@ava0808.example:1.3.0",
+          "video-segment-looper@ava0808.example:1.3.2",
+          "video-segment-looper@ava0808.example:1.3.3",
+          "video-segment-looper@ava0808.example:1.3.4",
+          "inline-en-ta@example.local:1.6"
+        ]
+      },
+      "schema": 1762222556059,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762238105881,
+      "id": "cad9c9d8-589b-43c9-9f0f-c2de3005c7d8",
+      "last_modified": 1762238190856
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "gestor-usuarios-contenedores@ticketits.com:2.10.3",
+          "{7e775181-4f88-48f9-9b4d-f0b83700779c}:2018.2.9.1",
+          "{fe2f98bf-a5c6-4243-aa1c-eddc0d7691a5}:2018.2.9.1",
+          "{fc10ec94-09b6-4865-882a-22efbc35f768}:2018.2.9.1",
+          "{7f74170d-4eb4-4740-9ffe-f6b3c53609dd}:2018.2.9.1",
+          "{3a55e85c-aa38-46b1-b23d-2e499c22e0e1}:2018.2.8.2",
+          "{4271ddfb-57f6-46b7-9029-bd194a320fc7}:2018.2.8.2",
+          "{f98497ed-2c95-4fcd-9f6f-81442d659e2e}:2018.2.8.1",
+          "{a2e5db4e-cded-45c9-996f-70c9e7e0f582}:2018.2.8.1",
+          "{884b514c-288f-47ef-a9b6-7fa6dc0ec3a4}:2018.2.8.1",
+          "{60dc0b58-2565-4e25-9469-16225f9f8709}:2018.2.8.1",
+          "{44874143-5a97-4d1f-834a-c8ac0cf72d2b}:2018.2.8.1",
+          "{f68ffc96-4db9-4257-a65e-ec547b3a935f}:2018.2.8.1",
+          "{0c9ea993-b95d-4297-8db0-3a6b46c07baf}:2018.2.8.1",
+          "{0cb9ef99-5902-4fa6-bd9a-33624adb01b2}:2018.2.8.1",
+          "{9235405d-bb9e-4876-b108-54d935581b1f}:2018.2.8.1",
+          "{419a00b6-afe0-46a9-9a09-c55e4fda38d9}:2018.2.8.1",
+          "{d0f009bd-152c-425f-9b49-94f11b28f210}:2018.2.8.1",
+          "{b03e187a-d23c-40ba-b5eb-6450e5b96397}:2018.2.7.1",
+          "{74ecde29-f126-4668-ade7-25674ee78a41}:2018.2.7.1",
+          "{a81b82c8-90ff-4fd1-92c5-42ecc70eda34}:2018.2.7.1",
+          "{0fba79fb-ed0e-430f-816f-7914fd60cb20}:2018.2.7.1",
+          "{a0f6bea6-7a1c-4ef5-9360-665f1663978a}:2018.2.7.1",
+          "{d90ba8e2-852e-4bce-adf7-8eb1320e981c}:2018.2.7.1",
+          "{1ddd4d47-06f3-43c4-a0a2-bd84c6b38bd0}:2018.2.7.1",
+          "rosklad@example.com:1.0",
+          "myneodailies@addon.com:1.0.1",
+          "{6570a87f-c955-46ab-a05d-bacafa1a9383}:1.0",
+          "{6570a87f-c955-46ab-a05d-bacafa1a9383}:2.0",
+          "formcapture@localdev:0.2.0",
+          "{37f69a52-19dd-42ef-bf22-d2b2ecff39bd}:1.0",
+          "default@example.com:1.0",
+          "get-weekly-hours@kristofferforsgren.com:0.1",
+          "pinkstars-edited@silvery.local:1.2.1"
+        ]
+      },
+      "schema": 1762194989871,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762216506213,
+      "id": "c6ae7b72-d99c-4a5d-ad19-3e8e08d65204",
+      "last_modified": 1762216594923
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "oldtwitter@cammie.dev:1.9.2",
+          "gnpjhfjhgfkohgdklomfbjmnchpenngp@chrome-store-foxified-2146283714:0.4.5.1",
+          "{43ce3080-a1b0-4114-b9c2-6849a2fdcc94}:1.5",
+          "product@wbur.org:3.2.1",
+          "@open-in-telegram:0.3",
+          "gestor-usuarios-contenedores@ticketits.com:2.10.2",
+          "ratefiller@example.com:3.4"
+        ]
+      },
+      "schema": 1762173379455,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762194905435,
+      "id": "e641c974-78b0-4739-a027-3be225ece449",
+      "last_modified": 1762194989792
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{be19033b-2de2-4149-9a7c-630ea2af141e}:12.8.1",
+          "{cfd6d628-2cae-411b-9db2-41b3ca5dd925}:12.23.1",
+          "{5e1d0cc5-b63b-400b-b2fb-f29ac8c22193}:12.8.1",
+          "{698acd32-4d42-4127-8c06-d43e57272915}:12.8.1",
+          "{c9ddbf57-a48e-44da-8dd5-cd7501f87df1}:12.8.1",
+          "{63c680c4-4308-40d1-bfea-c8c91d6cff65}:12.8.1",
+          "{dfefe0ae-2871-4301-bbd3-ee3dc02c8b67}:12.8.1"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "marcin.dec1@gmail.com:1.3.0",
+          "marcin.dec1@gmail.com:1.3.1",
+          "@2chdatviewer.myhilmyhill:1.0.0",
+          "{f174dda0-ceec-43bf-97e4-a504dcbfb09f}:1.4.8.8",
+          "{ea017008-fb89-4c15-a042-b9c3032e9588}:1.0",
+          "{89c6f8c0-c7b4-46b6-a1ca-d964c8247c5b}:1.0",
+          "workhourstracker@local:1.0"
+        ]
+      },
+      "schema": 1762151789859,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762173305242,
+      "id": "bd17ed6c-0d53-467c-9965-041e7b15f35c",
+      "last_modified": 1762173379374
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "{15a9235a-de6e-4cef-8b90-e8efbf13f881}:0.0.25",
           "{15a9235a-de6e-4cef-8b90-e8efbf13f881}:0.0.27",
           "{15a9235a-de6e-4cef-8b90-e8efbf13f881}:0.0.26",
@@ -1525,5 +1915,5 @@
       "last_modified": 1761136764909
     }
   ],
-  "timestamp": 1762151789693
+  "timestamp": 1762432595603
 }
