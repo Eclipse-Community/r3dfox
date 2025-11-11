@@ -5,6 +5,452 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "flexeet-bot-scraper@gmail.com:2.0.0",
+          "{dd3db273-9825-4419-b6ff-8380e1081867}:1.0.3",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.6",
+          "gitzip-fixed-firefox-addons@gitzip.org:1.0.2",
+          "gitzip-fixed-firefox-addons@gitzip.org:1.0.3",
+          "magnolia94564@12.34:4.1.3.6"
+        ]
+      },
+      "schema": 1762740947966,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762756504976,
+      "id": "8181e13a-77ca-48f2-bdb4-0c767995ecd4",
+      "last_modified": 1762756580450
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "@twitch-vod-downloader-kurokoji:3.21",
+          "helloworld@gmail.com:1.62",
+          "trisadmeslek@trisadmeslek:2.2",
+          "com.persepolis.pdmchromewrapper@persepolisdmtrisadmeslek.github.io:2.4.0",
+          "zen-tidy-up@adamkahl.com:1.0.0",
+          "{e075bea8-9e91-4090-a3f2-34d46095f74d}:1.0",
+          "{52485919-091a-4aae-9472-444b68a6bdb4}:1.3"
+        ]
+      },
+      "schema": 1762713388597,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762734906207,
+      "id": "98b72e43-9dab-42cc-8aa5-a3fa9abe680b",
+      "last_modified": 1762734994712
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{2ef374c5-3f42-449c-b317-1c1269078c18}:1.0",
+          "{9d4aae91-accd-40e7-a282-f4c9414fbcc2}:1.0",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.4",
+          "focus-input-indicator@mine.org:1.0",
+          "absolute-wallpaper-ultra@local:3.0.0",
+          "focus-input-indicator@ofmine.org:1.0",
+          "Android@bravenhancer.com:18.3.0",
+          "enhancer@goldenfox.com:18.3.0",
+          "good-thoughts@tobtobxx.net:1.0.0",
+          "kinozalhelper@elektrikis.id.lv:2.35.0",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.5",
+          "{f16324b2-f405-469a-b61f-b7c437de37a7}:0.0.1",
+          "support@screenlapse.io:1.0",
+          "support@screenlapse.io:1.1",
+          "support@screenlapse.io:1.2",
+          "support@screenlapse.io:1.3",
+          "zolver@shubawasj:1.0.0"
+        ]
+      },
+      "schema": 1762691779427,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762713306262,
+      "id": "54495440-ca87-476e-889c-bf30db7b51c9",
+      "last_modified": 1762713388385
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "focus-input-indicator@i.org:5.0",
+          "{89eb8a21-6311-4e15-a388-fef93fa61f66}:1.0.0",
+          "{9a9daf87-0665-4946-b0e5-f75c3c87a524}:1.0",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.3"
+        ]
+      },
+      "schema": 1762670189867,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762691704939,
+      "id": "9caea96f-1bd7-4d56-b924-f5f27a500125",
+      "last_modified": 1762691779245
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "Android@bravenhancer.com:18.0.3",
+          "enhancer@goldenfox.com:18.0.3",
+          "absolute-wallpaper@local:1.0.2",
+          "absolute-wallpaper-pro@local:1.2.0",
+          "absolute-wallpaper-mono@local:2.0.0"
+        ]
+      },
+      "schema": 1762654548618,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762670105776,
+      "id": "c18e31a0-4c5c-494f-86b2-c09ac784b599",
+      "last_modified": 1762670189688
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "@demodal-adblock:1.0",
+          "{f54b384d-4de8-4dfb-8212-b3735c48ac18}:1.0",
+          "netafraz-user@extension:1.2",
+          "{5a2c031a-f3c9-4675-9f42-19edf52d823a}:2.0",
+          "{5a2c031a-f3c9-4675-9f42-19edf52d823a}:2.1",
+          "{5a2c031a-f3c9-4675-9f42-19edf52d823a}:2.2",
+          "{5a2c031a-f3c9-4675-9f42-19edf52d823a}:2.3",
+          "{5a2c031a-f3c9-4675-9f42-19edf52d823a}:2.4",
+          "Bazaar@nchoremiot.com:1.49.1",
+          "Bazaar@nchoremiot.com:2.1.14",
+          "Bazaar@nchoremiot.com:2.1.11",
+          "Bazaar@nchoremiot.com:2.1.8",
+          "Bazaar@nchoremiot.com:2.1.5",
+          "Bazaar@nchoremiot.com:2.1.4",
+          "Bazaar@nchoremiot.com:2.1.3",
+          "Bazaar@nchoremiot.com:2.1.6",
+          "Bazaar@nchoremiot.com:2.1.9",
+          "Bazaar@nchoremiot.com:2.1.12",
+          "Bazaar@nchoremiot.com:2.1.7",
+          "Bazaar@nchoremiot.com:2.0.14",
+          "Bazaar@nchoremiot.com:2.0.13",
+          "Bazaar@nchoremiot.com:2.0.12",
+          "Bazaar@nchoremiot.com:2.0.16",
+          "Bazaar@nchoremiot.com:2.0.9",
+          "Bazaar@nchoremiot.com:2.0.15",
+          "Bazaar@nchoremiot.com:2.0.10",
+          "Bazaar@nchoremiot.com:2.0.11",
+          "Bazaar@nchoremiot.com:2.1.13",
+          "Bazaar@nchoremiot.com:2.0.5",
+          "Bazaar@nchoremiot.com:2.0.6",
+          "Bazaar@nchoremiot.com:2.0",
+          "Bazaar@nchoremiot.com:2.0.3",
+          "Bazaar@nchoremiot.com:1.49.2",
+          "Bazaar@nchoremiot.com:2.0.2",
+          "Bazaar@nchoremiot.com:2.0.8",
+          "Bazaar@nchoremiot.com:2.0.1",
+          "Bazaar@nchoremiot.com:2.0.7",
+          "Bazaar@nchoremiot.com:2.0.4",
+          "Bazaar@nchoremiot.com:2.1",
+          "Bazaar@nchoremiot.com:2.1.16",
+          "Bazaar@nchoremiot.com:2.1.17",
+          "Bazaar@nchoremiot.com:2.5.3",
+          "Bazaar@nchoremiot.com:2.5",
+          "Bazaar@nchoremiot.com:2.1.1",
+          "Bazaar@nchoremiot.com:2.1.10",
+          "Bazaar@nchoremiot.com:2.1.15",
+          "Bazaar@nchoremiot.com:2.5.4",
+          "Bazaar@nchoremiot.com:2.5.5",
+          "closeright-de@example:0.1.1",
+          "offline-2fa@agentie.marketing:1.0.0",
+          "offline-2fa@agentie.marketing:1.0.1",
+          "closeright-de@photogregor:0.1.2"
+        ]
+      },
+      "schema": 1762626990949,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762648505729,
+      "id": "93011ee0-35c5-43f8-ad85-b5237362f50c",
+      "last_modified": 1762648591021
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "context-translator@example.com:1.4.4",
+          "context-translator@example.com:1.4.5",
+          "{a10e4d00-de50-40fd-80d1-0d220b2cded7}:1.6.1.0",
+          "distraction-curtain@jonesotens.com:2.1.3",
+          "distraction-curtain@jonesotens.com:2.1.4",
+          "distraction-curtain@jonesotens.com:2.2.1",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.2",
+          "{303047eb-712b-4836-957d-3a7c4182e664}:1.1.6",
+          "uwx@local.fennec:1.0.0",
+          "uwx-strong@local.fennec:1.2.0",
+          "spoock@netinfo.bg:1.0.3",
+          "spoock@netinfo.bg:2.0.5.3",
+          "neopaste-showdown@izyawastaken:4.0",
+          "{dd3db273-9825-4419-b6ff-8380e1081867}:1.0.2"
+        ]
+      },
+      "schema": 1762605391211,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762626905911,
+      "id": "a77b71a7-71b3-481d-a0dd-312bd0b618bf",
+      "last_modified": 1762626990733
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{f123eb95-b878-440e-88ea-91784d1136d3}:1.0.0",
+          "proxy-toggle-two@example.com:1.0.0",
+          "{45478ac0-52de-4cd5-9c28-26b123853d22}:1.0",
+          "{dd3db273-9825-4419-b6ff-8380e1081867}:1.0.1",
+          "saveit@airteam.com.au:0.5.0"
+        ]
+      },
+      "schema": 1762583789278,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762605306071,
+      "id": "ef18aaa3-e789-4a50-95dc-af51258c6e30",
+      "last_modified": 1762605391022
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "csfloat-auto-refresh@example.com:1.0.0",
+          "uwp-pro@example.com:2.0.0",
+          "context-translator@example.com:1.3.0",
+          "context-translator@example.com:1.4.0",
+          "context-translator@example.com:1.4.1",
+          "context-translator@example.com:1.4.2",
+          "context-translator@example.com:1.4.3",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.1",
+          "{dd3db273-9825-4419-b6ff-8380e1081867}:1.0.0",
+          "free-auto-roll@dc:1.0"
+        ]
+      },
+      "schema": 1762568146890,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762583705971,
+      "id": "55f8e2e6-cc70-4287-a2e4-42f454d9683f",
+      "last_modified": 1762583788926
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{3689563f-e28d-4349-804a-5536646a514d}:1.0",
+          "tabspace@local:1.1.5",
+          "tabspace@local:1.1.11",
+          "tabspace@local:1.1.8",
+          "tabspace@local:1.1.6",
+          "{9c40f7e1-7190-440f-9141-3c216ed2d3fb}:1.0",
+          "ficlab-helper@mozilla.org:1.0.109",
+          "ficlab-helper@mozilla.org:1.0.110",
+          "@artemis-string-cloner:1.0",
+          "@artemis-string-cloner:1.1",
+          "{5f6955d3-3705-4496-8ad7-ea89da66ddc6}:1.0",
+          "{5f6955d3-3705-4496-8ad7-ea89da66ddc6}:1.1",
+          "{5f6955d3-3705-4496-8ad7-ea89da66ddc6}:1.1a",
+          "{5f6955d3-3705-4496-8ad7-ea89da66ddc6}:1.1b",
+          "{9c81a572-7b31-4439-bf97-c31715b422b3}:25.8.325"
+        ]
+      },
+      "schema": 1762540578527,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762562105688,
+      "id": "88353630-d8db-48fc-9453-f2e3c70b486c",
+      "last_modified": 1762562189986
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "clash-proxy-addon@example.com:1.0.0",
+          "clash-proxy-addon@example.com:1.0.1",
+          "{f883e079-d768-4c17-8629-ed3bdee736b5}:1.0",
+          "n8n-article-submitter@yourdomain.com:1.0",
+          "context-translator@example.com:1.2.0",
+          "context-translator@example.com:1.2.1",
+          "{bcbd15b8-3bad-4200-90cd-218ad2340538}:1.0",
+          "{bcbd15b8-3bad-4200-90cd-218ad2340538}:2.0",
+          "{a6d26ce8-1a49-41a4-9db2-636afff5201b}:7.1",
+          "{a6d26ce8-1a49-41a4-9db2-636afff5201b}:5.0",
+          "{64d0f6b6-bc96-4c94-8800-97de64458094}:1.0",
+          "save-resources-automatically@shuhun56:0.1.0",
+          "save-by-ext@example:0.1.0",
+          "mooniedove123@gmail.com:1.3.0.0",
+          "mooniedove123@gmail.com:1.2.0.0",
+          "mooniedove123@gmail.com:1.1.0.0",
+          "mooniedove123@gmail.com:1.0.0.0",
+          "Android@bravenhancer.com:18.0.2",
+          "enhancer@goldenfox.com:18.0.2",
+          "{cde5ebda-c11f-413d-8789-1fba3e21d7f7}:0.1",
+          "{1e428d73-e958-4701-be59-a8ac9dc6c968}:0.2",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.0",
+          "{c942938d-e533-4794-80fe-74793a32faf0}:1.0"
+        ]
+      },
+      "schema": 1762518983559,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762540504771,
+      "id": "3c748f05-2cc2-40f6-8b51-756d06f23b17",
+      "last_modified": 1762540578289
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{cf4857be-8aab-4503-a5c2-b4cec5b6e0af}:1.0",
+          "{cf4857be-8aab-4503-a5c2-b4cec5b6e0af}:302.6.16",
+          "{c055d65b-d66c-4a1b-a161-8e917d113434}:1.0",
+          "{c055d65b-d66c-4a1b-a161-8e917d113434}:3.7.1",
+          "{41367af9-390c-4257-8ffd-e0495a031db3}:1.0",
+          "{41367af9-390c-4257-8ffd-e0495a031db3}:302.6.16",
+          "{566de2db-6a55-4a33-813c-f8895a640597}:1.0",
+          "{566de2db-6a55-4a33-813c-f8895a640597}:3.7.1",
+          "{0c6e67e9-dbd0-46b0-bdc7-bca615cec21c}:1.0",
+          "{0c6e67e9-dbd0-46b0-bdc7-bca615cec21c}:302.6.16",
+          "{5895627c-ceba-43de-8c86-9484f98df5a6}:1.0",
+          "{5895627c-ceba-43de-8c86-9484f98df5a6}:302.6.16",
+          "{305daefd-fe12-4440-80e9-f75d74ea1727}:1.0",
+          "{305daefd-fe12-4440-80e9-f75d74ea1727}:3.7.1",
+          "{a002ca5f-c368-4001-ab64-1c5bbf3aacb9}:1.0",
+          "{09220c7c-ad24-49c9-9ea3-247aae6ef8e4}:1.0",
+          "{09220c7c-ad24-49c9-9ea3-247aae6ef8e4}:9.3.6",
+          "{a07fa223-0991-4629-a9c0-f97ec5c544b4}:1.0",
+          "{a07fa223-0991-4629-a9c0-f97ec5c544b4}:9.3.6",
+          "{b78ba141-8bcc-4ff4-86ad-3f3674d94278}:1.0",
+          "{b78ba141-8bcc-4ff4-86ad-3f3674d94278}:9.3.6",
+          "{a085bf22-55b3-40cc-b366-42d4b31759c1}:1.0",
+          "{a085bf22-55b3-40cc-b366-42d4b31759c1}:9.3.6",
+          "{87351afd-d45a-41a0-b4ae-b9f6cc16b929}:1.0",
+          "{87351afd-d45a-41a0-b4ae-b9f6cc16b929}:2.2"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "chess-assistant@mohammad:2.8",
+          "shopee-variant-extractor@dwikifebrians.dev:1.1.2",
+          "mouse-to-touch-converter@extension.local:1.0",
+          "drstrange29@example-data-collection-with-fallback:1.0",
+          "@clickup-quick-add-gnprojects:1.0.4",
+          "tothgabor4100@gmail.com:1.5",
+          "favory@sp4ce.pw:1.0.8"
+        ]
+      },
+      "schema": 1762497388144,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762518904992,
+      "id": "784d5076-eceb-4806-991a-e103c282975c",
+      "last_modified": 1762518983365
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "myer-cart-helper@jordza.com:1.0",
+          "myer-cart-helper@dropzoneau:1.4.0",
+          "myer-cart-helper@dropzoneau:1.4.2",
+          "myer-cart-helper@dropzoneau:1.4.4",
+          "myer-cart-helper@dropzoneau:1.4.5",
+          "myer-cart-helper@dropzoneau:1.4.6",
+          "myer-cart-helper@dropzoneau:1.4.7",
+          "myer-cart-helper@dropzoneau:1.4.8",
+          "myer-cart-helper@dropzoneau:1.6.0",
+          "favory@sp4ce.pw:1.0.6",
+          "favory@sp4ce.pw:1.0.7",
+          "{0b485fc4-1f06-476c-96d4-c7538e338b43}:1.0",
+          "{0b485fc4-1f06-476c-96d4-c7538e338b43}:2.0",
+          "{0b485fc4-1f06-476c-96d4-c7538e338b43}:2.1",
+          "{0b485fc4-1f06-476c-96d4-c7538e338b43}:2.2"
+        ]
+      },
+      "schema": 1762481755896,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762497306196,
+      "id": "5e0c6c21-5bff-4321-a3e8-8d736ceee196",
+      "last_modified": 1762497387978
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{046a55b4-5e72-4d05-a06c-cba2d2c2134a}:2.1.1",
+          "{046a55b4-5e72-4d05-a06c-cba2d2c2134a}:2.9.9",
+          "{c2b1a7e9-3d42-4f7b-8a6c-9e1f2d3c4b5a}:3.7",
+          "instagram-auto-expander@exemplo.com:1.2",
+          "issdcac-pub@l.martin7:1.1.4",
+          "issdcac-pub@l.martin7:1.1.5",
+          "issdcac-pub@l.martin7:1.1.6",
+          "porua@example.com:0.2.0.1",
+          "Android@bravenhancer.com:18.0.0",
+          "enhancer@goldenfox.com:18.0.0",
+          "{e773c708-b364-4b8b-a1b1-91ed159cfe2f}:1.0",
+          "{e9a511cf-538f-4944-a954-4a41318365df}:1.0",
+          "{adde9446-58bd-4b6b-98d2-de74059cf0fa}:1.0",
+          "c1o-sorter@kour.consulting:2.0.6",
+          "{06b572de-2d44-4a68-9a01-217b239c9602}:1.0"
+        ]
+      },
+      "schema": 1762454189705,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762475705595,
+      "id": "1df325d2-a7d6-4494-8cd2-17f7d778a1ea",
+      "last_modified": 1762475792034
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{5a6b27d1-62a6-4088-a807-f0e7ebae2fff}:1.0",
+          "{1254388d-c1b2-47f3-813e-83b05ee4861c}:1.0",
+          "favory@sp4ce.pw:1.0.3",
+          "{c2b1a7e9-3d43-7f7b-9a6c-9e1f4d4c4b9a}:6.76",
+          "{c2b1a7e9-3d43-7f7b-9a6c-9e1f4d4c4b9a}:6.77",
+          "{c2b1a7e9-3d43-7f7b-9a6c-9e1f4d4c4b9a}:6.78",
+          "{c2b1a7e9-3d43-7f7b-9a6c-9e1f4d4c4b9a}:6.79",
+          "propsync@propverse.app:1.0.0",
+          "propsync@propverse.app:1.0.1",
+          "propsync@propverse.app:1.0.15",
+          "propsync@propverse.app:1.0.16",
+          "propsync@propverse.app:1.0.17",
+          "propsync@propverse.app:1.0.18",
+          "propsync@propverse-qa.app:1.0.3",
+          "propsync@propverse-qa.app:1.0.5",
+          "propsync@propverse-qa.app:1.0.6",
+          "propsync@propverse-qa.app:1.0.9",
+          "propsync@propverse-qa.app:1.0.11",
+          "propsync@propverse-qa.app:1.0.12",
+          "propsync@propverse-qa.app:1.0.13",
+          "propsync@propverse-qa.app:1.0.14",
+          "propsync@propverse-qa.app:1.0.19",
+          "context-translator@example.com:1.1.8",
+          "context-translator@example.com:1.1.9",
+          "Bazaar@nchoremiot.com:2.5.2",
+          "propsync@propverse-qa:1.0.2",
+          "fnotes_notify@karaduz.com:1.2",
+          "as@loop0.sh:1.0.0",
+          "favory@sp4ce.pw:1.0.4",
+          "favory@sp4ce.pw:1.0.5"
+        ]
+      },
+      "schema": 1762432595677,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1762454105809,
+      "id": "655403dc-d939-4f59-bc0a-c585b2a2d732",
+      "last_modified": 1762454189506
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "{c2b1a7e9-3d42-4f7b-8a6c-9e1f4d3c4b8a}:6.66",
           "{c2b1a7e9-3d42-4f7b-8a6c-9e1f4d3c4b9a}:6.69",
           "{f74d56ba-92dc-4694-ae2b-d51d2f9c2d5d}:2.1.15",
@@ -1915,5 +2361,5 @@
       "last_modified": 1761136764909
     }
   ],
-  "timestamp": 1762432595603
+  "timestamp": 1762756580450
 }
