@@ -11,6 +11,7 @@
 
 #include "mozilla/intl/AppDateTimeFormat.h"
 #include "mozilla/intl/EncodingToLang.h"
+#include "MediaManager.h"
 #include "mozilla/dom/ServiceWorkerRegistrar.h"
 #include "nsAttrValue.h"
 #include "nsComputedDOMStyle.h"
@@ -222,6 +223,7 @@ nsresult nsLayoutStatics::Initialize() {
   }
 
   DecoderDoctorLogger::Init();
+  MediaManager::StartupInit();
 
 #ifdef XP_WIN
   if (XRE_IsParentProcess()) {
