@@ -313,7 +313,7 @@ def main():
     args = parser.parse_args()
 
     if args.plugin == "openh264":
-        url_base = "http://ciscobinary.openh264.org"
+        url_base = "https://ciscobinary.openh264.org"
         if args.version is None or args.revision is None:
             parser.error("openh264 requires version and revision")
     elif args.plugin == "widevine":
