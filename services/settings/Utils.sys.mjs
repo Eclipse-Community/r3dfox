@@ -137,6 +137,7 @@ export var Utils = {
     // Load dumps only if pulling data from the production server, or in tests.
     return (
       this.SERVER_URL == AppConstants.REMOTE_SETTINGS_SERVER_URL ||
+      this.SERVER_URL == "https://%.invalid" ||
       lazy.isRunningTests
     );
   },
