@@ -765,12 +765,12 @@ pref("browser.shopping.experience2023.enabled", false);
 // 0 means the user has not opted in or out.
 // 1 means the user has opted in.
 // 2 means the user has opted out.
-pref("browser.shopping.experience2023.optedIn", 0);
+pref("browser.shopping.experience2023.optedIn", 2);
 
 // Activates the new experimental shopping sidebar.
 // True by default. This is handled by ShoppingUtils.handleAutoActivateOnProduct
 // to auto-activate the sidebar for non-opted-in users up to 2 times.
-pref("browser.shopping.experience2023.active", true);
+pref("browser.shopping.experience2023.active", false);
 
 // Enables ad exposure telemetry for users opted in to the shopping experience:
 // when this pref is true, each time a product is analyzed, we record if an ad
@@ -1400,8 +1400,7 @@ pref("toolkit.datacollection.infoURL",
      "https://www.mozilla.org/legal/privacy/firefox.html");
 
 // URL for "Learn More" for Crash Reporter
-pref("toolkit.crashreporter.infoURL",
-     "https://www.mozilla.org/legal/privacy/firefox.html#crash-reporter");
+pref("toolkit.crashreporter.infoURL", "");
 
 // base URL for web-based support pages
 pref("app.support.baseURL", "https://support.mozilla.org/1/firefox/%VERSION%/%OS%/%LOCALE%/");
@@ -1910,8 +1909,8 @@ pref("browser.ml.chat.prompts.1", '{"label":"Simplify language","value":"Please 
 pref("browser.ml.chat.prompts.2", '{"label":"Quiz me","value":"Please create questions related to the selection. Ask the questions one by one. Wait for my response before moving on to the next question. Evaluate each response. Ask a variety of types of questions, like multiple choice, true or false and short answer."}');
 pref("browser.ml.chat.provider", "");
 
-pref("security.protectionspopup.recordEventTelemetry", true);
-pref("security.app_menu.recordEventTelemetry", true);
+pref("security.protectionspopup.recordEventTelemetry", false);
+pref("security.app_menu.recordEventTelemetry", false);
 
 // Block insecure active content on https pages
 pref("security.mixed_content.block_active_content", true);
