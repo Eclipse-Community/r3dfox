@@ -2419,45 +2419,6 @@
       "last_modified": 1752591422546
     },
     {
-      "schema": 1752155863326,
-      "derHash": "dx59bC13t7kOG0/32/6j4a19JJ0Ncp7QRVZ7XBZAknY=",
-      "attachment": {
-        "hash": "1ae45b7b0ceef35190fcbaf30c8b0442d2f2caa0a5519ffff89b9a5152bb84c0",
-        "size": 1305,
-        "filename": "wyPygwouDrmZ9JjrHsSya44hCIbHB0O1i3IMIeU20FE=.pem",
-        "location": "security-state-staging/intermediates/befc0f92-2e21-4ed1-900b-8947f01e7372.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "id": "85d03609-d84b-4554-a164-7d75746b959d",
-      "last_modified": 1752159422751
-    },
-    {
-      "schema": 1752155862293,
-      "derHash": "mAWUbNRs0vIidtRj9YLU6BHuJAJdjBfW7QrOOPc2Z0w=",
-      "attachment": {
-        "hash": "f1280eef8ebc2ff612458b2798279e95d5172d8883a5b646a68b352fbed96f4b",
-        "size": 2109,
-        "filename": "83xSo8lPiDB3NfbtH8Sf6nnd6a_5lf9oOooQ86ca04I=.pem",
-        "location": "security-state-staging/intermediates/74958bc5-8cdf-4aaa-a74a-5f74bcd32b6d.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "id": "77a5b5de-9cfa-4d8b-8f6d-570f0afa4d3c",
-      "last_modified": 1752159422748
-    },
-    {
-      "schema": 1752155864301,
-      "derHash": "Rud26nxsD5HxzeMXVfhkxFphgS8cN47VWU4Tu03mM8M=",
-      "attachment": {
-        "hash": "43be86a2c15a4438f0f6135b49ef56ea9d5ecc5688c3744dddd47258fb6116c1",
-        "size": 2450,
-        "filename": "2PetmpDyIF3lqvSYiYQyKHCHGnW0P7DdIC1MnDREeHc=.pem",
-        "location": "security-state-staging/intermediates/42f7aee8-d33a-445f-871c-affdc0cb6809.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "id": "f9b2d933-0eae-46e6-942a-41244569963a",
-      "last_modified": 1752159422744
-    },
-    {
       "schema": 1751896661778,
       "derHash": "EflXHDDC3iMnU9WxWMVPd7CgLf9BcTV1LTLpi4m8lxk=",
       "attachment": {
@@ -19513,24 +19474,6 @@
       "last_modified": 1666727868415
     },
     {
-      "schema": 1666727355063,
-      "derHash": "ci1Qh02kVJbQKZYnQJd3YDqHNBpflDuInDLnuSgKj3E=",
-      "subject": "CN=MarketWare - Soluções para Mercados Digitais\\, Lda. RSA DV CA,O=MarketWare - Soluções para Mercados Digitais\\, Lda.,L=Lisboa,ST=Lisboa,C=PT",
-      "subjectDN": "MIG3MQswCQYDVQQGEwJQVDEPMA0GA1UECBMGTGlzYm9hMQ8wDQYDVQQHEwZMaXNib2ExPTA7BgNVBAoMNE1hcmtldFdhcmUgLSBTb2x1w6fDtWVzIHBhcmEgTWVyY2Fkb3MgRGlnaXRhaXMsIExkYS4xRzBFBgNVBAMMPk1hcmtldFdhcmUgLSBTb2x1w6fDtWVzIHBhcmEgTWVyY2Fkb3MgRGlnaXRhaXMsIExkYS4gUlNBIERWIENB",
-      "whitelist": false,
-      "attachment": {
-        "hash": "364dc7ff0e34c494eeb6b74e5af48417d3bee36a3a3bc88c306402095454997e",
-        "size": 2231,
-        "filename": "0xvEIcXteNs-TYPZ7GyhN_WFNSBPpaBsyCLFCdhQQY0=.pem",
-        "location": "security-state-staging/intermediates/a9a16ec4-e9a6-4fc5-8368-10f052892a0b.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "0xvEIcXteNs+TYPZ7GyhN/WFNSBPpaBsyCLFCdhQQY0=",
-      "crlite_enrolled": false,
-      "id": "700dbfd1-9940-430d-bac5-80f5adaf4fcd",
-      "last_modified": 1666727868402
-    },
-    {
       "schema": 1666727356765,
       "derHash": "KAu8NKmMx5YGqJaQ5Sq3L9xf/yddw2bEgnsWVjE+l5A=",
       "subject": "CN=Don Dominio / MrDomain RSA DV CA,O=Soluciones Corporativas IP\\, SL,L=Manacor,ST=Illes Balears,C=ES",
@@ -20087,24 +20030,6 @@
       "crlite_enrolled": false,
       "id": "323bbf53-f28a-4c44-98d1-30a4c14d7fd9",
       "last_modified": 1666727867716
-    },
-    {
-      "schema": 1666727354531,
-      "derHash": "SytyugviemNHjCc6DFtS9puJ42marU86Gg6v5muZUmU=",
-      "subject": "CN=MarketWare - Soluções para Mercados Digitais\\, Lda. RSA EV CA,OU=Controlled by COMODO exclusively for MarketWare,O=MarketWare - Soluções para Mercados Digitais\\, Lda.,L=Lisboa,ST=Lisboa,C=PT",
-      "subjectDN": "MIHxMQswCQYDVQQGEwJQVDEPMA0GA1UECBMGTGlzYm9hMQ8wDQYDVQQHEwZMaXNib2ExPTA7BgNVBAoMNE1hcmtldFdhcmUgLSBTb2x1w6fDtWVzIHBhcmEgTWVyY2Fkb3MgRGlnaXRhaXMsIExkYS4xODA2BgNVBAsTL0NvbnRyb2xsZWQgYnkgQ09NT0RPIGV4Y2x1c2l2ZWx5IGZvciBNYXJrZXRXYXJlMUcwRQYDVQQDDD5NYXJrZXRXYXJlIC0gU29sdcOnw7VlcyBwYXJhIE1lcmNhZG9zIERpZ2l0YWlzLCBMZGEuIFJTQSBFViBDQQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "125446714e5452ed7280f9fe6cdc58e5963958feba36a8bd600c991fabb83e58",
-        "size": 2341,
-        "filename": "qCF-PPuByTYruFr6MIeAiLpr2ebZPZHBVpg73sPCJwI=.pem",
-        "location": "security-state-staging/intermediates/f2bbec94-183e-4537-bc0a-f49e5e7afbb1.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "qCF+PPuByTYruFr6MIeAiLpr2ebZPZHBVpg73sPCJwI=",
-      "crlite_enrolled": false,
-      "id": "4e1c2e5f-7a2e-4e96-b564-224f85d2097a",
-      "last_modified": 1666727867703
     },
     {
       "schema": 1666727349915,
@@ -28297,24 +28222,6 @@
       "last_modified": 1637614674594
     },
     {
-      "schema": 1637331030153,
-      "derHash": "8A5ha1ntBubMlxfQOfehpwyz0I4LatdGU2cMzkSMYfM=",
-      "subject": "CN=TeleSec Business TLS-CA 21,O=Deutsche Telekom Security GmbH,C=DE",
-      "subjectDN": "MFsxCzAJBgNVBAYTAkRFMScwJQYDVQQKEx5EZXV0c2NoZSBUZWxla29tIFNlY3VyaXR5IEdtYkgxIzAhBgNVBAMTGlRlbGVTZWMgQnVzaW5lc3MgVExTLUNBIDIx",
-      "whitelist": false,
-      "attachment": {
-        "hash": "5af51fb639abc7ecb3215b9fc5e15ae466f544ef15726b5ceaa0ab6da9b6d935",
-        "size": 2093,
-        "filename": "HwN-XWTswr50M_-6ArVXfcQin_00zYvWNeebDkP2YVI=.pem",
-        "location": "security-state-staging/intermediates/bf2aacbd-643a-4dc2-8720-b5f2241d2ad8.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "HwN+XWTswr50M/+6ArVXfcQin/00zYvWNeebDkP2YVI=",
-      "crlite_enrolled": false,
-      "id": "087d2225-53d6-4103-b228-7a7c44753024",
-      "last_modified": 1637333968854
-    },
-    {
       "schema": 1635365174803,
       "derHash": "GQmO/5wMtG4fBq363R89pXEjcPcXMzRZgTfUpVX/8Ec=",
       "subject": "CN=E-SAFER DOMAIN SSL CA  [Run by the Issuer],O=E-SAFER CONSULTORIA EM TECNOLOGIA DA INFORMACAO LTDA,C=BR",
@@ -30781,5 +30688,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1762570622810
+  "timestamp": 1762790222623
 }
