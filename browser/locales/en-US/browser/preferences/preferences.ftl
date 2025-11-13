@@ -275,6 +275,8 @@ r3dfox-e10s-desc = Disables e10s/electrolysis content multiprocess. There are st
 
 startup-header = Startup
 
+session-restore-learn-more = What if it does not work?
+
 always-check-default =
     .label = Always check if { -brand-short-name } is your default browser
     .accesskey = y
@@ -630,7 +632,7 @@ play-drm-content =
     .label = Play DRM-controlled content
     .accesskey = P
 
-play-drm-content-learn-more = Learn more
+play-drm-content-learn-more = Why we disable it
 
 update-application-title = { -brand-short-name } Updates
 
@@ -638,7 +640,7 @@ update-application-description = Keep { -brand-short-name } up to date for the b
 
 # Variables:
 # $version (string) - Firefox version
-update-application-version = Version { $version } <a data-l10n-name="learn-more">What’s new</a>
+update-application-version = Version { $version } <a data-l10n-name="learn-more">Visit the repositories</a>
 
 update-history =
     .label = Show Update History…
@@ -801,7 +803,7 @@ home-restore-defaults =
     .accesskey = R
 
 home-mode-choice-default-fx =
-    .label = { -firefox-home-brand-name } (Default)
+    .label = Homepage (Default)
 
 home-mode-choice-custom =
     .label = Custom URLs…
@@ -830,8 +832,8 @@ choose-bookmark =
 
 ## Home Section - Firefox Home Content Customization
 
-home-prefs-content-header2 = { -firefox-home-brand-name } Content
-home-prefs-content-description2 = Choose what content you want on your { -firefox-home-brand-name } screen.
+home-prefs-content-header2 = Homepage Content
+home-prefs-content-description2 = Choose what content you want on your Homepage screen.
 
 home-prefs-search-header =
     .label = Web Search
@@ -1386,7 +1388,7 @@ addressbar-quickactions-learn-more = Learn more
 
 content-blocking-enhanced-tracking-protection = Enhanced Tracking Protection
 
-content-blocking-section-top-level-description = Trackers follow you around online to collect information about your browsing habits and interests. { -brand-short-name } blocks many of these trackers and other malicious scripts.
+content-blocking-section-top-level-description = r3dfox supports - and it enables by default - Enhanced Tracking Protection in Strict mode. This is one of the most important settings in the browser, as it provides state partitioning, strict blocking lists and other neat privacy features. We do not recommend changing to other modes.
 
 content-blocking-learn-more = Learn more
 
