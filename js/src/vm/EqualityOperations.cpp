@@ -113,37 +113,47 @@ static bool LooselyEqualBooleanAndOther(JSContext* cx,
   return js::LooselyEqual(cx, lvalue, rval, result);
 }
 
-// ES6 draft rev32 7.2.12 Abstract Equality Comparison
+// ES2026 Draft rev e936549f1c05ac1b206ad4c5817e77ee3ecbc787
+//
+// IsLooselyEqual ( x, y )
+// https://tc39.es/ecma262/#sec-islooselyequal
 bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
                       JS::Handle<JS::Value> rval, bool* result) {
-  // Step 3.
+  // Step 1. If SameType(x, y) is true, then
   if (JS::SameType(lval, rval)) {
+    // Step 1.a. Return IsStrictlyEqual(x, y).
     return EqualGivenSameType(cx, lval, rval, result);
   }
 
-  // Handle int32 x double.
+  // NOTE: JS::SameType distinguishes between Int32 vs Double,
+  //       but the spec's SameType doesn't.
   if (lval.isNumber() && rval.isNumber()) {
     *result = (lval.toNumber() == rval.toNumber());
     return true;
   }
 
-  // Step 4. This a bit more complex, because of the undefined emulating object.
+  // Step 2. If x is null and y is undefined, return true.
+  // Step 3. If x is undefined and y is null, return true.
+  // Step 4. Normative Optional
+  //         If the host is a web browser or otherwise supports The
+  //         [[IsHTMLDDA]] Internal Slot, then
+  // Step 4.a. If x is an Object, x has an [[IsHTMLDDA]] internal slot, and y
+  //           is either undefined or null, return true.
+  // Step 4.b. If x is either undefined or null, y is an Object, and y has an
+  //           [[IsHTMLDDA]] internal slot, return true.
   if (lval.isNullOrUndefined()) {
-    // We can return early here, because null | undefined is only equal to the
-    // same set.
     *result = rval.isNullOrUndefined() ||
               (rval.isObject() && EmulatesUndefined(&rval.toObject()));
     return true;
   }
-
-  // Step 5.
   if (rval.isNullOrUndefined()) {
     MOZ_ASSERT(!lval.isNullOrUndefined());
     *result = lval.isObject() && EmulatesUndefined(&lval.toObject());
     return true;
   }
 
-  // Step 6.
+  // Step 5. If x is a Number and y is a String, return ! IsLooselyEqual(x, !
+  //         ToNumber(y)).
   if (lval.isNumber() && rval.isString()) {
     double num;
     if (!StringToNumber(cx, rval.toString(), &num)) {
@@ -153,7 +163,8 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
     return true;
   }
 
-  // Step 7.
+  // Step 6. If x is a String and y is a Number, return ! IsLooselyEqual(!
+  //         ToNumber(x), y).
   if (lval.isString() && rval.isNumber()) {
     double num;
     if (!StringToNumber(cx, lval.toString(), &num)) {
@@ -163,17 +174,29 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
     return true;
   }
 
-  // Step 8.
+  // Step 7. If x is a BigInt and y is a String, then
+  // Step 7.a. Let n be StringToBigInt(y).
+  // Step 7.b. If n is undefined, return false.
+  // Step 7.c. Return ! IsLooselyEqual(x, n).
+  // TODO
+
+  // Step 8. If x is a String and y is a BigInt, return ! IsLooselyEqual(y,
+  //         x).
+  // TODO
+
+  // Step 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
   if (lval.isBoolean()) {
     return LooselyEqualBooleanAndOther(cx, lval, rval, result);
   }
 
-  // Step 9.
+  // Step 10. If y is a Boolean, return ! IsLooselyEqual(x, ! ToNumber(y)).
   if (rval.isBoolean()) {
     return LooselyEqualBooleanAndOther(cx, rval, lval, result);
   }
 
-  // Step 10.
+  // Step 11. If x is either a String, a Number, a BigInt, or a Symbol and y
+  //          is an Object, return ! IsLooselyEqual(x, ? ToPrimitive(y)).
+  // TODO
   if ((lval.isString() || lval.isNumber() || lval.isSymbol()) &&
       rval.isObject()) {
     JS::Rooted<JS::Value> rvalue(cx, rval);
@@ -183,7 +206,9 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
     return js::LooselyEqual(cx, lval, rvalue, result);
   }
 
-  // Step 11.
+  // Step 12. If x is an Object and y is either a String, a Number, a BigInt,
+  //          or a Symbol, return ! IsLooselyEqual(? ToPrimitive(x), y).
+  // TODO
   if (lval.isObject() &&
       (rval.isString() || rval.isNumber() || rval.isSymbol())) {
     JS::Rooted<JS::Value> lvalue(cx, lval);
@@ -192,6 +217,12 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
     }
     return js::LooselyEqual(cx, lvalue, rval, result);
   }
+
+  // Step 13. If x is a BigInt and y is a Number, or if x is a Number and y
+  //          is a BigInt, then
+  // Step 13.a. If x is not finite or y is not finite, return false.
+  // Step 13.b. If ℝ(x) = ℝ(y), return true; otherwise return false.
+  // TODO
 
   if (lval.isBigInt()) {
     JS::Rooted<JS::BigInt*> lbi(cx, lval.toBigInt());
@@ -211,7 +242,7 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
     return true;
   }
 
-  // Step 12.
+  // Step 14. Return false.
   *result = false;
   return true;
 }
