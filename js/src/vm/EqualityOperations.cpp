@@ -175,14 +175,34 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
   }
 
   // Step 7. If x is a BigInt and y is a String, then
-  // Step 7.a. Let n be StringToBigInt(y).
-  // Step 7.b. If n is undefined, return false.
-  // Step 7.c. Return ! IsLooselyEqual(x, n).
-  // TODO
+  if (lval.isBigInt() && rval.isString()) {
+    // Step 7.a. Let n be StringToBigInt(y).
+    BigInt* n;
+    JS::Rooted<JSString*> str(cx, rval.toString());
+    JS_TRY_VAR_OR_RETURN_FALSE(cx, n, StringToBigInt(cx, str));
+    if (!n) {
+      // Step 7.b. If n is undefined, return false.
+      *result = false;
+      return true;
+    }
+    // Step 7.c. Return ! IsLooselyEqual(x, n).
+    *result = JS::BigInt::equal(lval.toBigInt(), n);
+    return true;
+  }
 
   // Step 8. If x is a String and y is a BigInt, return ! IsLooselyEqual(y,
   //         x).
-  // TODO
+  if (lval.isString() && rval.isBigInt()) {
+    BigInt* n;
+    JS::Rooted<JSString*> str(cx, lval.toString());
+    JS_TRY_VAR_OR_RETURN_FALSE(cx, n, StringToBigInt(cx, str));
+    if (!n) {
+      *result = false;
+      return true;
+    }
+    *result = JS::BigInt::equal(rval.toBigInt(), n);
+    return true;
+  }
 
   // Step 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
   if (lval.isBoolean()) {
@@ -196,8 +216,8 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
 
   // Step 11. If x is either a String, a Number, a BigInt, or a Symbol and y
   //          is an Object, return ! IsLooselyEqual(x, ? ToPrimitive(y)).
-  // TODO
-  if ((lval.isString() || lval.isNumber() || lval.isSymbol()) &&
+  if ((lval.isString() || lval.isNumber() || lval.isBigInt() ||
+       lval.isSymbol()) &&
       rval.isObject()) {
     JS::Rooted<JS::Value> rvalue(cx, rval);
     if (!ToPrimitive(cx, &rvalue)) {
@@ -208,9 +228,8 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
 
   // Step 12. If x is an Object and y is either a String, a Number, a BigInt,
   //          or a Symbol, return ! IsLooselyEqual(? ToPrimitive(x), y).
-  // TODO
-  if (lval.isObject() &&
-      (rval.isString() || rval.isNumber() || rval.isSymbol())) {
+  if (lval.isObject() && (rval.isString() || rval.isNumber() ||
+                          rval.isBigInt() || rval.isSymbol())) {
     JS::Rooted<JS::Value> lvalue(cx, lval);
     if (!ToPrimitive(cx, &lvalue)) {
       return false;
@@ -220,25 +239,14 @@ bool js::LooselyEqual(JSContext* cx, JS::Handle<JS::Value> lval,
 
   // Step 13. If x is a BigInt and y is a Number, or if x is a Number and y
   //          is a BigInt, then
-  // Step 13.a. If x is not finite or y is not finite, return false.
-  // Step 13.b. If ℝ(x) = ℝ(y), return true; otherwise return false.
-  // TODO
-
-  if (lval.isBigInt()) {
-    JS::Rooted<JS::BigInt*> lbi(cx, lval.toBigInt());
-    bool tmpResult;
-    JS_TRY_VAR_OR_RETURN_FALSE(cx, tmpResult,
-                               JS::BigInt::looselyEqual(cx, lbi, rval));
-    *result = tmpResult;
+  if (lval.isBigInt() && rval.isNumber()) {
+    // Step 13.a. If x is not finite or y is not finite, return false.
+    // Step 13.b. If ℝ(x) = ℝ(y), return true; otherwise return false.
+    *result = BigInt::equal(lval.toBigInt(), rval.toNumber());
     return true;
   }
-
-  if (rval.isBigInt()) {
-    JS::Rooted<JS::BigInt*> rbi(cx, rval.toBigInt());
-    bool tmpResult;
-    JS_TRY_VAR_OR_RETURN_FALSE(cx, tmpResult,
-                               JS::BigInt::looselyEqual(cx, rbi, lval));
-    *result = tmpResult;
+  if (lval.isNumber() && rval.isBigInt()) {
+    *result = BigInt::equal(rval.toBigInt(), lval.toNumber());
     return true;
   }
 
