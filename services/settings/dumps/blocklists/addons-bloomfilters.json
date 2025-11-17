@@ -5,6 +5,354 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "{0769574b-9140-4c7e-a239-0733619d3819}:1.0",
+          "{d1a75c5d-0961-41ff-8212-f72056233ab9}:2.0",
+          "{d1a75c5d-0961-41ff-8212-f72056233ab9}:1.0",
+          "{d1a75c5d-0961-41ff-8212-f72056233ab9}:3.0",
+          "{11f0065a-3664-4380-82a3-db944b6f090d}:1.0",
+          "twitch-vod-unmute@example.com:1.1.4",
+          "{db272844-ce14-4416-8e70-cc2a7360c299}:1.0",
+          "{815d24fc-4654-42d9-bcbc-1d39f3985e1d}:1.0",
+          "{815d24fc-4654-42d9-bcbc-1d39f3985e1d}:2.0",
+          "{815d24fc-4654-42d9-bcbc-1d39f3985e1d}:3.0",
+          "{815d24fc-4654-42d9-bcbc-1d39f3985e1d}:4.0",
+          "vidmoly-helpera54fed@local:1.2",
+          "vidmoly-dsa@local:1.2",
+          "multiopen@example.com:3.3",
+          "multiopen@example.com:3.7"
+        ]
+      },
+      "schema": 1763345743233,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763361305255,
+      "id": "ec39eb6c-43e4-4da6-a123-f70fc96fc7ce",
+      "last_modified": 1763361380116
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "brouf@example.com:1.1",
+          "muc3-dashboard@example.com:1.0",
+          "muc3-dashboard@example.com:1.1",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.1",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.2",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.3",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.3.1",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.3.2",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.3.3",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.3.4",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.3.5",
+          "{702a8852-33bf-4a11-aed0-b76437c3ae2b}:0.3.6",
+          "favory@sp4ce.pw:1.1.5",
+          "{6102d8aa-4450-474a-8aaa-a2980ee0492b}:1.0"
+        ]
+      },
+      "schema": 1763318178876,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763339707956,
+      "id": "7294d09a-f9a8-44a4-afc1-2f0856ee336f",
+      "last_modified": 1763339794926
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "f0xss@example.com:1.1",
+          "f0xss@example.com:1.0",
+          "f0xss@example.com:1",
+          "autofill-modern@example.com:1.3",
+          "{64346286-3e63-48bc-a80b-5f1d00c9da3b}:1.0",
+          "{c5f5c4ac-8b37-49a3-9687-f86859324544}:1.0",
+          "{c5f5c4ac-8b37-49a3-9687-f86859324544}:1.0.1",
+          "{c5f5c4ac-8b37-49a3-9687-f86859324544}:1.0.2",
+          "{c5f5c4ac-8b37-49a3-9687-f86859324544}:1.0.3"
+        ]
+      },
+      "schema": 1763296579722,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763318105210,
+      "id": "3de9626e-492d-40ce-be09-16fd7b1d746c",
+      "last_modified": 1763318178708
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{7fa78dfb-aad9-4cf6-9804-ae4dd759a252}:1.0",
+          "{c4bf14c6-bc23-4803-8306-155a0295dce5}:1.0",
+          "addon-e9e52831@local:1.0",
+          "favory@sp4ce.pw:1.0.9",
+          "favory@sp4ce.pw:1.1.0",
+          "favory@sp4ce.pw:1.1.1",
+          "favory@sp4ce.pw:1.1.2",
+          "favory@sp4ce.pw:1.1.3",
+          "favory@sp4ce.pw:1.1.4"
+        ]
+      },
+      "schema": 1763274982644,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763296505171,
+      "id": "ec74b17c-b1bc-4bc8-b33b-64b0bc770665",
+      "last_modified": 1763296579419
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{f37944d2-0050-4e10-a36b-e573ebfb8800}:1.0.7",
+          "manhuaseriesdownloader.python@example.com:7.0",
+          "manhuaseriesdownloader.python@example.com:7.1",
+          "manhuaseriesdownloader.python@example.com:7.2",
+          "astian-privacy@astian.org:1.1.0.1",
+          "astian-privacy@astian.org:2.0",
+          "astian-privacy@astian.org:2.0.1",
+          "astian-privacy@astian.org:2.0.2",
+          "astian-privacy@astian.org:2.0.3",
+          "manhuaseriesdownloader.python@example.com:7.3",
+          "multiopen@example.com:3.5",
+          "multiopen@example.com:3.6"
+        ]
+      },
+      "schema": 1763259345837,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763274904946,
+      "id": "068066c1-7af1-4ee3-bac3-a7761747153f",
+      "last_modified": 1763274982480
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "Android@bravenhancer.com:20.0.5",
+          "enhancer@goldenfox.com:20.0.5",
+          "{8aaee12b-5764-4012-a93b-cdee7fb1136e}:1.7",
+          "yt-long-playlist@example.com:1.0.0",
+          "yt-long-playlist@example.com:1.9.0",
+          "coin-counter@example:1.1.1",
+          "{bbb0df11-b3d0-4423-8100-393ed4458ce3}:1.2.4resigned1",
+          "antiusonly@extension:1.1.0"
+        ]
+      },
+      "schema": 1763231779104,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763253304864,
+      "id": "630bcc25-aa51-4b6c-9358-5aade2051945",
+      "last_modified": 1763253379167
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{86022c6f-35b6-4542-ac2d-739566632970}:0.8.2",
+          "{f9f70ceb-7676-42c5-9b71-08e1512796bb}:0.8.2",
+          "eklv@example.com:1.0",
+          "i-just-want-to-install-new-version-of-extension@pleasework.com:1.9.12",
+          "ff-tabunloader@smell.flowers:2"
+        ]
+      },
+      "schema": 1763210189424,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763231705357,
+      "id": "5bd226e7-ae1a-4f9f-8942-6ff50b1e2a41",
+      "last_modified": 1763231778846
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{3682952e-46db-469a-82a1-3102296766da}:1.0",
+          "playlist-viewer-fix@your-username.com:1.0",
+          "playlist-viewer-fix@your-username.com:1.1",
+          "{1830e313-1cb6-4b77-8a50-26a25b88dccc}:1.0",
+          "playlist-viewer-fix@your-username.com:1.2"
+        ]
+      },
+      "schema": 1763188583383,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763210106286,
+      "id": "6ed0e9e8-f928-4efd-890d-7720fe61e004",
+      "last_modified": 1763210189208
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "calculator@digitalvoivode.com:1.0",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.8"
+        ]
+      },
+      "schema": 1763172957207,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763188505407,
+      "id": "128e9953-04d3-4826-9388-ee4f94e37e2d",
+      "last_modified": 1763188583205
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "easyform@example.com:1.1.1",
+          "easyform@example.com:1.0.0",
+          "easyform@example.com:1.1.0",
+          "easyform@example.com:1.1.2",
+          "asus-router-button@example.com:1.0",
+          "remove-container-piano@example.com:1.0.0",
+          "@lenti-ff:0.0.9",
+          "@lenti-ff:0.0.7-fix",
+          "{3f08b2a9-9d17-4c42-9a2f-92a207bbd001}:1.1",
+          "{4bff6036-064e-4903-bcfc-5ef4001f4cae}:2.1.1"
+        ]
+      },
+      "schema": 1763145380190,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763166905238,
+      "id": "9194c170-0a5b-4e5b-9ab4-a6e5ee4d4e73",
+      "last_modified": 1763166981903
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{4f309a6b-6b94-46dd-b787-570b2278e8cd}:1.0",
+          "{4b0eaee9-bcbf-46d0-be5e-3e7527815cd6}:1.0",
+          "{182ace6e-df11-462e-b015-7a1647281503}:1.0"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "bitbucket-diff-scanner@newfold.com:1.0",
+          "{3b476c81-ee34-4c7c-9aeb-8b1dd4f4e97c}:1.0",
+          "qrtracker@qrtracker.io:1.1.4",
+          "qrtracker@qrtracker.io:1.1.5",
+          "qrtracker@qrtracker.io:1.1.6",
+          "intellidraft@example.com:1.0.0",
+          "{8C23CBC2-EB21-4075-99F5-8F548C1927B2}:2.1",
+          "{8C23CBC2-EB21-4075-99F5-8F548C1927B2}:2.2",
+          "{8C23CBC2-EB21-4075-99F5-8F548C1927B2}:3.0",
+          "{8C23CBC2-EB21-4075-99F5-8F548C1927B2}:2.0",
+          "{8C23CBC2-EB21-4075-99F5-8F548C1927B2}:1.0",
+          "{19321c4f-a39e-4578-b7a8-5093355ab3a1}:1.0.7",
+          "{ea5d9ee8-8e36-42bf-b325-5d7c549f35f2}:1.0",
+          "{81dce488-6b41-4754-ae71-ff1f7854119a}:1.0"
+        ]
+      },
+      "schema": 1763123788106,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763145305728,
+      "id": "25d37504-1170-4a5f-b1b6-9dc168146dc9",
+      "last_modified": 1763145379980
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "@ublacklist.local:8.12.0",
+          "@ublacklist.local:9.0.2",
+          "oci-ocid-redirector@OneViewSearch:1.0.0"
+        ]
+      },
+      "schema": 1763102193154,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763123706088,
+      "id": "258d5c5e-b247-4ce8-bde6-a4e0838ba08f",
+      "last_modified": 1763123787993
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "alfonsodaniello@blu.it:0.1.3",
+          "alfonsodaniello@blu.it:0.1.2",
+          "alfonsodaniello@blu.it:0.1.1",
+          "alfonsodaniello@blu.it:0.1.0",
+          "jira-gitlab-mr-links@limonkufu.com:1.1",
+          "remove-tweet-view-count@murilocarrijosilva.com:1.0",
+          "tensor-art-downloader-a3eb989bf6544ba5@local:2.0",
+          "tensor-art-downloader-4db542ff@local:2.0",
+          "tensor-art-downloader@example.com:2.0"
+        ]
+      },
+      "schema": 1763086546752,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763102106300,
+      "id": "5c4a8f60-6290-4e60-b27d-78587dc02128",
+      "last_modified": 1763102192943
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "kinozalhelper@elektrikis.id.lv:3.4.0",
+          "customtab@deividcode.com:3.0.8",
+          "kinozalhelper@elektrikis.id.lv:3.3.0",
+          "{05089092-ac99-419b-9b5c-94940cc6197e}:1.2",
+          "{05089092-ac99-419b-9b5c-94940cc6197e}:1.31",
+          "hide-collection-only-ebay@firefox.ecc.im:1.5.2.1"
+        ]
+      },
+      "schema": 1763058989668,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763080505211,
+      "id": "5c738569-0bb2-4461-b278-f0ef648130f7",
+      "last_modified": 1763080579887
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "novel-downloader@RighteousW.com:1.0.0",
+          "derpi-numbers@example.com:1.0",
+          "derpi-numbers@example.com:1.1",
+          "epreuveSantorin@santorin.com:1.1",
+          "netskope-isolation-management@yourdomain.com:1.0",
+          "{52c96c2c-df1a-45c3-b5e5-ec5d4111ce8d}:241029.1",
+          "visibilityblocker@example.com:1.0",
+          "egas.torres@gmail.com:2.2"
+        ]
+      },
+      "schema": 1763037391746,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763058906327,
+      "id": "f9deef85-a8b4-4069-91dd-dc28c585556e",
+      "last_modified": 1763058989481
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{f350fb55-0f0f-455b-a250-84ecd8e9c1c2}:1.0.5",
+          "{f350fb55-0f0f-455b-a250-84ecd8e9c1c2}:1.5",
+          "{f350fb55-0f0f-455b-a250-84ecd8e9c1c2}:1.6",
+          "{f350fb55-0f0f-455b-a250-84ecd8e9c1c2}:1.7"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "{7ace9190-33ca-4ebe-bd61-6bca5ddf4cb5}:0.1",
+          "jiojiojohn@gmail.com:3.0.2"
+        ]
+      },
+      "schema": 1763015790096,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1763037306207,
+      "id": "b1aa0939-6a5f-434a-8836-0da13a368cd4",
+      "last_modified": 1763037391626
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "elpump99-photo@elpump.xyz:1.0",
           "{79bff8f6-3b47-498b-b3f9-e38fa3a298aa}:1.0.1",
           "{79bff8f6-3b47-498b-b3f9-e38fa3a298aa}:1.0.2",
@@ -2859,5 +3207,5 @@
       "last_modified": 1761136764909
     }
   ],
-  "timestamp": 1763015789873
+  "timestamp": 1763361380116
 }
