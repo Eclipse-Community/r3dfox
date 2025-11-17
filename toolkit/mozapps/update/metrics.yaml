@@ -438,3 +438,17 @@ update:
     expires: never
     send_in_pings:
       - background-update
+
+  state_write_failure:
+    type: counter
+    description: >
+      Update: Count of the number of times we have shown a notification to the
+      user that they need to manually update because we cannot write to the
+      update status file.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1984458
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1984458
+    notification_emails:
+      - application-update-telemetry-alerts@mozilla.com
+    expires: never

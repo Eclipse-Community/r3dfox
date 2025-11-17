@@ -77,6 +77,11 @@ const PREF_APP_UPDATE_ELEVATE_NEVER = "app.update.elevate.never";
 const PREF_APP_UPDATE_ELEVATE_VERSION = "app.update.elevate.version";
 const PREF_APP_UPDATE_ELEVATE_ATTEMPTS = "app.update.elevate.attempts";
 const PREF_APP_UPDATE_ELEVATE_MAXATTEMPTS = "app.update.elevate.maxAttempts";
+const PREF_APP_UPDATE_LOCKEDOUT_COUNT = "app.update.lockedOut.count";
+const PREF_APP_UPDATE_LOCKEDOUT_DEBOUNCETIME =
+  "app.update.lockedOut.debounceTimeMs";
+const PREF_APP_UPDATE_LOCKEDOUT_MAXCOUNT = "app.update.lockedOut.maxCount";
+const PREF_APP_UPDATE_LOCKEDOUT_MAXAGE = "app.update.lockedOut.maxAgeMs";
 const PREF_APP_UPDATE_LANGPACK_ENABLED = "app.update.langpack.enabled";
 const PREF_APP_UPDATE_LANGPACK_TIMEOUT = "app.update.langpack.timeout";
 const PREF_APP_UPDATE_NOTIFYDURINGDOWNLOAD = "app.update.notifyDuringDownload";
@@ -298,6 +303,8 @@ var gBITSInUseByAnotherUser = false;
 let gOnlyDownloadUpdatesThisSession = false;
 // This will be the backing for `nsIApplicationUpdateService.currentState`
 var gUpdateState = Ci.nsIApplicationUpdateService.STATE_IDLE;
+
+let gLastLockoutDebouncedAt = 0;
 
 /**
  * Simple container and constructor for a Promise and its resolve function.
@@ -1141,6 +1148,92 @@ function getDownloadingUpdateDir() {
 }
 
 /**
+ * If there is a problem with accessing the status file, it may be a transient
+ * issue, such as another process checking for updates holding a lock,
+ * or it may be a persistent problem that needs attention.
+ * This function tries to determine if we should prompt the user to fix the
+ * issue.
+ *
+ * @param   file
+ *          An nsIFile object for the file with the issue
+ * @param   ex
+ *          The Exception object that was thrown when attempting to access the
+ *          file.
+ */
+function onStateAccessFailure(file, ex) {
+  LOG("onStateAccessFailure. Ex: " + ex);
+  if (
+    ex.result == Cr.NS_ERROR_FILE_ACCESS_DENIED ||
+    ex.result == Cr.NS_ERROR_FILE_IS_LOCKED
+  ) {
+    // Looks like we can't access the file. If it hasn't changed in
+    // a long time, notify the user that we are persistently unable to update.
+    const oneMinMs = 60 * 1000;
+    const oneDayMs = 24 * 60 * oneMinMs;
+    const now = Date.now();
+
+    // A single update check can attempt to read and write the update state
+    // multiple times. We want `lockoutCount` to count the number of times that
+    // an update check fails, not the number of times that we fail to access the
+    // state. To deal with this, we will implement a debouncing period after
+    // each failure.
+    let debounceTimeMs = Services.prefs.getIntPref(
+      PREF_APP_UPDATE_LOCKEDOUT_DEBOUNCETIME,
+      5 * oneMinMs
+    );
+    debounceTimeMs = Math.min(debounceTimeMs, oneDayMs);
+    const debounceEnd = gLastLockoutDebouncedAt + debounceTimeMs;
+    if (now < debounceEnd) {
+      LOG(`onStateAccessFailure: debounced! (${debounceEnd - now}ms left)`);
+      return;
+    }
+    gLastLockoutDebouncedAt = now;
+
+    // Not really the age, just the interval since last modified.
+    const fileAgeMs = now - file.lastModifiedTime;
+
+    let lockoutCount = Services.prefs.getIntPref(
+      PREF_APP_UPDATE_LOCKEDOUT_COUNT,
+      0
+    );
+    lockoutCount += 1;
+    Services.prefs.setIntPref(PREF_APP_UPDATE_LOCKEDOUT_COUNT, lockoutCount);
+
+    let maxLockoutCount = Services.prefs.getIntPref(
+      PREF_APP_UPDATE_LOCKEDOUT_MAXCOUNT,
+      4
+    );
+    maxLockoutCount = Math.min(maxLockoutCount, 20);
+    LOG(
+      `onStateAccessFailure: lockoutCount is ${lockoutCount}, maxLockoutCount is ${maxLockoutCount}`
+    );
+
+    let maxFileAgeMs = Services.prefs.getIntPref(
+      PREF_APP_UPDATE_LOCKEDOUT_MAXAGE,
+      oneDayMs * 2
+    );
+    maxFileAgeMs = Math.min(maxFileAgeMs, oneDayMs * 14);
+    LOG(
+      `onStateAccessFailure: fileAgeMs = ${fileAgeMs} maxFileAgeMs = ${maxFileAgeMs}`
+    );
+
+    if (lockoutCount >= maxLockoutCount && fileAgeMs >= maxFileAgeMs) {
+      Glean.update.stateWriteFailure.add();
+      // Create an empty Update object for messaging.
+      let update = new Update(null);
+      LOG("onStateAccessFailure: reporting permission issue");
+      Services.obs.notifyObservers(update, "update-error", "bad-perms");
+      Services.prefs.setIntPref(PREF_APP_UPDATE_LOCKEDOUT_COUNT, 0);
+    }
+  }
+}
+
+function onStateAccessSuccess() {
+  LOG("onStateAccessSuccess");
+  Services.prefs.setIntPref(PREF_APP_UPDATE_LOCKEDOUT_COUNT, 0);
+}
+
+/**
  * Reads the update state from the update.status file in the specified
  * directory.
  * @param   dir
@@ -1186,16 +1279,31 @@ function readBinaryTransparencyResult(dir) {
  * Writes the current update operation/state to a file in the patch
  * directory, indicating to the patching system that operations need
  * to be performed.
+ *
+ * This function does not throw on errors. It just returns the error.
+ *
  * @param   dir
  *          The patch directory where the update.status file should be
  *          written.
  * @param   state
  *          The state value to write.
+ * @returns `null` on success or a JS exception on failure.
  */
 function writeStatusFile(dir, state) {
   let statusFile = dir.clone();
   statusFile.append(FILE_UPDATE_STATUS);
-  writeStringToFile(statusFile, state);
+  try {
+    writeStringToFile(statusFile, state);
+    LOG("writeStatusFile - status: " + state + ", path: " + statusFile.path);
+    try {
+      onStateAccessSuccess();
+    } catch {}
+  } catch (ex) {
+    LOG("writeStatusFile failed: " + ex);
+    onStateAccessFailure(statusFile, ex);
+    return ex;
+  }
+  return null;
 }
 
 /**
@@ -1206,6 +1314,9 @@ function writeStatusFile(dir, state) {
  * the update should be applied. Note that this won't provide protection from
  * downgrade of the application for the nightly user case where the application
  * version doesn't change.
+ *
+ * This function fails silently.
+ *
  * @param   dir
  *          The patch directory where the update.version file should be
  *          written.
@@ -1216,7 +1327,11 @@ function writeStatusFile(dir, state) {
 function writeVersionFile(dir, version) {
   let versionFile = dir.clone();
   versionFile.append(FILE_UPDATE_VERSION);
-  writeStringToFile(versionFile, version);
+  try {
+    writeStringToFile(versionFile, version);
+  } catch (ex) {
+    LOG("writeVersionFile failed: " + ex);
+  }
 }
 
 /**
@@ -1548,19 +1663,20 @@ function cleanupActiveUpdates() {
  * written to the file.  This function only works with ASCII text.
  * @param file An nsIFile indicating what file to write to.
  * @param text A string containing the text to write to the file.
- * @return true on success, false on failure.
+ * @throws Errors from file stream will be propagated.
  */
 function writeStringToFile(file, text) {
+  let fos = FileUtils.openSafeFileOutputStream(file);
+  text += "\n";
+  fos.write(text, text.length);
+  // Don't use `FileUtils.closeSafeFileOutputStream` because it swallows errors,
+  // which we don't want to do here.
   try {
-    let fos = FileUtils.openSafeFileOutputStream(file);
-    text += "\n";
-    fos.write(text, text.length);
-    FileUtils.closeSafeFileOutputStream(fos);
-  } catch (e) {
-    LOG(`writeStringToFile - Failed to write to file: "${file}". Error: ${e}"`);
-    return false;
+    fos.QueryInterface(Ci.nsISafeOutputStream);
+    fos.finish();
+  } finally {
+    fos.close();
   }
-  return true;
 }
 
 function readStringFromInputStream(inputStream) {
@@ -6241,8 +6357,14 @@ class Downloader {
     }
 
     if (!lazy.UM.internal.readyUpdate) {
-      LOG("Downloader:downloadUpdate - Setting status to downloading");
-      writeStatusFile(getReadyUpdateDir(), STATE_DOWNLOADING);
+      const error = writeStatusFile(getReadyUpdateDir(), STATE_DOWNLOADING);
+      if (error) {
+        LOG("Downloader:downloadUpdate - Failed to set status to downloading");
+        await cleanupActiveUpdates();
+        return Ci.nsIApplicationUpdateService
+          .DOWNLOAD_FAILURE_CANNOT_WRITE_STATE;
+      }
+      LOG("Downloader:downloadUpdate - Set status to downloading");
     }
     if (this._patch.state != STATE_DOWNLOADING) {
       LOG("Downloader:downloadUpdate - Setting state to downloading");

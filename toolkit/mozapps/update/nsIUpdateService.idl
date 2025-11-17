@@ -490,6 +490,9 @@ interface nsIApplicationUpdateService : nsISupports
   // The update download cannot be started for a reason that doesn't have a more
   // specific failure code.
   const long DOWNLOAD_FAILURE_GENERIC                                     = 3;
+  // The update download cannot be started because the update state could not
+  // be written to the update directory.
+  const long DOWNLOAD_FAILURE_CANNOT_WRITE_STATE                          = 4;
 
   /**
    * Starts downloading the update passed. Once the update is downloaded, it
