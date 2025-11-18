@@ -9,6 +9,7 @@
 #include "js/Array.h"                 // IsArrayObject
 #include "js/friend/ErrorMessages.h"  // js::GetErrorMessage, JSMSG_*
 #include "js/JSON.h"                  // JS_ParseJSON
+#include "js/PropertyDescriptor.h"    // JS::PropertyDescriptor
 #include "LoadedScript.h"
 #include "ModuleLoaderBase.h"  // ScriptLoaderInterface
 #include "nsContentUtils.h"
@@ -309,6 +310,21 @@ static UniquePtr<ScopeMap> SortAndNormalizeScopes(
   return normalized;
 }
 
+static bool GetOwnProperty(JSContext* aCx, Handle<JSObject*> aObj,
+                           const char* aName, MutableHandle<Value> aValueOut) {
+  JS::Rooted<mozilla::Maybe<JS::PropertyDescriptor>> desc(aCx);
+  if (!JS_GetOwnPropertyDescriptor(aCx, aObj, aName, &desc)) {
+    return false;
+  }
+
+  if (desc.isNothing()) {
+    return true;
+  }
+  MOZ_ASSERT(!desc->isAccessorDescriptor());
+  aValueOut.set(desc->value());
+  return true;
+}
+
 // https://html.spec.whatwg.org/multipage/webappapis.html#parse-an-import-map-string
 // static
 UniquePtr<ImportMap> ImportMap::ParseString(
@@ -353,9 +369,9 @@ UniquePtr<ImportMap> ImportMap::ParseString(
     return nullptr;
   }
 
-  JS::RootedObject parsedObj(aCx, &parsedVal.toObject());
-  JS::RootedValue importsVal(aCx);
-  if (!JS_GetProperty(aCx, parsedObj, "imports", &importsVal)) {
+  RootedObject parsedObj(aCx, &parsedVal.toObject());
+  RootedValue importsVal(aCx);
+  if (!GetOwnProperty(aCx, parsedObj, "imports", &importsVal)) {
     return nullptr;
   }
 
@@ -390,8 +406,8 @@ UniquePtr<ImportMap> ImportMap::ParseString(
     }
   }
 
-  JS::RootedValue scopesVal(aCx);
-  if (!JS_GetProperty(aCx, parsedObj, "scopes", &scopesVal)) {
+  RootedValue scopesVal(aCx);
+  if (!GetOwnProperty(aCx, parsedObj, "scopes", &scopesVal)) {
     return nullptr;
   }
 
@@ -478,7 +494,6 @@ static mozilla::Result<nsCOMPtr<nsIURI>, ResolveError> ResolveImportsMatch(
     const SpecifierMap* aSpecifierMap) {
   // Step 1. For each specifierKey → resolutionResult of specifierMap,
   for (auto&& [specifierKey, resolutionResult] : *aSpecifierMap) {
-    nsAutoString specifier{aNormalizedSpecifier};
     nsCString asURL = aAsURL ? aAsURL->GetSpecOrDefault() : EmptyCString();
 
     // Step 1.1. If specifierKey is normalizedSpecifier, then:
