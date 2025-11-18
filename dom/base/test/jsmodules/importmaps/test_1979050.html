@@ -3,15 +3,15 @@
 <title>Test bug 1979050</title>
 <script>
 Object.prototype.imports = {
-  "./module_simpleExport.mjs": "./scope1/module_simpleExport.mjs",
+  "./module_simpleExport.js": "./scope1/module_simpleExport.js",
 };
 Object.prototype.scopes = {
   "chrome://mochitests/content/chrome/dom/base/test/jsmodules/importmaps/scope1/": {
-      "./scope1/module_simpleExport.mjs": "/content/chrome/dom/base/test/jsmodules/importmaps/module_simpleExport.mjs"
+      "./scope1/module_simpleExport.js": "/content/chrome/dom/base/test/jsmodules/importmaps/module_simpleExport.js"
   }
 };
 Object.prototype.integrity = {
-  "./scope1/scope2/module_simpleExport.mjs": "sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"
+  "./scope1/scope2/module_simpleExport.js": "sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"
 };
 
 </script>
@@ -35,7 +35,7 @@ Object.prototype.integrity = {
     ok(result2 == 84, 'Check static imported value result2: ' + result2);
     ok(result3 == 126, 'Check static imported value result3: ' + result3);
 
-    import("./module_simpleExport.mjs").then((ns) => {
+    import("./module_simpleExport.js").then((ns) => {
       ok(ns.x == 42, 'Check dynamic imported value result: ' + ns.x);
       return import("./scope1/module_1979050.mjs");
     }).then((ns) => {
