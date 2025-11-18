@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Test bug 1979050</title>
+<script src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"></script>
+<script>
+Object.defineProperty(Object.prototype, "imports",
+  {
+    get() {
+      ok(false, "imports getter");
+      return {
+        "./module_simpleExport.mjs": "./scope1/module_simpleExport.mjs",
+      };
+    }
+  });
+
+Object.defineProperty(Object.prototype, "scopes",
+  {
+    get() {
+      ok(false, "scopes getter");
+      return {
+        "chrome://mochitests/content/chrome/dom/base/test/jsmodules/importmaps/scope1/": {
+          "./scope1/module_simpleExport.mjs": "/content/chrome/dom/base/test/jsmodules/importmaps/module_simpleExport.mjs"
+        }
+      };
+    }
+  });
+
+Object.defineProperty(Object.prototype, "integrity ",
+  {
+    get() {
+      ok(false, "scopes getter");
+      return {
+        "./scope1/scope2/module_simpleExport.mjs": "sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"
+      };
+    }
+  });
+
+</script>
+<script type="importmap">
+{}
+</script>
+
+<script type="module" src="module_1979050.mjs"></script>
+<script type="module" src="./scope1/module_1979050.mjs"></script>
+<script type="module" src="./scope1/scope2/module_1979050.mjs"></script>
+<script>
+  var result, result2, result3;
+
+  SimpleTest.waitForExplicitFinish();
+
+  // eslint-disable-next-line no-unused-vars
+  function testLoaded() {
+    ok(result == 42, 'Check static imported value result: ' + result);
+    ok(result2 == 84, 'Check static imported value result2: ' + result2);
+    ok(result3 == 126, 'Check static imported value result3: ' + result3);
+
+    import("./module_simpleExport.mjs").then((ns) => {
+      ok(ns.x == 42, 'Check dynamic imported value result: ' + ns.x);
+      return import("./scope1/module_1979050.mjs");
+    }).then((ns) => {
+      ok(ns.y == 84, 'Check dynamic imported value ns.y: ' + ns.y);
+      return import("./scope1/scope2/module_1979050.mjs");
+    }).then((ns) => {
+      ok(ns.z == 126, 'Check dynamic imported value ns.z: ' + ns.z);
+      SimpleTest.finish();
+    });
+  }
+</script>
+<body onload='testLoaded()'></body>
