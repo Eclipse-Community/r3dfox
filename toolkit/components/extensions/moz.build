@@ -114,6 +114,7 @@ JAR_MANIFESTS += ["jar.mn"]
 
 BROWSER_CHROME_MANIFESTS += [
     "test/browser/browser.toml",
+    "test/browser/protocol-remote-false/browser.toml",
 ]
 
 MOCHITEST_MANIFESTS += [

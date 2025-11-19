@@ -1,0 +1,7 @@
+[DEFAULT]
+prefs = [
+  "extensions.webextensions.remote=false", # Needed to display index of unpacked ext
+  "extensions.webextensions.protocol.remote=false"
+]
+
+["browser_ext_dir_listing.js"]
