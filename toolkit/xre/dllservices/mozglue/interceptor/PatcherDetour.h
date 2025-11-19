@@ -808,19 +808,24 @@ class WindowsDllDetourPatcher final
         return false;
       }
 
+      // Set aOutTramp now so that the new target won't race if accessing this
+      // value. Bug 1838286 did not fix this path, resulting in bug 1950847.
+      *aOutTramp = reinterpret_cast<void*>(originalTarget);
+
       // Write the new JMP target address.
       target.WritePointer(aDest);
       if (!target.Commit()) {
+        *aOutTramp = nullptr;
         return false;
       }
 
       // Store the old target address so we can restore it when we're cleared
       aTramp.WritePointer(originalTarget);
       if (!aTramp) {
+        *aOutTramp = nullptr;
         return false;
       }
 
-      *aOutTramp = reinterpret_cast<void*>(originalTarget);
       return true;
     }
 #endif  // defined(_M_X64)
