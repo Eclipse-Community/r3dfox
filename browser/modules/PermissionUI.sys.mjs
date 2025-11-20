@@ -99,6 +99,10 @@ ChromeUtils.defineLazyGetter(lazy, "gBrowserBundle", function () {
   );
 });
 
+ChromeUtils.defineLazyGetter(lazy, "gFluentStrings", function () {
+  return new Localization(["browser/permissions.ftl"], true /* aSync */);
+});
+
 import { SITEPERMS_ADDON_PROVIDER_PREF } from "resource://gre/modules/addons/siteperms-addon-utils.sys.mjs";
 
 XPCOMUtils.defineLazyPreferenceGetter(
@@ -1177,11 +1181,25 @@ class PersistentStoragePermissionPrompt extends PermissionPromptForRequest {
     let learnMoreURL =
       Services.urlFormatter.formatURLPref("app.support.baseURL") +
       "storage-permissions";
-    return {
+    let options = {
       learnMoreURL,
       displayURI: false,
       name: this.getPrincipalName(),
     };
+
+    options.checkbox = {
+      show: !lazy.PrivateBrowsingUtils.isWindowPrivate(
+        this.browser.ownerGlobal
+      ),
+    };
+
+    if (options.checkbox.show) {
+      options.checkbox.label = lazy.gFluentStrings.formatValueSync(
+        "perm-persistent-storage-remember"
+      );
+    }
+
+    return options;
   }
 
   get notificationID() {
