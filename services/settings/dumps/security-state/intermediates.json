@@ -1,6 +1,19 @@
 {
   "data": [
     {
+      "schema": 1763560748876,
+      "derHash": "4QdH1Np7qwnLqZUvAZ01NMufugcL8T2HkbFpnNL/Wd0=",
+      "attachment": {
+        "hash": "c7c54698f6621ba5405138590b51bee5a3b8c451dc7b385f0dae3be2d93d8fa9",
+        "size": 2353,
+        "filename": "VySCTZ2BRhPeZrgzhlh-rvwM55mARSwJKAcVBEtalj8=.pem",
+        "location": "security-state-staging/intermediates/b68cb963-a078-459c-9321-876909b56d6d.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "67e5cea5-e2cd-45a7-bd92-d951c3c7ef24",
+      "last_modified": 1763564222572
+    },
+    {
       "schema": 1763042349189,
       "derHash": "N6e8rzmcpsJPOrtuCvnd4yru66HTauzJWMdjFgn+Aak=",
       "attachment": {
@@ -30714,5 +30727,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1763045822827
+  "timestamp": 1763564222572
 }
