@@ -680,44 +680,52 @@ WebrtcTCPSocket::OnInputStreamReady(nsIAsyncInputStream* in) {
   MOZ_ASSERT(mTransport, "webrtc TCP socket not connected");
   MOZ_ASSERT(mSocketIn == in, "wrong input stream");
 
-  char buffer[9216];
-  uint32_t remainingCapacity = sizeof(buffer);
-  uint32_t read = 0;
+  while (true) {
+    char buffer[9216];
+    uint32_t remainingCapacity = sizeof(buffer);
+    uint32_t read = 0;
 
-  while (remainingCapacity > 0) {
-    uint32_t count = 0;
-    nsresult rv = mSocketIn->Read(buffer + read, remainingCapacity, &count);
-    if (rv == NS_BASE_STREAM_WOULD_BLOCK) {
+    while (remainingCapacity > 0) {
+      uint32_t count = 0;
+      nsresult rv = mSocketIn->Read(buffer + read, remainingCapacity, &count);
+      if (rv == NS_BASE_STREAM_WOULD_BLOCK) {
+        break;
+      }
+
+      if (NS_FAILED(rv)) {
+        LOG(("WebrtcTCPSocket::OnInputStreamReady %p failed %u\n", this,
+             static_cast<uint32_t>(rv)));
+        CloseWithReason(rv);
+        return rv;
+      }
+
+      // base stream closed
+      if (count == 0) {
+        LOG(("WebrtcTCPSocket::OnInputStreamReady %p connection closed\n",
+             this));
+        CloseWithReason(NS_ERROR_FAILURE);
+        return NS_OK;
+      }
+
+      remainingCapacity -= count;
+      read += count;
+    }
+
+    if (read > 0) {
+      nsTArray<uint8_t> array(read);
+      array.AppendElements(buffer, read);
+
+      InvokeOnRead(std::move(array));
+    }
+
+    if (remainingCapacity != 0) {
+      // Loop exited above, but not because we ran out of space. We're actually
+      // done, break out of the while(true) loop.
       break;
     }
-
-    if (NS_FAILED(rv)) {
-      LOG(("WebrtcTCPSocket::OnInputStreamReady %p failed %u\n", this,
-           static_cast<uint32_t>(rv)));
-      CloseWithReason(rv);
-      return rv;
-    }
-
-    // base stream closed
-    if (count == 0) {
-      LOG(("WebrtcTCPSocket::OnInputStreamReady %p connection closed\n", this));
-      CloseWithReason(NS_ERROR_FAILURE);
-      return NS_OK;
-    }
-
-    remainingCapacity -= count;
-    read += count;
-  }
-
-  if (read > 0) {
-    nsTArray<uint8_t> array(read);
-    array.AppendElements(buffer, read);
-
-    InvokeOnRead(std::move(array));
   }
 
   mSocketIn->AsyncWait(this, 0, 0, nullptr);
-
   return NS_OK;
 }
 
