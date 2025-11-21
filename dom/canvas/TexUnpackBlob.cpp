@@ -389,7 +389,17 @@ bool TexUnpackBlob::ConvertIfNeeded(
 
   if (!rowLength || !rowCount) return true;
 
-  if (srcStride <= 0 || dstStride <= 0) {
+  auto minSrcStride =
+      CheckedInt<size_t>(
+          WebGLTexelConversions::TexelBytesForFormat(srcFormat)) *
+      rowLength;
+  auto minDstStride =
+      CheckedInt<size_t>(
+          WebGLTexelConversions::TexelBytesForFormat(dstFormat)) *
+      rowLength;
+  if (srcStride <= 0 || dstStride <= 0 || !minSrcStride.isValid() ||
+      !minDstStride.isValid() || size_t(srcStride) < minSrcStride.value() ||
+      size_t(dstStride) < minDstStride.value()) {
     webgl->ErrorInvalidOperation("Invalid stride.");
     return false;
   }
