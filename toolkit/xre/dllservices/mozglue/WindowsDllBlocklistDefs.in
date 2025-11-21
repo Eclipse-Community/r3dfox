@@ -258,6 +258,7 @@ ALL_PROCESSES += [
     DllBlocklistEntry("magicdsfilterQuest3.dll", ALL_VERSIONS),
     DllBlocklistEntry("magicdsfilterQuest3s.dll", ALL_VERSIONS),
     DllBlocklistEntry("magicdsfilterQuest2.dll", ALL_VERSIONS),
+    DllBlocklistEntry("magicdsfilterQuestPro.dll", ALL_VERSIONS),
 ]
 
 ALL_PROCESSES_TESTS += [
