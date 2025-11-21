@@ -827,7 +827,7 @@ bool ContentCacheInParent::HandleQueryContentEvent(
                "Nothing",
                this));
       return false;
-    } else if (NS_WARN_IF(mSelection->mHasRange)) {
+    } else if (NS_WARN_IF(!mSelection->mHasRange)) {
       MOZ_LOG(sContentCacheLog, LogLevel::Error,
               ("0x%p HandleQueryContentEvent(), FAILED due to there is no "
                "selection range, but the query requested with relative offset "

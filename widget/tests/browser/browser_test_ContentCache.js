@@ -243,6 +243,39 @@ add_task(async function () {
       })();
 
       /**
+       * Test to query content with relative offsets
+       */
+      notifications = [];
+      await SpecialPowers.spawn(browser, [], () => {
+        const editor = content.document.querySelector("div[contenteditable]");
+        editor.innerHTML = "abcdef";
+        content.getSelection().collapse(editor.firstChild, "abc".length);
+      });
+
+      await waitForSendingIMENotificationsInContent();
+
+      (function () {
+        for (let i = -3; i < 3; i++) {
+          const text = EventUtils.synthesizeQueryTextContent(
+            i,
+            1,
+            /* isRelative= */ true
+          );
+          ok(
+            text?.succeeded,
+            `synthesizeQueryTextContent(${i}, 1, true) should've succeeded`
+          );
+          if (text?.succeeded) {
+            is(
+              text.text,
+              "abcdef".charAt(i + 3),
+              `synthesizeQueryTextContent(${i}, 1, true) should return the character at offset relative to the caret offset, 3`
+            );
+          }
+        }
+      })();
+
+      /**
        * Test when no editable element has focus.
        */
       notifications = [];
