@@ -169,11 +169,12 @@ nsresult TextEditor::Init(Document& aDocument, Element& aAnonymousDivElement,
     return NS_ERROR_FAILURE;
   }
 
-  // We set mInitSucceeded here rather than at the end of the function,
+  // We set the initialized state here rather than at the end of the function,
   // since InitEditorContentAndSelection() can perform some transactions
   // and can warn if mInitSucceeded is still false.
   MOZ_ASSERT(!mInitSucceeded, "TextEditor::Init() shouldn't be nested");
   mInitSucceeded = true;
+  editActionData.OnEditorInitialized();
 
   rv = InitEditorContentAndSelection();
   if (NS_FAILED(rv)) {
@@ -181,6 +182,7 @@ nsresult TextEditor::Init(Document& aDocument, Element& aAnonymousDivElement,
     // XXX Shouldn't we expose `NS_ERROR_EDITOR_DESTROYED` even though this
     //     is a public method?
     mInitSucceeded = false;
+    editActionData.OnEditorDestroy();
     return EditorBase::ToGenericNSResult(rv);
   }
 
