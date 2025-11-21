@@ -47,6 +47,8 @@ class RTCEncodedFrameBase : public nsISupports, public nsWrapperCache {
 
  protected:
   virtual ~RTCEncodedFrameBase();
+  void DetachData();
+
   RefPtr<nsIGlobalObject> mGlobal;
   std::unique_ptr<webrtc::TransformableFrameInterface> mFrame;
   const uint64_t mCounter = 0;
