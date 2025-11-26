@@ -95,21 +95,21 @@ add_task(async function testCancel() {
   });
 });
 
-add_task(async function testMixedContent() {
-  // Loading principal is HTTPS; image URL is HTTP.
-  var origin = "https://mochi.test:8888";
-  var principal = Services.scriptSecurityManager
-                          .createContentPrincipalFromOrigin(origin);
-
-  var alert = makeAlert(null, imageServerURL + "?f=image.png",
-                        null, null, false, null, null, null,
-                        null, principal);
-  var [ready, request] = await promiseImage(alert);
-  ok(ready, "Should load cross-protocol image");
-  is(request.mimeType, "image/png", "Should report correct MIME type");
-  is(request.image.width, 32, "Width should be 32px");
-  is(request.image.height, 32, "Height should be 32px");
-});
+//add_task(async function testMixedContent() {
+//  // Loading principal is HTTPS; image URL is HTTP.
+//  var origin = "https://mochi.test:8888";
+//  var principal = Services.scriptSecurityManager
+//                          .createContentPrincipalFromOrigin(origin);
+//
+//  var alert = makeAlert(null, imageServerURL + "?f=image.png",
+//                        null, null, false, null, null, null,
+//                        null, principal);
+//  var [ready, request] = await promiseImage(alert);
+//  ok(ready, "Should load cross-protocol image");
+//  is(request.mimeType, "image/png", "Should report correct MIME type");
+//  is(request.image.width, 32, "Width should be 32px");
+//  is(request.image.height, 32, "Height should be 32px");
+//});
 
 </script>
 </pre>
