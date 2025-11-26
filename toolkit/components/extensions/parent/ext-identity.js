@@ -79,7 +79,7 @@ const openOAuthWindow = (details, redirectURI) => {
       // Early exit if channel isn't related to the oauth dialog.
       let wrapper = ChannelWrapper.get(channel);
       if (
-        !wrapper.browserElement &&
+        !wrapper.browserElement ||
         wrapper.browserElement !== window.gBrowser.selectedBrowser
       ) {
         return;
