@@ -401,6 +401,10 @@ void Http3Session::ProcessInput(nsIUDPSocket* socket) {
     if (NS_FAILED(rv) || data.IsEmpty()) {
       break;
     }
+    if (!socket || socket->IsSocketClosed()) {
+      MOZ_DIAGNOSTIC_ASSERT(false, "UDP socket should still be open");
+      return NS_ERROR_UNEXPECTED;
+    }
     rv = mHttp3Connection->ProcessInput(addr, data);
     MOZ_ALWAYS_SUCCEEDS(rv);
     if (NS_FAILED(rv)) {
@@ -912,6 +916,11 @@ nsresult Http3Session::ProcessOutput(nsIUDPSocket* socket) {
         NetAddr addr;
         if (NS_FAILED(RawBytesToNetAddr(aFamily, aAddr, aPort, &addr))) {
           return NS_OK;
+        }
+
+        if (!socket || socket->IsSocketClosed()) {
+          MOZ_DIAGNOSTIC_ASSERT(false, "UDP socket should still be open");
+          return NS_ERROR_UNEXPECTED;
         }
 
         LOG3(

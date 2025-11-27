@@ -254,6 +254,13 @@ interface nsIUDPSocket : nsISupports
     [noscript] void leaveMulticastAddr([const] in NetAddr addr,
                                        [const, optional] in NetAddrPtr iface);
 
+     /**
+      * isSocketClosed
+      *
+      * @return true when the socket is already closed.
+      */
+    [noscript, notxpcom] boolean isSocketClosed();
+
     /**
      * multicastLoopback
      *

@@ -1203,6 +1203,8 @@ nsUDPSocket::SendWithAddress(const NetAddr* aAddr, const uint8_t* aData,
   return NS_OK;
 }
 
+bool nsUDPSocket::IsSocketClosed() { return mFD == nullptr; }
+
 NS_IMETHODIMP
 nsUDPSocket::SendBinaryStream(const nsACString& aHost, uint16_t aPort,
                               nsIInputStream* aStream) {
