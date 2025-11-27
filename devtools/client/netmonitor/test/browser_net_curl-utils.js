@@ -360,6 +360,14 @@ function testEscapeStringWin() {
     '^\"query=evil^\n\n^\n\ncmd^\\^\" /c timeout /t 3 ^& calc.exe^\n\n^\n\n^\"',
     "The evil command is escaped properly"
   );
+
+  // Control characters https://www.ascii-code.com/characters/control-characters
+  const containsControlChars = " - \u0007 \u0010 \u0014 \u001B \x1a - ";
+  is(
+    CurlUtils.escapeStringWin(containsControlChars),
+    '^\" - \u0007 \u0010 \u0014 \u001b \u001a - ^\"',
+    "Control characters should not be escaped with ^."
+  );
 }
 
 async function createCurlData(selected, getLongString, requestData) {
