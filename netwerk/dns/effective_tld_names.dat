@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2025-11-17_16-46-18_UTC
-// COMMIT: cd0dea17c489886c23f306a1114accb74edcdc48
+// VERSION: 2025-11-26_08-20-31_UTC
+// COMMIT: 7456e993bf8822a643b3f807234ae2a76f6f6512
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -1415,6 +1415,8 @@ or.id
 ponpes.id
 sch.id
 web.id
+// xn--9tfky.id (<bali>.id, Und-Bali)
+ᬩᬮᬶ.id
 
 // ie : https://www.iana.org/domains/root/db/ie.html
 ie
@@ -12500,6 +12502,8 @@ square7.net
 // Submitted by Andrea Brancaleoni <abrancaleoni@brave.com>
 brave.app
 *.s.brave.app
+brave.dev
+*.s.brave.dev
 brave.io
 *.s.brave.io
 
@@ -13635,6 +13639,11 @@ futuremailing.at
 *.kunden.ortsinfo.at
 *.statics.cloud
 
+// Gadget Software Inc. : https://gadget.dev
+// Submitted by Harry Brundage <security@gadget.dev>
+gadget.app
+gadget.host
+
 // GCom Internet : https://www.gcom.net.au
 // Submitted by Leo Julius <support@gcom.net.au>
 aliases121.com
@@ -13859,6 +13868,10 @@ grafana-dev.net
 // GrayJay Web Solutions Inc. : https://grayjaysports.ca
 // Submitted by Matt Yamkowy <info@grayjaysports.ca>
 grayjayleagues.com
+
+// Grebedoc : https://grebedoc.dev
+// Submitted by Catherine Zotova <admin@grebedoc.dev>
+grebedoc.dev
 
 // GünstigBestellen : https://günstigbestellen.de
 // Submitted by Furkan Akkoc <info@hendelzon.de>
@@ -14532,8 +14545,12 @@ westus2.azurestaticapps.net
 azurewebsites.net
 cloudapp.net
 trafficmanager.net
+servicebus.usgovcloudapi.net
+usgovcloudapp.net
 blob.core.windows.net
 servicebus.windows.net
+azure-api.us
+azurewebsites.us
 
 // MikroTik : https://mikrotik.com
 // Submitted by MikroTik SysAdmin Team <support@mikrotik.com>
@@ -14806,10 +14823,6 @@ nyc.mn
 // O3O.Foundation : https://o3o.foundation/
 // Submitted by the prvcy.page Registry Team <info@o3o.foundation>
 prvcy.page
-
-// Obl.ong : https://obl.ong
-// Submitted by Reese Armstrong <team@obl.ong>
-obl.ong
 
 // Observable, Inc. : https://observablehq.com
 // Submitted by Mike Bostock <dns@observablehq.com>
@@ -16081,6 +16094,10 @@ u2-local.xnbay.com
 cistron.nl
 demon.nl
 xs4all.space
+
+// xTool : https://xtool.com
+// Submitted by Echo <admin@xtool.com>
+xtooldevice.com
 
 // Yandex.Cloud LLC : https://cloud.yandex.com
 // Submitted by Alexander Lodin <security+psl@yandex-team.ru>
