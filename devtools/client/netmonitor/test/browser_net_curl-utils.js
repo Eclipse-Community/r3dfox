@@ -368,6 +368,13 @@ function testEscapeStringWin() {
     '^\" - \u0007 \u0010 \u0014 \u001b \u001a - ^\"',
     "Control characters should not be escaped with ^."
   );
+
+  const controlCharsWithWhitespaces = " -\tcalc.exe\f- ";
+  is(
+    CurlUtils.escapeStringWin(controlCharsWithWhitespaces),
+    '^\" - calc.exe - ^\"',
+    "Control (non-printable) characters which are whitespace like charaters e.g (tab & form feed)"
+  );
 }
 
 async function createCurlData(selected, getLongString, requestData) {

@@ -463,7 +463,7 @@ const CurlUtils = {
 
         // Then escape all characters we are not sure about with ^ to ensure it
         // gets to MS Crt parser safely.
-        // Note: Also do not escape unicode control (C) non-printable characters 
+        // Note: Also do not escape unicode control (C) non-printable characters
         // https://www.compart.com/en/unicode/category (this is captured with `\p{C}` and the `u` unicode flag)
         .replace(/[^-a-zA-Z0-9\s_:=+~\/.',?;()*`\p{C}]/gu, "^$&")
 
@@ -475,6 +475,14 @@ const CurlUtils = {
         // This ensures we do not try and double escape another ^ if it was placed
         // by the previous replace.
         .replace(/%(?=[a-zA-Z0-9_])/g, "%^")
+
+        // All other whitespace characters are replaced with a single space, as there
+        // is no way to enter their literal values in a command line, and they do break
+        // the command allowing for injection.
+        // Since want to keep line breaks, we need to exclude them in the regex (`[^\r\n]`),
+        // and use double negations to get the other whitespace chars (`[^\S]` translates
+        // to "not not whitespace")
+        .replace(/[^\S\r\n]/g, " ")
 
         // Lastly we replace new lines with ^ and TWO new lines because the first
         // new line is there to enact the escape command the second is the character
