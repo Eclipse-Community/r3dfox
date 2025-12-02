@@ -53,3 +53,6 @@ LINK_FLAGS['OS'] = [
     f for f in LINK_FLAGS.get('OS', [])
     if not f.startswith(('-fsanitize', '-fno-sanitize-'))
 ]
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"
