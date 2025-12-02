@@ -5170,7 +5170,7 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
       break;
 
     case WM_PAINT:
-      *aRetValue = (int)OnPaint();
+      *aRetValue = (int)OnPaint(0);
       result = true;
       break;
 
