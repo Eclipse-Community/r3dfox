@@ -7,17 +7,17 @@
  *****************************************************************************/
 
 #[cfg(target_os = "windows")]
-pub use windows::IPCChannel;
+pub use windows::wait_for_events;
 
 #[cfg(target_os = "windows")]
 pub(crate) mod windows;
 
 /*****************************************************************************
  * Android, macOS & Linux                                                    *
-*****************************************************************************/
+ *****************************************************************************/
 
 #[cfg(any(target_os = "android", target_os = "linux", target_os = "macos"))]
-pub use unix::IPCChannel;
+pub use unix::wait_for_events;
 
 #[cfg(any(target_os = "android", target_os = "linux", target_os = "macos"))]
 pub(crate) mod unix;
