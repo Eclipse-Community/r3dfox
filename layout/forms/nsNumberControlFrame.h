@@ -10,9 +10,11 @@
 #include "mozilla/Attributes.h"
 #include "nsCOMPtr.h"
 #include "nsContainerFrame.h"
+#include "nsIFormControlFrame.h"
 #include "nsIAnonymousContentCreator.h"
 #include "nsTextControlFrame.h"
 
+class nsITextControlFrame;
 class nsPresContext;
 
 namespace mozilla {
