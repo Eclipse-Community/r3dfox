@@ -537,8 +537,6 @@ bool nsNativeTheme::IsWidgetAlwaysNonNative(nsIFrame* aFrame,
                                             StyleAppearance aAppearance) {
   return IsWidgetScrollbarPart(aAppearance) ||
          aAppearance == StyleAppearance::FocusOutline ||
-         aAppearance == StyleAppearance::SpinnerUpbutton ||
-         aAppearance == StyleAppearance::SpinnerDownbutton ||
          aAppearance == StyleAppearance::Toolbarbutton ||
          aAppearance == StyleAppearance::ProgressBar ||
          aAppearance == StyleAppearance::Meter ||
