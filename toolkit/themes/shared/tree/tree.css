@@ -15,7 +15,9 @@ tree {
   margin: 0 4px;
   background-color: Field;
   color: FieldText;
+@media not (-moz-platform: windows) {
   border: 1px solid ThreeDShadow;
+ }
 }
 
 /********** splitter **********/
@@ -186,7 +188,6 @@ treechildren::-moz-tree-column(insertafter) {
   fill: currentColor;
   min-width: 0;
   padding: 1px 0;
-  border-block: 0;
   appearance: none;
 }
 
