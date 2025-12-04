@@ -100,7 +100,7 @@ body {
   /* on macOS the animation of the toolbox in fullscreen needs the toolbox to be higher */
   --browser-area-z-index-toolbox-while-animating: 4;
 
-  --toolbarbutton-border-radius: var(--button-border-radius);
+  --toolbarbutton-border-radius: 4px;
   --identity-box-margin-inline: 4px;
   --urlbar-min-height: max(32px, 1.4em);
   --urlbar-icon-padding: calc((var(--urlbar-min-height) - 2px /* border */ - 2px /* padding */ - 16px /* icon */) / 2);
