@@ -5383,7 +5383,7 @@
 # Is support for the Web Audio API enabled?
 - name: dom.webaudio.enabled
   type: bool
-  value: false
+  value: true
   mirror: always
 
 - name: dom.webkitBlink.dirPicker.enabled
