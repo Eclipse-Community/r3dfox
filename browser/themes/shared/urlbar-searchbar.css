@@ -228,13 +228,14 @@ toolbar[inactive="true"] .urlbar,
   border-color: transparent;
 }
 
+[focused] > .urlbar-background,
+#searchbar:focus-within {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.23);
+}
+
 [open] > .urlbar-background {
   border-color: var(--arrowpanel-border-color);
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.13);
-
-  /* The border moves outwards in the open state, so increase the radius
-     accordingly. */
-  border-radius: calc(var(--toolbarbutton-border-radius) + 2px);
 
   @media (-moz-platform: macos) and (prefers-contrast) {
     /* The "increase contrast" preference on macOS draws a 1px black line around
