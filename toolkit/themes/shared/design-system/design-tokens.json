@@ -419,7 +419,7 @@
         }
       },
       "radius": {
-        "value": "{border.radius.medium}"
+        "value": "{border.radius.small}"
       }
     },
     "font": {

@@ -507,12 +507,12 @@
   min-width: auto;
   margin: 0;
   margin-inline-start: 2px;
+  border-width: 0;
   padding: 2px;
   padding-inline-end: 6px;
   background-color: var(--button-background-color);
   color: var(--button-text-color);
-  border: var(--button-border);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
 
   > .button-box > .button-icon {
     margin: 0;
@@ -530,13 +530,11 @@
   &:hover {
     color: var(--button-text-color-hover);
     background-color: var(--button-background-color-hover);
-    border-color: var(--button-border-color-hover);
   }
 
   &:hover:active {
     color: var(--button-text-color-active);
     background-color: var(--button-background-color-active);
-    border-color: var(--button-border-color-active);
   }
 }
 

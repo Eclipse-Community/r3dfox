@@ -14,7 +14,7 @@ support-files = [
 
 ["browser_addBookmarkForFrame.js"]
 skip-if = [
-  "os == 'linux' && os_version == '24.04' && processor == 'x86_64' && socketprocess_networking", # Bug 1775655
+  "os == 'linux' && os_version == '24.04' && processor == 'x86_64' && opt && socketprocess_networking", # Bug 1775655
 ]
 
 ["browser_autoshow_bookmarks_toolbar.js"]

@@ -195,7 +195,7 @@ xul|menulist {
   min-height: var(--button-min-height);
   color: var(--button-text-color);
   border: var(--button-border);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
   background-color: var(--button-background-color);
   font-weight: 400;
   padding: 0.45em 1em;
@@ -451,7 +451,7 @@ html|input:where([type="email"], [type="tel"], [type="text"], [type="password"],
 html|textarea {
   appearance: none;
   border: 1px solid var(--in-content-box-border-color);
-  border-radius: var(--border-radius-medium);
+  border-radius: var(--border-radius-small);
   color: inherit;
   background-color: var(--background-color-box);
 }

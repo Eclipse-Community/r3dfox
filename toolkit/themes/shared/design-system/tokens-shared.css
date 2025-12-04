@@ -85,7 +85,7 @@
     --button-border-color-primary-disabled: var(--button-border-color-primary);
     --button-border-color-primary-selected: var(--button-border-color-primary-active);
     --button-border-color-selected: var(--button-border-color-active);
-    --button-border-radius: var(--border-radius-medium);
+    --button-border-radius: var(--border-radius-small);
     --button-font-size: var(--font-size-root);
     --button-font-size-small: var(--font-size-small);
     --button-font-weight: var(--font-weight-bold);
