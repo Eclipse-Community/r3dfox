@@ -8,7 +8,7 @@
   appearance: none;
   background-color: var(--button-background-color);
   color: var(--button-text-color);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
   padding-block: 4px;
   padding-inline: 12px 8px;
   margin: 5px 2px 3px;
