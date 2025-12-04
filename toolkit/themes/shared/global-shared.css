@@ -199,7 +199,7 @@ html|textarea {
   appearance: none;
   padding: var(--space-small);
   border: 1px solid var(--input-border-color);
-  border-radius: var(--border-radius-medium);
+  border-radius: var(--border-radius-small);
   margin: 0;
   background-color: var(--input-bgcolor, Field);
   color: var(--input-color, FieldText);
@@ -221,7 +221,7 @@ html|select:where(:not([size], [multiple])) {
   padding-inline-end: 32px; /* 2 * 10px padding + image's 12px width */
   margin: 5px 2px 3px;
   border: none;
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
 
   font-weight: var(--font-weight-semibold);
 
@@ -353,7 +353,7 @@ button.text-link .button-text {
 .footer-button {
   appearance: none;
   border: 0;
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
   color: var(--button-text-color);
   background-color: var(--button-background-color);
   padding: 0.45em 1em;

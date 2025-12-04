@@ -262,7 +262,7 @@ panelview {
   color: var(--button-text-color-ghost);
   background-color: var(--button-background-color-ghost);
   padding: 0;
-  border-radius: var(--button-border-radius);
+  border-radius: var(--toolbarbutton-border-radius);
   flex-shrink: 0;
 
   &[disabled="true"] {
@@ -1791,7 +1791,7 @@ radiogroup:focus-visible > .subviewradio[focused="true"] {
   color: var(--button-text-color-destructive);
   margin: 5px 15px 11px;
   border: 1px solid var(--button-border-color-destructive);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
   font-weight: var(--font-weight-semibold);
   padding: 10px;
 
@@ -1823,7 +1823,7 @@ radiogroup:focus-visible > .subviewradio[focused="true"] {
   color: var(--button-text-color);
   margin: 5px 0 0;
   border: 1px solid transparent;
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
   padding: 10px;
   font-weight: var(--font-weight-semibold);
   appearance: none;
@@ -2093,7 +2093,7 @@ radiogroup:focus-visible > .subviewradio[focused="true"] {
 .PanelUI-profiler-button {
   appearance: none;
   background-color: var(--button-background-color);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--border-radius-small);
   color: var(--button-text-color);
   padding: 8px;
   margin: 0 5px;

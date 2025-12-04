@@ -5,7 +5,7 @@
   "border/radius/medium": 8,
   "border/radius/large": 16,
   "border/width": 1,
-  "button/border/radius": "{Primitives$border/radius/medium}",
+  "button/border/radius": "{Primitives$border/radius/small}",
   "button/min/height": "{Primitives$size/item/large}",
   "button/min/height/small": "{Primitives$size/item/medium}",
   "button/padding/block": "{Primitives$space/xsmall}",
