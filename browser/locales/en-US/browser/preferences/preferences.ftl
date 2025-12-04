@@ -211,10 +211,6 @@ r3dfox-switch-to-tab-desc = This should reverse the behavior of switching to an 
 
 r3dfox-advanced-header = Advanced configurations
 
-r3dfox-sandbox-level = Security Sandbox Content Level
-
-r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
-
 r3dfox-accessibility = Accessibility services
 
 r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
@@ -232,6 +228,10 @@ r3dfox-caption-width-desc = This is only applicable for themes that use custom s
 r3dfox-caption-height = Custom caption button mask height
 
 r3dfox-caption-height-desc = This is only applicable for themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
+
+r3dfox-sandbox-level = Security Sandbox Content Level
+
+r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
 
 r3dfox-csp =
     .label = Disable Content Security Policy (CSP)
