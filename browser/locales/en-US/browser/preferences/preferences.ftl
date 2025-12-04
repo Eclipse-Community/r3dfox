@@ -155,6 +155,8 @@ r3dfox-native-checkbox =
 
 r3dfox-native-checkbox-desc = This controls whether the scrollbar, checkboxes, and other elements use their native system counterparts or their non-native browser themed style.
 
+r3dfox-native-menulist = Menulist type
+
 r3dfox-native-scroll = Scrollbar type
 
 r3dfox-fake-scroll-type = Non-native scrollbar theme
@@ -202,16 +204,15 @@ r3dfox-screenshot-component =
 r3dfox-hover-preview =
     .label = Modern style tab hover preview
 
+r3dfox-drop-to-pin =
+    .label = Disable drop to pin tabs
+
 r3dfox-switch-to-tab =
     .label = Reverse urlbar switch to tab behavior
 
 r3dfox-switch-to-tab-desc = This should reverse the behavior of switching to an already open tab in the urlbar (require Shift/Ctrl/Alt to switch to open tab instead of preventing it), however it's a bit buggy currently and just disables it.
 
 r3dfox-advanced-header = Advanced configurations
-
-r3dfox-sandbox-level = Security Sandbox Content Level
-
-r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
 
 r3dfox-accessibility = Accessibility services
 
@@ -223,13 +224,20 @@ r3dfox-cookiebanners-desc = Recommended to leave enabled for a less annoying bro
 
 r3dfox-cookiebanners-private = Cookie banner handling mode in private browsing
 
-r3dfox-caption-width = Custom caption button mask width
+r3dfox-caption-width = Custom caption button Aero fog mask width
 
-r3dfox-caption-width-desc = This is only applicable for themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
+r3dfox-caption-desc = For themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
 
-r3dfox-caption-height = Custom caption button mask height
+r3dfox-caption-height = Custom caption button Aero fog mask height
 
-r3dfox-caption-height-desc = This is only applicable for themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
+r3dfox-sandbox-level = Security Sandbox Content Level
+
+r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
+
+r3dfox-webaudio =
+    .label = Disable Web Audio API
+
+r3dfox-webaudio-desc = Web Audio can be disabled for enhanced security, however a few websites may require it to be enabled.
 
 r3dfox-csp =
     .label = Disable Content Security Policy (CSP)

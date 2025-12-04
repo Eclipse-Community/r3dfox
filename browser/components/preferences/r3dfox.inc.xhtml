@@ -29,8 +29,19 @@
   <description class="indent tip-caption" data-l10n-id="r3dfox-native-checkbox-desc"/>
 
   <hbox align="center">
+    <label id="r3dfoxNativeMenulist" data-l10n-id="r3dfox-native-menulist" control="r3dfoxNativeMenulistType"/>
+    <menulist id="r3dfoxNativeMenulistType" preference="browser.display.windows.non_native_menus">
+      <menupopup>
+        <menuitem label="Native menulists always" value="0"/>
+        <menuitem label="Custom menulists always" value="1"/>
+        <menuitem label="Native menulists unless Windows 10 (Modern) theme is used (Default)" value="2"/>
+      </menupopup>
+    </menulist>
+  </hbox>
+
+  <hbox align="center">
     <label id="r3dfoxNativeScroll" data-l10n-id="r3dfox-native-scroll" control="r3dfoxNativeScrollType"/>
-    <menulist id="r3dfoxFogType" preference="widget.native-controls.scrollbar-style">
+    <menulist id="r3dfoxNativeScrollType" preference="widget.native-controls.scrollbar-style">
       <menupopup>
         <menuitem label="Native scrollbars always" value="0"/>
         <menuitem label="Custom scrollbars always" value="1"/>
@@ -176,6 +187,12 @@
   </hbox>
 
   <hbox align="center">
+    <checkbox id="r3dfoxdroptopin"
+              data-l10n-id="r3dfox-drop-to-pin"
+              preference="browser.tabs.dropToPin.enabled"/>
+  </hbox>
+
+  <hbox align="center">
     <checkbox id="r3dfoxswitchtotab"
               data-l10n-id="r3dfox-switch-to-tab"
               preference="browser.urlbar.secondaryActions.switchToTab"/>
@@ -188,17 +205,6 @@
           data-category="paneR3dfox"
           hidden="true">
   <label><html:h2 data-l10n-id="r3dfox-advanced-header"/></label>
-
-  <hbox align="center">
-    <label id="r3dfoxSandboxLevel" data-l10n-id="r3dfox-sandbox-level" control="r3dfoxSandboxLevelType"/>
-    <menulist id="r3dfoxSandboxLevelType" preference="security.sandbox.content.level">
-      <menupopup>
-        <menuitem label="Default (8)" value="8"/>
-        <menuitem label="Lower (7)" value="7"/>
-      </menupopup>
-    </menulist>
-  </hbox>
-  <description id="r3dfoxSandboxLevelDescription" class="tip-caption" data-l10n-id="r3dfox-sandbox-level-desc"/>
 
   <hbox align="center">
     <label id="r3dfoxAccessibility" data-l10n-id="r3dfox-accessibility" control="r3dfoxAccessibilityType"/>
@@ -235,18 +241,34 @@
   <description id="r3dfoxCookieBannersPrivateDescription" class="tip-caption" data-l10n-id="r3dfox-cookiebanners-desc"/>
 
   <hbox align="center">
-    <label id="r3dfoxCaptionWidth" data-l10n-id="r3dfox-caption-width" control="r3dfoxCaptionWidthType" hidden="true"/>
-    <html:input id="r3dfoxCaptionWidthType" type="number" class="option" data-type="int" onkeydown="return event.keyCode !== 190"
-              preference="widget.native-controls.override-aero-caption-buttons-mask-width" hidden="true"/>
+    <label id="r3dfoxSandboxLevel" data-l10n-id="r3dfox-sandbox-level" control="r3dfoxSandboxLevelType"/>
+    <menulist id="r3dfoxSandboxLevelType" preference="security.sandbox.content.level">
+      <menupopup>
+        <menuitem label="Default (8)" value="8"/>
+        <menuitem label="Lower (7)" value="7"/>
+      </menupopup>
+    </menulist>
   </hbox>
-  <description id="r3dfoxCaptionWidthDescription" class="tip-caption" data-l10n-id="r3dfox-caption-width-desc" hidden="true"/>
+  <description id="r3dfoxSandboxLevelDescription" class="tip-caption" data-l10n-id="r3dfox-sandbox-level-desc"/>
 
   <hbox align="center">
-    <label id="r3dfoxCaptionHeight" data-l10n-id="r3dfox-caption-height" control="r3dfoxCaptionWidthType" hidden="true"/>
-    <html:input id="r3dfoxCaptionHeightType" type="number" class="option" data-type="int" onkeydown="return event.keyCode !== 190"
-              preference="widget.native-controls.override-aero-caption-buttons-mask-height" hidden="true"/>
+    <label id="r3dfoxCaptionWidth" data-l10n-id="r3dfox-caption-width" control="r3dfoxCaptionWidthType"/>
+    <html:input id="r3dfoxCaptionWidthType" type="number" class="option" data-type="int" preference="widget.native-controls.override-aero-caption-buttons-mask-width"/>
   </hbox>
-  <description id="r3dfoxCaptionHeighteDescription" class="tip-caption" data-l10n-id="r3dfox-caption-height-desc" hidden="true"/>
+  <description id="r3dfoxCaptionWidthDescription" class="tip-caption" data-l10n-id="r3dfox-caption-desc"/>
+
+  <hbox align="center">
+    <label id="r3dfoxCaptionHeight" data-l10n-id="r3dfox-caption-height" control="r3dfoxCaptionWidthType"/>
+    <html:input id="r3dfoxCaptionHeightType" type="number" class="option" data-type="int" preference="widget.native-controls.override-aero-caption-buttons-mask-height"/>
+  </hbox>
+  <description id="r3dfoxCaptionHeighteDescription" class="tip-caption" data-l10n-id="r3dfox-caption-desc"/>
+
+  <hbox align="center">
+    <checkbox id="r3dfoxwebaudio"
+              data-l10n-id="r3dfox-webaudio"
+              preference="dom.webaudio.enabled"/>
+  </hbox>
+  <description class="indent tip-caption" data-l10n-id="r3dfox-webaudio-desc"/>
 
   <hbox align="center">
     <checkbox id="r3dfoxcsp"
