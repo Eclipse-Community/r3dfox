@@ -1,0 +1,216 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+menupopup,
+panel {
+  --menu-icon-opacity: 1;
+  --menu-arrow-width: 1em;
+
+  --badge-text-color: var(--text-color-deemphasized);
+  --badge-background-color: transparent;
+  --badge-border-color: currentColor;
+
+  --badge-filled-text-color: light-dark(var(--color-white), var(--color-gray-100));
+  --badge-filled-background-color: light-dark(var(--color-green-70), var(--color-green-40));
+  --badge-filled-border-color: light-dark(rgba(251, 251, 254, 0.4), rgba(21, 20, 26, 0.4));
+
+  @media (forced-colors) {
+    --badge-text-color: CanvasText;
+    --badge-background-color: Canvas;
+    --badge-filled-border-color: CanvasText;
+    --badge-filled-text-color: AccentColorText;
+    --badge-filled-background-color: AccentColor;
+  }
+
+
+@media (-moz-windows-non-native-menus) {
+  @media (-moz-platform: windows) {
+    --menu-arrow-width: max(1em, 16px);
+
+    @media (prefers-color-scheme: light) {
+      --menu-icon-opacity: 0.7;
+    }
+  }
+}
+}
+
+/* Accel text */
+
+@media not (prefers-contrast) {
+  menuitem:not([disabled]) > .menu-accel-container > :is(.menu-accel, .menu-iconic-accel) {
+    color: var(--text-color-disabled);
+  }
+}
+
+/* Scroll buttons */
+
+/* Hide arrow buttons when there's nothing to scroll in that direction */
+.menupopup-arrowscrollbox[scrolledtostart]::part(scrollbutton-up),
+.menupopup-arrowscrollbox[scrolledtoend]::part(scrollbutton-down) {
+  display: none;
+}
+
+.menupopup-arrowscrollbox::part(scrollbox) {
+  /* This makes the padding / margin trick below work */
+  overflow-clip-box-block: content-box;
+}
+
+/* Prevent the scrolled contents of the menupopup from jumping vertically when
+ * the arrow buttons appear / disappear, by positioning ::part(scrollbox) in
+ * such a way that its edges are at the same position as the edges of
+ * arrowscrollbox regardless of scroll button visibility.
+ */
+.menupopup-arrowscrollbox:not([scrolledtostart])::part(scrollbox) {
+  /* scrollbutton-up is visible; shift our top edge up by its height. */
+  margin-top: -16px;
+  padding-top: 16px;
+}
+
+.menupopup-arrowscrollbox:not([scrolledtoend])::part(scrollbox) {
+  /* scrollbutton-down is visible; shift our bottom edge down by its height. */
+  margin-bottom: -16px;
+  padding-bottom: 16px;
+}
+
+@media (-moz-platform: windows) or (-moz-platform: linux) {
+  menupopup,
+  menubar {
+    font: menu;
+  }
+}
+
+@media (-moz-platform: macos) {
+  menupopup {
+    /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+    font: -moz-pull-down-menu;
+  }
+}
+
+menu,
+menuitem,
+menucaption {
+  appearance: auto;
+  -moz-default-appearance: menuitem;
+  border-radius: 3px;
+  align-items: center;
+  flex-shrink: 0;
+  list-style-image: none;
+  max-width: 42em;
+
+  @media (-moz-platform: linux) {
+    padding: 4px 6px;
+  }
+
+  @media (-moz-platform: macos) {
+    padding: 3px 9px;
+  }
+}
+
+@media (-moz-windows-non-native-menus) {
+  /* For Windows 10, prevent using native OS drawing of certain menu elements,
+     especially background colors and shadows. */
+  menu, menuitem, menucaption {
+    appearance: none;
+  }
+
+  /* Menu item text also needs native drawing disabled. */
+  menu > .menu-text,
+  menuitem > .menu-text,
+  menu > .menu-iconic-text,
+  menuitem > .menu-iconic-text {
+    appearance: none;
+    margin-inline-start: 0 !important; /* need !important to override the other !important below... */
+    padding-inline-end: 0;
+  }
+}
+
+menu,
+menuitem {
+  &:where([disabled="true"]) {
+    color: var(--text-color-disabled);
+    text-shadow: none;
+  }
+
+@media (-moz-windows-non-native-menus) {
+  &:where([_moz-menuactive]:not([disabled="true"])) {
+    color: -moz-menuhovertext;
+    background-color: -moz-menuhover;
+  }
+
+  &:where([_moz-menuactive="true"][disabled="true"]) {
+    background-color: -moz-menuhoverdisabled;
+  }
+}
+}
+
+@media (-moz-windows-classic) {
+  menu[disabled="true"],
+  menubar > menu[disabled="true"][_moz-menuactive="true"],
+  menuitem[disabled="true"] {
+    color: ThreeDShadow;
+    text-shadow: 1px 1px ThreeDHighlight;
+  }
+}
+
+menuitem:is([default="true"], .spell-suggestion),
+menucaption {
+  font-weight: bold;
+}
+
+/* ..... menu arrow box ..... */
+
+.menu-right {
+  appearance: auto;
+  -moz-default-appearance: menuarrow;
+  margin-inline-end: -2px;
+  list-style-image: none;
+  width: 1.28em;
+  padding-top: 1px;
+}
+
+/* Override the native menu arrow with a custom one for Win10. */
+@media (-moz-windows-non-native-menus) {
+.menu-right {
+  list-style-image: url("chrome://global/skin/icons/arrow-right.svg");
+  -moz-context-properties: fill, fill-opacity;
+  fill: currentColor;
+  fill-opacity: var(--menu-icon-opacity);
+
+  &:-moz-locale-dir(rtl) {
+    list-style-image: url("chrome://global/skin/icons/arrow-left.svg");
+  }
+
+  > image {
+    width: var(--menu-arrow-width);
+  }
+
+  @media (-moz-platform: linux) {
+    margin-block: 0;
+    margin-inline: 0.5em 0;
+  }
+
+  @media (-moz-platform: macos) {
+    margin-inline: 22px -3px;
+  }
+
+  @media (-moz-platform: windows) {
+    margin-inline-end: 1em;
+  }
+}
+}
+
+@media (-moz-platform: macos) {
+  :is(.menu-accel, .menu-iconic-accel)[value] {
+    margin-inline-start: 25px;
+  }
+@media (-moz-platform: macos) {
+  /* On macOS, empty acceltext shouldn't take up any space */
+  :is(menu, menuitem):not([acceltext]) > .menu-accel-container {
+    display: none;
+  }
+}
+
+}

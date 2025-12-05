@@ -26,14 +26,22 @@
   height: 16px;
 }
 
-menulist.folder-icon {
-  list-style-image: url("chrome://global/skin/icons/folder.svg") !important;
+@media (-moz-platform: macos) {
+  /* FIXME(emilio): Is this rule needed at all? */
+  .folder-icon > .menu-iconic-left > .menu-iconic-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.folder-icon > .menu-iconic-left {
+  display: flex;
 }
 
 .folder-icon {
+  list-style-image: url("chrome://global/skin/icons/folder.svg") !important;
   -moz-context-properties: fill;
   fill: currentColor;
-  --menuitem-icon: url("chrome://global/skin/icons/folder.svg");
 }
 
 #editBMPanel_tagsSelector > richlistitem > image {
@@ -74,20 +82,14 @@ menulist.folder-icon {
 
 /* Bookmark panel dropdown icons */
 
-#editBMPanel_folderMenuList[selectedGuid="toolbar_____"] {
+#editBMPanel_folderMenuList[selectedGuid="toolbar_____"],
+#editBMPanel_toolbarFolderItem {
   list-style-image: url("chrome://browser/skin/places/bookmarksToolbar.svg") !important;
 }
 
-#editBMPanel_toolbarFolderItem {
-  --menuitem-icon: url("chrome://browser/skin/places/bookmarksToolbar.svg");
-}
-
-#editBMPanel_folderMenuList[selectedGuid="menu________"] {
-  list-style-image: url("chrome://browser/skin/places/bookmarksMenu.svg") !important;
-}
-
+#editBMPanel_folderMenuList[selectedGuid="menu________"],
 #editBMPanel_bmRootItem {
-  --menuitem-icon: url("chrome://browser/skin/places/bookmarksMenu.svg");
+  list-style-image: url("chrome://browser/skin/places/bookmarksMenu.svg") !important;
 }
 
 #bookmarkpropertiesdialog #editBookmarkPanelContent > label:not(.editBMPanel_nameRow),

@@ -16,6 +16,7 @@ use crate::BreakpadString;
 
 pub type Pid = pid_t;
 pub type BreakpadChar = c_char;
+pub type AncillaryData = ();
 pub type BreakpadRawData = *const c_char;
 
 pub struct BreakpadData {

@@ -143,7 +143,7 @@
 }
 
 .menuitem-iconic[data-usercontextid] {
-  --menuitem-icon: var(--identity-icon);
+  list-style-image: var(--identity-icon);
   -moz-context-properties: fill;
   fill: var(--identity-icon-color);
 }

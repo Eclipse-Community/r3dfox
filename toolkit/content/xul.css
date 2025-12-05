@@ -227,6 +227,15 @@ html|label.toolbarbutton-badge:empty {
 .toolbarbutton-badge-stack,
 .treecol-text,
 .treecol-sortdirection,
+.menubar-left,
+.menubar-text,
+.menu-text,
+.menu-highlightable-text,
+.menu-iconic-text,
+.menu-iconic-highlightable-text,
+.menu-iconic-left,
+.menu-right,
+.menu-accel-container,
 .button-box {
   /* Preserves legacy behavior */
   pointer-events: none;
@@ -397,9 +406,7 @@ tooltip {
     appearance: none;
     border: 1px solid;
 
-    /* TODO(emilio): Probably make InfoText/InfoBackground do the right thing and
-     * remove this? */
-    @media not (prefers-contrast) {
+  @media (-moz-windows-default-theme) {
       background-color: light-dark(#f9f9fb, #2b2a33);
       color: light-dark(black, white);
       border-color: light-dark(#67676c, #f9f9fb);
@@ -558,6 +565,20 @@ menulist[popuponly] {
   padding: 0 !important;
 }
 
+/********** splitter **********/
+
+.tree-splitter {
+  margin-inline: -4px;
+  width: 8px;
+  max-width: 8px;
+  min-width: 8px;
+  appearance: none !important;
+  border: none !important;
+  background: none !important;
+  order: 2147483646;
+  z-index: 2147483646;
+}
+
 /******** scrollbar ********/
 
 slider {
@@ -640,6 +661,11 @@ findbar {
 button,
 image {
   display: inline-flex;
+}
+
+.menu-iconic-highlightable-text:not([highlightable="true"]),
+.menu-iconic-text[highlightable="true"] {
+  display: none;
 }
 
 [orient="vertical"] {

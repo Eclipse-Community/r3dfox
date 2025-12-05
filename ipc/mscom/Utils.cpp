@@ -12,10 +12,13 @@
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/mscom/COMWrappers.h"
 #include "mozilla/DebugOnly.h"
+#include "mozilla/DynamicallyLinkedFunctionPtr.h"
 #include "mozilla/mscom/Utils.h"
 #include "mozilla/RefPtr.h"
+#include "mozilla/WindowsVersion.h"
 
 #include <objidl.h>
+#include <shlwapi.h>
 #include <winnt.h>
 
 #include <utility>
@@ -24,20 +27,82 @@
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 #endif
 
+static bool
+IsCurrentThreadMTALegacy()
+{
+  // We don't use RefPtr for token because CoGetContextToken does *not*
+  // increment its refcount!
+  IUnknown* token = nullptr;
+  HRESULT hr =
+    CoGetContextToken(reinterpret_cast<ULONG_PTR*>(&token));
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  RefPtr<IComThreadingInfo> threadingInfo;
+  hr = token->QueryInterface(IID_IComThreadingInfo,
+                             getter_AddRefs(threadingInfo));
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  APTTYPE aptType;
+  hr = threadingInfo->GetCurrentApartmentType(&aptType);
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  return aptType == APTTYPE_MTA;
+}
+
 namespace mozilla {
 namespace mscom {
 
 bool IsCOMInitializedOnCurrentThread() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+  // We don't use RefPtr for token because CoGetContextToken does *not*
+  // increment its refcount!
+  IUnknown* token = nullptr;
+  HRESULT hr =
+    CoGetContextToken(reinterpret_cast<ULONG_PTR*>(&token));
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  RefPtr<IComThreadingInfo> threadingInfo;
+  hr = token->QueryInterface(IID_IComThreadingInfo,
+                             getter_AddRefs(threadingInfo));
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  APTTYPE aptType;
+  hr = threadingInfo->GetCurrentApartmentType(&aptType);
+  return hr != CO_E_NOTINITIALIZED;
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   return hr != CO_E_NOTINITIALIZED;
 }
 
 bool IsCurrentThreadMTA() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+    return IsCurrentThreadMTALegacy();
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   if (FAILED(hr)) {
     return false;
   }
@@ -46,9 +111,17 @@ bool IsCurrentThreadMTA() {
 }
 
 bool IsCurrentThreadExplicitMTA() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+    return IsCurrentThreadMTALegacy();
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   if (FAILED(hr)) {
     return false;
   }
@@ -58,9 +131,17 @@ bool IsCurrentThreadExplicitMTA() {
 }
 
 bool IsCurrentThreadImplicitMTA() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+    return IsCurrentThreadMTALegacy();
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   if (FAILED(hr)) {
     return false;
   }
@@ -187,20 +268,60 @@ long CreateStream(const uint8_t* aInitBuf, const uint32_t aInitBufSize,
   HRESULT hr;
   RefPtr<IStream> stream;
 
-  // If aInitBuf is null then initSize must be 0.
-  UINT initSize = aInitBuf ? aInitBufSize : 0;
-  stream = already_AddRefed<IStream>(::SHCreateMemStream(aInitBuf, initSize));
-  if (!stream) {
-    return E_OUTOFMEMORY;
-  }
+  if (IsWin8OrLater()) {
+    // SHCreateMemStream is not safe for us to use until Windows 8. On older
+    // versions of Windows it is not thread-safe and it creates IStreams that do
+    // not support the full IStream API.
 
-  if (!aInitBuf) {
-    // Now we'll set the required size
-    ULARGE_INTEGER newSize;
-    newSize.QuadPart = aInitBufSize;
-    hr = stream->SetSize(newSize);
+    // If aInitBuf is null then initSize must be 0.
+    UINT initSize = aInitBuf ? aInitBufSize : 0;
+    stream = already_AddRefed<IStream>(::SHCreateMemStream(aInitBuf, initSize));
+    if (!stream) {
+      return E_OUTOFMEMORY;
+    }
+
+    if (!aInitBuf) {
+      // Now we'll set the required size
+      ULARGE_INTEGER newSize;
+      newSize.QuadPart = aInitBufSize;
+      hr = stream->SetSize(newSize);
+      if (FAILED(hr)) {
+        return hr;
+      }
+    }
+  } else {
+    HGLOBAL hglobal = ::GlobalAlloc(GMEM_MOVEABLE, aInitBufSize);
+    if (!hglobal) {
+      return HRESULT_FROM_WIN32(::GetLastError());
+    }
+
+    // stream takes ownership of hglobal if this call is successful
+    hr = ::CreateStreamOnHGlobal(hglobal, TRUE, getter_AddRefs(stream));
+    if (FAILED(hr)) {
+      ::GlobalFree(hglobal);
+      return hr;
+    }
+
+    // The default stream size is derived from ::GlobalSize(hglobal), which due
+    // to rounding may be larger than aInitBufSize. We forcibly set the correct
+    // stream size here.
+    ULARGE_INTEGER streamSize;
+    streamSize.QuadPart = aInitBufSize;
+    hr = stream->SetSize(streamSize);
     if (FAILED(hr)) {
       return hr;
+    }
+
+    if (aInitBuf) {
+      ULONG bytesWritten;
+      hr = stream->Write(aInitBuf, aInitBufSize, &bytesWritten);
+      if (FAILED(hr)) {
+        return hr;
+      }
+
+      if (bytesWritten != aInitBufSize) {
+        return E_UNEXPECTED;
+      }
     }
   }
 
@@ -316,6 +437,44 @@ void GUIDToString(REFGUID aGuid,
   MOZ_ASSERT(result);
 }
 
+#endif  // defined(MOZILLA_INTERNAL_API)
+
+#if defined(MOZILLA_INTERNAL_API)
+bool IsClassThreadAwareInprocServer(REFCLSID aClsid) {
+  nsAutoString strClsid;
+  GUIDToString(aClsid, strClsid);
+
+  nsAutoString inprocServerSubkey(u"CLSID\\"_ns);
+  inprocServerSubkey.Append(strClsid);
+  inprocServerSubkey.Append(u"\\InprocServer32"_ns);
+
+  // Of the possible values, "Apartment" is the longest, so we'll make this
+  // buffer large enough to hold that one.
+  wchar_t threadingModelBuf[std::size(L"Apartment")] = {};
+
+  DWORD numBytes = sizeof(threadingModelBuf);
+  LONG result = ::RegGetValueW(HKEY_CLASSES_ROOT, inprocServerSubkey.get(),
+                               L"ThreadingModel", RRF_RT_REG_SZ, nullptr,
+                               threadingModelBuf, &numBytes);
+  if (result != ERROR_SUCCESS) {
+    // This will also handle the case where the CLSID is not an inproc server.
+    return false;
+  }
+
+  DWORD numChars = numBytes / sizeof(wchar_t);
+  // numChars includes the null terminator
+  if (numChars <= 1) {
+    return false;
+  }
+
+  nsDependentString threadingModel(threadingModelBuf, numChars - 1);
+
+  // Ensure that the threading model is one of the known values that indicates
+  // that the class can operate natively (ie, no proxying) inside a MTA.
+  return threadingModel.LowerCaseEqualsLiteral("both") ||
+         threadingModel.LowerCaseEqualsLiteral("free") ||
+         threadingModel.LowerCaseEqualsLiteral("neutral");
+}
 #endif  // defined(MOZILLA_INTERNAL_API)
 
 }  // namespace mscom

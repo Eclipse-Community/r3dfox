@@ -30,6 +30,13 @@ checkbox {
   margin: 1px 0;
 }
 
+  @media (-moz-windows-classic) {
+    checkbox[native][disabled="true"] {
+      color: ThreeDShadow;
+      text-shadow: 1px 1px ThreeDHighlight;
+    }
+  }
+
 /* ::::: checkmark image ::::: */
 
 .checkbox-check {
@@ -56,14 +63,10 @@ checkbox {
   align-items: center;
 
   @media (-moz-platform: windows) {
-    width: 13px;
-    height: 13px;
     margin-inline-end: 5px;
   }
 
   @media (-moz-platform: linux) {
-    width: 1.3em;
-    height: 1.3em;
     margin: 2px;
     margin-inline-end: 4px;
   }
@@ -79,8 +82,18 @@ checkbox {
   }
 }
 
+@media (-moz-platform: windows) or (-moz-platform: linux) {
+  checkbox[native]:focus-visible > .checkbox-label-box {
+    /* On Linux, native theming should take care of this but it appears to be
+     * broken with some Gtk themes. Bug 1312169. */
+    outline: var(--focus-outline);
+  }
+}
+
 @media (-moz-platform: windows) {
   checkbox:where([native]) {
+    appearance: auto;
+    -moz-default-appearance: checkbox-container;
     margin: 2px 4px;
     padding-block: 1px;
     padding-inline: 4px 2px;

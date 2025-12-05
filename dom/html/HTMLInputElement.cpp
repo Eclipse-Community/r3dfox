@@ -61,12 +61,13 @@
 #include "nsCRTGlue.h"
 #include "nsColorControlFrame.h"
 #include "nsError.h"
-#include "nsFileControlFrame.h"
 #include "nsFocusManager.h"
 #include "nsGkAtoms.h"
 #include "nsIEditor.h"
 #include "nsIFilePicker.h"
 #include "nsIFormControl.h"
+#include "nsIFormControlFrame.h"
+#include "nsITextControlFrame.h"
 #include "nsIFrame.h"
 #include "nsIMutationObserver.h"
 #include "nsIPromptCollection.h"
@@ -2630,8 +2631,11 @@ void HTMLInputElement::AfterSetFilesOrDirectories(bool aSetValueChanged) {
   // No need to flush here, if there's no frame at this point we
   // don't need to force creation of one just to tell it about this
   // new value.  We just want the display to update as needed.
-  if (nsFileControlFrame* f = do_QueryFrame(GetPrimaryFrame())) {
-    f->SelectedFilesUpdated();
+  nsIFormControlFrame* formControlFrame = GetFormControlFrame(false);
+  if (formControlFrame) {
+    nsAutoString readableValue;
+    GetDisplayFileName(readableValue);
+    formControlFrame->SetFormProperty(nsGkAtoms::value, readableValue);
   }
 
   // Grab the full path here for any chrome callers who access our .value via a
@@ -3149,11 +3153,11 @@ void HTMLInputElement::Select() {
                            TextControlState::ScrollAfterSelection::No);
 }
 
-void HTMLInputElement::SelectAll() {
-  // FIXME(emilio): Should we try to call Select(), which will avoid flushing?
-  if (nsTextControlFrame* tf =
-          do_QueryFrame(GetPrimaryFrame(FlushType::Frames))) {
-    tf->SelectAll();
+void HTMLInputElement::SelectAll(nsPresContext* aPresContext) {
+  nsIFormControlFrame* formControlFrame = GetFormControlFrame(true);
+
+  if (formControlFrame) {
+    formControlFrame->SetFormProperty(nsGkAtoms::select, u""_ns);
   }
 }
 
@@ -3214,9 +3218,8 @@ void HTMLInputElement::GetEventTargetParent(EventChainPreVisitor& aVisitor) {
 
   // Initialize the editor if needed.
   if (NeedToInitializeEditorForEvent(aVisitor)) {
-    if (nsTextControlFrame* tcf = do_QueryFrame(GetPrimaryFrame())) {
-      tcf->EnsureEditorInitialized();
-    }
+    nsITextControlFrame* textControlFrame = do_QueryFrame(GetPrimaryFrame());
+    if (textControlFrame) textControlFrame->EnsureEditorInitialized();
   }
 
   if (CheckActivationBehaviorPreconditions(aVisitor)) {
@@ -3245,10 +3248,10 @@ void HTMLInputElement::GetEventTargetParent(EventChainPreVisitor& aVisitor) {
   if (mType == FormControlType::InputRange &&
       (aVisitor.mEvent->mMessage == eFocus ||
        aVisitor.mEvent->mMessage == eBlur)) {
-    // We handle focus here.
-    // FIXME(emilio): Why is this needed? If it is it should be moved to
-    // nsRangeFrame::ElementStateChanged.
-    if (nsIFrame* frame = GetPrimaryFrame()) {
+    // Just as nsGenericHTMLFormControlElementWithState::GetEventTargetParent
+    // calls nsIFormControlFrame::SetFocus, we handle focus here.
+    nsIFrame* frame = GetPrimaryFrame();
+    if (frame) {
       frame->InvalidateFrameSubtree();
     }
   }
@@ -3837,7 +3840,9 @@ nsresult HTMLInputElement::PostHandleEvent(EventChainPostVisitor& aVisitor) {
                 return bool(lastFocusMethod & nsIFocusManager::FLAG_BYKEY);
               }();
               if (shouldSelectAllOnFocus) {
-                SelectAll();
+                RefPtr<nsPresContext> presContext =
+                    GetPresContext(eForComposedDoc);
+                SelectAll(presContext);
               }
             }
           }

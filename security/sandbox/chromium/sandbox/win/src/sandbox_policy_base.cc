@@ -434,6 +434,9 @@ void ConfigBase::SetForceKnownDllLoadingFallback() {
 }
 
 ResultCode ConfigBase::SetJobLevel(JobLevel job_level, uint32_t ui_exceptions) {
+  if (memory_limit_ && job_level == JobLevel::kNone) {
+    return SBOX_ERROR_BAD_PARAMS;
+  }
   job_level_ = job_level;
   ui_exceptions_ = ui_exceptions;
   return SBOX_ALL_OK;
@@ -460,11 +463,12 @@ ResultCode ConfigBase::SetDisconnectCsrss() {
 // CreateThread EAT patch used when this is enabled.
 // See https://crbug.com/783296#c27.
 #if defined(_WIN64) && !defined(ADDRESS_SANITIZER)
-  is_csrss_connected_ = false;
-  return AddKernelObjectToClose(L"ALPC Port", nullptr);
-#else
+  if (base::win::GetVersion() >= base::win::Version::WIN10) {
+    is_csrss_connected_ = false;
+    return AddKernelObjectToClose(L"ALPC Port", nullptr);
+  }
+#endif  // !defined(_WIN64)
   return SBOX_ALL_OK;
-#endif  // !defined(_WIN64) || defined(ADDRESS_SANITIZER)
 }
 
 void ConfigBase::SetDesktop(Desktop desktop) {
@@ -494,11 +498,7 @@ PolicyBase::PolicyBase(base::StringPiece tag)
   dispatcher_ = std::make_unique<TopLevelDispatcher>(this);
 }
 
-PolicyBase::~PolicyBase() {
-  // Ensure this is cleared before other members - this terminates the process
-  // if it hasn't already finished.
-  target_.reset();
-}
+PolicyBase::~PolicyBase() {}
 
 TargetConfig* PolicyBase::GetConfig() {
   return config();
@@ -565,9 +565,12 @@ ResultCode PolicyBase::InitJob() {
   if (job_.IsValid())
     return SBOX_ERROR_BAD_PARAMS;
 
+  if (config()->GetJobLevel() == JobLevel::kNone)
+    return SBOX_ALL_OK;
+
   // Create the Windows job object.
-  DWORD result = job_.Init(config()->GetJobLevel(), config()->ui_exceptions(),
-                           config()->memory_limit());
+  DWORD result = job_.Init(config()->GetJobLevel(), nullptr,
+                           config()->ui_exceptions(), config()->memory_limit());
   if (ERROR_SUCCESS != result)
     return SBOX_ERROR_CANNOT_INIT_JOB;
 
@@ -720,6 +723,18 @@ ResultCode PolicyBase::ApplyToTarget(std::unique_ptr<TargetProcess> target) {
 
   target_ = std::move(target);
   return SBOX_ALL_OK;
+}
+
+// Can only be called if a job was associated with this policy.
+bool PolicyBase::OnJobEmpty() {
+  target_.reset();
+  return true;
+}
+
+bool PolicyBase::OnProcessFinished(DWORD process_id) {
+  if (target_->ProcessId() == process_id)
+    target_.reset();
+  return true;
 }
 
 EvalResult PolicyBase::EvalPolicy(IpcTag service,

@@ -52,12 +52,16 @@ FRAME_CLASSES = [
     Frame("nsBlockFrame", "Block", BLOCK),
     Frame("nsCanvasFrame", "Canvas", BLOCK),
     Frame("nsCheckboxRadioFrame", "CheckboxRadio", REPLACED | LEAF),
-    Frame("InputButtonControlFrame", "InputButtonControl", REPLACED | LEAF),
     Frame("nsColorControlFrame", "ColorControl", REPLACED | LEAF),
     Frame("nsColumnSetFrame", "ColumnSet", COMMON),
     Frame("ColumnSetWrapperFrame", "ColumnSetWrapper", BLOCK | BFC),
-    Frame("nsComboboxControlFrame", "ComboboxControl", REPLACED | LEAF),
-    Frame("ComboboxLabelFrame", "Block", BLOCK),
+    Frame("nsComboboxControlFrame", "ComboboxControl", BLOCK | REPLACED),
+    # FIXME(emilio, bug 1362907): Revisit these after that bug, this is the
+    # only frame that has ReplacedContainsBlock but not Replaced, which is
+    # sketchy.
+    Frame(
+        "nsComboboxDisplayFrame", "ComboboxDisplay", REPLACED - {"Replaced"}
+    ),
     Frame("nsContinuingTextFrame", "Text", TEXT),
     Frame("nsDateTimeControlFrame", "DateTimeControl", REPLACED),
     Frame("nsFieldSetFrame", "FieldSet", BLOCK),
@@ -68,7 +72,9 @@ FRAME_CLASSES = [
     Frame("nsFirstLineFrame", "Line", INLINE),
     Frame("nsFlexContainerFrame", "FlexContainer", BLOCK),
     Frame("nsIFrame", "None", COMMON),
+    Frame("nsGfxButtonControlFrame", "GfxButtonControl", REPLACED | LEAF),
     Frame("nsGridContainerFrame", "GridContainer", BLOCK),
+    Frame("nsHTMLButtonControlFrame", "HTMLButtonControl", REPLACED),
     Frame("nsHTMLCanvasFrame", "HTMLCanvas", REPLACED_SIZING),
     Frame("nsHTMLFramesetBlankFrame", "None", COMMON | LEAF),
     Frame("nsHTMLFramesetBorderFrame", "None", COMMON | LEAF),
@@ -174,7 +180,6 @@ FRAME_CLASSES = [
     Frame("ViewportFrame", "Viewport", COMMON),
     Frame("WBRFrame", "Wbr", COMMON | LEAF),
     # Non-concrete classes (for FrameIID use)
-    AbstractFrame("ButtonControlFrame"),
     AbstractFrame("MiddleCroppingBlockFrame"),
     AbstractFrame("nsContainerFrame"),
     AbstractFrame("nsLeafFrame"),
@@ -187,6 +192,7 @@ FRAME_CLASSES = [
     AbstractFrame("SVGPaintServerFrame"),
     # Interfaces (for FrameIID use)
     AbstractFrame("nsIAnonymousContentCreator"),
+    AbstractFrame("nsIFormControlFrame"),
     AbstractFrame("nsIMathMLFrame"),
     AbstractFrame("nsIPercentBSizeObserver"),
     AbstractFrame("nsIPopupContainer"),
@@ -197,4 +203,5 @@ FRAME_CLASSES = [
     AbstractFrame("ISVGSVGFrame"),
     AbstractFrame("nsITableCellLayout"),
     AbstractFrame("nsITableLayout"),
+    AbstractFrame("nsITextControlFrame"),
 ]

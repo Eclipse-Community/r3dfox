@@ -5,27 +5,14 @@
 @import url("chrome://browser/skin/browser-shared.css");
 @import url("chrome://browser/skin/contextmenu.css");
 
+@namespace html url("http://www.w3.org/1999/xhtml");
+
 #menubar-items {
   flex-direction: column; /* for flex hack */
   justify-content: normal; /* align the menubar to the top also in customize mode */
 }
 
-#main-menubar > menu {
-  appearance: none;
-  color: inherit;
-
-  &[_moz-menuactive] {
-    background-color: light-dark(hsla(0, 0%, 0%, 0.12), hsla(0, 0%, 100%, 0.22));
-    color: inherit;
-
-    @media (prefers-contrast) {
-      background-color: -moz-menuhover;
-      color: -moz-menuhovertext;
-    }
-  }
-}
-
-:root[customtitlebar]:not([lwtheme]) {
+:root[tabsintitlebar]:not([lwtheme]) {
   @media (-moz-windows-mica) {
     background-color: transparent;
     /* stylelint-disable-next-line media-query-no-invalid */
@@ -33,6 +20,16 @@
       /* For acrylic, do the same we do for popups to guarantee some contrast */
       background-color: light-dark(rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0.6));
     }
+
+        /* Accent color in titlebar overrides Mica. */
+        @media not (-moz-windows-accent-color-in-titlebar) {
+          /* Hide the Firefox buttons since Windows draws their own.
+           * FIXME(emilio): Find a way of hiding the native buttons, or make them
+           * taller, this is very hacky. */
+          .titlebar-buttonbox {
+            opacity: 0;
+          }
+        }
 
     /* Using a semitransparent background preserves the tinting from the backdrop.
      * Note that the toolbar text color from browser-colors.css should be ok,
@@ -69,9 +66,120 @@
   }
 }
 
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
+    /* On Windows 10, when temporarily showing the menu bar, make it at least as
+     * tall as the tab bar such that the window controls don't appear to move up. */
+    :root[tabsintitlebar] #toolbar-menubar[autohide="true"] {
+      height: calc(var(--tab-min-height) - var(--tabs-navbar-shadow-size));
+    }
+    :root[tabsintitlebar][sizemode="normal"] #toolbar-menubar[autohide="true"] {
+      height: calc(var(--tab-min-height) - var(--tabs-navbar-shadow-size));
+    }
+  }
+}
+
+/* Add 4px extra margin on top of the tabs toolbar on Windows 7. */
+@media (-moz-platform: windows-win7) {
+  :root[sizemode="normal"][chromehidden~="menubar"] #TabsToolbar > .toolbar-items,
+  :root[sizemode="normal"] #toolbar-menubar[autohide="true"][inactive] ~ :is(#TabsToolbar, #nav-bar) > .toolbar-items {
+    padding-top: 4px;
+  }
+}
+/* Add a fog for background tabs to be visible on Windows 7 glass window background */
+@media (-moz-platform: windows-win7) {
+  @media (-moz-windows-default-theme) {
+    &:not([lwtheme]) #TabsToolbar {
+    isolation: isolate;
+    position: relative;
+     &::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+      background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 80%, transparent);
+  z-index: -1;
+     }
+    }
+  }
+}
+
+@media (-moz-windows-classic) {
+  /**
+   * In the classic themes, the titlebar has a horizontal gradient, which is
+   * problematic for reading the text of background tabs when they're in the
+   * titlebar. We side-step this issue by layering our own background underneath
+   * the tabs.
+   */
+  :root[tabsintitlebar]:not([sizemode=fullscreen]) #TabsToolbar:not([lwtheme]) {
+    background-image: linear-gradient(transparent, ActiveCaption);
+    background-size: auto 200%;
+  }
+
+  :root[tabsintitlebar]:not([sizemode=fullscreen]) #TabsToolbar:not([lwtheme]):-moz-window-inactive {
+    background-image: linear-gradient(transparent, InactiveCaption);
+  }
+
+  /* Add a window top border for webextension themes */
+  :root[tabsintitlebar][sizemode="normal"] #navigator-toolbox[lwtheme] {
+    background-image: linear-gradient(to bottom,
+          ThreeDLightShadow 0, ThreeDLightShadow 1px,
+          ThreeDHighlight 1px, ThreeDHighlight 2px,
+          ActiveBorder 2px, ActiveBorder 4px, transparent 4px);
+  }
+
+  :root[tabsintitlebar] :is(#TabsToolbar, #toolbar-menubar) toolbarbutton:not([lwtheme]) {
+    color: inherit;
+  }
+}
+
+@media not (-moz-windows-compositor) {
+  #nav-bar[tabs-hidden="true"] {
+    box-shadow: none;
+  }
+}
 /* Titlebar */
 
+:root[tabsintitlebar][sizemode="normal"] .browser-titlebar {
+  appearance: auto;
+  -moz-default-appearance: -moz-window-titlebar;
+}
+
+:root[tabsintitlebar][sizemode="maximized"] .browser-titlebar {
+  appearance: auto;
+  -moz-default-appearance: -moz-window-titlebar-maximized;
+}
+
+@media not (-moz-windows-compositor) {
+  /**
+   * Anytime we're not using the compositor on Windows, the -moz-window-titlebar
+   * and -moz-window-titlebar-maximized values for -moz-appearance override
+   * backgrounds supplied by lwthemes. We make the #titlebar itself hidden, but
+   * it's children visible in order to hide the background but keep the margin and
+   * padding that comes from those -moz-window-titlebar rules.
+   */
+  :root:not([inFullscreen]) .browser-titlebar[lwtheme] {
+    visibility: hidden;
+  }
+  :root:not([inFullscreen], [chromehidden~="menubar"]) #toolbar-menubar[lwtheme],
+  :root:not([inFullscreen], [chromehidden~="toolbar"]) #TabsToolbar[lwtheme] {
+    visibility: visible;
+  }
+}
+
+@media (-moz-windows-classic) {
+  :root[tabsintitlebar][sizemode="normal"] #toolbar-menubar {
+    margin-top: 4px;
+  }
+}
+
 .titlebar-buttonbox {
+  /* For all Windows configurations except for Windows Aero and Windows Aero Basic,
+   * the default -moz-default-appearance of -moz-window-button-box and
+   * -moz-window-button-box-maximized adds unwanted margins to the button box. We
+   * special case Windows Aero and Windows Aero Basic in browser-aero.css.
+   */
   appearance: none;
   /* The button box must appear on top of the navigator-toolbox in order for
    * click and hover mouse events to work properly for the button in the restored
@@ -85,114 +193,46 @@
   align-items: stretch;
 }
 
-/* Window control buttons */
-
-.titlebar-button {
-  appearance: none;
-  border: none;
-  margin: 0;
-  padding: 8px 18px;
-  color: inherit;
-
-  /* Segoe Fluent Icons is the preferred font for Windows 11, and
-   * Segoe MDL2 Assets is there for windows 10. Luckily, the relevant glyphs
-   * are the same, so we can just fall back.
-   * See: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font */
-  font:
-    round(10px, env(hairline)) / 1 "Segoe Fluent Icons",
-    "Segoe MDL2 Assets"; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
-
-  /* Win10's tablet mode is non-windowed -- windows can't be moved or resized
-     freely. In theory "minimize" might still make sense, but for simplicity we
-     just hide everything but "close".
-
-     (This is not called for in Win11's tablet mode, which _is_ windowed.)
-  */
-  :root[win10-tablet-mode] &:not(.titlebar-close) {
-    display: none;
-  }
-
-  &:focus-visible {
-    outline: var(--focus-outline);
-    outline-offset: var(--focus-outline-inset);
-  }
-
-  > .toolbarbutton-icon {
-    display: none;
-  }
-
-  &::before {
-    display: inline-block;
-    content: inherit;
-
-    &:-moz-locale-dir(rtl) {
-      transform: scaleX(-1);
-    }
-  }
-
-  @media not (prefers-contrast) {
-    &:hover {
-      background-color: var(--toolbarbutton-hover-background);
-
-      &:active {
-        background-color: var(--toolbarbutton-active-background);
-      }
-    }
-
-    &.titlebar-close:hover {
-      color: white;
-      background-color: hsl(355, 86%, 49%);
-
-      &:active {
-        background-color: hsl(355, 82%, 69%);
-      }
-    }
-  }
-
-  @media (prefers-contrast) {
-    background-color: Field;
-    color: ButtonText; /* FIXME: shouldn't it be FieldText? */
-
-    &:hover {
-      background-color: SelectedItem;
-      color: SelectedItemText;
-    }
+@media (-moz-platform: windows-win7),
+       (-moz-platform: windows-win8) {
+  /* Preserve window control buttons position at the top of the button box. */
+  .titlebar-buttonbox-container {
+    align-items: flex-start;
   }
 }
 
+/* Window control buttons */
+
 .titlebar-min {
-  /* Even though we use appearance: none, -moz-default-appearance is necessary
-   * for Windows 11's "snap layouts" feature, see
-   * DealWithWindowsAppearanceHacks */
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-minimize;
-  content: "\e921"; /* ChromeMinimize */
-  @media (prefers-contrast) {
-    content: "\ef2d"; /* ChromeMinimizeContrast */
-  }
 }
 
 .titlebar-max {
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-maximize;
-  content: "\e922"; /* ChromeMaximize */
-  @media (prefers-contrast) {
-    content: "\ef2e"; /* ChromeMaximizeContrast */
-  }
 }
 
 .titlebar-restore {
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-restore;
-  content: "\e923"; /* ChromeRestore */
-  @media (prefers-contrast) {
-    content: "\ef2f"; /* ChromeRestoreContrast */
-  }
 }
 
 .titlebar-close {
+  appearance: auto;
   -moz-default-appearance: -moz-window-button-close;
-  content: "\e8bb"; /* ChromeClose */
-  @media (prefers-contrast) {
-    content: "\ef2c"; /* ChromeCloseContrast */
+}
+
+@media not (-moz-windows-classic) {
+  .titlebar-min {
+    margin-inline-end: 2px;
   }
+}
+
+:root[tabletmode] .titlebar-min,
+:root[tabletmode] .titlebar-restore,
+:root[tabletmode] .titlebar-max {
+  display: none;
 }
 
 /* Bookmark menus */
@@ -203,8 +243,20 @@
     max-width: 32em;
   }
 
-  &:not(.subviewbutton) > .menu-icon {
+  &:not(.subviewbutton) > .menu-iconic-left {
     margin-block: 0;
+  }
+
+  &[cutting] {
+    > .toolbarbutton-icon,
+    > .menu-iconic-left > .menu-iconic-icon {
+      opacity: 0.5;
+    }
+
+    > .toolbarbutton-text,
+    > .menu-iconic-left > .menu-iconic-text {
+      opacity: 0.7;
+    }
   }
 
   &:is(toolbarbutton)[dragover="true"][open="true"] {
@@ -215,6 +267,14 @@
   }
 }
 
+/* Bookmarks roots menu-items */
+
+#bookmarksToolbarFolderMenu,
+#BMB_bookmarksToolbar,
+#panelMenu_bookmarksToolbar {
+  list-style-image: url("chrome://browser/skin/places/bookmarksToolbar.svg");
+}
+
 /* Address bar */
 
 .urlbar,
@@ -222,7 +282,7 @@
   font-size: 1.15em;
 }
 
-@media (prefers-contrast) {
+@media not (-moz-windows-default-theme) {
   :root {
     /* Windows HCM conventions use these colors for chiclets. We can't use them on
        other platforms because AccentColor can be shown atop SelectedItem,
@@ -254,7 +314,7 @@
   padding: 0;
 }
 
-@media (prefers-contrast) {
+@media not (-moz-windows-default-theme) {
   /* For high contrast themes. XXX is this needed anymore? */
   #tabbrowser-tabpanels,
   :root[privatebrowsingmode="temporary"] #tabbrowser-tabpanels {
@@ -308,8 +368,16 @@ menupopup[touchmode] :is(menu, menuitem, menucaption) {
   padding-block: calc((3.5em - 32px) / 2);
 }
 
+@media not (-moz-windows-non-native-menus) {
+  #context-navigation {
+    background-color: menu;
+  }
+}
+
+@media (-moz-windows-non-native-menus) {
 /* Other menu separators don't extend all the way to the menu edges, but the
    one below the navigation buttons in the content context menu should. */
 #context-sep-navigation {
   padding-inline: 0;
+}
 }

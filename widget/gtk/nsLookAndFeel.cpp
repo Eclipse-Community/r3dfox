@@ -686,6 +686,7 @@ nsresult nsLookAndFeel::PerThemeData::GetColor(ColorID aID,
       break;
     case ColorID::IMESelectedRawTextBackground:
     case ColorID::IMESelectedConvertedTextBackground:
+    case ColorID::MozDragtargetzone:
     case ColorID::Highlight:  // preference selected item,
       aColor = mSelectedText.mBg;
       break;
@@ -860,6 +861,9 @@ nsresult nsLookAndFeel::PerThemeData::GetColor(ColorID aID,
       break;
     case ColorID::Fieldtext:
       aColor = mField.mFg;
+      break;
+    case ColorID::MozButtondefault:
+      aColor = mButton.mBg;
       break;
     case ColorID::MozSidebar:
       aColor = mSidebar.mBg;

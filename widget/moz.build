@@ -80,6 +80,8 @@ elif toolkit == "gtk":
 elif toolkit == "windows":
     XPIDL_SOURCES += [
         "nsIJumpListBuilder.idl",
+        "nsILegacyJumpListBuilder.idl",
+        "nsILegacyJumpListItem.idl",
         "nsIPrintSettingsWin.idl",
         "nsITaskbarOverlayIconController.idl",
         "nsITaskbarPreview.idl",
@@ -257,7 +259,6 @@ UNIFIED_SOURCES += [
     "IMEData.cpp",
     "InProcessCompositorWidget.cpp",
     "InputData.cpp",
-    "NativeMenu.cpp",
     "nsAutoRollup.cpp",
     "nsBaseAppShell.cpp",
     "nsBaseClipboard.cpp",

@@ -118,15 +118,44 @@ var gBrowserInit = {
       }
     }
 
-    // Run menubar initialization first, to avoid CustomTitlebar code picking
+    // Run menubar initialization first, to avoid TabsInTitlebar code picking
     // up mutations from it and causing a reflow.
     AutoHideMenubar.init();
-    // Update the customtitlebar attribute so the window can be sized
-    // correctly.
+    // Update the chromemargin attribute so the window can be sized correctly.
     window.TabBarVisibility.update();
-    CustomTitlebar.init();
+    TabsInTitlebar.init();
 
     new LightweightThemeConsumer(document);
+
+    if (AppConstants.platform == "win") {
+      if (
+        window.matchMedia("(-moz-platform: windows-win8)").matches &&
+        window.matchMedia("(-moz-windows-default-theme)").matches
+      ) {
+        let windowFrameColor = new Color(
+          ...ChromeUtils.importESModule(
+            "resource:///modules/Windows8WindowFrameColor.sys.mjs"
+          ).Windows8WindowFrameColor.get()
+        );
+        // Default to black for foreground text.
+        if (!windowFrameColor.isContrastRatioAcceptable(new Color(0, 0, 0))) {
+          document.documentElement.setAttribute("darkwindowframe", "true");
+        }
+      } else if (AppConstants.isPlatformAndVersionAtLeast("win", "10")) {
+        TelemetryEnvironment.onInitialized().then(() => {
+          // 17763 is the build number of Windows 10 version 1809
+          if (
+            TelemetryEnvironment.currentEnvironment.system.os
+              .windowsBuildNumber < 17763
+          ) {
+            document.documentElement.setAttribute(
+              "always-use-accent-color-for-window-border",
+              ""
+            );
+          }
+        });
+      }
+    }
 
     if (
       Services.prefs.getBoolPref(
@@ -1036,7 +1065,7 @@ var gBrowserInit = {
   onUnload() {
     gUIDensity.uninit();
 
-    CustomTitlebar.uninit();
+    TabsInTitlebar.uninit();
 
     ToolbarIconColor.uninit(window);
 

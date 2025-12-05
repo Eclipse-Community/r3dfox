@@ -17,7 +17,38 @@ std::optional<std::wstring> get_tempfile_name() {
   wchar_t pathBuffer[BUFFER_LEN];
   wchar_t filenameBuffer[BUFFER_LEN];
   UUID uuid;
-  DWORD pathLen = GetTempPath2W(BUFFER_LEN, pathBuffer);
+  DWORD pathLen = 0;
+typedef DWORD ( *MYPROC)(DWORD, LPWSTR);
+    HINSTANCE hinstLib;
+    MYPROC procGetTempPath2W;
+    BOOL fRunTimeLinkSuccess = FALSE;
+
+    // Get a handle to the DLL module.
+
+    hinstLib = LoadLibraryW(L"Kernel32.dll");
+
+    // If the handle is valid, try to get the function address.
+
+    if (hinstLib != NULL)
+    {
+        procGetTempPath2W = (MYPROC) GetProcAddress(hinstLib, "GetTempPath2W");
+
+        // If the function address is valid, call the function.
+
+        if (NULL != procGetTempPath2W)
+        {
+            fRunTimeLinkSuccess = TRUE;
+            pathLen = procGetTempPath2W(BUFFER_LEN, pathBuffer);
+        }
+        // Free the DLL module.
+
+        FreeLibrary(hinstLib);
+    }
+
+    // If unable to call the DLL function, use an alternative.
+    if (! fRunTimeLinkSuccess)
+        pathLen = GetTempPathW(BUFFER_LEN, pathBuffer);
+
   if (pathLen > BUFFER_LEN || pathLen == 0) {
     // Error getting path
     return std::nullopt;

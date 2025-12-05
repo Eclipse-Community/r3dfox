@@ -11,11 +11,10 @@
 @import url("chrome://global/skin/button.css");
 @import url("chrome://global/skin/checkbox.css");
 @import url("chrome://global/skin/findbar.css");
+@import url("chrome://global/skin/menu.css");
 @import url("chrome://global/skin/notification.css");
 @import url("chrome://global/skin/numberinput.css");
 @import url("chrome://global/skin/popup.css");
-/* NOTE: menu.css must be after popup.css, since it overrides some general menupopup rules. */
-@import url("chrome://global/skin/menu.css");
 @import url("chrome://global/skin/popupnotification.css");
 @import url("chrome://global/skin/radio.css");
 @import url("chrome://global/skin/richlistbox.css");
@@ -23,4 +22,4 @@
 @import url("chrome://global/skin/tabbox.css");
 @import url("chrome://global/skin/toolbar.css");
 @import url("chrome://global/skin/toolbarbutton.css");
-@import url("chrome://global/skin/tree/tree.css");
+@import url("chrome://global/skin/tree.css");

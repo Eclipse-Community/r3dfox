@@ -62,6 +62,7 @@
 
 #  include "nsWindowsDllInterceptor.h"
 #  include "mozilla/WindowsDllBlocklist.h"
+#  include "mozilla/WindowsVersion.h"
 #  include "psapi.h"  // For PERFORMANCE_INFORMATION and K32GetPerformanceInfo()
 #elif defined(XP_MACOSX)
 #  include "breakpad-client/mac/crash_generation/client_info.h"
@@ -257,6 +258,8 @@ static char* androidUserSerial = nullptr;
 // service. After Android 8 we need to use "start-foreground-service"
 static const char* androidStartServiceCommand = nullptr;
 #endif
+
+static Maybe<ProcessId> gCrashHelperPid;
 
 // this holds additional data sent via the API
 static Mutex* notesFieldLock;
@@ -836,7 +839,7 @@ static void AnnotateMemoryStatus(AnnotationWriter& aWriter) {
   }
 
   PERFORMANCE_INFORMATION info;
-  if (K32GetPerformanceInfo(&info, sizeof(info))) {
+  if (GetPerformanceInfo(&info, sizeof(info))) {
     aWriter.Write(Annotation::TotalPageFile,
                   static_cast<uint64_t>(info.CommitLimit * info.PageSize));
     aWriter.Write(Annotation::AvailablePageFile,
@@ -1718,18 +1721,22 @@ static bool IsCrashingException(EXCEPTION_POINTERS* exinfo) {
 // Do various actions to prepare the child process for minidump generation.
 // This includes disabling the I/O interposer and DLL blocklist which both
 // would get in the way. We also free the resources we have reserved, such as
-// address space on 32-bit Windows builds, so that they're available to the
-// minidump generation code.
-static void PrepareForMinidump(bool isChildProcess = true) {
+// address space on 32-bit Windows builds and file descriptors on Linux so that
+// they're available to the minidump generation code.
+static void PrepareForMinidump() {
   mozilla::IOInterposer::Disable();
   ReleaseResources();
-
-  if (isChildProcess) {
-    crash_helper_wait_for_rendezvous();
-  }
-#if defined(XP_WIN) && defined(DEBUG) && defined(HAS_DLL_BLOCKLIST)
+#if defined(XP_WIN)
+#  if defined(DEBUG) && defined(HAS_DLL_BLOCKLIST)
   DllBlocklist_Shutdown();
-#endif  // defined(XP_WIN) && defined(DEBUG) && defined(HAS_DLL_BLOCKLIST)
+#  endif
+#elif defined(XP_LINUX) && !defined(MOZ_WIDGET_ANDROID)
+  if (gCrashHelperPid.isSome()) {
+    // Ignore the return value because we're in the exception handler, so
+    // there's not much we can do safely, not even log the error.
+    Unused << prctl(PR_SET_PTRACER, gCrashHelperPid.value());
+  }
+#endif
 }
 
 #ifdef XP_WIN
@@ -1745,7 +1752,7 @@ static ExceptionHandler::FilterResult Filter(void* context,
     return ExceptionHandler::FilterResult::ContinueSearch;
   }
 
-  PrepareForMinidump(/* isChildProcess */ false);
+  PrepareForMinidump();
   return ExceptionHandler::FilterResult::HandleException;
 }
 
@@ -1769,14 +1776,20 @@ static MINIDUMP_TYPE GetMinidumpType() {
       MiniDumpWithHandleData);
 
 #  ifdef NIGHTLY_BUILD
-  minidump_type = static_cast<MINIDUMP_TYPE>(
-      minidump_type |
-      // This is Nightly only because this doubles the size of minidumps based
-      // on the experimental data.
-      MiniDumpWithProcessThreadData |
-      // This allows us to examine heap objects referenced from stack objects
-      // at the cost of further doubling the size of minidumps.
-      MiniDumpWithIndirectlyReferencedMemory);
+  // This is Nightly only because this doubles the size of minidumps based
+  // on the experimental data.
+  minidump_type =
+      static_cast<MINIDUMP_TYPE>(minidump_type | MiniDumpWithProcessThreadData);
+
+  // dbghelp.dll on Win7 can't handle overlapping memory regions so we only
+  // enable this feature on Win8 or later.
+  if (IsWin8OrLater()) {
+    minidump_type = static_cast<MINIDUMP_TYPE>(
+        minidump_type |
+        // This allows us to examine heap objects referenced from stack objects
+        // at the cost of further doubling the size of minidumps.
+        MiniDumpWithIndirectlyReferencedMemory);
+  }
 #  endif
 
   const char* e = PR_GetEnv("MOZ_CRASHREPORTER_FULLDUMP");
@@ -1790,7 +1803,7 @@ static MINIDUMP_TYPE GetMinidumpType() {
 #else
 
 static bool Filter(void* context) {
-  PrepareForMinidump(/* isChildProcess */ false);
+  PrepareForMinidump();
   return true;
 }
 
@@ -3338,19 +3351,22 @@ CrashPipeType GetChildNotificationPipe() {
 #endif
 }
 
-UniqueFileHandle RegisterChildIPCChannel() {
+#if defined(XP_LINUX) && !defined(MOZ_WIDGET_ANDROID)
+
+ProcessId GetCrashHelperPid() {
   if (gCrashHelperClient) {
-    AncillaryData ipc_endpoint = register_child_ipc_channel(gCrashHelperClient);
-    return UniqueFileHandle{ipc_endpoint};
+    return crash_helper_pid(gCrashHelperClient);
   }
 
-  return UniqueFileHandle();
+  return base::kInvalidProcessId;
 }
 
+#endif  // defined(XP_LINUX) && !defined(MOZ_WIDGET_ANDROID)
+
 bool SetRemoteExceptionHandler(CrashPipeType aCrashPipe,
-                               UniqueFileHandle aCrashHelperPipe) {
+                               Maybe<ProcessId> aCrashHelperPid) {
   MOZ_ASSERT(!gExceptionHandler, "crash client already init'd");
-  crash_helper_rendezvous(aCrashHelperPipe.release());
+  gCrashHelperPid = aCrashHelperPid;
   RegisterRuntimeExceptionModule();
   InitializeAppNotes();
   RegisterAnnotations();

@@ -34,17 +34,25 @@ CompositorWidgetParent::CompositorWidgetParent(
                           aOptions),
       mWnd(reinterpret_cast<HWND>(
           aInitData.get_WinCompositorWidgetInitData().hWnd())),
-      mIsFullyOccluded(false) {
+      mTransparencyMode(uint32_t(
+          aInitData.get_WinCompositorWidgetInitData().transparencyMode())),
+      mSizeMode(nsSizeMode_Normal),
+      mIsFullyOccluded(false),
+      mRemoteBackbufferClient() {
   MOZ_ASSERT(XRE_GetProcessType() == GeckoProcessType_GPU);
   MOZ_ASSERT(mWnd && ::IsWindow(mWnd));
 }
 
-CompositorWidgetParent::~CompositorWidgetParent() = default;
+CompositorWidgetParent::~CompositorWidgetParent() {}
 
 bool CompositorWidgetParent::Initialize(
     const RemoteBackbufferHandles& aRemoteHandles) {
   mRemoteBackbufferClient = std::make_unique<remote_backbuffer::Client>();
-  return mRemoteBackbufferClient->Initialize(aRemoteHandles);
+  if (!mRemoteBackbufferClient->Initialize(aRemoteHandles)) {
+    return false;
+  }
+
+  return true;
 }
 
 bool CompositorWidgetParent::PreRender(WidgetRenderingContext* aContext) {
@@ -81,6 +89,8 @@ void CompositorWidgetParent::EndRemoteDrawingInRegion(
       aInvalidRegion.ToUnknownRegion());
 }
 
+bool CompositorWidgetParent::NeedsToDeferEndRemoteDrawing() { return false; }
+
 already_AddRefed<gfx::DrawTarget>
 CompositorWidgetParent::GetBackBufferDrawTarget(gfx::DrawTarget* aScreenTarget,
                                                 const gfx::IntRect& aRect,
@@ -101,6 +111,13 @@ bool CompositorWidgetParent::InitCompositor(layers::Compositor* aCompositor) {
   return true;
 }
 
+bool CompositorWidgetParent::HasGlass() const {
+  MOZ_ASSERT(layers::CompositorThreadHolder::IsInCompositorThread() ||
+             wr::RenderThread::IsInRenderThread());
+
+  return mTransparencyMode == uint32_t(TransparencyMode::BorderlessGlass);
+}
+
 bool CompositorWidgetParent::IsHidden() const { return ::IsIconic(mWnd); }
 
 mozilla::ipc::IPCResult CompositorWidgetParent::RecvInitialize(
@@ -119,19 +136,45 @@ mozilla::ipc::IPCResult CompositorWidgetParent::RecvLeavePresentLock() {
   return IPC_OK();
 }
 
+mozilla::ipc::IPCResult CompositorWidgetParent::RecvUpdateTransparency(
+    const TransparencyMode& aMode) {
+  mTransparencyMode = uint32_t(aMode);
+  return IPC_OK();
+}
+
 mozilla::ipc::IPCResult CompositorWidgetParent::RecvNotifyVisibilityUpdated(
-    const bool& aIsFullyOccluded) {
+    const nsSizeMode& aSizeMode, const bool& aIsFullyOccluded) {
+  mSizeMode = aSizeMode;
   mIsFullyOccluded = aIsFullyOccluded;
   return IPC_OK();
+}
+
+nsSizeMode CompositorWidgetParent::GetWindowSizeMode() const {
+  return mSizeMode;
 }
 
 bool CompositorWidgetParent::GetWindowIsFullyOccluded() const {
   return mIsFullyOccluded;
 }
 
-mozilla::ipc::IPCResult CompositorWidgetParent::RecvUpdateTransparency(
-    const TransparencyMode& aMode) {
-  SetTransparencyMode(aMode);
+mozilla::ipc::IPCResult CompositorWidgetParent::RecvClearTransparentWindow() {
+  gfx::CriticalSectionAutoEnter lock(&mPresentLock);
+
+  RefPtr<DrawTarget> drawTarget = mRemoteBackbufferClient->BorrowDrawTarget();
+  if (!drawTarget) {
+    return IPC_OK();
+  }
+
+  IntSize size = drawTarget->GetSize();
+  if (size.IsEmpty()) {
+    return IPC_OK();
+  }
+
+  drawTarget->ClearRect(Rect(0, 0, size.width, size.height));
+
+  Unused << mRemoteBackbufferClient->PresentDrawTarget(
+      IntRect(0, 0, size.width, size.height));
+
   return IPC_OK();
 }
 

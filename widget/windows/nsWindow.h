@@ -49,6 +49,7 @@
 #  include "mozilla/a11y/LocalAccessible.h"
 #endif
 
+#include "nsUXThemeData.h"
 #include "nsIUserIdleServiceInternal.h"
 
 #include "IMMHandler.h"
@@ -86,63 +87,15 @@ const CLSID CLSID_ImmersiveShell = {
  * Native WIN32 window wrapper.
  */
 
-namespace mozilla::widget {
-
-// Data manipulation: styles + ex-styles, and bitmasking operations thereupon.
-struct WindowStyles {
-  LONG_PTR style = 0;
-  LONG_PTR ex = 0;
-
-  static WindowStyles FromHWND(HWND);
-
-  constexpr bool operator==(WindowStyles const& that) const {
-    return style == that.style && ex == that.ex;
-  }
-  constexpr bool operator!=(WindowStyles const& that) const {
-    return !(*this == that);
-  }
-  constexpr WindowStyles operator|(WindowStyles const& that) const {
-    return WindowStyles{.style = style | that.style, .ex = ex | that.ex};
-  }
-  constexpr WindowStyles operator&(WindowStyles const& that) const {
-    return WindowStyles{.style = style & that.style, .ex = ex & that.ex};
-  }
-  constexpr WindowStyles operator~() const {
-    return WindowStyles{.style = ~style, .ex = ~ex};
-  }
-
-  explicit constexpr operator bool() const { return style || ex; }
-
-  // Compute a style-set which matches `zero` where the bits of `this` are 0
-  // and `one` where the bits of `this` are 1.
-  constexpr WindowStyles merge(WindowStyles zero, WindowStyles one) const {
-    WindowStyles const& mask = *this;
-    return (~mask & zero) | (mask & one);
-  }
-
-  // The dual of `merge`, above: returns a pair [zero, one] satisfying
-  // `a.merge(a.split(b)...) == b`. (Or its equivalent in valid C++.)
-  constexpr std::tuple<WindowStyles, WindowStyles> split(
-      WindowStyles data) const {
-    WindowStyles const& mask = *this;
-    return {~mask & data, mask & data};
-  }
-};
-
-void SetWindowStyles(HWND, const WindowStyles&);
-
-}  // namespace mozilla::widget
-
 class nsWindow final : public nsBaseWidget {
  public:
-  using Styles = mozilla::widget::WindowStyles;
   using WindowHook = mozilla::widget::WindowHook;
   using IMEContext = mozilla::widget::IMEContext;
   using WidgetEventTime = mozilla::WidgetEventTime;
 
   NS_INLINE_DECL_REFCOUNTING_INHERITED(nsWindow, nsBaseWidget)
 
-  nsWindow();
+  explicit nsWindow(bool aIsChildWindow = false);
 
   void SendAnAPZEvent(mozilla::InputData& aEvent);
 
@@ -186,6 +139,11 @@ class nsWindow final : public nsBaseWidget {
    */
   nsWindow* GetParentWindowBase(bool aIncludeOwner);
 
+  bool IsTopLevelWidget() const {
+    return mWindowType == WindowType::TopLevel ||
+           mWindowType == WindowType::Dialog;
+  }
+
   // nsIWidget interface
   using nsBaseWidget::Create;  // for Create signature not overridden here
   [[nodiscard]] nsresult Create(nsIWidget* aParent,
@@ -228,7 +186,6 @@ class nsWindow final : public nsBaseWidget {
   [[nodiscard]] nsresult GetRestoredBounds(LayoutDeviceIntRect& aRect) override;
   LayoutDeviceIntRect GetClientBounds() override;
   LayoutDeviceIntPoint GetClientOffset() override;
-  LayoutDeviceIntSize GetSize() const;
   void SetCursor(const Cursor&) override;
   bool PrepareForFullscreenTransition(nsISupports** aData) override;
   void PerformFullscreenTransition(FullscreenTransitionStage aStage,
@@ -291,12 +248,15 @@ class nsWindow final : public nsBaseWidget {
   InputContext GetInputContext() override;
   TextEventDispatcherListener* GetNativeTextEventDispatcherListener() override;
   void SetTransparencyMode(TransparencyMode aMode) override;
-  TransparencyMode GetTransparencyMode() override { return mTransparencyMode; }
-  void SetCustomTitlebar(bool) override;
+  TransparencyMode GetTransparencyMode() override;
+  void UpdateOpaqueRegion(const LayoutDeviceIntRegion& aOpaqueRegion) override;
+  nsresult SetNonClientMargins(const LayoutDeviceIntMargin&) override;
   void SetResizeMargin(mozilla::LayoutDeviceIntCoord aResizeMargin) override;
   void UpdateWindowDraggingRegion(
       const LayoutDeviceIntRegion& aRegion) override;
 
+  void UpdateThemeGeometries(
+      const nsTArray<ThemeGeometry>& aThemeGeometries) override;
   uint32_t GetMaxTouchPoints() const override;
   void SetIsEarlyBlankWindow(bool) override;
 
@@ -512,6 +472,8 @@ class nsWindow final : public nsBaseWidget {
   static LRESULT CALLBACK WindowProcInternal(HWND hWnd, UINT msg, WPARAM wParam,
                                              LPARAM lParam);
 
+  static BOOL CALLBACK BroadcastMsgToChildren(HWND aWnd, LPARAM aMsg);
+  static BOOL CALLBACK BroadcastMsg(HWND aTopWindow, LPARAM aMsg);
   static BOOL CALLBACK DispatchStarvedPaints(HWND aTopWindow, LPARAM aMsg);
   static BOOL CALLBACK RegisterTouchForDescendants(HWND aTopWindow,
                                                    LPARAM aMsg);
@@ -539,7 +501,14 @@ class nsWindow final : public nsBaseWidget {
   bool CanTakeFocus();
   bool UpdateNonClientMargins(bool aReflowWindow = true);
   void UpdateDarkModeToolbar();
+  void UpdateGetWindowInfoCaptionStatus(bool aActiveCaption);
   void ResetLayout();
+  void InvalidateNonClientRegion();
+  HRGN ExcludeNonClientFromPaintRegion(HRGN aRegion);
+  static const wchar_t* GetMainWindowClass();
+  bool HasGlass() const {
+    return mTransparencyMode == TransparencyMode::BorderlessGlass;
+  }
   HWND GetOwnerWnd() const { return ::GetWindow(mWnd, GW_OWNER); }
   bool IsOwnerForegroundWindow() const {
     HWND owner = GetOwnerWnd();
@@ -592,7 +561,7 @@ class nsWindow final : public nsBaseWidget {
   bool OnGesture(WPARAM wParam, LPARAM lParam);
   bool OnTouch(WPARAM wParam, LPARAM lParam);
   bool OnHotKey(WPARAM wParam, LPARAM lParam);
-  bool OnPaint();
+  bool OnPaint(HDC aDC, uint32_t aNestingLevel);
   void OnWindowPosChanging(WINDOWPOS* info);
   void OnWindowPosChanged(WINDOWPOS* wp);
   void OnSysColorChanged();
@@ -612,6 +581,16 @@ class nsWindow final : public nsBaseWidget {
   DWORD WindowStyle();
   DWORD WindowExStyle();
 
+  static const wchar_t* ChooseWindowClass(WindowType);
+  // This method registers the given window class, and returns the class name.
+  static const wchar_t* RegisterWindowClass(const wchar_t* aClassName,
+                                            UINT aExtraStyle, LPWSTR aIconID);
+
+  /**
+   * XP and Vista theming support for windows with rounded edges
+   */
+  void ClearThemeRegion();
+
   /**
    * Popup hooks
    */
@@ -621,19 +600,20 @@ class nsWindow final : public nsBaseWidget {
   static bool GetPopupsToRollup(
       nsIRollupListener* aRollupListener, uint32_t* aPopupsToRollup,
       mozilla::Maybe<POINT> aEventPoint = mozilla::Nothing());
+  static bool NeedsToHandleNCActivateDelayed(HWND aWnd);
   static bool DealWithPopups(HWND inWnd, UINT inMsg, WPARAM inWParam,
                              LPARAM inLParam, LRESULT* outResult);
+
+  /**
+   * Window transparency helpers
+   */
+  void SetWindowTranslucencyInner(TransparencyMode aMode);
+  TransparencyMode GetWindowTranslucencyInner() const {
+    return mTransparencyMode;
+  }
+  void UpdateGlass();
   bool IsSimulatedClientArea(int32_t clientX, int32_t clientY);
   bool IsWindowButton(int32_t hitTestResult);
-
-  void UpdateOpaqueRegion(const LayoutDeviceIntRegion&) override;
-  void UpdateOpaqueRegionInternal();
-  LayoutDeviceIntRegion GetOpaqueRegionForTesting() const override {
-    return mOpaqueRegion;
-  }
-  // Gets the translucent region, in client coordinates.
-  LayoutDeviceIntRegion GetTranslucentRegion();
-  void MaybeInvalidateTranslucentRegion();
 
   void SetColorScheme(const mozilla::Maybe<mozilla::ColorScheme>&) override;
   void SetMicaBackdrop(bool) override;
@@ -651,8 +631,14 @@ class nsWindow final : public nsBaseWidget {
   void StopFlashing();
   static HWND WindowAtMouse();
   static bool IsTopLevelMouseExit(HWND aWnd);
-  LayoutDeviceIntRegion GetRegionToPaint(const PAINTSTRUCT& ps, HDC aDC) const;
+  LayoutDeviceIntRegion GetRegionToPaint(bool aForceFullRepaint, PAINTSTRUCT ps,
+                                         HDC aDC);
   nsIWidgetListener* GetPaintListener();
+
+  void AddWindowOverlayWebRenderCommands(
+      mozilla::layers::WebRenderBridgeChild* aWrBridge,
+      mozilla::wr::DisplayListBuilder& aBuilder,
+      mozilla::wr::IpcResourceUpdateQueue& aResourceUpdates) override;
 
   void CreateCompositor() override;
   void DestroyCompositor() override;
@@ -762,14 +748,18 @@ class nsWindow final : public nsBaseWidget {
   bool mIsEarlyBlankWindow = false;
   bool mIsShowingPreXULSkeletonUI = false;
   bool mResizable = false;
-  bool mHasBeenShown = false;
   // Whether we're an alert window. Alert windows don't have taskbar icons and
   // don't steal focus from other windows when opened. They're also expected to
   // be of type WindowType::Dialog.
   bool mIsAlert = false;
   bool mIsPerformingDwmFlushHack = false;
   bool mDraggingWindowWithMouse = false;
-  mozilla::Maybe<Styles> mOldStyles;
+  // Partial cached window-styles, for when going fullscreen. (Only window-
+  // decoration-related flags are saved here.)
+  struct WindowStyles {
+    LONG_PTR style, exStyle;
+  };
+  mozilla::Maybe<WindowStyles> mOldStyles;
   nsNativeDragTarget* mNativeDragTarget = nullptr;
   HKL mLastKeyboardLayout = 0;
   mozilla::CheckInvariantWrapper<FrameState> mFrameState;
@@ -808,14 +798,17 @@ class nsWindow final : public nsBaseWidget {
       return margins;
     }
   } mCustomNonClientMetrics;
+  // Margins set by the owner
+  LayoutDeviceIntMargin mNonClientMargins;
+  // Margins we'd like to set once chrome is reshown:
+  LayoutDeviceIntMargin mFutureMarginsOnceChromeShows;
+  // Indicates we need to apply margins once toggling chrome into showing:
+  bool mFutureMarginsToUse = false;
 
-  // Indicates the custom titlebar is enabled.
+  // Indicates custom frames are enabled
   bool mCustomNonClient = false;
-  // Whether we want to draw to the titlebar once the chrome shows. (Always
-  // Nothing if mHideChrome is false.)
-  mozilla::Maybe<bool> mCustomTitlebarOnceChromeShows;
-  // Custom extra resize margin width.
-  mozilla::LayoutDeviceIntCoord mCustomResizeMargin{0};
+  // Indicates custom resize margins are in effect
+  bool mUseResizeMarginOverrides = false;
 
   // not yet set, will be calculated on first use
   double mDefaultScale = -1.0;
@@ -827,20 +820,16 @@ class nsWindow final : public nsBaseWidget {
 
   // Draggable titlebar region maintained by UpdateWindowDraggingRegion
   LayoutDeviceIntRegion mDraggableRegion;
-  // Opaque region maintained by UpdateOpaqueRegion (relative to the client
-  // area).
-  LayoutDeviceIntRegion mOpaqueRegion;
 
   // Graphics
   LayoutDeviceIntRect mLastPaintBounds;
-  // The region of the window we know is cleared to transparent already,
-  // in client coords.
-  LayoutDeviceIntRegion mClearedRegion;
 
   ResizeState mResizeState = NOT_RESIZING;
 
   // Transparency
   TransparencyMode mTransparencyMode = TransparencyMode::Opaque;
+  nsIntRegion mPossiblyTransparentRegion;
+  MARGINS mGlassMargins = {0, 0, 0, 0};
 
   // Win7 Gesture processing and management
   nsWinGesture mGesture;
@@ -860,8 +849,8 @@ class nsWindow final : public nsBaseWidget {
   // Whether we're in the process of sending a WM_SETTEXT ourselves
   bool mSendingSetText = false;
 
-  // Whether we're a PIP window.
-  bool mPIPWindow : 1;
+  // Whether we were created as a child window (aka ChildWindow) or not.
+  bool mIsChildWindow : 1;
 
   // Whether we are asked to render a mica backdrop.
   bool mMicaBackdrop : 1;
@@ -871,6 +860,9 @@ class nsWindow final : public nsBaseWidget {
   // The point in time at which the last paint completed. We use this to avoid
   //  painting too rapidly in response to frequent input events.
   TimeStamp mLastPaintEndTime;
+
+  // The location of the window buttons in the window.
+  mozilla::Maybe<LayoutDeviceIntRect> mWindowButtonsRect;
 
   // Caching for hit test results (in client coordinates)
   LayoutDeviceIntPoint mCachedHitTestPoint;
@@ -900,7 +892,7 @@ class nsWindow final : public nsBaseWidget {
   class MOZ_STACK_CLASS ContextMenuPreventer final {
    public:
     explicit ContextMenuPreventer(nsWindow* aWindow)
-        : mWindow(aWindow), mNeedsToPreventContextMenu(false) {};
+        : mWindow(aWindow), mNeedsToPreventContextMenu(false){};
     ~ContextMenuPreventer() {
       mWindow->mNeedsToPreventContextMenu = mNeedsToPreventContextMenu;
     }
@@ -922,6 +914,10 @@ class nsWindow final : public nsBaseWidget {
       mWindowBtnRect;
 
   nsString mDesktopId MOZ_GUARDED_BY(mozilla::sMainThreadCapability);
+
+  // If set, indicates the edge of the NC region we should clear to black
+  // on next paint.  One of: ABE_TOP, ABE_BOTTOM, ABE_LEFT or ABE_RIGHT.
+  mozilla::Maybe<UINT> mClearNCEdge;
 
   friend class nsWindowGfx;
 

@@ -75,8 +75,10 @@ UNIFIED_SOURCES += [
     "GfxInfo.cpp",
     "IEnumFE.cpp",
     "IMMHandler.cpp",
+    "InkCollector.cpp",
     "JumpListBuilder.cpp",
     "KeyboardLayout.cpp",
+    "LegacyJumpListItem.cpp",
     "LSPAnnotator.cpp",
     "nsAppShell.cpp",
     "nsClipboard.cpp",
@@ -91,6 +93,7 @@ UNIFIED_SOURCES += [
     "nsSound.cpp",
     "nsToolkit.cpp",
     "nsUserIdleServiceWin.cpp",
+    "nsUXThemeData.cpp",
     "nsWindow.cpp",
     "nsWindowDbg.cpp",
     "nsWindowGfx.cpp",
@@ -129,6 +132,7 @@ UNIFIED_SOURCES += [
 SOURCES += [
     "CompositorWidgetParent.cpp",
     "InProcessWinCompositorWidget.cpp",
+    "LegacyJumpListBuilder.cpp",
     "MediaKeysEventSourceFactory.cpp",
     "nsBidiKeyboard.cpp",
     "nsFilePicker.cpp",
@@ -220,3 +224,6 @@ if CONFIG["CC_TYPE"] == "clang-cl":
     ]
 
 SPHINX_TREES["/widget/windows"] = "docs"
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"

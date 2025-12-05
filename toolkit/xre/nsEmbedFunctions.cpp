@@ -18,7 +18,6 @@
 
 #ifdef XP_WIN
 #  include <process.h>
-#  include <shobjidl.h>
 #  include "mozilla/ipc/WindowsMessageLoop.h"
 #  ifdef MOZ_SANDBOX
 #    include "mozilla/RandomNum.h"
@@ -149,6 +148,10 @@ UniquePtr<mozilla::ipc::ProcessChild> (*gMakeIPDLUnitTestProcessChild)(
 
 static NS_DEFINE_CID(kAppShellCID, NS_APPSHELL_CID);
 
+#ifdef XP_WIN
+static const wchar_t kShellLibraryName[] =  L"shell32.dll";
+#endif
+
 const char* XRE_GeckoProcessTypeToString(GeckoProcessType aProcessType) {
   switch (aProcessType) {
 #define GECKO_PROCESS_TYPE(enum_value, enum_name, string_name, proc_typename, \
@@ -190,10 +193,27 @@ void XRE_SetAndroidChildFds(JNIEnv* env, jintArray jfds) {
 
 #if defined(XP_WIN)
 void SetTaskbarGroupId(const nsString& aId) {
-  if (FAILED(SetCurrentProcessExplicitAppUserModelID(aId.get()))) {
+    typedef HRESULT (WINAPI * SetCurrentProcessExplicitAppUserModelIDPtr)(PCWSTR AppID);
+
+    SetCurrentProcessExplicitAppUserModelIDPtr funcAppUserModelID = nullptr;
+
+    HMODULE hDLL = ::LoadLibraryW(kShellLibraryName);
+
+    funcAppUserModelID = (SetCurrentProcessExplicitAppUserModelIDPtr)
+                          GetProcAddress(hDLL, "SetCurrentProcessExplicitAppUserModelID");
+
+    if (!funcAppUserModelID) {
+        ::FreeLibrary(hDLL);
+        return;
+    }
+
+    if (FAILED(funcAppUserModelID(aId.get()))) {
     NS_WARNING(
         "SetCurrentProcessExplicitAppUserModelID failed for child process.");
   }
+
+    if (hDLL)
+        ::FreeLibrary(hDLL);
 }
 #endif
 
@@ -351,10 +371,15 @@ nsresult XRE_InitChildProcess(int aArgc, char* aArgv[],
   bool exceptionHandlerIsSet = false;
   if (!CrashReporter::IsDummy()) {
     auto crashReporterArg = geckoargs::sCrashReporter.Get(aArgc, aArgv);
-    auto crashHelperArg = geckoargs::sCrashHelper.Get(aArgc, aArgv);
-    if (crashReporterArg && crashHelperArg) {
+    if (crashReporterArg) {
+      Maybe<CrashReporter::ProcessId> crashHelperPid;
+#if defined(XP_LINUX) && !defined(MOZ_WIDGET_ANDROID)
+      crashHelperPid = geckoargs::sCrashHelperPid.Get(aArgc, aArgv);
+      MOZ_ASSERT(crashHelperPid.isSome());
+#endif  // defined(XP_LINUX) && !defined(MOZ_WIDGET_ANDROID)
+
       exceptionHandlerIsSet = CrashReporter::SetRemoteExceptionHandler(
-          std::move(*crashReporterArg), std::move(*crashHelperArg));
+          std::move(*crashReporterArg), crashHelperPid);
       MOZ_ASSERT(exceptionHandlerIsSet,
                  "Should have been able to set remote exception handler");
 

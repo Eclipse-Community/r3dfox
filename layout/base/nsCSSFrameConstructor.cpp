@@ -167,9 +167,7 @@ nsIFrame* NS_NewSVGFEImageFrame(PresShell* aPresShell, ComputedStyle* aStyle);
 nsIFrame* NS_NewSVGFEUnstyledLeafFrame(PresShell* aPresShell,
                                        ComputedStyle* aStyle);
 nsIFrame* NS_NewFileControlLabelFrame(PresShell*, ComputedStyle*);
-nsIFrame* NS_NewComboboxLabelFrame(PresShell*, ComputedStyle*);
 nsIFrame* NS_NewMiddleCroppingLabelFrame(PresShell*, ComputedStyle*);
-nsIFrame* NS_NewInputButtonControlFrame(PresShell*, ComputedStyle*);
 
 #include "mozilla/dom/NodeInfo.h"
 #include "nsContentCreatorFunctions.h"
@@ -3046,31 +3044,90 @@ static inline void ClearLazyBits(nsIContent* aStartContent,
   }
 }
 
-/* static */
-const nsCSSFrameConstructor::FrameConstructionData*
-nsCSSFrameConstructor::FindSelectData(const Element& aElement,
-                                      ComputedStyle& aStyle) {
-  // Construct a frame-based listbox or combobox
-  const auto* sel = dom::HTMLSelectElement::FromNode(aElement);
-  MOZ_ASSERT(sel);
-  if (sel->IsCombobox()) {
-    static constexpr FrameConstructionData sComboboxData{
-        ToCreationFunc(NS_NewComboboxControlFrame)};
-    return &sComboboxData;
-  }
-  // FIXME: Can we simplify this to avoid needing ConstructListboxSelectFrame,
-  // and reuse ConstructScrollableBlock or so?
-  static constexpr FrameConstructionData sListBoxData{
-      &nsCSSFrameConstructor::ConstructListBoxSelectFrame};
-  return &sListBoxData;
-}
-
-nsIFrame* nsCSSFrameConstructor::ConstructListBoxSelectFrame(
+nsIFrame* nsCSSFrameConstructor::ConstructSelectFrame(
     nsFrameConstructorState& aState, FrameConstructionItem& aItem,
     nsContainerFrame* aParentFrame, const nsStyleDisplay* aStyleDisplay,
     nsFrameList& aFrameList) {
   nsIContent* const content = aItem.mContent;
   ComputedStyle* const computedStyle = aItem.mComputedStyle;
+
+  // Construct a frame-based listbox or combobox
+  dom::HTMLSelectElement* sel = dom::HTMLSelectElement::FromNode(content);
+  MOZ_ASSERT(sel);
+  if (sel->IsCombobox()) {
+    // Construct a frame-based combo box.
+    // The frame-based combo box is built out of three parts. A display area, a
+    // button and a dropdown list. The display area and button are created
+    // through anonymous content. The drop-down list's frame is created
+    // explicitly. The combobox frame shares its content with the drop-down
+    // list.
+    nsComboboxControlFrame* comboboxFrame =
+        NS_NewComboboxControlFrame(mPresShell, computedStyle);
+
+    // Save the history state so we don't restore during construction
+    // since the complete tree is required before we restore.
+    nsILayoutHistoryState* historyState = aState.mFrameState;
+    aState.mFrameState = nullptr;
+    // Initialize the combobox frame
+    InitAndRestoreFrame(aState, content,
+                        aState.GetGeometricParent(*aStyleDisplay, aParentFrame),
+                        comboboxFrame);
+
+    comboboxFrame->AddStateBits(NS_FRAME_OWNS_ANON_BOXES);
+
+    aState.AddChild(comboboxFrame, aFrameList, content, aParentFrame);
+
+    // Resolve pseudo element style for the dropdown list
+    RefPtr<ComputedStyle> listStyle =
+        mPresShell->StyleSet()->ResolveInheritingAnonymousBoxStyle(
+            PseudoStyleType::dropDownList, computedStyle);
+
+    // child frames of combobox frame
+    nsFrameList childList;
+
+    // Create display and button frames from the combobox's anonymous content.
+    // The anonymous content is appended to existing anonymous content for this
+    // element (the scrollbars).
+    //
+    // nsComboboxControlFrame needs special frame creation behavior for its
+    // first piece of anonymous content, which means that we can't take the
+    // normal ProcessChildren path.
+    AutoTArray<nsIAnonymousContentCreator::ContentInfo, 2> newAnonymousItems;
+    DebugOnly<nsresult> rv =
+        GetAnonymousContent(content, comboboxFrame, newAnonymousItems);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
+    MOZ_ASSERT(!newAnonymousItems.IsEmpty());
+
+    // Manually create a frame for the special NAC.
+    MOZ_ASSERT(newAnonymousItems[0].mContent ==
+               comboboxFrame->GetDisplayNode());
+    newAnonymousItems.RemoveElementAt(0);
+    nsIFrame* customFrame = comboboxFrame->CreateFrameForDisplayNode();
+    MOZ_ASSERT(customFrame);
+    childList.AppendFrame(nullptr, customFrame);
+
+    nsFrameConstructorSaveState floatSaveState;
+    aState.MaybePushFloatContainingBlock(comboboxFrame, floatSaveState);
+
+    // The other piece of NAC can take the normal path.
+    AutoFrameConstructionItemList fcItems(this);
+    AutoFrameConstructionPageName pageNameTracker(aState, comboboxFrame);
+    AddFCItemsForAnonymousContent(aState, comboboxFrame, newAnonymousItems,
+                                  fcItems, pageNameTracker);
+    ConstructFramesFromItemList(aState, fcItems, comboboxFrame,
+                                /* aParentIsWrapperAnonBox = */ false,
+                                childList);
+
+    comboboxFrame->SetInitialChildList(FrameChildListID::Principal,
+                                       std::move(childList));
+
+    aState.mFrameState = historyState;
+    if (aState.mFrameState) {
+      // Restore frame state for the entire subtree of |comboboxFrame|.
+      RestoreFrameState(comboboxFrame, aState.mFrameState);
+    }
+    return comboboxFrame;
+  }
 
   // Listbox, not combobox
   nsContainerFrame* listFrame =
@@ -3474,17 +3531,11 @@ nsCSSFrameConstructor::FindHTMLData(const Element& aElement,
                "Unexpected parent for fieldset content anon box");
 
   if (aElement.IsInNativeAnonymousSubtree()) {
-    if (aElement.NodeInfo()->NameAtom() == nsGkAtoms::label && aParentFrame) {
-      if (aParentFrame->IsFileControlFrame()) {
-        static constexpr FrameConstructionData sFileLabelData(
-            NS_NewFileControlLabelFrame);
-        return &sFileLabelData;
-      }
-      if (aParentFrame->IsComboboxControlFrame()) {
-        static constexpr FrameConstructionData sComboboxLabelData(
-            NS_NewComboboxLabelFrame);
-        return &sComboboxLabelData;
-      }
+   if (aElement.NodeInfo()->NameAtom() == nsGkAtoms::label &&
+      aParentFrame->IsFileControlFrame()) {
+    static constexpr FrameConstructionData sFileLabelData(
+        NS_NewFileControlLabelFrame);
+    return &sFileLabelData;
     }
     if (aStyle.GetPseudoType() == PseudoStyleType::viewTransitionOld ||
         aStyle.GetPseudoType() == PseudoStyleType::viewTransitionNew) {
@@ -3501,16 +3552,19 @@ nsCSSFrameConstructor::FindHTMLData(const Element& aElement,
       {nsGkAtoms::br,
        {NS_NewBRFrame, FCDATA_IS_LINE_PARTICIPANT | FCDATA_IS_LINE_BREAK}},
       SIMPLE_TAG_CREATE(wbr, NS_NewWBRFrame),
-      SIMPLE_TAG_CHAIN(button, nsCSSFrameConstructor::FindHTMLButtonData),
       SIMPLE_TAG_CHAIN(input, nsCSSFrameConstructor::FindInputData),
       SIMPLE_TAG_CREATE(textarea, NS_NewTextControlFrame),
-      SIMPLE_TAG_CHAIN(select, nsCSSFrameConstructor::FindSelectData),
+      COMPLEX_TAG_CREATE(select, &nsCSSFrameConstructor::ConstructSelectFrame),
       SIMPLE_TAG_CHAIN(object, nsCSSFrameConstructor::FindObjectData),
       SIMPLE_TAG_CHAIN(embed, nsCSSFrameConstructor::FindObjectData),
       COMPLEX_TAG_CREATE(fieldset,
                          &nsCSSFrameConstructor::ConstructFieldSetFrame),
       SIMPLE_TAG_CREATE(frameset, NS_NewHTMLFramesetFrame),
       SIMPLE_TAG_CREATE(iframe, NS_NewSubDocumentFrame),
+      {nsGkAtoms::button,
+       {ToCreationFunc(NS_NewHTMLButtonControlFrame),
+        FCDATA_ALLOW_BLOCK_STYLES | FCDATA_ALLOW_GRID_FLEX_COLUMN,
+        PseudoStyleType::buttonContent}},
       SIMPLE_TAG_CHAIN(canvas, nsCSSFrameConstructor::FindCanvasData),
       SIMPLE_TAG_CREATE(video, NS_NewHTMLVideoFrame),
       SIMPLE_TAG_CREATE(audio, NS_NewHTMLAudioFrame),
@@ -3540,38 +3594,6 @@ nsCSSFrameConstructor::FindGeneratedImageData(const Element& aElement,
   static constexpr FrameConstructionData sImgData(
       NS_NewImageFrameForGeneratedContentIndex);
   return &sImgData;
-}
-
-const nsCSSFrameConstructor::FrameConstructionData*
-nsCSSFrameConstructor::FindHTMLButtonData(const Element&,
-                                          ComputedStyle& aStyle) {
-  // Buttons force a (maybe inline) block unless their display is flex or grid.
-  // TODO(emilio): It'd be good to remove this restriction more broadly.
-  // There are some tests that expect block baselines on e.g. a `display: table`
-  // button, but seems like it would be doable.
-  const auto* disp = aStyle.StyleDisplay();
-  const bool respectDisplay = [&] {
-    if (disp->IsInlineFlow()) {
-      // For compat, `display: inline` and co need to create an inline-block.
-      return false;
-    }
-    switch (disp->DisplayInside()) {
-      case StyleDisplayInside::Flex:
-      case StyleDisplayInside::Grid:
-      case StyleDisplayInside::FlowRoot:
-        return true;
-      default:
-        return false;
-    }
-  }();
-  if (respectDisplay) {
-    return nullptr;
-  }
-  static constexpr FrameConstructionData sBlockData[2] = {
-      {&nsCSSFrameConstructor::ConstructNonScrollableBlock},
-      {&nsCSSFrameConstructor::ConstructScrollableBlock},
-  };
-  return &sBlockData[disp->IsScrollableOverflow()];
 }
 
 /* static */
@@ -3639,7 +3661,9 @@ nsCSSFrameConstructor::FindInputData(const Element& aElement,
       SIMPLE_INT_CREATE(FormControlType::InputUrl, NS_NewTextControlFrame),
       SIMPLE_INT_CREATE(FormControlType::InputRange, NS_NewRangeFrame),
       SIMPLE_INT_CREATE(FormControlType::InputPassword, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputColor, NS_NewColorControlFrame),
+      {int32_t(FormControlType::InputColor),
+       {NS_NewColorControlFrame, 0, PseudoStyleType::buttonContent}},
+
       SIMPLE_INT_CHAIN(FormControlType::InputSearch,
                        nsCSSFrameConstructor::FindSearchControlData),
       SIMPLE_INT_CREATE(FormControlType::InputNumber, NS_NewNumberControlFrame),
@@ -3651,12 +3675,15 @@ nsCSSFrameConstructor::FindInputData(const Element& aElement,
       SIMPLE_INT_CREATE(FormControlType::InputMonth, NS_NewTextControlFrame),
       // TODO: this is temporary until a frame is written: bug 888320
       SIMPLE_INT_CREATE(FormControlType::InputWeek, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputSubmit,
-                        NS_NewInputButtonControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputReset,
-                        NS_NewInputButtonControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputButton,
-                        NS_NewInputButtonControlFrame),
+      {int32_t(FormControlType::InputSubmit),
+       {ToCreationFunc(NS_NewGfxButtonControlFrame), 0,
+        PseudoStyleType::buttonContent}},
+      {int32_t(FormControlType::InputReset),
+       {ToCreationFunc(NS_NewGfxButtonControlFrame), 0,
+        PseudoStyleType::buttonContent}},
+      {int32_t(FormControlType::InputButton),
+       {ToCreationFunc(NS_NewGfxButtonControlFrame), 0,
+        PseudoStyleType::buttonContent}}
       // Keeping hidden inputs out of here on purpose for so they get frames by
       // display (in practice, none).
   };
@@ -3760,6 +3787,9 @@ void nsCSSFrameConstructor::ConstructFrameFromItemInternal(
   MOZ_ASSERT(
       !(bits & FCDATA_IS_WRAPPER_ANON_BOX) || (bits & FCDATA_USE_CHILD_ITEMS),
       "Wrapper anon boxes should always have FCDATA_USE_CHILD_ITEMS");
+  MOZ_ASSERT(!(bits & FCDATA_ALLOW_GRID_FLEX_COLUMN) ||
+                 (bits & FCDATA_CREATE_BLOCK_WRAPPER_FOR_ALL_KIDS),
+             "Need the block wrapper bit to create grid/flex/column.");
 
   // Don't create a subdocument frame for iframes if we're creating extra frames
   if (aState.mCreatingExtraFrames &&
@@ -3817,9 +3847,37 @@ void nsCSSFrameConstructor::ConstructFrameFromItemInternal(
       MOZ_ASSERT(containerFrame);
 #endif
       nsContainerFrame* container = static_cast<nsContainerFrame*>(newFrame);
-      nsContainerFrame* innerFrame = NS_NewBlockFrame(mPresShell, outerStyle);
-      InitAndRestoreFrame(aState, content, container, innerFrame);
-      outerFrame = innerFrame;
+      nsContainerFrame* innerFrame;
+      if (bits & FCDATA_ALLOW_GRID_FLEX_COLUMN) {
+        switch (display->DisplayInside()) {
+          case StyleDisplayInside::Flex:
+            outerFrame = NS_NewFlexContainerFrame(mPresShell, outerStyle);
+            InitAndRestoreFrame(aState, content, container, outerFrame);
+            innerFrame = outerFrame;
+            break;
+          case StyleDisplayInside::Grid:
+            outerFrame = NS_NewGridContainerFrame(mPresShell, outerStyle);
+            InitAndRestoreFrame(aState, content, container, outerFrame);
+            innerFrame = outerFrame;
+            break;
+          default: {
+            innerFrame = NS_NewBlockFrame(mPresShell, outerStyle);
+            if (outerStyle->StyleColumn()->IsColumnContainerStyle()) {
+              outerFrame = BeginBuildingColumns(aState, content, container,
+                                                innerFrame, outerStyle);
+            } else {
+              // No need to create column container. Initialize innerFrame.
+              InitAndRestoreFrame(aState, content, container, innerFrame);
+              outerFrame = innerFrame;
+            }
+            break;
+          }
+        }
+      } else {
+        innerFrame = NS_NewBlockFrame(mPresShell, outerStyle);
+        InitAndRestoreFrame(aState, content, container, innerFrame);
+        outerFrame = innerFrame;
+      }
 
       SetInitialSingleChild(container, outerFrame);
 
@@ -3908,10 +3966,34 @@ void nsCSSFrameConstructor::ConstructFrameFromItemInternal(
         childList = std::move(newList);
       }
 
-      // Set the frame's initial child list. Note that MathML depends on this
-      // being called even if childList is empty!
-      newFrameAsContainer->SetInitialChildList(FrameChildListID::Principal,
-                                               std::move(childList));
+      if (!(bits & FCDATA_ALLOW_GRID_FLEX_COLUMN) ||
+          !MayNeedToCreateColumnSpanSiblings(newFrameAsContainer, childList)) {
+        // Set the frame's initial child list. Note that MathML depends on this
+        // being called even if childList is empty!
+        newFrameAsContainer->SetInitialChildList(FrameChildListID::Principal,
+                                                 std::move(childList));
+      } else {
+        // Extract any initial non-column-span kids, and put them in inner
+        // frame's child list.
+        nsFrameList initialNonColumnSpanKids =
+            childList.Split([](nsIFrame* f) { return f->IsColumnSpan(); });
+        newFrameAsContainer->SetInitialChildList(
+            FrameChildListID::Principal, std::move(initialNonColumnSpanKids));
+
+        if (childList.NotEmpty()) {
+          nsFrameList columnSpanSiblings = CreateColumnSpanSiblings(
+              aState, newFrameAsContainer, childList,
+              // Column content should never be a absolute/fixed positioned
+              // containing block. Pass nullptr as aPositionedFrame.
+              nullptr);
+
+          MOZ_ASSERT(outerFrame,
+                     "outerFrame should be non-null if multi-column container "
+                     "is created.");
+          FinishBuildingColumns(aState, outerFrame, newFrameAsContainer,
+                                columnSpanSiblings);
+        }
+      }
     }
   }
 
@@ -5019,14 +5101,10 @@ static bool ShouldSuppressFrameInSelect(const nsIContent* aParent,
     return false;
   }
 
-  // Allow native anonymous content no matter what.
-  if (aChild.IsRootOfNativeAnonymousSubtree()) {
-    return false;
-  }
-
   // Options with labels have their label text added in ::before by forms.css.
   // Suppress frames for their child text.
-  if (aParent->IsHTMLElement(nsGkAtoms::option)) {
+  if (aParent->IsHTMLElement(nsGkAtoms::option) &&
+      !aChild.IsRootOfNativeAnonymousSubtree()) {
     return aParent->AsElement()->HasNonEmptyAttr(nsGkAtoms::label);
   }
 
@@ -5049,7 +5127,11 @@ static bool ShouldSuppressFrameInSelect(const nsIContent* aParent,
     return false;
   }
 
-  // Anything else is not ok.
+  // Allow native anonymous content no matter what.
+  if (aChild.IsRootOfNativeAnonymousSubtree()) {
+    return false;
+  }
+
   return true;
 }
 

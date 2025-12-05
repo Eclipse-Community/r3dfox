@@ -1,0 +1,71 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+:host(:not([native])) {
+  appearance: none;
+  background-color: var(--button-background-color);
+  color: var(--button-text-color);
+  border-radius: var(--border-radius-small);
+  padding-block: 4px;
+  padding-inline: 12px 8px;
+  margin: 5px 2px 3px;
+}
+
+:host(:not([native])[size="medium"]) {
+  padding-block: 6px;
+  padding-inline: 16px 10px;
+}
+
+:host(:not([native])[size="large"]) {
+  padding-block: 8px;
+  padding-inline: 16px 12px;
+}
+
+:host(:not([native]):hover) {
+  background-color: var(--button-background-color-hover);
+}
+
+:host(:not([native]):hover:active) {
+  background-color: var(--button-background-color-active);
+}
+
+:host(:not([native]):focus-visible) {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+#label-box {
+  min-width: 0;
+  pointer-events: none;
+}
+
+#label-box:not([native]) {
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+dropmarker {
+  pointer-events: none;
+  flex: 0;
+  align-self: center;
+}
+
+dropmarker:not([native]) {
+  display: flex;
+  appearance: none;
+}
+
+dropmarker:not([native])::part(icon) {
+  content: url(chrome://global/skin/icons/arrow-down-12.svg);
+  -moz-context-properties: fill;
+  fill: currentColor;
+}
+
+#highlightable-label:not([highlightable="true"]),
+#label[highlightable="true"] {
+  display: none;
+}

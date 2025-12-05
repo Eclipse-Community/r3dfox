@@ -784,6 +784,8 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleList {
   nsChangeHint CalcDifference(const nsStyleList& aNewData,
                               const mozilla::ComputedStyle& aOldStyle) const;
 
+  already_AddRefed<nsIURI> GetListStyleImageURI() const;
+
   mozilla::StyleListStylePosition mListStylePosition;
 
   mozilla::StyleListStyleType mListStyleType;
@@ -2140,7 +2142,6 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleUI {
   void TriggerImageLoads(mozilla::dom::Document&, const nsStyleUI*);
 
   mozilla::StyleInert mInert;
-  mozilla::StyleMozTheme mMozTheme;
 
  private:
   mozilla::StyleUserFocus mUserFocus;

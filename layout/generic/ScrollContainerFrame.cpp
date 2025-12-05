@@ -73,7 +73,6 @@
 #include "mozilla/layers/ScrollingInteractionContext.h"
 #include "nsBidiPresUtils.h"
 #include "nsBidiUtils.h"
-#include "nsBlockFrame.h"
 #include "nsCOMPtr.h"
 #include "nsContainerFrame.h"
 #include "nsContentCreatorFunctions.h"
@@ -88,6 +87,7 @@
 #include "nsIFrameInlines.h"
 #include "nsILayoutHistoryState.h"
 #include "nsINode.h"
+#include "nsITextControlFrame.h"
 #include "nsIScrollbarMediator.h"
 #include "nsIXULRuntime.h"
 #include "nsLayoutUtils.h"
@@ -1394,7 +1394,7 @@ BaselineSharingGroup ScrollContainerFrame::GetDefaultBaselineSharingGroup()
 
 nscoord ScrollContainerFrame::SynthesizeFallbackBaseline(
     mozilla::WritingMode aWM, BaselineSharingGroup aBaselineGroup) const {
-  // Margin-end even for central baselines.
+  // Marign-end even for central baselines.
   if (aWM.IsLineInverted()) {
     return -GetLogicalUsedMargin(aWM).BStart(aWM);
   }
@@ -1406,19 +1406,17 @@ nscoord ScrollContainerFrame::SynthesizeFallbackBaseline(
 Maybe<nscoord> ScrollContainerFrame::GetNaturalBaselineBOffset(
     WritingMode aWM, BaselineSharingGroup aBaselineGroup,
     BaselineExportContext aExportContext) const {
-  // Block containers (except buttons) that are scrollable always have a last
-  // baseline that are synthesized from block-end margin edge.
+  // Block containers that are scrollable always have a last baseline
+  // that are synthesized from block-end margin edge.
   // Note(dshin): This behaviour is really only relevant to `inline-block`
   // alignment context. In the context of table/flex/grid alignment, first/last
   // baselines are calculated through `GetFirstLineBaseline`, which does
   // calculations of its own.
   // https://drafts.csswg.org/css-align/#baseline-export
   if (aExportContext == BaselineExportContext::LineLayout &&
-      aBaselineGroup == BaselineSharingGroup::Last) {
-    if (nsBlockFrame* bf = do_QueryFrame(mScrolledFrame);
-        bf && !bf->IsButtonLike()) {
-      return Some(SynthesizeFallbackBaseline(aWM, aBaselineGroup));
-    }
+      aBaselineGroup == BaselineSharingGroup::Last &&
+      mScrolledFrame->IsBlockFrameOrSubclass()) {
+    return Some(SynthesizeFallbackBaseline(aWM, aBaselineGroup));
   }
 
   if (StyleDisplay()->IsContainLayout()) {

@@ -297,9 +297,6 @@ class nsWindow final : public nsBaseWidget {
 
   void UpdateOpaqueRegionInternal();
   void UpdateOpaqueRegion(const LayoutDeviceIntRegion&) override;
-  LayoutDeviceIntRegion GetOpaqueRegionForTesting() const override {
-    return GetOpaqueRegion();
-  }
   LayoutDeviceIntRegion GetOpaqueRegion() const;
 
   // Exports a handle to the window, see `gdk_wayland_window_export_handle`.
@@ -413,7 +410,8 @@ class nsWindow final : public nsBaseWidget {
   void GetCompositorWidgetInitData(
       mozilla::widget::CompositorWidgetInitData* aInitData) override;
 
-  void SetCustomTitlebar(bool) override;
+  nsresult SetNonClientMargins(const LayoutDeviceIntMargin&) override;
+  void SetDrawsInTitlebar(bool aState);
   void UpdateWindowDraggingRegion(
       const LayoutDeviceIntRegion& aRegion) override;
 
@@ -915,6 +913,11 @@ class nsWindow final : public nsBaseWidget {
   void LogPopupAnchorHints(int aHints);
   void LogPopupGravity(GdkGravity aGravity);
 #endif
+
+  bool IsTopLevelWindowType() const {
+    return mWindowType == WindowType::TopLevel ||
+           mWindowType == WindowType::Dialog;
+  }
 
   // mPopupPosition is the original popup position/size from layout, set by
   // nsWindow::Move() or nsWindow::Resize().

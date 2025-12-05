@@ -181,6 +181,12 @@ body {
    * images work with something other than the toolbox, so for now we ignore
    * them on other things like the sidebar that could have
    * .browser-toolbox-background */
+/* TODO bug 1695280: Remove these media selectors and merge the rule below
+   with the ruleset above. We must set background properties on :root and not
+   #navigator-toolbox on Windows 7/8 due to a WebRender bug that hides the
+   minimize/maximize/close buttons. */
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
   :root[lwtheme] & {
     background-image: var(--lwt-additional-images);
     background-repeat: var(--lwt-background-tiling);
@@ -196,6 +202,8 @@ body {
       right top,
       var(--lwt-background-alignment);
   }
+  }
+}
 }
 
 .browser-toolbox-background {
@@ -233,7 +241,7 @@ body {
 
     /* Don't make the toolbox vibrant when in full-screen. macOS fullscreen has a
      * native titlebar outside of the window (revealed on hover) anyways. */
-    :root[customtitlebar]:not([lwtheme], [macOSNativeFullscreen]) & {
+    :root[tabsintitlebar]:not([lwtheme], [macOSNativeFullscreen]) & {
       background-color: transparent;
 
       &::after {
@@ -266,8 +274,8 @@ body {
 .browser-titlebar {
   -moz-window-dragging: drag;
 
-  :root[customtitlebar] &,
-  :root[customtitlebar] & .urlbar:popover-open {
+  :root[tabsintitlebar] &,
+  :root[tabsintitlebar] & .urlbar:popover-open {
     will-change: opacity;
     transition: opacity var(--inactive-window-transition);
 
@@ -296,7 +304,7 @@ body {
     visibility: hidden;
   }
 
-  :root:not([customtitlebar], [inFullscreen]) & {
+  :root:not([chromemargin], [inFullscreen]) & {
     display: none;
   }
 }
@@ -305,7 +313,7 @@ body {
   width: 40px;
 
   :root[inFullscreen] &,
-  :root:not([customtitlebar]) & {
+  :root:not([tabsintitlebar]) & {
     display: none;
   }
 
@@ -368,7 +376,7 @@ body {
   -moz-default-appearance: -moz-window-button-box;
   position: relative;
 
-  :root:not([customtitlebar], [sizemode="fullscreen"]) & {
+  :root:not([tabsintitlebar], [sizemode="fullscreen"]) & {
     display: none;
   }
 }
@@ -383,12 +391,12 @@ body {
        as tall as the tab toolbar such that the window controls don't appear to move up.
        For MacOS, autohide is never true on the menubar.
     */
-    :root[customtitlebar] #navigator-toolbox:not([tabs-hidden]) > & {
+    :root[tabsintitlebar] #navigator-toolbox:not([tabs-hidden]) > & {
       min-height: var(--tabstrip-min-height);
     }
     /* adjust the height of the auto-hiding toolbar menubar when the tabstrip is
        hidden and we need to match the height of the nav-bar. */
-    :root[customtitlebar] #navigator-toolbox[tabs-hidden] > & {
+    :root[tabsintitlebar] #navigator-toolbox[tabs-hidden] > & {
       min-height: calc(var(--urlbar-min-height) + 2 * var(--urlbar-padding-block));
     }
 
@@ -411,7 +419,7 @@ body {
 #menu_newProfile {
   -moz-context-properties: fill;
   fill: currentColor;
-  --menuitem-icon: url(chrome://global/skin/icons/plus.svg);
+  list-style-image: url(chrome://global/skin/icons/plus.svg);
 }
 
 .menuitem-iconic-profile {
@@ -552,18 +560,6 @@ toolbarpaletteitem > #personal-bookmarks > #PlacesToolbar,
 #notifications-toolbar {
   min-height: 0;
   flex-direction: column;
-}
-
-.bookmark-item[cutting] {
-  > .toolbarbutton-icon,
-  > .menu-icon {
-    opacity: 0.5;
-  }
-
-  > .toolbarbutton-text,
-  > .menu-text {
-    opacity: 0.7;
-  }
 }
 
 /* Menupopup drop indicators */
@@ -1283,6 +1279,27 @@ popupnotificationcontent {
   }
 }
 
+/* TODO bug 1695280: Remove this block. */
+@media (-moz-platform: windows-win7),
+       (-moz-platform: windows-win8) {
+  :root[lwtheme] {
+    background-color: var(--lwt-accent-color);
+    background-image: var(--lwt-additional-images);
+    background-repeat: var(--lwt-background-tiling);
+    background-position: var(--lwt-background-alignment);
+  }
+
+  :root[lwtheme-image] {
+    background-image: var(--lwt-header-image, linear-gradient(transparent, transparent)),  var(--lwt-additional-images) !important;
+    background-repeat: no-repeat, var(--lwt-background-tiling);
+    background-position: right top, var(--lwt-background-alignment) !important;
+  }
+
+  :root[lwtheme]:-moz-window-inactive {
+    background-color: var(--lwt-accent-color-inactive, var(--lwt-accent-color));
+  }
+}
+
 /* History swipe navigation animation */
 
 #historySwipeAnimationContainer {
@@ -1400,11 +1417,4 @@ popupnotificationcontent {
 
 #PictureInPicturePanelFooter {
   margin: 8px 16px 16px;
-}
-
-/* Bookmarks roots menu-items */
-
-#BMB_bookmarksToolbar,
-#bookmarksToolbarFolderMenu {
-  --menuitem-icon: url("chrome://browser/skin/places/bookmarksToolbar.svg");
 }

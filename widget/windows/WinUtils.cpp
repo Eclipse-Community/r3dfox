@@ -81,6 +81,28 @@ NS_IMPL_ISUPPORTS(AsyncDeleteAllFaviconsFromDisk, nsIRunnable)
 const char FaviconHelper::kJumpListCacheDir[] = "jumpListCache";
 const char FaviconHelper::kShortcutCacheDir[] = "shortcutCache";
 
+// apis available on vista and up.
+WinUtils::SHCreateItemFromParsingNamePtr WinUtils::sCreateItemFromParsingName = nullptr;
+WinUtils::SHGetKnownFolderPathPtr WinUtils::sGetKnownFolderPath = nullptr;
+
+// We just leak these DLL HMODULEs. There's no point in calling FreeLibrary
+// on them during shutdown anyway.
+static const wchar_t kShellLibraryName[] =  L"shell32.dll";
+static HMODULE sShellDll = nullptr;
+static const wchar_t kDwmLibraryName[] = L"dwmapi.dll";
+static HMODULE sDwmDll = nullptr;
+
+WinUtils::DwmExtendFrameIntoClientAreaProc WinUtils::dwmExtendFrameIntoClientAreaPtr = nullptr;
+WinUtils::DwmIsCompositionEnabledProc WinUtils::dwmIsCompositionEnabledPtr = nullptr;
+WinUtils::DwmSetIconicThumbnailProc WinUtils::dwmSetIconicThumbnailPtr = nullptr;
+WinUtils::DwmSetIconicLivePreviewBitmapProc WinUtils::dwmSetIconicLivePreviewBitmapPtr = nullptr;
+WinUtils::DwmGetWindowAttributeProc WinUtils::dwmGetWindowAttributePtr = nullptr;
+WinUtils::DwmSetWindowAttributeProc WinUtils::dwmSetWindowAttributePtr = nullptr;
+WinUtils::DwmInvalidateIconicBitmapsProc WinUtils::dwmInvalidateIconicBitmapsPtr = nullptr;
+WinUtils::DwmDefWindowProcProc WinUtils::dwmDwmDefWindowProcPtr = nullptr;
+WinUtils::DwmGetCompositionTimingInfoProc WinUtils::dwmGetCompositionTimingInfoPtr = nullptr;
+WinUtils::DwmFlushProc WinUtils::dwmFlushProcPtr = nullptr;
+
 struct CoTaskMemFreePolicy {
   void operator()(void* aPtr) { ::CoTaskMemFree(aPtr); }
 };
@@ -95,10 +117,27 @@ static GetDpiForWindowProc sGetDpiForWindow = NULL;
 
 /* static */
 void WinUtils::Initialize() {
+  if (!sDwmDll) {
+    sDwmDll = ::LoadLibraryW(kDwmLibraryName);
+
+    if (sDwmDll) {
+      dwmExtendFrameIntoClientAreaPtr = (DwmExtendFrameIntoClientAreaProc)::GetProcAddress(sDwmDll, "DwmExtendFrameIntoClientArea");
+      dwmIsCompositionEnabledPtr = (DwmIsCompositionEnabledProc)::GetProcAddress(sDwmDll, "DwmIsCompositionEnabled");
+      dwmSetIconicThumbnailPtr = (DwmSetIconicThumbnailProc)::GetProcAddress(sDwmDll, "DwmSetIconicThumbnail");
+      dwmSetIconicLivePreviewBitmapPtr = (DwmSetIconicLivePreviewBitmapProc)::GetProcAddress(sDwmDll, "DwmSetIconicLivePreviewBitmap");
+      dwmGetWindowAttributePtr = (DwmGetWindowAttributeProc)::GetProcAddress(sDwmDll, "DwmGetWindowAttribute");
+      dwmSetWindowAttributePtr = (DwmSetWindowAttributeProc)::GetProcAddress(sDwmDll, "DwmSetWindowAttribute");
+      dwmInvalidateIconicBitmapsPtr = (DwmInvalidateIconicBitmapsProc)::GetProcAddress(sDwmDll, "DwmInvalidateIconicBitmaps");
+      dwmDwmDefWindowProcPtr = (DwmDefWindowProcProc)::GetProcAddress(sDwmDll, "DwmDefWindowProc");
+      dwmGetCompositionTimingInfoPtr = (DwmGetCompositionTimingInfoProc)::GetProcAddress(sDwmDll, "DwmGetCompositionTimingInfo");
+      dwmFlushProcPtr = (DwmFlushProc)::GetProcAddress(sDwmDll, "DwmFlush");
+    }
+  }
+
   // Dpi-Awareness is not supported with Win32k Lockdown enabled, so we don't
   // initialize DPI-related members and assert later that nothing accidently
   // uses these static members
-  if (!IsWin32kLockedDown()) {
+  if (IsWin10OrLater() && !IsWin32kLockedDown()) {
     HMODULE user32Dll = ::GetModuleHandleW(L"user32");
     if (user32Dll) {
       auto getThreadDpiAwarenessContext =
@@ -127,7 +166,9 @@ void WinUtils::Initialize() {
     }
   }
 
-  sHasPackageIdentity = mozilla::HasPackageIdentity();
+  if (IsWin8OrLater()) {
+    sHasPackageIdentity = mozilla::HasPackageIdentity();
+  }
 }
 
 // static
@@ -539,6 +580,18 @@ nsWindow* WinUtils::GetNSWindowPtr(HWND aWnd) {
   return sExtantNSWindows.Get(aWnd);  // or nullptr
 }
 
+static BOOL CALLBACK AddMonitor(HMONITOR, HDC, LPRECT, LPARAM aParam) {
+  (*(int32_t*)aParam)++;
+  return TRUE;
+}
+
+/* static */
+int32_t WinUtils::GetMonitorCount() {
+  int32_t monitorCount = 0;
+  EnumDisplayMonitors(nullptr, nullptr, AddMonitor, (LPARAM)&monitorCount);
+  return monitorCount;
+}
+
 /* static */
 bool WinUtils::IsOurProcessWindow(HWND aWnd) {
   if (!aWnd) {
@@ -666,6 +719,56 @@ MSG WinUtils::InitMSG(UINT aMessage, WPARAM wParam, LPARAM lParam, HWND aWnd) {
   msg.lParam = lParam;
   msg.hwnd = aWnd;
   return msg;
+}
+
+/* static */
+HRESULT
+WinUtils::SHCreateItemFromParsingName(PCWSTR pszPath, IBindCtx *pbc,
+                                      REFIID riid, void **ppv)
+{
+  if (sCreateItemFromParsingName) {
+    return sCreateItemFromParsingName(pszPath, pbc, riid, ppv);
+  }
+
+  if (!sShellDll) {
+    sShellDll = ::LoadLibraryW(kShellLibraryName);
+    if (!sShellDll) {
+      return false;
+    }
+  }
+
+  sCreateItemFromParsingName = (SHCreateItemFromParsingNamePtr)
+    GetProcAddress(sShellDll, "SHCreateItemFromParsingName");
+  if (!sCreateItemFromParsingName)
+    return E_FAIL;
+
+  return sCreateItemFromParsingName(pszPath, pbc, riid, ppv);
+}
+
+/* static */
+HRESULT 
+WinUtils::SHGetKnownFolderPath(REFKNOWNFOLDERID rfid,
+                               DWORD dwFlags,
+                               HANDLE hToken,
+                               PWSTR *ppszPath)
+{
+  if (sGetKnownFolderPath) {
+    return sGetKnownFolderPath(rfid, dwFlags, hToken, ppszPath);
+  }
+
+  if (!sShellDll) {
+    sShellDll = ::LoadLibraryW(kShellLibraryName);
+    if (!sShellDll) {
+      return false;
+    }
+  }
+
+  sGetKnownFolderPath = (SHGetKnownFolderPathPtr)
+    GetProcAddress(sShellDll, "SHGetKnownFolderPath");
+  if (!sGetKnownFolderPath)
+    return E_FAIL;
+
+  return sGetKnownFolderPath(rfid, dwFlags, hToken, ppszPath);
 }
 
 #ifdef MOZ_PLACES
@@ -1269,7 +1372,7 @@ LayoutDeviceIntRegion WinUtils::ConvertHRGNToRegion(HRGN aRgn) {
 }
 
 /* static */
-nsAutoRegion WinUtils::RegionToHRGN(const LayoutDeviceIntRegion& aRegion) {
+HRGN WinUtils::RegionToHRGN(const LayoutDeviceIntRegion& aRegion) {
   const uint32_t count = aRegion.GetNumRects();
   const size_t regionBytes = count * sizeof(RECT);
   const size_t regionDataBytes = sizeof(RGNDATAHEADER) + regionBytes;
@@ -1287,7 +1390,7 @@ nsAutoRegion WinUtils::RegionToHRGN(const LayoutDeviceIntRegion& aRegion) {
   for (auto iter = aRegion.RectIter(); !iter.Done(); iter.Next()) {
     *buf++ = ToWinRect(iter.Get());
   }
-  return nsAutoRegion(::ExtCreateRegion(nullptr, regionDataBytes, data));
+  return ::ExtCreateRegion(nullptr, regionDataBytes, data);
 }
 
 LayoutDeviceIntRect WinUtils::ToIntRect(const RECT& aRect) {
@@ -1549,6 +1652,10 @@ static bool IsTabletDevice() {
   // Guarantees that:
   // - The device has a touch screen.
   // - It is used as a tablet which means that it has no keyboard connected.
+
+  if (!IsWin8OrLater()) {
+    return false;
+  }
 
   if (WindowsUIUtils::GetInWin10TabletMode()) {
     return true;
@@ -2129,6 +2236,10 @@ static LONG SetRelativeScaleStep(LUID aAdapterId, int32_t aRelativeScaleStep) {
 }
 
 nsresult WinUtils::SetHiDPIMode(bool aHiDPI) {
+  if (!IsWin10OrLater()) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+
   auto config = GetDisplayConfig();
   if (!config) {
     return NS_ERROR_NOT_AVAILABLE;
@@ -2184,6 +2295,10 @@ nsresult WinUtils::SetHiDPIMode(bool aHiDPI) {
 }
 
 nsresult WinUtils::RestoreHiDPIMode() {
+  if (!IsWin10OrLater()) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+
   if (sCurRelativeScaleStep == std::numeric_limits<int>::max()) {
     // The DPI setting hasn't been changed.
     return NS_ERROR_UNEXPECTED;
