@@ -149,6 +149,8 @@ r3dfox-native-checkbox =
 
 r3dfox-native-checkbox-desc = This controls whether the scrollbar, checkboxes, and other elements use their native system counterparts or their non-native browser themed style.
 
+r3dfox-native-menulist = Menulist type
+
 r3dfox-native-scroll = Scrollbar type
 
 r3dfox-fake-scroll-type = Non-native scrollbar theme
@@ -199,6 +201,9 @@ r3dfox-screenshot-component =
 r3dfox-hover-preview =
     .label = Modern style tab hover preview
 
+r3dfox-drop-to-pin =
+    .label = Disable drop to pin tabs
+
 r3dfox-switch-to-tab =
     .label = Reverse urlbar switch to tab behavior
 
@@ -209,6 +214,10 @@ r3dfox-advanced-header = Advanced configurations
 r3dfox-accessibility = Accessibility services
 
 r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
+
+r3dfox-webaudio = Web Audio API
+
+r3dfox-webaudio-desc = Can be disabled for enhanced security, however a few websites may require it to be enabled.
 
 r3dfox-cookiebanners = Cookie banner handling mode in normal browsing
 
