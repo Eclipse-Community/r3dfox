@@ -29,8 +29,19 @@
   <description class="indent tip-caption" data-l10n-id="r3dfox-native-checkbox-desc"/>
 
   <hbox align="center">
+    <label id="r3dfoxNativeMenulist" data-l10n-id="r3dfox-native-menulist " control="r3dfoxNativeMenulistType"/>
+    <menulist id="r3dfoxNativeMenulistType" preference="browser.display.windows.non_native_menus">
+      <menupopup>
+        <menuitem label="Native menulists always" value="0"/>
+        <menuitem label="Custom menulists always" value="1"/>
+        <menuitem label="Native menulists unless Windows 10 (Modern) theme is used (Default)" value="2"/>
+      </menupopup>
+    </menulist>
+  </hbox>
+
+  <hbox align="center">
     <label id="r3dfoxNativeScroll" data-l10n-id="r3dfox-native-scroll" control="r3dfoxNativeScrollType"/>
-    <menulist id="r3dfoxFogType" preference="widget.native-controls.scrollbar-style">
+    <menulist id="r3dfoxNativeScrollType" preference="widget.native-controls.scrollbar-style">
       <menupopup>
         <menuitem label="Native scrollbars always" value="0"/>
         <menuitem label="Custom scrollbars always" value="1"/>
@@ -182,6 +193,12 @@
   </hbox>
 
   <hbox align="center">
+    <checkbox id="r3dfoxdroptopin"
+              data-l10n-id="r3dfox-drop-to-pin"
+              preference="browser.tabs.dropToPin.enabled"/>
+  </hbox>
+
+  <hbox align="center">
     <checkbox id="r3dfoxswitchtotab"
               data-l10n-id="r3dfox-switch-to-tab"
               preference="browser.urlbar.secondaryActions.switchToTab"/>
@@ -206,6 +223,13 @@
     </menulist>
   </hbox>
   <description id="r3dfoxAccessibilityDescription" class="tip-caption" data-l10n-id="r3dfox-accessibility-desc"/>
+
+  <hbox align="center">
+    <checkbox id="r3dfoxwebaudio"
+              data-l10n-id="r3dfox-webaudio"
+              preference="dom.webaudio.enabled"/>
+  </hbox>
+  <description class="indent tip-caption" data-l10n-id="r3dfox-webaudio-desc"/>
 
   <hbox align="center">
     <label id="r3dfoxCookieBanners" data-l10n-id="r3dfox-cookiebanners" control="r3dfoxCookieBannersType"/>
