@@ -25,6 +25,9 @@
 #define MOZ_WM_MOUSE_RESERVED_UNUSED_2 (WM_APP + 0x0312)
 #define MOZ_WM_MOUSE_RESERVED_UNUSED_3 (WM_APP + 0x0313)
 
+// If a popup window is being activated, we try to reactivate the previous
+// window with this message.
+#define MOZ_WM_REACTIVATE (WM_APP + 0x0314)
 // If TSFTextStore needs to notify TSF/TIP of layout change later, this
 // message is posted.
 #define MOZ_WM_NOTIFY_TSF_OF_LAYOUT_CHANGE (WM_APP + 0x0315)
@@ -36,6 +39,10 @@
 // Internal message used to work around race condition in explorer.exe's
 // fullscreen window-state update handler in Windows 10+. (See bug 1835851.)
 #define MOZ_WM_FULLSCREEN_STATE_UPDATE (WM_APP + 0x0318)
+
+// Internal message for ensuring the file picker is visible on multi monitor
+// systems, and when the screen resolution changes.
+#define MOZ_WM_ENSUREVISIBLE              (WM_APP+0x374F)
 
 // XXX Should rename them to MOZ_WM_* and use safer values!
 // Messages for fullscreen transition window

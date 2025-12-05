@@ -7,16 +7,20 @@
 #ifndef nsColorControlFrame_h___
 #define nsColorControlFrame_h___
 
-#include "ButtonControlFrame.h"
 #include "nsCOMPtr.h"
+#include "nsHTMLButtonControlFrame.h"
+#include "nsIAnonymousContentCreator.h"
 
 namespace mozilla {
+enum class PseudoStyleType : uint8_t;
 class PresShell;
 }  // namespace mozilla
 
 // Class which implements the input type=color
 
-class nsColorControlFrame final : public mozilla::ButtonControlFrame {
+class nsColorControlFrame final : public nsHTMLButtonControlFrame,
+                                  public nsIAnonymousContentCreator {
+  typedef mozilla::PseudoStyleType PseudoStyleType;
   typedef mozilla::dom::Element Element;
 
  public:
@@ -29,25 +33,26 @@ class nsColorControlFrame final : public mozilla::ButtonControlFrame {
   NS_DECL_FRAMEARENA_HELPERS(nsColorControlFrame)
 
 #ifdef DEBUG_FRAME_DUMP
-  nsresult GetFrameName(nsAString& aResult) const override {
-    return MakeFrameName(u"ColorControl"_ns, aResult);
-  }
+  virtual nsresult GetFrameName(nsAString& aResult) const override;
 #endif
 
   // nsIAnonymousContentCreator
-  nsresult CreateAnonymousContent(nsTArray<ContentInfo>& aElements) override;
-  void AppendAnonymousContentTo(nsTArray<nsIContent*>& aElements,
-                                uint32_t aFilter) override;
+  virtual nsresult CreateAnonymousContent(
+      nsTArray<ContentInfo>& aElements) override;
+  virtual void AppendAnonymousContentTo(nsTArray<nsIContent*>& aElements,
+                                        uint32_t aFilter) override;
 
   // nsIFrame
-  nsresult AttributeChanged(int32_t aNameSpaceID, nsAtom* aAttribute,
-                            AttrModType aModType) override;
+  virtual nsresult AttributeChanged(int32_t aNameSpaceID, nsAtom* aAttribute,
+                                    AttrModType aModType) override;
+  virtual nsContainerFrame* GetContentInsertionFrame() override;
 
   // Refresh the color swatch, using associated input's value
-  void UpdateColor();
+  nsresult UpdateColor();
 
  private:
-  nsColorControlFrame(ComputedStyle*, nsPresContext*);
+  explicit nsColorControlFrame(ComputedStyle* aStyle,
+                               nsPresContext* aPresContext);
 
   nsCOMPtr<Element> mColorContent;
 };

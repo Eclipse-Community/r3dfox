@@ -8,14 +8,14 @@
 #include <windows.h>
 #include <shellapi.h>
 #include "nsStyleConsts.h"
+#include "nsUXThemeData.h"
 #include "nsUXThemeConstants.h"
-#include "nsWindowDefs.h"
 #include "nsWindowsHelpers.h"
 #include "WinUtils.h"
 #include "WindowsUIUtils.h"
 #include "mozilla/FontPropertyTypes.h"
 #include "mozilla/glean/WidgetWindowsMetrics.h"
-#include "mozilla/intl/LocaleService.h"
+#include "mozilla/WindowsVersion.h"
 #include "mozilla/widget/WinRegistry.h"
 
 #define AVG2(a, b) (((a) + (b) + 1) >> 1)
@@ -23,10 +23,10 @@
 using namespace mozilla;
 using namespace mozilla::widget;
 
-static Maybe<nscolor> GetColorFromTheme(UXThemeClass cls, int32_t aPart,
+static Maybe<nscolor> GetColorFromTheme(nsUXThemeClass cls, int32_t aPart,
                                         int32_t aState, int32_t aPropId) {
   COLORREF color;
-  HRESULT hr = GetThemeColor(nsLookAndFeel::GetTheme(cls), aPart, aState,
+  HRESULT hr = GetThemeColor(nsUXThemeData::GetTheme(cls), aPart, aState,
                              aPropId, &color);
   if (hr == S_OK) {
     return Some(COLOREF_2_NSRGB(color));
@@ -50,60 +50,26 @@ static int32_t GetTooltipOffsetVertical() {
                     float(cursorSize) / float(kDefaultCursorSize));
 }
 
-UXThemeHandle::~UXThemeHandle() { Close(); }
-
-void UXThemeHandle::OpenOnce(LPCWSTR aClassList) {
-  if (mHandle.isSome()) {
-    return;
+static bool SystemWantsDarkTheme() {
+  if (!IsWin10OrLater()) {
+    return false;
   }
 
-  mHandle = Some(OpenThemeData(nullptr, aClassList));
-}
-
-void UXThemeHandle::Close() {
-  if (mHandle.isNothing()) {
-    return;
+  if (nsUXThemeData::IsHighContrastOn()) {
+    return LookAndFeel::IsDarkColor(
+        LookAndFeel::Color(StyleSystemColor::Window, ColorScheme::Light,
+                           LookAndFeel::UseStandins::No));
   }
 
-  if (HANDLE rawHandle = mHandle.extract()) {
-    CloseThemeData(rawHandle);
+  WinRegistry::Key key(
+      HKEY_CURRENT_USER,
+      u"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"_ns,
+      WinRegistry::KeyMode::QueryValue);
+  if (NS_WARN_IF(!key)) {
+    return false;
   }
-}
-
-UXThemeHandle::operator HANDLE() { return mHandle.valueOr(nullptr); }
-
-static const wchar_t* GetUXThemeClassName(UXThemeClass aClass) {
-  switch (aClass) {
-    case UXThemeClass::Button:
-      return L"Button";
-    case UXThemeClass::Edit:
-      return L"Edit";
-    case UXThemeClass::Toolbar:
-      return L"Toolbar";
-    case UXThemeClass::Progress:
-      return L"Progress";
-    case UXThemeClass::Tab:
-      return L"Tab";
-    case UXThemeClass::Trackbar:
-      return L"Trackbar";
-    case UXThemeClass::Combobox:
-      return L"Combobox";
-    case UXThemeClass::Listview:
-      return L"Listview";
-    case UXThemeClass::Menu:
-      return L"Menu";
-    case UXThemeClass::NumClasses:
-      break;
-  }
-  MOZ_ASSERT_UNREACHABLE("unknown uxtheme class");
-  return L"";
-}
-
-HANDLE nsLookAndFeel::GetTheme(UXThemeClass aClass) {
-  auto& handle =
-      static_cast<nsLookAndFeel*>(GetInstance())->mThemeHandles[aClass];
-  handle.OpenOnce(GetUXThemeClassName(aClass));
-  return handle;
+  uint32_t light = key.GetValueAsDword(u"AppsUseLightTheme"_ns).valueOr(1);
+  return !light;
 }
 
 uint32_t nsLookAndFeel::SystemColorFilter() {
@@ -135,18 +101,21 @@ void nsLookAndFeel::RefreshImpl() {
   nsXPLookAndFeel::RefreshImpl();
 }
 
+static bool UseNonNativeMenuColors(ColorScheme aScheme) {
+  if (!LookAndFeel::WindowsNonNativeMenusEnabled()) {
+    return false;
+  }
+  return LookAndFeel::GetInt(LookAndFeel::IntID::WindowsDefaultTheme) || aScheme == ColorScheme::Dark;
+}
+
 nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
                                        nscolor& aColor) {
   EnsureInit();
 
-  auto UseNonNativeMenuColors = [&]() -> bool {
-    return !mHighContrastOn || aScheme == ColorScheme::Dark;
-  };
-
   auto IsHighlightColor = [&] {
     switch (aID) {
       case ColorID::MozMenuhover:
-        return !UseNonNativeMenuColors();
+        return !UseNonNativeMenuColors(aScheme);
       case ColorID::Highlight:
       case ColorID::Selecteditem:
         // We prefer the generic dark selection color if we don't have an
@@ -163,12 +132,15 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
   auto IsHighlightTextColor = [&] {
     switch (aID) {
       case ColorID::MozMenubarhovertext:
-        if (UseNonNativeMenuColors()) {
+        if (UseNonNativeMenuColors(aScheme)) {
           return false;
+        }
+        if (!nsUXThemeData::IsAppThemed()) {
+          return nsUXThemeData::AreFlatMenusEnabled();
         }
         [[fallthrough]];
       case ColorID::MozMenuhovertext:
-        if (UseNonNativeMenuColors()) {
+        if (UseNonNativeMenuColors(aScheme)) {
           return false;
         }
         return !mColorMenuHoverText;
@@ -179,6 +151,7 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
         return aScheme != ColorScheme::Dark || mDarkHighlightText;
       case ColorID::IMESelectedRawTextForeground:
       case ColorID::IMESelectedConvertedTextForeground:
+      case ColorID::MozDragtargetzone:
         return true;
       default:
         return false;
@@ -203,67 +176,6 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     return NS_OK;
   }
 
-  // Titlebar and menu colors are color-scheme aware.
-  switch (aID) {
-    case ColorID::Activecaption:
-      aColor = mTitlebarColors.Get(aScheme, true).mBg;
-      return NS_OK;
-    case ColorID::Captiontext:
-      aColor = mTitlebarColors.Get(aScheme, true).mFg;
-      return NS_OK;
-    case ColorID::Activeborder:
-      aColor = mTitlebarColors.Get(aScheme, true).mBorder;
-      return NS_OK;
-    case ColorID::Inactivecaption:
-      aColor = mTitlebarColors.Get(aScheme, false).mBg;
-      return NS_OK;
-    case ColorID::Inactivecaptiontext:
-      aColor = mTitlebarColors.Get(aScheme, false).mFg;
-      return NS_OK;
-    case ColorID::Inactiveborder:
-      aColor = mTitlebarColors.Get(aScheme, false).mBorder;
-      return NS_OK;
-    case ColorID::MozMenuhover:
-      MOZ_ASSERT(UseNonNativeMenuColors());
-      if (WinUtils::MicaPopupsEnabled()) {
-        aColor = aScheme == ColorScheme::Dark ? NS_RGBA(255, 255, 255, 30)
-                                              : NS_RGBA(0, 0, 0, 30);
-      } else {
-        aColor = aScheme == ColorScheme::Dark ? *GenericDarkColor(aID)
-                                              : NS_RGB(0xe0, 0xe0, 0xe6);
-      }
-      return NS_OK;
-    case ColorID::MozMenuhoverdisabled:
-      if (UseNonNativeMenuColors()) {
-        if (WinUtils::MicaPopupsEnabled()) {
-          aColor = aScheme == ColorScheme::Dark ? NS_RGBA(255, 255, 255, 10)
-                                                : NS_RGBA(0, 0, 0, 10);
-        } else {
-          aColor = aScheme == ColorScheme::Dark ? *GenericDarkColor(aID)
-                                                : NS_RGB(0xf0, 0xf0, 0xf3);
-        }
-      } else {
-        aColor = NS_TRANSPARENT;
-      }
-      return NS_OK;
-    case ColorID::Menu: {
-      if (UseNonNativeMenuColors()) {
-        if (WinUtils::MicaPopupsEnabled()) {
-          aColor = aScheme == ColorScheme::Dark ? NS_RGBA(0, 0, 0, 153)
-                                                : NS_RGBA(255, 255, 255, 153);
-        } else {
-          aColor = aScheme == ColorScheme::Dark ? *GenericDarkColor(aID)
-                                                : NS_RGB(0xf9, 0xf9, 0xfb);
-        }
-      } else {
-        aColor = GetColorForSysColorIndex(COLOR_MENU);
-      }
-      return NS_OK;
-    }
-    default:
-      break;
-  }
-
   if (aScheme == ColorScheme::Dark) {
     if (auto color = GenericDarkColor(aID)) {
       aColor = *color;
@@ -271,26 +183,22 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     }
   }
 
-  if (mHighContrastOn) {
+  if (nsUXThemeData::IsHighContrastOn()) {
     switch (aID) {
       case ColorID::MozButtonhoverborder:
       case ColorID::MozButtonhoverface:
-      case ColorID::MozColheaderhover:
       case ColorID::MozButtonactivetext:
-      case ColorID::MozColheaderactivetext:
         aColor = GetColorForSysColorIndex(COLOR_HIGHLIGHT);
         return NS_OK;
       case ColorID::MozButtonhovertext:
       case ColorID::MozColheaderhovertext:
       case ColorID::MozButtonactiveface:
-      case ColorID::MozColheaderactive:
         aColor = GetColorForSysColorIndex(COLOR_HIGHLIGHTTEXT);
         return NS_OK;
       case ColorID::MozButtondisabledborder:
         aColor = GetColorForSysColorIndex(COLOR_GRAYTEXT);
         return NS_OK;
       case ColorID::Buttonface:
-      case ColorID::MozColheader:
       case ColorID::MozButtondisabledface:
       case ColorID::MozDisabledfield:
       case ColorID::Field:
@@ -349,19 +257,11 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
       idx = COLOR_BACKGROUND;
       break;
     case ColorID::Buttonface:
-    case ColorID::MozColheader:
-    case ColorID::MozButtondisabledface:
-      // Taken from win11 task manager "new task" button.
-      aColor = NS_RGB(0xff, 0xff, 0xff);
-      return NS_OK;
     case ColorID::MozButtonhoverface:
-    case ColorID::MozColheaderhover:
-      aColor = NS_RGB(0xf6, 0xf6, 0xf6);
-      return NS_OK;
     case ColorID::MozButtonactiveface:
-    case ColorID::MozColheaderactive:
-      aColor = NS_RGB(0xf9, 0xf9, 0xf9);
-      return NS_OK;
+    case ColorID::MozButtondisabledface:
+      idx = COLOR_BTNFACE;
+      break;
     case ColorID::Buttonhighlight:
       idx = COLOR_BTNHIGHLIGHT;
       break;
@@ -371,8 +271,8 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::Buttontext:
     case ColorID::MozButtonhovertext:
     case ColorID::MozButtonactivetext:
-      aColor = NS_RGB(0x1b, 0x1b, 0x1b);
-      return NS_OK;
+      idx = COLOR_BTNTEXT;
+      break;
     case ColorID::MozCellhighlighttext:
       aColor = NS_RGB(0, 0, 0);
       return NS_OK;
@@ -383,13 +283,17 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
       idx = COLOR_GRAYTEXT;
       break;
     case ColorID::MozMenubarhovertext:
-      if (UseNonNativeMenuColors()) {
+      if (UseNonNativeMenuColors(aScheme)) {
         aColor = kNonNativeMenuText;
         return NS_OK;
       }
+      if (!nsUXThemeData::IsAppThemed()) {
+        idx = COLOR_MENUTEXT;
+        break;
+      }
       [[fallthrough]];
     case ColorID::MozMenuhovertext:
-      if (UseNonNativeMenuColors()) {
+      if (UseNonNativeMenuColors(aScheme)) {
         aColor = kNonNativeMenuText;
         return NS_OK;
       }
@@ -399,6 +303,61 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
       }
       idx = COLOR_HIGHLIGHTTEXT;
       break;
+    case ColorID::Activecaption:
+      aColor = mTitlebarColors.Get(aScheme, true).mBg;
+      return NS_OK;
+    case ColorID::Captiontext:
+      aColor = mTitlebarColors.Get(aScheme, true).mFg;
+      return NS_OK;
+    case ColorID::Activeborder:
+      aColor = mTitlebarColors.Get(aScheme, true).mBorder;
+      return NS_OK;
+    case ColorID::Inactivecaption:
+      aColor = mTitlebarColors.Get(aScheme, false).mBg;
+      return NS_OK;
+    case ColorID::Inactivecaptiontext:
+      aColor = mTitlebarColors.Get(aScheme, false).mFg;
+      return NS_OK;
+    case ColorID::Inactiveborder:
+      aColor = mTitlebarColors.Get(aScheme, false).mBorder;
+      return NS_OK;
+    case ColorID::MozMenuhover:
+      MOZ_ASSERT(UseNonNativeMenuColors(aScheme));
+      if (WinUtils::MicaPopupsEnabled()) {
+        aColor = aScheme == ColorScheme::Dark ? NS_RGBA(255, 255, 255, 15)
+                                              : NS_RGBA(0, 0, 0, 15);
+      } else {
+        aColor = aScheme == ColorScheme::Dark ? *GenericDarkColor(aID)
+                                              : NS_RGB(0xe0, 0xe0, 0xe6);
+      }
+      return NS_OK;
+    case ColorID::MozMenuhoverdisabled:
+      if (UseNonNativeMenuColors(aScheme)) {
+        if (WinUtils::MicaPopupsEnabled()) {
+          aColor = aScheme == ColorScheme::Dark ? NS_RGBA(255, 255, 255, 10)
+                                                : NS_RGBA(0, 0, 0, 10);
+        } else {
+          aColor = aScheme == ColorScheme::Dark ? *GenericDarkColor(aID)
+                                                : NS_RGB(0xf0, 0xf0, 0xf3);
+        }
+      } else {
+        aColor = NS_TRANSPARENT;
+      }
+      return NS_OK;
+    case ColorID::Menu: {
+      if (UseNonNativeMenuColors(aScheme)) {
+        if (WinUtils::MicaPopupsEnabled()) {
+          aColor = aScheme == ColorScheme::Dark ? NS_RGBA(0, 0, 0, 153)
+                                                : NS_RGBA(255, 255, 255, 153);
+        } else {
+          aColor = aScheme == ColorScheme::Dark ? *GenericDarkColor(aID)
+                                                : NS_RGB(0xf9, 0xf9, 0xfb);
+        }
+      } else {
+        aColor = GetColorForSysColorIndex(COLOR_MENU);
+      }
+      return NS_OK;
+    }
     case ColorID::Infobackground:
       idx = COLOR_INFOBK;
       break;
@@ -406,7 +365,7 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
       idx = COLOR_INFOTEXT;
       break;
     case ColorID::Menutext:
-      if (UseNonNativeMenuColors()) {
+      if (UseNonNativeMenuColors(aScheme)) {
         aColor = kNonNativeMenuText;
         return NS_OK;
       }
@@ -467,13 +426,31 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::Accentcolortext:
       aColor = mColorAccentText;
       return NS_OK;
+    case ColorID::MozWinMediatext:
+      if (mColorMediaText) {
+        aColor = *mColorMediaText;
+        return NS_OK;
+      }
+      // if we've gotten here just return -moz-dialogtext instead
+      idx = COLOR_WINDOWTEXT;
+      break;
+    case ColorID::MozWinCommunicationstext:
+      if (mColorCommunicationsText) {
+        aColor = *mColorCommunicationsText;
+        return NS_OK;
+      }
+      // if we've gotten here just return -moz-dialogtext instead
+      idx = COLOR_WINDOWTEXT;
+      break;
     case ColorID::MozHeaderbartext:
     case ColorID::MozHeaderbarinactivetext:
     case ColorID::MozDialogtext:
     case ColorID::MozColheadertext:
     case ColorID::MozColheaderhovertext:
-    case ColorID::MozColheaderactivetext:
       idx = COLOR_WINDOWTEXT;
+      break;
+    case ColorID::MozButtondefault:
+      idx = COLOR_3DDKSHADOW;
       break;
     case ColorID::Linktext:
       idx = COLOR_HOTLIGHT;
@@ -559,7 +536,7 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
       // High contrast is a misnomer under Win32 -- any theme can be used with
       // it, e.g. normal contrast with large fonts, low contrast, etc. The high
       // contrast flag really means -- use this theme and don't override it.
-      aResult = mHighContrastOn;
+      aResult = nsUXThemeData::IsHighContrastOn();
       break;
     case IntID::ScrollArrowStyle:
       aResult = eScrollArrowStyle_Single;
@@ -579,8 +556,22 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
     case IntID::TreeScrollLinesMax:
       aResult = 3;
       break;
+    case IntID::WindowsClassic:
+      aResult = !nsUXThemeData::IsAppThemed();
+      break;
+    case IntID::WindowsDefaultTheme:
+      aResult = nsUXThemeData::IsDefaultWindowTheme();
+      break;
+    case IntID::DWMCompositor:
+      aResult = gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
+      break;
     case IntID::WindowsAccentColorInTitlebar:
       aResult = mTitlebarColors.mUseAccent;
+      break;
+    case IntID::WindowsGlass:
+      // Aero Glass is only available prior to Windows 8 when DWM is used.
+      aResult = (gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled() &&
+                 !IsWin8OrLater());
       break;
     case IntID::WindowsMica:
       aResult = WinUtils::MicaEnabled();
@@ -590,9 +581,37 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
       break;
     case IntID::AlertNotificationOrigin:
       aResult = 0;
-      if (intl::LocaleService::GetInstance()->IsAppLocaleRTL()) {
-        // If the task bar is right-to-left, move the origin to the left
-        aResult |= NS_ALERT_LEFT;
+      {
+        // Get task bar window handle
+        HWND shellWindow = FindWindowW(L"Shell_TrayWnd", nullptr);
+
+        if (shellWindow != nullptr) {
+          // Determine position
+          APPBARDATA appBarData;
+          appBarData.hWnd = shellWindow;
+          appBarData.cbSize = sizeof(appBarData);
+          if (SHAppBarMessage(ABM_GETTASKBARPOS, &appBarData)) {
+            // Set alert origin as a bit field - see LookAndFeel.h
+            // 0 represents bottom right, sliding vertically.
+            switch (appBarData.uEdge) {
+              case ABE_LEFT:
+                aResult = NS_ALERT_HORIZONTAL | NS_ALERT_LEFT;
+                break;
+              case ABE_RIGHT:
+                aResult = NS_ALERT_HORIZONTAL;
+                break;
+              case ABE_TOP:
+                aResult = NS_ALERT_TOP;
+                [[fallthrough]];
+              case ABE_BOTTOM:
+                // If the task bar is right-to-left,
+                // move the origin to the left
+                if (::GetWindowLong(shellWindow, GWL_EXSTYLE) & WS_EX_LAYOUTRTL)
+                  aResult |= NS_ALERT_LEFT;
+                break;
+            }
+          }
+        }
       }
       break;
     case IntID::IMERawInputUnderlineStyle:
@@ -637,20 +656,9 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
     case IntID::TooltipOffsetVertical:
       aResult = GetTooltipOffsetVertical();
       break;
-    case IntID::SystemUsesDarkTheme: {
-      if (mHighContrastOn) {
-        aResult =
-            LookAndFeel::IsDarkColor(GetColorForSysColorIndex(COLOR_WINDOW));
-      } else {
-        WinRegistry::Key key(
-            HKEY_CURRENT_USER,
-            u"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"_ns,
-            WinRegistry::KeyMode::QueryValue);
-        aResult =
-            key && !key.GetValueAsDword(u"AppsUseLightTheme"_ns).valueOr(1);
-      }
+    case IntID::SystemUsesDarkTheme:
+      aResult = SystemWantsDarkTheme();
       break;
-    }
     case IntID::SystemScrollbarSize:
       aResult = std::max(WinUtils::GetSystemMetricsForDpi(SM_CXVSCROLL, 96),
                          WinUtils::GetSystemMetricsForDpi(SM_CXHSCROLL, 96));
@@ -906,26 +914,11 @@ auto nsLookAndFeel::ComputeTitlebarColors() -> TitlebarColors {
                            GetColorForSysColorIndex(COLOR_INACTIVECAPTIONTEXT),
                            GetColorForSysColorIndex(COLOR_INACTIVEBORDER)};
 
-  if (!mHighContrastOn) {
-    // Use our non-native colors.
-    result.mActiveLight = {
-        GetStandinForNativeColor(ColorID::Activecaption, ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Captiontext, ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Activeborder, ColorScheme::Light)};
-    result.mInactiveLight = {
-        GetStandinForNativeColor(ColorID::Inactivecaption, ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Inactivecaptiontext,
-                                 ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Inactiveborder, ColorScheme::Light)};
-  }
-
-  // Our dark colors are always non-native.
-  result.mActiveDark = {*GenericDarkColor(ColorID::Activecaption),
-                        *GenericDarkColor(ColorID::Captiontext),
-                        *GenericDarkColor(ColorID::Activeborder)};
-  result.mInactiveDark = {*GenericDarkColor(ColorID::Inactivecaption),
-                          *GenericDarkColor(ColorID::Inactivecaptiontext),
-                          *GenericDarkColor(ColorID::Inactiveborder)};
+  // Foreground and background taken from Windows Mica material theme colors.
+  result.mActiveDark = {NS_RGB(0x2e, 0x2e, 0x2e), NS_RGB(0xff, 0xff, 0xff),
+                        NS_RGB(57, 57, 57)};
+  result.mInactiveDark = {NS_RGB(0x33, 0x33, 0x33), NS_RGB(0xff, 0xff, 0xff),
+                          NS_RGB(57, 57, 57)};
 
   // TODO(bug 1825241): Somehow get notified when this changes? Hopefully the
   // sys color notification is enough.
@@ -1014,21 +1007,16 @@ void nsLookAndFeel::EnsureInit() {
   }
   mInitialized = true;
 
-  for (auto& handle : mThemeHandles) {
-    handle.Close();
-  }
-
-  mHighContrastOn = []() {
-    HIGHCONTRAST hc;
-    hc.cbSize = sizeof(HIGHCONTRAST);
-    return ::SystemParametersInfo(SPI_GETHIGHCONTRAST, 0, &hc, 0) &&
-           hc.dwFlags & HCF_HIGHCONTRASTON;
-  }();
-
   const bool neededMicaWorkaround = NeedsMicaWorkaround();
 
-  mColorMenuHoverText = ::GetColorFromTheme(UXThemeClass::Menu, MENU_POPUPITEM,
-                                            MPI_HOT, TMT_TEXTCOLOR);
+  if (nsUXThemeData::IsAppThemed()) {
+    mColorMenuHoverText =
+        ::GetColorFromTheme(eUXMenu, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR);
+    mColorMediaText = ::GetColorFromTheme(eUXMediaToolbar, TP_BUTTON, TS_NORMAL,
+                                          TMT_TEXTCOLOR);
+    mColorCommunicationsText = ::GetColorFromTheme(
+        eUXCommunicationsToolbar, TP_BUTTON, TS_NORMAL, TMT_TEXTCOLOR);
+  }
 
   // Fill out the sys color table.
   for (int i = SYS_COLOR_MIN; i <= SYS_COLOR_MAX; ++i) {

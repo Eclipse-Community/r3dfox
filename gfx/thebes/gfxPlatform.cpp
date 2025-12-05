@@ -1932,16 +1932,14 @@ gfxFontEntry* gfxPlatform::MakePlatformFont(const nsACString& aFontName,
 BackendPrefsData gfxPlatform::GetBackendPrefs() const {
   BackendPrefsData data;
 
-  data.mCanvasBitmask = BackendTypeBit(BackendType::SKIA);
-  data.mContentBitmask = BackendTypeBit(BackendType::SKIA);
-
-#ifdef MOZ_WIDGET_GTK
-  data.mCanvasBitmask |= BackendTypeBit(BackendType::CAIRO);
-  data.mContentBitmask |= BackendTypeBit(BackendType::CAIRO);
+  data.mCanvasBitmask = BackendTypeBit(BackendType::CAIRO);
+  data.mContentBitmask = BackendTypeBit(BackendType::CAIRO);
+#ifdef USE_SKIA
+  data.mCanvasBitmask |= BackendTypeBit(BackendType::SKIA);
+  data.mContentBitmask |= BackendTypeBit(BackendType::SKIA);
 #endif
-
-  data.mCanvasDefault = BackendType::SKIA;
-  data.mContentDefault = BackendType::SKIA;
+  data.mCanvasDefault = BackendType::CAIRO;
+  data.mContentDefault = BackendType::CAIRO;
 
   return data;
 }
@@ -1974,10 +1972,8 @@ void gfxPlatform::InitBackendPrefs(BackendPrefsData&& aPrefsData) {
     mContentBackendBitmask |= BackendTypeBit(aPrefsData.mContentDefault);
   }
 
-  uint32_t swBackendBits = BackendTypeBit(BackendType::SKIA);
-#ifdef MOZ_WIDGET_GTK
-  swBackendBits |= BackendTypeBit(BackendType::CAIRO);
-#endif
+  uint32_t swBackendBits =
+      BackendTypeBit(BackendType::SKIA) | BackendTypeBit(BackendType::CAIRO);
   mSoftwareBackend = GetContentBackendPref(swBackendBits);
   if (mSoftwareBackend == BackendType::NONE) {
     mSoftwareBackend = BackendType::SKIA;
@@ -2463,7 +2459,8 @@ void gfxPlatform::InitAcceleration() {
       gfxCriticalNote << "Cannot evaluate keyed mutex feature status";
       gfxVars::SetAllowD3D11KeyedMutex(true);
     }
-    if (StaticPrefs::gfx_direct3d11_use_double_buffering()) {
+    if (StaticPrefs::gfx_direct3d11_use_double_buffering() &&
+        IsWin10OrLater()) {
       gfxVars::SetUseDoubleBufferingWithCompositor(true);
     }
 #endif
@@ -2812,7 +2809,8 @@ void gfxPlatform::InitWebRenderConfig() {
 
   bool useHwVideoZeroCopy = false;
   if (StaticPrefs::media_wmf_zero_copy_nv12_textures_AtStartup()) {
-    if (hasHardware) {
+    // XXX relax limitation to Windows 8.1
+    if (IsWin10OrLater() && hasHardware) {
       useHwVideoZeroCopy = true;
     }
 

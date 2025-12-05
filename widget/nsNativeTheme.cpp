@@ -28,7 +28,6 @@
 #include "mozilla/ScrollContainerFrame.h"
 #include "mozilla/StaticPrefs_layout.h"
 #include "mozilla/dom/DocumentInlines.h"
-#include "nsXULElement.h"
 #include <algorithm>
 
 using namespace mozilla;
@@ -49,16 +48,20 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
     return ElementState();
   }
 
-  bool isXULElement = frameContent->IsXULElement();
-  if (aAppearance == StyleAppearance::Checkbox ||
-      aAppearance == StyleAppearance::Radio) {
-    if (nsXULElement::FromNodeOrNull(frameContent->GetParent())) {
+  const bool isXULElement = frameContent->IsXULElement();
+  if (isXULElement) {
+    if (aAppearance == StyleAppearance::CheckboxLabel ||
+        aAppearance == StyleAppearance::RadioLabel) {
+      aFrame = aFrame->GetParent()->GetParent();
+      frameContent = aFrame->GetContent();
+    } else if (aAppearance == StyleAppearance::Checkbox ||
+               aAppearance == StyleAppearance::Treeheadersortarrow ||
+               aAppearance == StyleAppearance::Radio) {
       aFrame = aFrame->GetParent();
-      frameContent = frameContent->GetParent();
-      isXULElement = true;
+      frameContent = aFrame->GetContent();
     }
+    MOZ_ASSERT(frameContent && frameContent->IsElement());
   }
-  MOZ_ASSERT(frameContent && frameContent->IsElement());
 
   ElementState flags = frameContent->AsElement()->StyleState();
   nsNumberControlFrame* numberControlFrame =
@@ -78,6 +81,7 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
   }
 
   switch (aAppearance) {
+    case StyleAppearance::RadioLabel:
     case StyleAppearance::Radio: {
       if (CheckBooleanAttr(aFrame, nsGkAtoms::focused)) {
         flags |= ElementState::FOCUS;
@@ -93,6 +97,7 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
       }
       break;
     }
+    case StyleAppearance::CheckboxLabel:
     case StyleAppearance::Checkbox: {
       if (CheckBooleanAttr(aFrame, nsGkAtoms::checked)) {
         flags |= ElementState::CHECKED;
@@ -532,19 +537,4 @@ bool nsNativeTheme::IsWidgetScrollbarPart(StyleAppearance aAppearance) {
     default:
       return false;
   }
-}
-
-/*static*/
-bool nsNativeTheme::IsWidgetAlwaysNonNative(nsIFrame* aFrame,
-                                            StyleAppearance aAppearance) {
-  return IsWidgetScrollbarPart(aAppearance) ||
-         aAppearance == StyleAppearance::FocusOutline ||
-         aAppearance == StyleAppearance::SpinnerUpbutton ||
-         aAppearance == StyleAppearance::SpinnerDownbutton ||
-         aAppearance == StyleAppearance::Toolbarbutton ||
-         aAppearance == StyleAppearance::ProgressBar ||
-         aAppearance == StyleAppearance::Meter ||
-         aAppearance == StyleAppearance::Range ||
-         aAppearance == StyleAppearance::Listbox ||
-         (aFrame && aFrame->StyleUI()->mMozTheme == StyleMozTheme::NonNative);
 }

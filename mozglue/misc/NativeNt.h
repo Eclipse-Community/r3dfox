@@ -129,7 +129,7 @@ PVOID NTAPI RtlReAllocateHeap(PVOID aHeapHandle, ULONG aFlags, LPVOID aMem,
 
 BOOLEAN NTAPI RtlFreeHeap(PVOID aHeapHandle, ULONG aFlags, PVOID aHeapBase);
 
-BOOLEAN NTAPI RtlQueryPerformanceCounter(LARGE_INTEGER* aPerfCount);
+NTSTATUS NTAPI NtQueryPerformanceCounter(LARGE_INTEGER* aPerfCount, LARGE_INTEGER*);
 
 #define RTL_DUPLICATE_UNICODE_STRING_NULL_TERMINATE 1
 #define RTL_DUPLICATE_UNICODE_STRING_ALLOCATE_NULL_STRING 2
@@ -914,12 +914,6 @@ class MOZ_RAII PEHeaders final {
                                     IMAGE_SCN_MEM_READ);
   }
 
-  // There may be other data sections in the binary besides .data
-  Maybe<Span<const uint8_t>> GetDataSectionInfo() const {
-    return FindSection(".data", IMAGE_SCN_CNT_INITIALIZED_DATA |
-                                    IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE);
-  }
-
   static bool IsValid(PIMAGE_IMPORT_DESCRIPTOR aImpDesc) {
     return aImpDesc && aImpDesc->OriginalFirstThunk != 0;
   }
@@ -1252,6 +1246,59 @@ class MOZ_RAII PEExportSection {
     }
 
     return rvaToFunction;
+  }
+
+  BOOL ReplaceExportNameTableEntry(const char* aFunctionNameASCII,
+                                   const char* aReplFunctionNameASCII) const {
+    if (!*this || !aFunctionNameASCII || !aReplFunctionNameASCII) {
+      return FALSE;
+    }
+
+    struct NameTableComparator {
+      NameTableComparator(const PEExportSection<MMPolicy>& aExportSection,
+                          const char* aTarget)
+          : mExportSection(aExportSection),
+            mTargetName(aTarget),
+            mTargetNamelength(StrlenASCII(aTarget)) {}
+
+      int operator()(DWORD aRVAToString) const {
+        mozilla::interceptor::TargetObjectArray<MMPolicy, char> itemString(
+            mExportSection.mMMPolicy, mExportSection.mImageBase + aRVAToString,
+            mTargetNamelength + 1);
+        return StrcmpASCII(mTargetName, itemString[0]);
+      }
+
+      const PEExportSection<MMPolicy>& mExportSection;
+      const char* mTargetName;
+      size_t mTargetNamelength;
+    };
+
+    const NameTableComparator comp(*this, aFunctionNameASCII);
+
+    size_t match;
+    if (!mExportNameTable.BinarySearchIf(comp, &match)) {
+      return FALSE;
+    }
+
+    const DWORD* rvaToString = mExportNameTable[match];
+    if (!rvaToString) {
+      return FALSE;
+    }
+
+    auto replNameLen = StrlenASCII(aReplFunctionNameASCII);
+    char* namePtr = reinterpret_cast<char*>(mImageBase + *rvaToString);
+    if (StrlenASCII(namePtr) < replNameLen) {
+      return FALSE;
+    }
+
+    auto replNameLenIncNull = replNameLen + 1;
+    AutoVirtualProtect prot(namePtr, replNameLenIncNull, PAGE_READWRITE);
+    if (!prot) {
+      return FALSE;
+    }
+
+    memcpy(namePtr, aReplFunctionNameASCII, replNameLenIncNull);
+    return TRUE;
   }
 
   /**

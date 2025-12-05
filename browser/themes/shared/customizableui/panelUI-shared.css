@@ -15,6 +15,13 @@
   --menu-panel-width: 22.35em;
   --menu-panel-width-wide: 29em;
 
+  --arrowpanel-menuitem-margin-block: 0;
+  --arrowpanel-menuitem-margin-inline: 8px;
+  --arrowpanel-menuitem-margin: var(--arrowpanel-menuitem-margin-block) var(--arrowpanel-menuitem-margin-inline);
+  --arrowpanel-menuitem-padding-block: 8px;
+  --arrowpanel-menuitem-padding-inline: 8px;
+  --arrowpanel-menuitem-padding: var(--arrowpanel-menuitem-padding-block) var(--arrowpanel-menuitem-padding-inline);
+  --arrowpanel-menuitem-border-radius: 4px;
   --arrowpanel-header-info-icon-padding: 4px;
   --arrowpanel-header-info-icon-full-width: calc(16px + (2 * var(--arrowpanel-header-info-icon-padding)));
   --panel-separator-padding-vertical: 4px;
@@ -311,9 +318,6 @@ panelview {
     --panel-border-radius: var(--arrowpanel-border-radius);
     --panel-padding: var(--panel-subview-body-padding);
     --panel-shadow-margin: var(--arrowpanel-shadow-margin);
-    --menuitem-border-radius: var(--arrowpanel-menuitem-border-radius);
-    --menuitem-padding: var(--arrowpanel-menuitem-padding);
-    --menuitem-margin: var(--arrowpanel-menuitem-margin);
   }
 
   menupopup {
@@ -346,35 +350,62 @@ panelview {
   }
 
   .menu-text,
-  .menu-icon,
+  .menu-iconic-text,
+  .menu-iconic-icon,
+  .menu-iconic-left,
+  .menu-iconic-accel,
+  .menu-accel-container,
   .menu-accel,
-  menu::after {
-    /* Reset spacing set by menu.css */
+  .menu-right {
+    /* Reset every spacing and appearance set by the platforms' menu.css
+     * and set the ones we need in the following rules. */
     margin: 0;
     padding: 0;
+    appearance: none;
   }
 
-  menuitem:not(.menuitem-iconic, [image]) > .menu-icon,
-  menu:not(.menu-iconic) > .menu-icon {
-    display: none;
-  }
-
-  .menu-icon {
+  :is(.menu-iconic, .menuitem-iconic) > .menu-iconic-left {
     margin-inline-end: 8px;
   }
 
-  menu::after,
-  .menu-accel {
+  .menu-accel,
+  .menu-iconic-accel {
     margin-inline-start: 16px;
   }
 
-  menu::after {
+  menu > .menu-right {
+    list-style-image: url(chrome://global/skin/icons/arrow-right.svg);
+    -moz-context-properties: fill, fill-opacity;
+    fill: currentColor;
     fill-opacity: 0.6;
-  }
+    width: unset;
+    height: unset;
 
-  menuseparator {
-    padding: var(--panel-separator-padding);
+    &:-moz-locale-dir(rtl) {
+      list-style-image: url(chrome://global/skin/icons/arrow-left.svg);
+    }
   }
+}
+
+/* menuseparators in bookmark-related menupopups are styled differently
+ * to allow for user interaction with them (e.g. drag, right click ...) */
+.toolbar-menupopup menuseparator {
+  position: relative;
+  appearance: none;
+  border: none;
+  min-height: 0;
+  margin: 0 var(--panel-separator-margin-horizontal);
+  padding-inline: 0;
+  padding-top: var(--panel-separator-margin-vertical);
+  padding-bottom: calc(var(--panel-separator-margin-vertical) + 1px);
+}
+
+.toolbar-menupopup menuseparator::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  border-top: 1px solid var(--panel-separator-color);
+  border-bottom: none;
 }
 
 #BMB_bookmarksPopup {
@@ -1192,6 +1223,7 @@ panelmultiview[mainViewId="PanelUI-fxa"] #PanelUI-remotetabs-syncnow {
   display: none;
 }
 
+.toolbar-menupopup :is(menu, menuitem),
 .subview-subheader,
 panelview .toolbarbutton-1,
 .subviewbutton,

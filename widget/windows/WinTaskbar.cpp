@@ -18,10 +18,13 @@
 #include <nsIBaseWindow.h>
 #include <nsServiceManagerUtils.h>
 #include "nsIXULAppInfo.h"
+#include "nsILegacyJumpListBuilder.h"
+#include "nsUXThemeData.h"
 #include "nsWindow.h"
 #include "WinUtils.h"
 #include "TaskbarTabPreview.h"
 #include "TaskbarWindowPreview.h"
+#include "LegacyJumpListBuilder.h"
 #include "nsWidgetsCID.h"
 #include "nsPIDOMWindow.h"
 #include "nsAppDirectoryServiceDefs.h"
@@ -29,10 +32,16 @@
 #include "nsAppRunner.h"
 #include "nsXREDirProvider.h"
 #include "mozilla/widget/WinRegistry.h"
+#include "mozilla/WindowsVersion.h"
 #include <io.h>
 #include <propvarutil.h>
 #include <propkey.h>
 #include <shellapi.h>
+
+const wchar_t kShellLibraryName[] =  L"shell32.dll";
+
+static NS_DEFINE_CID(kLegacyJumpListBuilderCID,
+                     NS_WIN_LEGACYJUMPLISTBUILDER_CID);
 
 namespace {
 
@@ -64,14 +73,30 @@ nsresult SetWindowAppUserModelProp(mozIDOMWindow* aParent,
 
   if (!toplevelHWND) return NS_ERROR_INVALID_ARG;
 
-  RefPtr<IPropertyStore> pPropStore;
-  if (FAILED(SHGetPropertyStoreForWindow(toplevelHWND, IID_IPropertyStore,
-                                         getter_AddRefs(pPropStore)))) {
+  typedef HRESULT (WINAPI * SHGetPropertyStoreForWindowPtr)
+                    (HWND hwnd, REFIID riid, void** ppv);
+  SHGetPropertyStoreForWindowPtr funcGetProStore = nullptr;
+
+  HMODULE hDLL = ::LoadLibraryW(kShellLibraryName);
+  funcGetProStore = (SHGetPropertyStoreForWindowPtr)
+    GetProcAddress(hDLL, "SHGetPropertyStoreForWindow");
+
+  if (!funcGetProStore) {
+    FreeLibrary(hDLL);
+    return NS_ERROR_NO_INTERFACE;
+  }
+
+  IPropertyStore* pPropStore;
+  if (FAILED(funcGetProStore(toplevelHWND,
+                             IID_PPV_ARGS(&pPropStore)))) {
+    FreeLibrary(hDLL);
     return NS_ERROR_INVALID_ARG;
   }
 
   PROPVARIANT pv;
   if (FAILED(InitPropVariantFromString(aIdentifier.get(), &pv))) {
+    pPropStore->Release();
+    FreeLibrary(hDLL);
     return NS_ERROR_UNEXPECTED;
   }
 
@@ -82,6 +107,8 @@ nsresult SetWindowAppUserModelProp(mozIDOMWindow* aParent,
   }
 
   PropVariantClear(&pv);
+  pPropStore->Release();
+  FreeLibrary(hDLL);
 
   return rv;
 }
@@ -272,13 +299,25 @@ bool WinTaskbar::GenerateAppUserModelID(nsAString& aAppUserModelId,
 // static
 bool WinTaskbar::GetAppUserModelID(nsAString& aAppUserModelId,
                                    bool aPrivateBrowsing) {
+static const wchar_t kShellLibraryName[] =  L"shell32.dll";
+
+    typedef HRESULT (WINAPI * SetCurrentProcessExplicitAppUserModelIDPtr)(PWSTR *AppID);
+
+    SetCurrentProcessExplicitAppUserModelIDPtr funcAppUserModelID = nullptr;
+
+    HMODULE hDLL = ::LoadLibraryW(kShellLibraryName);
+
+    funcAppUserModelID = (SetCurrentProcessExplicitAppUserModelIDPtr)
+                          GetProcAddress(hDLL, "GetCurrentProcessExplicitAppUserModelID");
+
   // If an ID has already been set then use that.
   PWSTR id;
-  if (SUCCEEDED(GetCurrentProcessExplicitAppUserModelID(&id))) {
+  if (funcAppUserModelID && SUCCEEDED(funcAppUserModelID(&id))) {
     aAppUserModelId.Assign(id);
     CoTaskMemFree(id);
   }
 
+        ::FreeLibrary(hDLL);
   return GenerateAppUserModelID(aAppUserModelId, aPrivateBrowsing);
 }
 
@@ -299,10 +338,29 @@ WinTaskbar::GetDefaultPrivateGroupId(nsAString& aDefaultPrivateGroupId) {
 
 // (static) Called from AppShell
 bool WinTaskbar::RegisterAppUserModelID() {
+  SetCurrentProcessExplicitAppUserModelIDPtr funcAppUserModelID = nullptr;
+  bool retVal = false;
+
   nsAutoString uid;
   if (!GetAppUserModelID(uid)) return false;
 
-  return SUCCEEDED(SetCurrentProcessExplicitAppUserModelID(uid.get()));
+  HMODULE hDLL = ::LoadLibraryW(kShellLibraryName);
+
+  funcAppUserModelID = (SetCurrentProcessExplicitAppUserModelIDPtr)
+                        GetProcAddress(hDLL, "SetCurrentProcessExplicitAppUserModelID");
+
+  if (!funcAppUserModelID) {
+    ::FreeLibrary(hDLL);
+    return false;
+  }
+
+  if (SUCCEEDED(funcAppUserModelID(uid.get())))
+    retVal = true;
+
+  if (hDLL)
+    ::FreeLibrary(hDLL);
+
+  return retVal;
 }
 
 NS_IMETHODIMP
@@ -402,6 +460,26 @@ WinTaskbar::GetOverlayIconController(
 }
 
 NS_IMETHODIMP
+WinTaskbar::CreateLegacyJumpListBuilder(
+    bool aPrivateBrowsing, nsILegacyJumpListBuilder** aJumpListBuilder) {
+  nsresult rv;
+
+  if (LegacyJumpListBuilder::sBuildingList) return NS_ERROR_ALREADY_INITIALIZED;
+
+  nsCOMPtr<nsILegacyJumpListBuilder> builder =
+      do_CreateInstance(kLegacyJumpListBuilderCID, &rv);
+  if (NS_FAILED(rv)) return NS_ERROR_UNEXPECTED;
+
+  NS_IF_ADDREF(*aJumpListBuilder = builder);
+
+  nsAutoString aumid;
+  GenerateAppUserModelID(aumid, aPrivateBrowsing);
+  builder->SetAppUserModelID(aumid);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 WinTaskbar::CreateJumpListBuilder(bool aPrivateBrowsing,
                                   nsIJumpListBuilder** aJumpListBuilder) {
   nsAutoString aumid;
@@ -423,10 +501,25 @@ WinTaskbar::GetGroupIdForWindow(mozIDOMWindow* aParent,
   HWND toplevelHWND = ::GetAncestor(GetHWNDFromDOMWindow(aParent), GA_ROOT);
   if (!toplevelHWND) return NS_ERROR_INVALID_ARG;
   RefPtr<IPropertyStore> pPropStore;
-  if (FAILED(SHGetPropertyStoreForWindow(toplevelHWND, IID_IPropertyStore,
+  typedef HRESULT (WINAPI * SHGetPropertyStoreForWindowPtr)
+                    (HWND hwnd, REFIID riid, void** ppv);
+  SHGetPropertyStoreForWindowPtr funcGetProStore = nullptr;
+
+  HMODULE hDLL = ::LoadLibraryW(kShellLibraryName);
+  funcGetProStore = (SHGetPropertyStoreForWindowPtr)
+    GetProcAddress(hDLL, "SHGetPropertyStoreForWindow");
+
+  if (!funcGetProStore) {
+    FreeLibrary(hDLL);
+    return NS_ERROR_FAILURE;
+  }
+
+  if (FAILED(funcGetProStore(toplevelHWND, IID_IPropertyStore,
                                          getter_AddRefs(pPropStore)))) {
+    FreeLibrary(hDLL);
     return NS_ERROR_INVALID_ARG;
   }
+    FreeLibrary(hDLL);
   PROPVARIANT pv;
   PropVariantInit(&pv);
   auto cleanupPropVariant = MakeScopeExit([&] { PropVariantClear(&pv); });

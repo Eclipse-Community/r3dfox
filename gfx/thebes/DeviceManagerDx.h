@@ -89,6 +89,10 @@ class DeviceManagerDx final {
   // need to avoid it.
   bool CanInitializeKeyedMutexTextures();
 
+  // Intel devices on older windows versions seem to occasionally have
+  // stability issues when supplying InitData to CreateTexture2D.
+  bool HasCrashyInitData();
+
   // Enumerate and return all outputs on the current adapter.
   nsTArray<DXGI_OUTPUT_DESC1> EnumerateOutputs();
 
@@ -122,11 +126,16 @@ class DeviceManagerDx final {
   bool ExportDeviceInfo(D3D11DeviceStatus* aOut);
 
   void ResetDevices();
+  void InitializeDirectDraw();
 
   // Reset and reacquire the devices if a reset has happened.
   // Returns whether a reset occurred not whether reacquiring
   // was successful.
   bool MaybeResetAndReacquireDevices();
+
+  // Test whether we can acquire a DXGI 1.2-compatible adapter. This should
+  // only be called on startup before devices are initialized.
+  bool CheckRemotePresentSupport();
 
   // Device reset helpers.
   bool HasDeviceReset(DeviceResetReason* aOutReason = nullptr);
@@ -215,6 +224,9 @@ class DeviceManagerDx final {
   RefPtr<Runnable> mUpdateMonitorInfoRunnable MOZ_GUARDED_BY(mDeviceLock);
   Maybe<bool> mSystemHdrEnabled MOZ_GUARDED_BY(mDeviceLock);
   std::set<HMONITOR> mHdrMonitors MOZ_GUARDED_BY(mDeviceLock);
+
+  nsModuleHandle mDirectDrawDLL;
+  RefPtr<IDirectDraw7> mDirectDraw;
 };
 
 }  // namespace gfx

@@ -52,6 +52,9 @@
 #include "mozilla/layers/CompositorBridgeChild.h"
 #include "InProcessWinCompositorWidget.h"
 
+#include "nsUXThemeData.h"
+#include "nsUXThemeConstants.h"
+
 using namespace mozilla;
 using namespace mozilla::gfx;
 using namespace mozilla::layers;
@@ -98,20 +101,27 @@ static IconMetrics sIconMetrics[] = {
  **************************************************************/
 
 // GetRegionToPaint returns the invalidated region that needs to be painted
-LayoutDeviceIntRegion nsWindow::GetRegionToPaint(const PAINTSTRUCT& ps,
-                                                 HDC aDC) const {
-  LayoutDeviceIntRegion fullRegion(WinUtils::ToIntRect(ps.rcPaint));
+LayoutDeviceIntRegion nsWindow::GetRegionToPaint(bool aForceFullRepaint,
+                                                 PAINTSTRUCT ps, HDC aDC) {
+  if (aForceFullRepaint) {
+    RECT paintRect;
+    ::GetClientRect(mWnd, &paintRect);
+    return LayoutDeviceIntRegion(WinUtils::ToIntRect(paintRect));
+  }
+
   HRGN paintRgn = ::CreateRectRgn(0, 0, 0, 0);
-  if (paintRgn) {
-    if (GetRandomRgn(aDC, paintRgn, SYSRGN) == 1) {
+  if (paintRgn != nullptr) {
+    int result = GetRandomRgn(aDC, paintRgn, SYSRGN);
+    if (result == 1) {
       POINT pt = {0, 0};
       ::MapWindowPoints(nullptr, mWnd, &pt, 1);
       ::OffsetRgn(paintRgn, pt.x, pt.y);
-      fullRegion.AndWith(WinUtils::ConvertHRGNToRegion(paintRgn));
     }
+    LayoutDeviceIntRegion rgn(WinUtils::ConvertHRGNToRegion(paintRgn));
     ::DeleteObject(paintRgn);
+    return rgn;
   }
-  return fullRegion;
+  return LayoutDeviceIntRegion(WinUtils::ToIntRect(ps.rcPaint));
 }
 
 nsIWidgetListener* nsWindow::GetPaintListener() {
@@ -127,22 +137,7 @@ void nsWindow::ForcePresent() {
   }
 }
 
-bool nsWindow::OnPaint() {
-  struct FallbackPaintContext {
-    RefPtr<gfxASurface> mTargetSurface;
-    RefPtr<DrawTarget> mDt;
-    gfxContext mGfxContext;
-    AutoLayerManagerSetup mSetup;
-
-    explicit FallbackPaintContext(nsWindow* aWindow,
-                                  RefPtr<gfxASurface> aTargetSurface,
-                                  RefPtr<DrawTarget> aDt)
-        : mTargetSurface(std::move(aTargetSurface)),
-          mDt(std::move(aDt)),
-          mGfxContext(mDt),
-          mSetup(aWindow, &mGfxContext) {}
-  };
-
+bool nsWindow::OnPaint(HDC aDC, uint32_t aNestingLevel) {
   gfx::DeviceResetReason resetReason = gfx::DeviceResetReason::OK;
   if (gfxWindowsPlatform::GetPlatform()->DidRenderingDeviceReset(
           &resetReason)) {
@@ -172,75 +167,145 @@ bool nsWindow::OnPaint() {
   WebRenderLayerManager* layerManager = renderer->AsWebRender();
   const bool isFallback =
       renderer->GetBackendType() == LayersBackend::LAYERS_NONE;
-  const bool isTransparent = mTransparencyMode == TransparencyMode::Transparent;
   MOZ_ASSERT(
       isFallback || renderer->GetBackendType() == LayersBackend::LAYERS_WR,
       "Unknown layers backend");
 
-  const bool didResize = mBounds.Size() != mLastPaintBounds.Size();
+  // Clear window by transparent black when compositor window is used in GPU
+  // process and non-client area rendering by DWM is enabled.
+  // It is for showing non-client area rendering. See nsWindow::UpdateGlass().
+  if (HasGlass() && knowsCompositor && knowsCompositor->GetUseCompositorWnd()) {
+    HDC hdc;
+    RECT rect;
+    hdc = ::GetWindowDC(mWnd);
+    ::GetWindowRect(mWnd, &rect);
+    ::MapWindowPoints(nullptr, mWnd, (LPPOINT)&rect, 2);
+    ::FillRect(hdc, &rect,
+               reinterpret_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
+    ReleaseDC(mWnd, hdc);
+  }
 
-  if (didResize && knowsCompositor && layerManager) {
+  if (mClearNCEdge) {
+    // We need to clear this edge of the non-client region to black (once).
+    HDC hdc;
+    RECT rect;
+    hdc = ::GetWindowDC(mWnd);
+    ::GetWindowRect(mWnd, &rect);
+    ::MapWindowPoints(nullptr, mWnd, (LPPOINT)&rect, 2);
+    switch (mClearNCEdge.value()) {
+      case ABE_TOP:
+        rect.bottom = rect.top + kHiddenTaskbarSize;
+        break;
+      case ABE_LEFT:
+        rect.right = rect.left + kHiddenTaskbarSize;
+        break;
+      case ABE_BOTTOM:
+        rect.top = rect.bottom - kHiddenTaskbarSize;
+        break;
+      case ABE_RIGHT:
+        rect.left = rect.right - kHiddenTaskbarSize;
+        break;
+      default:
+        MOZ_ASSERT_UNREACHABLE("Invalid edge value");
+        break;
+    }
+    ::FillRect(hdc, &rect,
+               reinterpret_cast<HBRUSH>(::GetStockObject(BLACK_BRUSH)));
+    ::ReleaseDC(mWnd, hdc);
+
+    mClearNCEdge.reset();
+  }
+
+  if (knowsCompositor && layerManager &&
+      !mBounds.IsEqualEdges(mLastPaintBounds)) {
     // Do an early async composite so that we at least have something on the
     // screen in the right place, even if the content is out of date.
     layerManager->ScheduleComposite(wr::RenderReasons::WIDGET);
   }
   mLastPaintBounds = mBounds;
 
+  if (!aDC && IsPopup() && renderer->GetBackendType() == LayersBackend::LAYERS_NONE &&
+      TransparencyMode::Transparent == mTransparencyMode) {
+    // For layered translucent windows all drawing should go to memory DC and no
+    // WM_PAINT messages are normally generated. To support asynchronous
+    // painting we force generation of WM_PAINT messages by invalidating window
+    // areas with RedrawWindow, InvalidateRect or InvalidateRgn function calls.
+    // BeginPaint/EndPaint must be called to make Windows think that invalid
+    // area is painted. Otherwise it will continue sending the same message
+    // endlessly.
+    ::BeginPaint(mWnd, &ps);
+    ::EndPaint(mWnd, &ps);
+
+    // We're guaranteed to have a widget proxy since we called
+    // GetLayerManager().
+    aDC = mBasicLayersSurface->GetTransparentDC();
+  }
+
+  HDC hDC = aDC ? aDC : ::BeginPaint(mWnd, &ps);
+
+  bool forceRepaint = aDC || TransparencyMode::Transparent == mTransparencyMode;
+  LayoutDeviceIntRegion region = GetRegionToPaint(forceRepaint, ps, hDC);
+
   RefPtr<nsWindow> strongThis(this);
+
   if (nsIWidgetListener* listener = GetPaintListener()) {
-    // WillPaintWindow will update our transparent area if needed, which we use
-    // below. Note that this might kill the listener.
+    // Note that this might kill the listener.
     listener->WillPaintWindow(this);
   }
 
   bool didPaint = false;
-  // BeginPaint/EndPaint must be called to make Windows think that invalid
-  // area is painted. Otherwise it will continue sending the same message
-  // endlessly. Note that we need to call it after WillPaintWindow, which
-  // informs us of our transparent region, but also before clearing the
-  // nc-area, since ::BeginPaint might send WM_NCPAINT messages[1].
-  // [1]:
-  // https://learn.microsoft.com/en-us/windows/win32/gdi/the-wm-paint-message
-  HDC hDC = ::BeginPaint(mWnd, &ps);
   auto endPaint = MakeScopeExit([&] {
-    ::EndPaint(mWnd, &ps);
+  if (!aDC) {
+      ::EndPaint(mWnd, &ps);
+    }
     if (didPaint) {
       mLastPaintEndTime = TimeStamp::Now();
       if (nsIWidgetListener* listener = GetPaintListener()) {
         listener->DidPaintWindow();
       }
+      if (aNestingLevel == 0 && ::GetUpdateRect(mWnd, nullptr, false)) {
+    OnPaint(aDC, 1);
+      }
     }
   });
-
-  LayoutDeviceIntRegion region = GetRegionToPaint(ps, hDC);
-  LayoutDeviceIntRegion regionToClear;
-  // Clear the translucent region if needed.
-  if (isTransparent) {
-    auto translucentRegion = GetTranslucentRegion();
-    // Clear the parts of the translucent region that aren't clear already or
-    // that Windows has told us to repaint.
-    // NOTE(emilio): Ordering of region ops is a bit subtle to avoid
-    // unnecessary copies, but we want to end up with:
-    //   regionToClear = translucentRegion - (mClearedRegion - region)
-    //   mClearedRegion = translucentRegion;
-    //   And add translucentRegion to region afterwards.
-    regionToClear = translucentRegion;
-    if (!mClearedRegion.IsEmpty()) {
-      mClearedRegion.SubOut(region);
-      regionToClear.SubOut(mClearedRegion);
-    }
-    region.OrWith(translucentRegion);
-    mClearedRegion = std::move(translucentRegion);
-  }
 
   if (region.IsEmpty() || !GetPaintListener()) {
     return false;
   }
 
-  Maybe<FallbackPaintContext> fallback;
+  if (knowsCompositor && layerManager) {
+    layerManager->SendInvalidRegion(region.ToUnknownRegion());
+    layerManager->ScheduleComposite(wr::RenderReasons::WIDGET);
+  }
+
+  // Should probably pass in a real region here, using GetRandomRgn
+  // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/gdi/clipping_4q0e.asp
+#ifdef WIDGET_DEBUG_OUTPUT
+  debug_DumpPaintEvent(stdout, this, region.ToUnknownRegion(), "noname",
+                       (int32_t)mWnd);
+#endif  // WIDGET_DEBUG_OUTPUT
+
+  bool result = true;
   if (isFallback) {
-    uint32_t flags = isTransparent ? gfxWindowsSurface::FLAG_IS_TRANSPARENT : 0;
-    RefPtr<gfxASurface> targetSurface = new gfxWindowsSurface(hDC, flags);
+      RefPtr<gfxASurface> targetSurface;
+
+      // don't support transparency for non-GDI rendering, for now
+      if (IsPopup() && TransparencyMode::Transparent == mTransparencyMode) {
+        // This mutex needs to be held when EnsureTransparentSurface is
+        // called.
+        MutexAutoLock lock(mBasicLayersSurface->GetTransparentSurfaceLock());
+        targetSurface = mBasicLayersSurface->EnsureTransparentSurface();
+      }
+
+      RefPtr<gfxWindowsSurface> targetSurfaceWin;
+      if (!targetSurface) {
+        uint32_t flags = (mTransparencyMode == TransparencyMode::Opaque)
+                             ? 0
+                             : gfxWindowsSurface::FLAG_IS_TRANSPARENT;
+        targetSurfaceWin = new gfxWindowsSurface(hDC, flags);
+        targetSurface = targetSurfaceWin;
+      }
+
     RECT paintRect;
     ::GetClientRect(mWnd, &paintRect);
     RefPtr<DrawTarget> dt = gfxPlatform::CreateDrawTargetForSurface(
@@ -251,46 +316,37 @@ bool nsWindow::OnPaint() {
       return false;
     }
 
-    fallback.emplace(this, std::move(targetSurface), std::move(dt));
-  }
+    if (mTransparencyMode == TransparencyMode::Transparent) {
+      // If we're rendering with translucency, we're going to be
+      // rendering the whole window; make sure we clear it first
+      dt->ClearRect(Rect(dt->GetRect()));
+    }
 
-  if (knowsCompositor && layerManager) {
-    layerManager->SendInvalidRegion(region.ToUnknownRegion());
-    layerManager->ScheduleComposite(wr::RenderReasons::WIDGET);
-  }
+    gfxContext thebesContext(dt);
 
-  if (!regionToClear.IsEmpty()) {
-    auto black = reinterpret_cast<HBRUSH>(::GetStockObject(BLACK_BRUSH));
-    // We could use RegionToHRGN, but at least for simple regions (and
-    // possibly for complex ones too?) FillRect is faster; see bug 1946365
-    // comment 12.
-    for (auto it = regionToClear.RectIter(); !it.Done(); it.Next()) {
-      if (fallback) {
-        // Make sure to use the fallback DT if needed, rather than calling
-        // ::FillRect directly. Not doing so could cause flicker, as Windows
-        // doesn't guarantee atomicity even between ::BeginPaint and
-        // ::EndPaint, see bug 1958631.
-        fallback->mDt->ClearRect(Rect(it.Get().ToUnknownRect()));
-      } else {
-        auto rect = WinUtils::ToWinRect(it.Get());
-        ::FillRect(hDC, &rect, black);
+    {
+      AutoLayerManagerSetup setupLayerManager(this, &thebesContext);
+      if (nsIWidgetListener* listener = GetPaintListener()) {
+        result = listener->PaintWindow(this, region);
       }
     }
-  }
 
-#ifdef WIDGET_DEBUG_OUTPUT
-  debug_DumpPaintEvent(stdout, this, region.ToUnknownRegion(), "noname",
-                       (int32_t)mWnd);
-#endif  // WIDGET_DEBUG_OUTPUT
-
-  bool result = true;
-  if (nsIWidgetListener* listener = GetPaintListener()) {
-    result = listener->PaintWindow(this, region);
-  }
-
-  if (!isFallback && !gfxEnv::MOZ_DISABLE_FORCE_PRESENT()) {
-    NS_DispatchToMainThread(NewRunnableMethod("nsWindow::ForcePresent", this,
-                                              &nsWindow::ForcePresent));
+      if (IsPopup() && TransparencyMode::Transparent == mTransparencyMode) {
+        // Data from offscreen drawing surface was copied to memory bitmap of
+        // transparent bitmap. Now it can be read from memory bitmap to apply
+        // alpha channel and after that displayed on the screen.
+        mBasicLayersSurface->RedrawTransparentWindow();
+      }
+  } else {
+    if (nsIWidgetListener* listener = GetPaintListener()) {
+      result = listener->PaintWindow(this, region);
+    }
+        if (!gfxEnv::MOZ_DISABLE_FORCE_PRESENT() &&
+            gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+      nsCOMPtr<nsIRunnable> event = NewRunnableMethod(
+          "nsWindow::ForcePresent", this, &nsWindow::ForcePresent);
+      NS_DispatchToMainThread(event);
+    }
   }
 
   didPaint = true;
@@ -317,7 +373,7 @@ void nsWindow::NotifyOcclusionState(mozilla::widget::OcclusionState aState) {
   if (mFrameState->GetSizeMode() == nsSizeMode_Minimized) {
     isFullyOccluded = false;
   }
-  if (isFullyOccluded && !mHasBeenShown) {
+  if (isFullyOccluded && !HasTaskbarIconBeenCreated()) {
     // Don't mark a newly-created window as occluded until
     // it renders a taskbar icon. (bug 1968297)
     isFullyOccluded = false;
@@ -340,7 +396,8 @@ void nsWindow::NotifyOcclusionState(mozilla::widget::OcclusionState aState) {
   flags._0 = gfx::gfxVars::WebRenderDebugFlags();
   bool debugEnabled = bool(flags & wr::DebugFlags::WINDOW_VISIBILITY_DBG);
   if (debugEnabled && mCompositorWidgetDelegate) {
-    mCompositorWidgetDelegate->NotifyVisibilityUpdated(mIsFullyOccluded);
+    mCompositorWidgetDelegate->NotifyVisibilityUpdated(
+        mFrameState->GetSizeMode(), mIsFullyOccluded);
   }
 
   if (mWidgetListener) {
@@ -366,7 +423,8 @@ void nsWindow::MaybeEnableWindowOcclusion(bool aEnable) {
       flags._0 = gfx::gfxVars::WebRenderDebugFlags();
       bool debugEnabled = bool(flags & wr::DebugFlags::WINDOW_VISIBILITY_DBG);
       if (debugEnabled && mCompositorWidgetDelegate) {
-        mCompositorWidgetDelegate->NotifyVisibilityUpdated(mIsFullyOccluded);
+        mCompositorWidgetDelegate->NotifyVisibilityUpdated(
+            mFrameState->GetSizeMode(), mIsFullyOccluded);
       }
     }
     return;
@@ -386,7 +444,8 @@ void nsWindow::MaybeEnableWindowOcclusion(bool aEnable) {
   flags._0 = gfx::gfxVars::WebRenderDebugFlags();
   bool debugEnabled = bool(flags & wr::DebugFlags::WINDOW_VISIBILITY_DBG);
   if (debugEnabled && mCompositorWidgetDelegate) {
-    mCompositorWidgetDelegate->NotifyVisibilityUpdated(mIsFullyOccluded);
+    mCompositorWidgetDelegate->NotifyVisibilityUpdated(
+        mFrameState->GetSizeMode(), mIsFullyOccluded);
   }
 }
 

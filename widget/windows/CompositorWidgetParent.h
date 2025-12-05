@@ -36,6 +36,7 @@ class CompositorWidgetParent final : public PCompositorWidgetParent,
   void EndRemoteDrawingInRegion(
       gfx::DrawTarget* aDrawTarget,
       const LayoutDeviceIntRegion& aInvalidRegion) override;
+  bool NeedsToDeferEndRemoteDrawing() override;
   LayoutDeviceIntSize GetClientSize() override;
   already_AddRefed<gfx::DrawTarget> GetBackBufferDrawTarget(
       gfx::DrawTarget* aScreenTarget, const gfx::IntRect& aRect,
@@ -44,16 +45,20 @@ class CompositorWidgetParent final : public PCompositorWidgetParent,
   bool InitCompositor(layers::Compositor* aCompositor) override;
   bool IsHidden() const override;
 
+  bool HasGlass() const override;
+
+  nsSizeMode GetWindowSizeMode() const override;
   bool GetWindowIsFullyOccluded() const override;
 
   mozilla::ipc::IPCResult RecvInitialize(
       const RemoteBackbufferHandles& aRemoteHandles) override;
   mozilla::ipc::IPCResult RecvEnterPresentLock() override;
   mozilla::ipc::IPCResult RecvLeavePresentLock() override;
-  mozilla::ipc::IPCResult RecvNotifyVisibilityUpdated(
-      const bool& aIsFullyOccluded) override;
   mozilla::ipc::IPCResult RecvUpdateTransparency(
-      const TransparencyMode& aTransparencyMode) override;
+      const TransparencyMode& aMode) override;
+  mozilla::ipc::IPCResult RecvNotifyVisibilityUpdated(
+      const nsSizeMode& aSizeMode, const bool& aIsFullyOccluded) override;
+  mozilla::ipc::IPCResult RecvClearTransparentWindow() override;
   void ActorDestroy(ActorDestroyReason aWhy) override;
 
   nsIWidget* RealWidget() override;
@@ -74,6 +79,9 @@ class CompositorWidgetParent final : public PCompositorWidgetParent,
   HWND mWnd;
 
   gfx::CriticalSection mPresentLock;
+
+  // Transparency handling.
+  mozilla::Atomic<uint32_t, MemoryOrdering::Relaxed> mTransparencyMode;
 
   // Visibility handling.
   mozilla::Atomic<nsSizeMode, MemoryOrdering::Relaxed> mSizeMode;

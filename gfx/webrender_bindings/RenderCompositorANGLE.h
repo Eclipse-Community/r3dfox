@@ -36,7 +36,7 @@ namespace wr {
 
 class DCLayerTree;
 
-class RenderCompositorANGLE final : public RenderCompositor {
+class RenderCompositorANGLE : public RenderCompositor {
  public:
   static UniquePtr<RenderCompositor> Create(
       const RefPtr<widget::CompositorWidget>& aWidget, nsACString& aError);
@@ -137,7 +137,6 @@ class RenderCompositorANGLE final : public RenderCompositor {
 
  protected:
   bool UseCompositor() const;
-  bool RecreateNonNativeCompositorSwapChain();
   void InitializeUsePartialPresent();
   void InsertGraphicsCommandsFinishedWaitQuery(
       RenderedFrameId aRenderedFrameId);
@@ -149,21 +148,22 @@ class RenderCompositorANGLE final : public RenderCompositor {
   bool CreateSwapChain(nsACString& aError);
   void CreateSwapChainForDCompIfPossible();
   bool CreateSwapChainForHWND();
-  RefPtr<IDXGISwapChain1> CreateSwapChainForDComp(bool aUseTripleBuffering);
+  RefPtr<IDXGISwapChain1> CreateSwapChainForDComp(bool aUseTripleBuffering,
+                                                  bool aUseAlpha);
   RefPtr<ID3D11Query> GetD3D11Query();
   void ReleaseNativeCompositorResources();
   HWND GetCompositorHwnd();
-  bool ShouldUseAlpha() const;
 
   RefPtr<IDXGIDevice> DXGIDevice();
   RefPtr<IDXGIFactory> DXGIFactory();
 
   RefPtr<gl::GLContext> mGL;
 
-  EGLConfig mEGLConfig = nullptr;
-  EGLSurface mEGLSurface = nullptr;
+  EGLConfig mEGLConfig;
+  EGLSurface mEGLSurface;
 
-  bool mUseTripleBuffering = false;
+  bool mUseTripleBuffering;
+  bool mUseAlpha;
 
   RefPtr<ID3D11Device> mDevice;
   RefPtr<ID3D11DeviceContext> mCtx;
@@ -178,13 +178,11 @@ class RenderCompositorANGLE final : public RenderCompositor {
   RenderedFrameId mLastCompletedFrameId;
 
   Maybe<LayoutDeviceIntSize> mBufferSize;
-  bool mUsePartialPresent = false;
-  bool mFullRender = false;
+  bool mUsePartialPresent;
+  bool mFullRender;
   // Used to know a timing of disabling native compositor.
-  bool mDisablingNativeCompositor = false;
+  bool mDisablingNativeCompositor;
   bool mFirstPresent = true;
-  // Wether we're currently using alpha.
-  bool mSwapChainUsingAlpha = false;
   RefPtr<layers::FenceD3D11> mFence;
 };
 

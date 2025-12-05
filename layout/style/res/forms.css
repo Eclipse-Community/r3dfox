@@ -21,7 +21,7 @@
   box-decoration-break: inherit;
   block-size: 100%; /* Need this so percentage block-sizes of kids work right */
   /* Please keep the declarations below in sync with ::-moz-scrolled-content in
-     ua.css. */
+     ua.css and ::-moz-button-content below. */
   content: inherit;
   /* Multicol container */
   column-count: inherit;
@@ -85,15 +85,21 @@ input {
   appearance: auto;
   -moz-default-appearance: textfield;
   /* The sum of border and padding on block-start and block-end
-     must be the same here, for buttons, and for <select> */
-  padding-block: 1px;
-  padding-inline: 2px;
+     must be the same here, for buttons, and for <select> (including its
+     internal padding magic) */
+  padding: 1px;
   border: 2px inset ButtonBorder;
   background-color: Field;
   color: FieldText;
   font: -moz-field;
   text-rendering: optimizeLegibility;
   cursor: text;
+}
+
+@media (-moz-non-native-content-theme) {
+  input {
+    padding-inline: 2px;
+  }
 }
 
 textarea {
@@ -253,33 +259,46 @@ select:-moz-select-list-box {
 }
 
 select > button {
-  padding: 0;
-  border: 0;
+  inline-size: 12px;
+  white-space: nowrap;
+  position: static;
   appearance: auto;
   -moz-default-appearance: -moz-menulist-arrow-button;
   pointer-events: none;
 
+  /* Make sure to size correctly if the combobox has a non-auto height. */
+  block-size: 100%;
+  box-sizing: border-box;
+
   /* Draw the arrow in the select's color */
   color: inherit;
 
-  /* We don't want the button to grow the line-height */
-  font: inherit;
-  max-block-size: 100%;
-
-  /* Make sure to align properly with the display frame.  Note that we want the
-   * baseline of the combobox to match the baseline of the label, so the
-   * dropmarker is what gets the vertical-align. */
+  /*
+    Make sure to align properly with the display frame.  Note that we
+    want the baseline of the combobox to match the baseline of the
+    display frame, so the dropmarker is what gets the vertical-align.
+  */
   vertical-align: top;
 }
 
-select > label {
-  display: inline-block;
+*|*::-moz-display-comboboxcontrol-frame {
+  content: inherit;
   overflow: clip;
   pointer-events: none;
   cursor: unset;
   /* Required for making nsIFrame::PeekOffset treat anonymous content in
    * <select> as not selectable. */
   user-select: none;
+  color: unset;
+  white-space: nowrap;
+  text-align: unset;
+  user-select: none;
+  /* Make sure to size correctly if the combobox has a non-auto block-size. */
+  block-size: 100%;
+  /* Try to always display our own text */
+  min-inline-size: max-content;
+  box-sizing: border-box;
+  line-height: -moz-block-height;
 }
 
 option[label]::before {
@@ -508,13 +527,23 @@ input:is([type="reset"], [type="button"], [type="submit"]) {
   font: -moz-button;
   white-space: pre;
   text-align: center;
-  padding-inline: 4px;
 }
 
 input[type="color"] {
   inline-size: 64px;
   block-size: 32px;
-  padding: 4px;
+}
+
+@media (-moz-non-native-content-theme) {
+  button,
+  ::file-selector-button,
+  input:is([type=reset], [type=button], [type=submit]) {
+    padding-inline: 4px;
+  }
+
+  input[type="color"] {
+    padding: 4px;
+  }
 }
 
 /* https://github.com/whatwg/html/issues/9976 */
@@ -529,6 +558,41 @@ button,
   white-space: unset;
   /* But no text-decoration reaching inside, by default */
   display: inline-block;
+}
+
+*|*::-moz-button-content {
+  display: block;
+  /* Please keep the declarations below in sync with ::-moz-scrolled-content in
+     ua.css and ::-moz-fieldset-content above. */
+  content: inherit;
+  /* Multicol container */
+  column-count: inherit;
+  column-width: inherit;
+  column-gap: inherit;
+  column-rule: inherit;
+  column-fill: inherit;
+  /* Flex container */
+  flex-direction: inherit;
+  flex-wrap: inherit;
+  /* -webkit-box container (aliased from -webkit versions to -moz versions) */
+  -moz-box-orient: inherit;
+  -moz-box-direction: inherit;
+  -moz-box-pack: inherit;
+  -moz-box-align: inherit;
+  /* Grid container */
+  grid-auto-columns: inherit;
+  grid-auto-rows: inherit;
+  grid-auto-flow: inherit;
+  grid-column-gap: inherit;
+  grid-row-gap: inherit;
+  grid-template-areas: inherit;
+  grid-template-columns: inherit;
+  grid-template-rows: inherit;
+  /* CSS Align */
+  align-content: inherit;
+  align-items: inherit;
+  justify-content: inherit;
+  justify-items: inherit;
 }
 
 ::file-selector-button:hover,
@@ -546,6 +610,17 @@ input:is([type="reset"], [type="button"], [type="submit"], [type="color"]):activ
   border-color: -moz-buttonactiveborder;
   color: -moz-buttonactivetext;
   background-color: -moz-buttonactiveface;
+}
+
+::-moz-focus-inner {
+  /* Note this padding only affects the -moz-focus-inner ring, not the button itself */
+  padding-block: 0;
+  padding-inline: 2px;
+  border: 1px dotted transparent;
+}
+
+:focus-visible::-moz-focus-inner {
+  border-color: currentColor;
 }
 
 :is(:disabled, :disabled:active)::file-selector-button,
@@ -605,15 +680,21 @@ input[type="file"] > label {
  *  inherit into the scroll frame with pseudo ::-moz-text-control-editing-root
  *  which is a (direct or indirect) child of the text control.
  *
+ * Buttons (either <button>, <input type=submit>, <input type=button>
+ *          or <input type=reset>)
+ *  inherit into the ':-moz-button-content' pseudo-element.
+ *
  * <select>:
- *  inherit into the label and the <optgroup>'s ':before' pseudo-element,
- *  which is where the label of the <optgroup> gets displayed. The <option>s
- *  don't use anonymous boxes, so they need no special rules.
+  *  inherit into the ':-moz-display-comboboxcontrol-frame' pseudo-element and
+  *  the <optgroup>'s ':before' pseudo-element, which is where the label of
+  *  the <optgroup> gets displayed. The <option>s don't use anonymous boxes,
+  *  so they need no special rules.
  */
 ::placeholder,
 ::-moz-text-control-editing-root,
-select > label,
-optgroup::before {
+*|*::-moz-button-content,
+*|*::-moz-display-comboboxcontrol-frame,
+optgroup:before {
   unicode-bidi: inherit;
   text-overflow: inherit;
 }

@@ -99,7 +99,7 @@
 #include "nsStyleConsts.h"
 #include "nsStyleStructInlines.h"
 #include "nsTableWrapperFrame.h"
-#include "nsTextControlFrame.h"
+#include "nsITextControlFrame.h"
 #include "nsView.h"
 #include "nsViewManager.h"
 
@@ -575,17 +575,6 @@ static void MaybeScheduleReflowSVGNonDisplayText(nsIFrame* aFrame) {
 
   svgTextFrame->ScheduleReflowSVGNonDisplayText(
       IntrinsicDirty::FrameAncestorsAndDescendants);
-}
-
-bool nsIFrame::IsReplaced() const {
-  if (HasAnyClassFlag(ClassFlags::Replaced)) {
-    return true;
-  }
-  if (!Style()->IsAnonBox() && mContent->IsHTMLElement(nsGkAtoms::button)) {
-    // Button always behaves as a replaced element.
-    return true;
-  }
-  return false;
 }
 
 bool nsIFrame::ShouldPropagateRepaintsToRoot() const {
@@ -4819,10 +4808,13 @@ bool nsIFrame::ShouldHaveLineIfEmpty() const {
       break;
     case PseudoStyleType::scrolledContent:
       return GetParent()->ShouldHaveLineIfEmpty();
+    case PseudoStyleType::buttonContent:
+      // HTML quirk.
+      return GetContent()->IsHTMLElement(nsGkAtoms::input);
     default:
       return false;
   }
-  return IsInputButtonControlFrame() || IsEditingHost(this);
+  return IsEditingHost(this);
 }
 
 /**
@@ -8639,27 +8631,29 @@ inline static bool FormControlShrinksForPercentSize(const nsIFrame* aFrame) {
     return false;
   }
 
-  switch (aFrame->Type()) {
-    case LayoutFrameType::Progress:
-    case LayoutFrameType::Range:
-    case LayoutFrameType::TextInput:
-    case LayoutFrameType::ColorControl:
-    case LayoutFrameType::ComboboxControl:
-    case LayoutFrameType::ListControl:
-    case LayoutFrameType::CheckboxRadio:
-    case LayoutFrameType::FileControl:
-    case LayoutFrameType::ImageControl:
-      return true;
-    default:
-      // True buttons (<button>, backed by block/grid/flex frame) and most
-      // button-flavored <inputs> (those backed by InputButtonControlFrame)
-      // don't have this shrinking behavior. But color-inputs and comboboxes do;
-      // and both of those derive from ButtonControlFrame. So: we can't easily
-      // use do_QueryFrame to differentiate the buttons-that-do vs. the
-      // buttons-that-don't. So we explicitly list the buttons-that-do by
-      // LayoutFrameType above, and the others fall into this catch-all.
-      return false;
+  LayoutFrameType fType = aFrame->Type();
+  if (fType == LayoutFrameType::Progress ||
+      fType == LayoutFrameType::Range) {
+    // progress, meter and range do have this shrinking behavior
+    // FIXME: Maybe these should be nsIFormControlFrame?
+    return true;
   }
+
+  if (!static_cast<nsIFormControlFrame*>(do_QueryFrame(aFrame))) {
+    // Not a form control.  This includes fieldsets, which do not
+    // shrink.
+    return false;
+  }
+
+  if (fType == LayoutFrameType::GfxButtonControl ||
+      fType == LayoutFrameType::HTMLButtonControl) {
+    // Buttons don't have this shrinking behavior.  (Note that color
+    // inputs do, even though they inherit from button, so we can't use
+    // do_QueryFrame here.)
+    return false;
+  }
+
+  return true;
 }
 
 bool nsIFrame::IsPercentageResolvedAgainstZero(
@@ -8699,6 +8693,7 @@ bool nsIFrame::IsPercentageResolvedAgainstZero(const LengthPercentage& aSize,
 bool nsIFrame::IsBlockWrapper() const {
   auto pseudoType = Style()->GetPseudoType();
   return pseudoType == PseudoStyleType::mozBlockInsideInlineWrapper ||
+         pseudoType == PseudoStyleType::buttonContent ||
          pseudoType == PseudoStyleType::cellContent ||
          pseudoType == PseudoStyleType::columnSpanWrapper;
 }
@@ -9149,7 +9144,8 @@ nsresult nsIFrame::GetSelectionController(nsPresContext* aPresContext,
 
   nsIFrame* frame = this;
   while (frame && frame->HasAnyStateBits(NS_FRAME_INDEPENDENT_SELECTION)) {
-    if (nsTextControlFrame* tcf = do_QueryFrame(frame)) {
+    nsITextControlFrame* tcf = do_QueryFrame(frame);
+    if (tcf) {
       return tcf->GetOwnedSelectionController(aSelCon);
     }
     frame = frame->GetParent();
@@ -9168,7 +9164,8 @@ already_AddRefed<nsFrameSelection> nsIFrame::GetFrameSelection() {
 const nsFrameSelection* nsIFrame::GetConstFrameSelection() const {
   nsIFrame* frame = const_cast<nsIFrame*>(this);
   while (frame && frame->HasAnyStateBits(NS_FRAME_INDEPENDENT_SELECTION)) {
-    if (nsTextControlFrame* tcf = do_QueryFrame(frame)) {
+    nsITextControlFrame* tcf = do_QueryFrame(frame);
+    if (tcf) {
       return tcf->GetOwnedFrameSelection();
     }
     frame = frame->GetParent();
@@ -9561,9 +9558,9 @@ static nsContentAndOffset FindLineBreakingFrame(nsIFrame* aFrame,
     return result;
   }
 
-  // Treat form controls and other replaced inline level elements as inline
-  // leaves.
-  if (aFrame->IsReplaced() && aFrame->IsInlineOutside() &&
+  // Treat form controls as inline leaves
+  // XXX we really need a way to determine whether a frame is inline-level
+  if (static_cast<nsIFormControlFrame*>(do_QueryFrame(aFrame)) &&
       !aFrame->IsBrFrame() && !aFrame->IsTextFrame()) {
     return result;
   }
@@ -12266,6 +12263,7 @@ PhysicalAxes nsIFrame::ShouldApplyOverflowClipping(
     switch (type) {
       case LayoutFrameType::CheckboxRadio:
       case LayoutFrameType::ComboboxControl:
+      case LayoutFrameType::HTMLButtonControl:
       case LayoutFrameType::ListControl:
       case LayoutFrameType::Progress:
       case LayoutFrameType::Range:

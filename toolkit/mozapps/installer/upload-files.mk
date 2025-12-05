@@ -35,6 +35,7 @@ _RESPATH = $(_APPNAME)/Contents/Resources
 endif
 endif
 
+PACKAGE_BASE_DIR = $(ABS_DIST)
 PACKAGE       = $(PKG_PATH)$(PKG_BASENAME)$(PKG_SUFFIX)
 
 # JavaScript Shell packaging
@@ -65,6 +66,11 @@ ifdef MSVC_CXX_RUNTIME_DLL
   JSSHELL_BINS += $(MSVC_CXX_RUNTIME_DLL)
 endif
 
+ifdef WIN_UCRT_REDIST_DIR
+  JSSHELL_BINS += $(notdir $(wildcard $(DIST)/bin/api-ms-win-*.dll))
+  JSSHELL_BINS += ucrtbase.dll
+endif
+
 ifdef LLVM_SYMBOLIZER
   JSSHELL_BINS += $(notdir $(LLVM_SYMBOLIZER))
 endif
@@ -93,21 +99,25 @@ endif
 TAR_CREATE_FLAGS := --exclude=.mkdir.done $(TAR_CREATE_FLAGS)
 CREATE_FINAL_TAR = $(TAR) -c --owner=0 --group=0 --numeric-owner \
   --mode=go-w --exclude=.mkdir.done -f
+UNPACK_TAR       = tar -xf-
 
 ifeq ($(MOZ_PKG_FORMAT),TAR)
   PKG_SUFFIX	= .tar
   INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) > $(PACKAGE)
+  INNER_UNMAKE_PACKAGE	= cd $(1) && $(UNPACK_TAR) < $(UNPACKAGE)
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),TGZ)
   PKG_SUFFIX	= .tar.gz
   INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) | gzip -vf9 > $(PACKAGE)
+  INNER_UNMAKE_PACKAGE	= cd $(1) && gunzip -c $(UNPACKAGE) | $(UNPACK_TAR)
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),XZ)
   PKG_SUFFIX = .tar.xz
   # For non-shippable builds, we would rather finish the build sooner than have optimal compression.
   INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) | xz --compress --stdout $(if $(MOZ_PROFILE_USE),-9 --extreme) > $(PACKAGE)
+  INNER_UNMAKE_PACKAGE	= cd $(1) && xz --decompress --stdout $(UNPACKAGE) | $(UNPACK_TAR)
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),BZ2)
@@ -117,15 +127,18 @@ ifeq ($(MOZ_PKG_FORMAT),BZ2)
   else
     INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) | bzip2 -vf > $(PACKAGE)
   endif
+  INNER_UNMAKE_PACKAGE	= cd $(1) && bunzip2 -c $(UNPACKAGE) | $(UNPACK_TAR)
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),ZIP)
   PKG_SUFFIX	= .zip
   INNER_MAKE_PACKAGE = $(call py_action,zip,'$(PACKAGE)' '$(MOZ_PKG_DIR)' -x '**/.mkdir.done',$(1))
+  INNER_UNMAKE_PACKAGE = $(call py_action,make_unzip,$(UNPACKAGE),$(1))
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),APK)
 INNER_MAKE_PACKAGE = true
+INNER_UNMAKE_PACKAGE = true
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),DMG)
@@ -133,9 +146,6 @@ ifeq ($(MOZ_PKG_FORMAT),DMG)
 
   _ABS_MOZSRCDIR = $(shell cd $(MOZILLA_DIR) && pwd)
   PKG_DMG_SOURCE = $(MOZ_PKG_DIR)
-  MOZ_PKG_MAC_DSSTORE=$(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/dsstore
-  MOZ_PKG_MAC_BACKGROUND=$(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/background.png
-  MOZ_PKG_MAC_ICON=$(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/disk.icns
   INNER_MAKE_PACKAGE = \
     $(call py_action,make_dmg, \
         $(if $(MOZ_PKG_MAC_DSSTORE),--dsstore '$(MOZ_PKG_MAC_DSSTORE)') \
@@ -143,6 +153,13 @@ ifeq ($(MOZ_PKG_FORMAT),DMG)
         $(if $(MOZ_PKG_MAC_ICON),--icon '$(MOZ_PKG_MAC_ICON)') \
         --volume-name '$(MOZ_APP_DISPLAYNAME)' \
         '$(PKG_DMG_SOURCE)' '$(PACKAGE)', \
+        $(1))
+  INNER_UNMAKE_PACKAGE = \
+    $(call py_action,unpack_dmg, \
+        $(if $(MOZ_PKG_MAC_DSSTORE),--dsstore '$(MOZ_PKG_MAC_DSSTORE)') \
+        $(if $(MOZ_PKG_MAC_BACKGROUND),--background '$(MOZ_PKG_MAC_BACKGROUND)') \
+        $(if $(MOZ_PKG_MAC_ICON),--icon '$(MOZ_PKG_MAC_ICON)') \
+        $(UNPACKAGE) $(MOZ_PKG_DIR), \
         $(1))
 endif
 
@@ -224,7 +241,7 @@ ifneq (android,$(MOZ_WIDGET_TOOLKIT))
 endif
 
 ifeq ($(OS_TARGET), WINNT)
-  INSTALLER_PACKAGE = $(DIST)/$(PKG_PATH)$(PKG_INST_BASENAME).exe
+  INSTALLER_PACKAGE = $(DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 endif
 
 # These are necessary because some of our packages/installers contain spaces
@@ -241,7 +258,8 @@ ESCAPE_WILDCARD = $(subst $(space),?,$(1))
 CHECKSUM_ALGORITHM_PARAM = -d sha512 -d md5 -d sha1
 
 # This variable defines where the checksum file will be located
-CHECKSUM_FILE = '$(ABS_DIST)/$(PKG_PATH)/$(CHECKSUMS_FILE_BASENAME).checksums'
+CHECKSUM_FILE = '$(DIST)/$(PKG_PATH)/$(CHECKSUMS_FILE_BASENAME).checksums'
+CHECKSUM_FILES = $(CHECKSUM_FILE)
 
 # Upload MAR tools only if AB_CD is unset or en_US
 ifeq (,$(AB_CD:en-US=))
@@ -300,7 +318,7 @@ endif
 endif
 
 ifdef MOZ_STUB_INSTALLER
-  UPLOAD_FILES += $(call QUOTED_WILDCARD,$(DIST)/$(PKG_PATH)$(PKG_STUB_BASENAME).exe)
+  UPLOAD_FILES += $(call QUOTED_WILDCARD,$(DIST)/$(PKG_INST_PATH)$(PKG_STUB_BASENAME).exe)
 endif
 
 # Upload `.xpt` artifacts for use in artifact builds.

@@ -1637,7 +1637,7 @@ export var UITour = {
         try {
           let shell = aWindow.getShellService();
           if (shell) {
-            await shell.setDefaultBrowser(false);
+            await shell.setDefaultBrowser(true, false);
           }
         } catch (e) {}
         break;
@@ -1779,7 +1779,7 @@ export var UITour = {
       appinfo.defaultBrowser = isDefaultBrowser;
 
       let canSetDefaultBrowserInBackground = true;
-      if (AppConstants.platform == "win" || AppConstants.platform == "macosx") {
+      if (AppConstants.isPlatformAndVersionAtLeast("win", "6.2") || AppConstants.platform == "macosx") {
         canSetDefaultBrowserInBackground = false;
       } else if (AppConstants.platform == "linux") {
         // The ShellService may not exist on some versions of Linux.

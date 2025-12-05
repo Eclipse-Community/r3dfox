@@ -691,7 +691,10 @@ static bool IsPercentageAware(const nsIFrame* aFrame, WritingMode aWM) {
     if ((disp->DisplayOutside() == StyleDisplayOutside::Inline &&
          (disp->DisplayInside() == StyleDisplayInside::FlowRoot ||
           disp->DisplayInside() == StyleDisplayInside::Table)) ||
-        fType == LayoutFrameType::FieldSet) {
+        fType == LayoutFrameType::HTMLButtonControl ||
+        fType == LayoutFrameType::GfxButtonControl ||
+        fType == LayoutFrameType::FieldSet ||
+        fType == LayoutFrameType::ComboboxDisplay) {
       return true;
     }
 

@@ -22,6 +22,7 @@
 #include "mozilla/Logging.h"
 #include "mozilla/StaticPrefs_widget.h"
 #include "mozilla/StaticPtr.h"
+#include "mozilla/WindowsVersion.h"
 #include "nsBaseWidget.h"
 #include "nsWindow.h"
 #include "transport/runnable_utils.h"
@@ -582,7 +583,7 @@ bool WinWindowOcclusionTracker::IsWindowVisibleAndFullyOpaque(
   // size of the desktop. It's usually behind Chrome windows in the z-order,
   // but using a remote desktop can move it up in the z-order. So, ignore them.
   DWORD reason;
-  if (SUCCEEDED(::DwmGetWindowAttribute(aHwnd, DWMWA_CLOAKED, &reason,
+  if (WinUtils::dwmGetWindowAttributePtr && SUCCEEDED(WinUtils::dwmGetWindowAttributePtr(aHwnd, DWMWA_CLOAKED, &reason,
                                         sizeof(reason))) &&
       reason != 0) {
     return false;
@@ -849,6 +850,10 @@ void WinWindowOcclusionTracker::WindowOcclusionCalculator::Initialize() {
   MOZ_ASSERT(IsInWinWindowOcclusionThread());
   MOZ_ASSERT(!mVirtualDesktopManager);
   CALC_LOG(LogLevel::Info, "Initialize()");
+
+  if (!IsWin10OrLater()) {
+    return;
+  }
 
   RefPtr<IVirtualDesktopManager> desktopManager;
   HRESULT hr = ::CoCreateInstance(

@@ -203,6 +203,7 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aColorScheme,
       break;
     case ColorID::Infotext:
     case ColorID::Threeddarkshadow:  // 3-D shadow outer edge color
+    case ColorID::MozButtondefault:  // default button border color
       aColor = NS_RGB(0x00, 0x00, 0x00);
       break;
     case ColorID::Menu:
@@ -245,6 +246,9 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aColorScheme,
     case ColorID::MozColheadertext:
     case ColorID::MozColheaderhovertext:
       aColor = NS_RGB(0x10, 0x10, 0x10);
+      break;
+    case ColorID::MozDragtargetzone:
+      aColor = mSystemColors.textColorHighlight;
       break;
     case ColorID::MozButtonhoverface:
     case ColorID::MozButtonactiveface:
