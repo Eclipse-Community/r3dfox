@@ -113,17 +113,6 @@
 @BINPATH@/DWrite.dll
 @BINPATH@/dwrwp.dll
 #endif
-; Windows App SDK DLLs
-@BINPATH@/@DLL_PREFIX@CoreMessagingXP@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@marshal@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.InputStateManager@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.Internal.FrameworkUdk@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Composition.OSSupport@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Input@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Windowing.Core@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Windowing@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.WindowsAppRuntime@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.WindowsAppRuntime.Insights.Resource@DLL_SUFFIX@
 #endif
 #ifdef MOZ_GTK
 ; This is a standalone binary launched by Firefox on Linux to verify
