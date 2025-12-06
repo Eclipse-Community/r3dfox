@@ -1665,7 +1665,7 @@ struct WindowsUtilitySandboxProps : public UtilitySandboxProps {
   WindowsUtilitySandboxProps() {
     mJobLevel = sandbox::JobLevel::kInteractive;
     mDelayedTokenLevel = sandbox::USER_RESTRICTED_SAME_ACCESS;
-    mDesktop = sandbox::Desktop::kDefault;
+    mDesktop = sandbox::Desktop::kAlternateDesktop;
     mInitialIntegrityLevel = sandbox::INTEGRITY_LEVEL_MEDIUM;
     mDelayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_MEDIUM;
     mUseWin32kLockdown = false;
