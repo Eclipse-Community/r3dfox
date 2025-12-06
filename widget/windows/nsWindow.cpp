@@ -1144,7 +1144,7 @@ nsresult nsWindow::Create(nsIWidget* aParent, const LayoutDeviceIntRect& aRect,
       SetNonClientMargins(LayoutDeviceIntMargin(0, 2, 2, 2));
 
       // Reset the WNDPROC for this window and its whole class, as we had
-      // to use our own WNDPROC when creating the skeleton UI window.
+      // to use our own WNDPROC when creating the the skeleton UI window.
       ::SetWindowLongPtrW(mWnd, GWLP_WNDPROC,
                           reinterpret_cast<LONG_PTR>(
                               WinUtils::NonClientDpiScalingDefWindowProcW));
@@ -1636,29 +1636,10 @@ DWORD nsWindow::WindowExStyle() {
  *
  **************************************************************/
 
-bool nsWindow::ShouldAssociateWithWinAppSDK() const {
-  // We currently don't need any SDK functionality for for PiP windows,
-  // and using the SDK on these windows causes them to go under the
-  // taskbar (bug 1995838).
-  //
-  // TODO(emilio): That might not be true anymore after bug 1993474,
-  // consider re-testing and removing that special-case.
-  return IsTopLevelWidget() && mPiPType == PiPType::NoPiP;
-}
-
 bool nsWindow::AssociateWithNativeWindow() {
   if (!mWnd || !IsWindow(mWnd)) {
     NS_ERROR("Invalid window handle");
     return false;
-  }
-
-  if (ShouldAssociateWithWinAppSDK()) {
-    // Make sure to call this here to associate our window with the
-    // Windows App SDK _before_ setting our WNDPROC, if needed.
-    // This is important because the SDKs WNDPROC might handle messages like
-    // WM_NCCALCSIZE without calling into us, and that can cause sizing issues,
-    // see bug 1993474.
-    WindowsUIUtils::AssociateWithWinAppSDK(mWnd);
   }
 
   // Connect the this pointer to the native window handle.
@@ -1687,7 +1668,12 @@ void nsWindow::DissociateFromNativeWindow() {
   DebugOnly<WNDPROC> wndProcBeforeDissociate =
       reinterpret_cast<WNDPROC>(::SetWindowLongPtrW(
           mWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(*mPrevWndProc)));
-  NS_ASSERTION(wndProcBeforeDissociate == nsWindow::WindowProc,
+  // If we've used the Windows App SDK to remove the minimize/maximize/close
+  // entries from the titlebar, then the Windows App SDK sets its own WNDPROC
+  // own the window, so this assertion would fail. But we only do this if
+  // Mica is available.
+  NS_ASSERTION(WinUtils::MicaAvailable() ||
+                   wndProcBeforeDissociate == nsWindow::WindowProc,
                "Unstacked an unexpected native window procedure");
 
   WinUtils::SetNSWindowPtr(mWnd, nullptr);
