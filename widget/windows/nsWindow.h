@@ -302,8 +302,6 @@ class nsWindow final : public nsIWidget {
 
   bool IsRTL() const { return mIsRTL; }
 
-  bool ShouldAssociateWithWinAppSDK() const;
-
   /**
    * AssociateDefaultIMC() associates or disassociates the default IMC for
    * the window.
