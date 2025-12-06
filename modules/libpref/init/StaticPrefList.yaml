@@ -20293,17 +20293,6 @@
   value: 0
   mirror: always
 
-# Whether to use the Windows App SDK to disable the minimize/maximize/close buttons.
-# This should only be disabled if crashes are happening, because it will make
-# double minimize/maximize/close buttons draw. Note that this preference is disregarded
-# when running on Windows 11 H2 or earlier (which includes Windows 10), as we never use
-# the Windows App SDK on those versions.
-- name: widget.windows.windowsappsdk.enabled
-  type: bool
-  value: true
-  mirror: always
-
-
 # Whether we expand the client area into the taskbar hidden edge on maximized
 # windows.
 - name: widget.windows.hidden-taskbar-hack.size
