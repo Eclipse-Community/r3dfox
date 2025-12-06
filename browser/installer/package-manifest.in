@@ -105,15 +105,6 @@
 @BINPATH@/@MSVC_CXX_RUNTIME_DLL@
 @BINPATH@/@MSVC_CXX_RUNTIME_ATOMIC_WAIT_DLL@
 #endif
-; Windows App SDK DLLs
-@BINPATH@/@DLL_PREFIX@CoreMessagingXP@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@marshal@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.InputStateManager@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.Internal.FrameworkUdk@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Composition.OSSupport@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Input@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Windowing.Core@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@Microsoft.UI.Windowing@DLL_SUFFIX@
 #if MOZ_PACKAGE_WIN_UCRT_DLLS
 @BINPATH@/api-ms-win-*.dll
 @BINPATH@/ucrtbase.dll

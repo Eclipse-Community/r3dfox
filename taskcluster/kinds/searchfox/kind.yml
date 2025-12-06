@@ -273,8 +273,6 @@ tasks:
                 - sysroot-wasm32-wasi
                 - terser
                 - vs
-                - dxc-x86_64-pc-windows-msvc
-                - winappsdk-x86_64-pc-windows-msvc
             fetch:
                 - windows-rs
 
@@ -314,8 +312,6 @@ tasks:
                 - sysroot-x86_64-linux-gnu
                 - sysroot-wasm32-wasi
                 - vs
-                - dxc-x86_64-pc-windows-msvc
-                - winappsdk-x86_64-pc-windows-msvc
             fetch:
                 - windows-rs
 

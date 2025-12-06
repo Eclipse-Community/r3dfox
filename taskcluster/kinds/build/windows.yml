@@ -57,8 +57,6 @@ win32/debug:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - onnxruntime-i686-windows-msvc
-            - winappsdk-x86-pc-windows-msvc
 
 win32/opt:
     description: "Win32 Opt"
@@ -108,8 +106,6 @@ win32/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - onnxruntime-i686-windows-msvc
-            - winappsdk-x86-pc-windows-msvc
 
 win32-fuzzing/debug:
     description: "Win32 Fuzzing Debug"
@@ -159,8 +155,6 @@ win32-fuzzing/debug:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - onnxruntime-i686-windows-msvc
-            - winappsdk-x86-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -212,9 +206,6 @@ win64/debug:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-non-unified/plain:
     description: "Win64 Hybrid Plain"
@@ -263,9 +254,6 @@ win64-non-unified/plain:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-fuzzing/debug:
     description: "Win64 Fuzzing Debug"
@@ -314,9 +302,6 @@ win64-fuzzing/debug:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -360,9 +345,6 @@ win64-plain/debug:
             - vs
             - nsis
             - sysroot-wasm32-wasi
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -413,9 +395,6 @@ win64/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-plain/opt:
     description: "Win64 Opt Plain"
@@ -457,9 +436,6 @@ win64-plain/opt:
             - vs
             - nsis
             - sysroot-wasm32-wasi
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -524,8 +500,6 @@ win32-shippable/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - onnxruntime-i686-windows-msvc
-            - winappsdk-x86-pc-windows-msvc
 
 win64-shippable/opt:
     description: "Win64 Shippable"
@@ -579,9 +553,6 @@ win64-shippable/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-nightlyasrelease/opt:
     description: "Win64 Opt Nightly-As-Release"
@@ -632,9 +603,6 @@ win64-nightlyasrelease/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win32-add-on-devel/opt:
     description: "Windows32 add-on-devel"
@@ -679,8 +647,6 @@ win32-add-on-devel/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - onnxruntime-i686-windows-msvc
-            - winappsdk-x86-pc-windows-msvc
 
 win64-add-on-devel/opt:
     description: "Windows64 add-on-devel"
@@ -725,9 +691,6 @@ win64-add-on-devel/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-noopt/debug:
     description: "Win64 No-optimize Debug"
@@ -772,9 +735,6 @@ win64-noopt/debug:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win32-noopt/debug:
     description: "Win32 No-optimize Debug"
@@ -819,8 +779,6 @@ win32-noopt/debug:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - onnxruntime-i686-windows-msvc
-            - winappsdk-x86-pc-windows-msvc
 
 win32-rusttests/opt:
     description: "Win32 Rust Tests Opt"
@@ -862,7 +820,6 @@ win32-rusttests/opt:
             - win64-rust
             - win64-winchecksec
             - vs
-            - winappsdk-x86-pc-windows-msvc
     optimization:
         test-inclusive: [rusttests]
 
@@ -906,7 +863,6 @@ win32-rusttests/debug:
             - win64-rust
             - win64-winchecksec
             - vs
-            - winappsdk-x86-pc-windows-msvc
     optimization:
         test-inclusive: [rusttests]
 
@@ -947,8 +903,6 @@ win64-rusttests/opt:
             - win64-rust
             - win64-winchecksec
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
     optimization:
         test-inclusive: [rusttests]
 
@@ -989,8 +943,6 @@ win64-rusttests/debug:
             - win64-rust
             - win64-winchecksec
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
     optimization:
         test-inclusive: [rusttests]
 
@@ -1045,9 +997,6 @@ win64-ccov/opt:
             - vs
             - nsis
             - sysroot-wasm32-wasi
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-fuzzing-ccov/opt:
     description: "Win64 Fuzzing Opt w/ Coverage"
@@ -1100,9 +1049,6 @@ win64-fuzzing-ccov/opt:
             - vs
             - nsis
             - sysroot-wasm32-wasi
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-asan/debug:
     description: "Win64 Debug ASAN"
@@ -1149,9 +1095,6 @@ win64-asan/debug:
             - sysroot-wasm32-wasi
             - win64-llvm-symbolizer
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -1201,9 +1144,6 @@ win64-asan/opt:
             - sysroot-wasm32-wasi
             - win64-llvm-symbolizer
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-asan-fuzzing/opt:
     description: "Win64 Fuzzing Opt ASAN"
@@ -1249,9 +1189,6 @@ win64-asan-fuzzing/opt:
             - sysroot-wasm32-wasi
             - win64-llvm-symbolizer
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -1316,8 +1253,6 @@ win32-devedition/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - onnxruntime-i686-windows-msvc
-            - winappsdk-x86-pc-windows-msvc
 
 win64-devedition/opt:
     description: "Win64 Dev Edition (shippable)"
@@ -1372,9 +1307,6 @@ win64-devedition/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-x86_64-pc-windows-msvc
-            - onnxruntime-x86_64-windows-msvc
-            - winappsdk-x86_64-pc-windows-msvc
 
 win64-aarch64/debug:
     description: "AArch64 Win64 Debug"
@@ -1422,8 +1354,6 @@ win64-aarch64/debug:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-aarch64-pc-windows-msvc
-            - winappsdk-aarch64-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -1474,8 +1404,6 @@ win64-aarch64/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-aarch64-pc-windows-msvc
-            - winappsdk-aarch64-pc-windows-msvc
     optimization:
         skip-unless-expanded: null
 
@@ -1530,8 +1458,6 @@ win64-aarch64-shippable/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-aarch64-pc-windows-msvc
-            - winappsdk-aarch64-pc-windows-msvc
 
 win64-aarch64-devedition/opt:
     description: "AArch64 Win64 Dev Edition (shippable)"
@@ -1585,5 +1511,3 @@ win64-aarch64-devedition/opt:
             - sysroot-x86_64-linux-gnu
             - sysroot-wasm32-wasi
             - vs
-            - dxc-aarch64-pc-windows-msvc
-            - winappsdk-aarch64-pc-windows-msvc
