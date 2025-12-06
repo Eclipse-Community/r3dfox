@@ -1680,12 +1680,7 @@ void nsWindow::DissociateFromNativeWindow() {
   DebugOnly<WNDPROC> wndProcBeforeDissociate =
       reinterpret_cast<WNDPROC>(::SetWindowLongPtrW(
           mWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(*mPrevWndProc)));
-  // If we've used the Windows App SDK to remove the minimize/maximize/close
-  // entries from the titlebar, then the Windows App SDK sets its own WNDPROC
-  // own the window, so this assertion would fail. But we only do this if
-  // Mica is available.
-  NS_ASSERTION(WinUtils::MicaAvailable() ||
-                   wndProcBeforeDissociate == nsWindow::WindowProc,
+  NS_ASSERTION(wndProcBeforeDissociate == nsWindow::WindowProc,
                "Unstacked an unexpected native window procedure");
 
   WinUtils::SetNSWindowPtr(mWnd, nullptr);

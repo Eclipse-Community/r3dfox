@@ -837,13 +837,3 @@ firefox-profiler:
         type: git
         repo: https://github.com/firefox-devtools/profiler
         revision: 5a054f9ae741515b8112d4c248e8ac096ee7a3ce
-
-# See https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
-windowsappsdk-redist:
-    description: Windows App SDK Redistributable
-    fetch:
-        type: static-url
-        url: https://aka.ms/windowsappsdk/1.8/1.8.250916003/Microsoft.WindowsAppRuntime.Redist.1.8.zip
-        sha256: a2dccd1d4d3b47857e1f4c36a140b976ff2da61fff8dc9fcf029cd8e829a61fc
-        size: 463549393
-        artifact-name: Microsoft.WindowsAppRuntime.Redist.tar.zst

@@ -2849,46 +2849,6 @@ with only_when(target_is_windows):
         with only_when(dxcompiler.from_sdk):
             set_config("MOZ_DXC_DLL_PATH", dxcompiler.dxc_path)
 
-with only_when(target_is_windows & compile_environment):
-    option(
-        env="MOZ_WINDOWS_APP_SDK_DIR",
-        nargs=1,
-        help="Path to the DLLs from the Windows App SDK redistributable",
-    )
-
-    @depends(target)
-    def windows_app_sdk_task_job_name(target):
-        return f"winappsdk-{target.cpu}-pc-windows-msvc"
-
-    @depends(
-        "MOZ_WINDOWS_APP_SDK_DIR",
-        bootstrap_path(
-            windows_app_sdk_task_job_name,
-            when=depends("MOZ_WINDOWS_APP_SDK_DIR")(lambda x: not x),
-        ),
-    )
-    @checking("for the Windows App SDK")
-    @imports("os")
-    def windows_app_sdk(dir, bootstrapped):
-        if bootstrapped:
-            dir = bootstrapped
-        elif dir:
-            dir = dir[0]
-
-        if not dir:
-            raise FatalCheckError("Windows App SDK dir not present!")
-        if not os.path.exists(dir):
-            raise FatalCheckError(f"Could not find Windows App SDK directory at {dir}")
-        if not os.path.isdir(dir):
-            raise FatalCheckError(
-                f"Windows App SDK directory is not a directory at {dir}"
-            )
-        if len(os.listdir(dir)) == 0:
-            raise FatalCheckError(f"Windows App SDK directory is empty at {dir}")
-        return dir
-
-    set_config("MOZ_WINDOWSAPPSDK_DIR", windows_app_sdk)
-
 
 # Remoting protocol support
 # ==============================================================

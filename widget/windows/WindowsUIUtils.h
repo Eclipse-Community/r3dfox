@@ -12,10 +12,6 @@
 #include "mozilla/Maybe.h"
 #include "mozilla/MozPromise.h"
 
-// Avoid including windef.h to get this, which improves
-// build times.
-typedef struct HWND__* HWND;
-
 using SharePromise =
     mozilla::MozPromise<bool, nsresult, /* IsExclusive */ true>;
 
@@ -59,7 +55,6 @@ class WindowsUIUtils final : public nsIWindowsUIUtils {
   static bool ComputeOverlayScrollbars();
   static double ComputeTextScaleFactor();
   static bool ComputeTransparencyEffects();
-  static void SetIsTitlebarCollapsed(HWND aWnd, bool aIsCollapsed);
 
  protected:
   ~WindowsUIUtils();
