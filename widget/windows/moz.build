@@ -220,22 +220,6 @@ if CONFIG["CC_TYPE"] == "clang-cl":
 
 SPHINX_TREES["/widget/windows"] = "docs"
 
-if CONFIG["MOZ_WINDOWSAPPSDK_DIR"]:
-    # These are the few DLLs that Firefox needs instead of the
-    # whole Windows App SDK.
-    FINAL_TARGET_FILES += [
-        f"%{CONFIG['MOZ_WINDOWSAPPSDK_DIR']}/{f}"
-        for f in (
-            "CoreMessagingXP.dll",
-            "marshal.dll",
-            "Microsoft.InputStateManager.dll",
-            "Microsoft.Internal.FrameworkUdk.dll",
-            "Microsoft.UI.Composition.OSSupport.dll",
-            "Microsoft.UI.Input.dll",
-            "Microsoft.UI.Windowing.Core.dll",
-            "Microsoft.UI.Windowing.dll",
-        )
-    ]
 OS_LIBS += ["psapi"]
 
 DEFINES["PSAPI_VERSION"] = "1"
