@@ -405,7 +405,6 @@ tasks:
                 - sysroot-x86_64-linux-gnu
                 - sysroot-wasm32-wasi
                 - vs
-                - winappsdk-x86-pc-windows-msvc
             fetch:
                 - upx-3.95-win
                 - windows-rs
@@ -447,7 +446,6 @@ tasks:
                 - sysroot-wasm32-wasi
                 - vs
                 - dxc-x86_64-pc-windows-msvc
-                - winappsdk-x86_64-pc-windows-msvc
             fetch:
                 - upx-3.95-win
                 - windows-rs
@@ -487,7 +485,6 @@ tasks:
                 - sysroot-wasm32-wasi
                 - vs
                 - dxc-x86_64-pc-windows-msvc
-                - winappsdk-x86_64-pc-windows-msvc
             fetch:
                 - upx-3.95-win
                 - windows-rs
@@ -527,7 +524,6 @@ tasks:
                 - sysroot-wasm32-wasi
                 - vs
                 - dxc-aarch64-pc-windows-msvc
-                - winappsdk-aarch64-pc-windows-msvc
             fetch:
                 - upx-3.95-win
                 - windows-rs
