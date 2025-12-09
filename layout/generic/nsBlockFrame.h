@@ -530,34 +530,24 @@ class nsBlockFrame : public nsContainerFrame {
    */
   nsresult ResolveBidi();
 
- public:
-  bool IsButtonControlFrame() const {
-    return IsInputButtonControlFrame() || IsColorControlFrame() ||
-           IsComboboxControlFrame();
+  /**
+   * Test whether the frame is a form control in a visual Bidi page.
+   * This is necessary for backwards-compatibility, because most visual
+   * pages use logical order for form controls so that they will
+   * display correctly on native widgets in OSs with Bidi support
+   * @param aPresContext the pres context
+   * @return whether the frame is a BIDI form control
+   */
+  bool IsVisualFormControl(nsPresContext* aPresContext);
+
+  /** Whether this block has an effective align-content property */
+  bool IsAligned() const {
+    return StylePosition()->mAlignContent.primary !=
+           mozilla::StyleAlignFlags::NORMAL;
   }
 
-  bool IsButtonLike() const {
-    if (!Style()->IsAnonBox() && mContent->IsHTMLElement(nsGkAtoms::button)) {
-      return true;
-    }
-    return IsButtonControlFrame();
-  }
-
-  /** Returns the effective align-content of this frame */
-  mozilla::StyleAlignFlags EffectiveAlignContent() const {
-    if (IsButtonLike()) {
-      return mozilla::StyleAlignFlags::CENTER;
-    }
-    return StylePosition()->mAlignContent.primary;
-  }
-
-  bool IsContentAligned() const {
-    return EffectiveAlignContent() != mozilla::StyleAlignFlags::NORMAL;
-  }
-
- protected:
   nscoord GetAlignContentShift() const {
-    return IsContentAligned() ? GetProperty(AlignContentShift()) : 0;
+    return IsAligned() ? GetProperty(AlignContentShift()) : 0;
   }
 
   /**
