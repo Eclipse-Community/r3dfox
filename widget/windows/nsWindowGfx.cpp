@@ -359,7 +359,7 @@ void nsWindow::NotifyOcclusionState(mozilla::widget::OcclusionState aState) {
   if (mFrameState->GetSizeMode() == nsSizeMode_Minimized) {
     isFullyOccluded = false;
   }
-  if (isFullyOccluded && (!mHasBeenShown || nsWindow::sIsRestoringSession)) {
+  if (isFullyOccluded && (!HasTaskbarIconBeenCreated() || nsWindow::sIsRestoringSession)) {
     // Don't mark a newly-created window as occluded until
     // it is finished being restored (including sizing) and has been shown once.
     // (bug 1968297)
