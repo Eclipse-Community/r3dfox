@@ -180,7 +180,7 @@ static sandbox::BrokerServices* InitializeBrokerServices() {
   // will be broken. This has to run before threads and windows are created.
   (void)brokerServices->CreateAlternateDesktop(
       sandbox::Desktop::kAlternateWinstation);
-  Unused << brokerServices->CreateAlternateDesktop(
+  (void)brokerServices->CreateAlternateDesktop(
       sandbox::Desktop::kAlternateDesktop);
 
   // Ensure the relevant mitigations are enforced.
