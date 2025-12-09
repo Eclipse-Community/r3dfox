@@ -5531,16 +5531,18 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
 
     case WM_MOVING:
       FinishLiveResizing(MOVING);
-      // Sometimes, we appear to miss a WM_DPICHANGED message while moving
-      // a window around. Therefore, call ChangedDPI and ResetLayout here
-      // if it appears that the window's scaling is not what we expect.
-      // This causes the prescontext and appshell window management code to
-      // check the appUnitsPerDevPixel value and current widget size, and
-      // refresh them if necessary. If nothing has changed, these calls will
-      // return without actually triggering any extra reflow or painting.
-      if (WinUtils::LogToPhysFactor(mWnd) != mDefaultScale) {
-        ChangedDPI();
-        ResetLayout();
+      if (WinUtils::IsPerMonitorDPIAware()) {
+        // Sometimes, we appear to miss a WM_DPICHANGED message while moving
+        // a window around. Therefore, call ChangedDPI and ResetLayout here
+        // if it appears that the window's scaling is not what we expect.
+        // This causes the prescontext and appshell window management code to
+        // check the appUnitsPerDevPixel value and current widget size, and
+        // refresh them if necessary. If nothing has changed, these calls will
+        // return without actually triggering any extra reflow or painting.
+        if (WinUtils::LogToPhysFactor(mWnd) != mDefaultScale) {
+          ChangedDPI();
+          ResetLayout();
+        }
       }
       break;
 
