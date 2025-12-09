@@ -1394,7 +1394,11 @@ void WindowsUIUtils::SetIsTitlebarCollapsed(HWND aWnd, bool aIsCollapsed) {
     MOZ_ASSERT_UNREACHABLE("IAppWindowTitleBar could not be acquired");
     return;
   }
-  hr = titleBar->put_ExtendsContentIntoTitleBar(aIsCollapsed);
+  if (aIsCollapsed) {
+    hr = titleBar->put_ExtendsContentIntoTitleBar(aIsCollapsed);
+  } else {
+    hr = titleBar->ResetToDefault();
+  }
   if (FAILED(hr)) {
     MOZ_LOG(gWindowsLog, LogLevel::Error,
             ("Skipping SetIsTitlebarCollapsed() because "
