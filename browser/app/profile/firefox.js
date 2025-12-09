@@ -1575,9 +1575,9 @@ pref("browser.bookmarks.editDialog.maxRecentFolders", 7);
   // See - security/sandbox/win/src/sandboxbroker/sandboxBroker.cpp
   // SetSecurityLevelForContentProcess() for what the different settings mean.
 #if defined(NIGHTLY_BUILD)
-  pref("security.sandbox.content.level", 9);
+  pref("security.sandbox.content.level", 7);
 #else
-  pref("security.sandbox.content.level", 8);
+  pref("security.sandbox.content.level", 7);
 #endif
 
   // Pref controlling if messages relevant to sandbox violations are logged.
