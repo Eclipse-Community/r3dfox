@@ -33,9 +33,11 @@
 #include "nsIDownloader.h"
 #include "nsIURI.h"
 #include "nsIWidget.h"
-#include "nsWindowsHelpers.h"
+#include "nsIThread.h"
 
 #include "mozilla/EventForwards.h"
+#include "mozilla/HalScreenConfiguration.h"
+#include "mozilla/HashTable.h"
 #include "mozilla/LazyIdleThread.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/Vector.h"
@@ -406,8 +408,11 @@ class WinUtils {
    * returns the LayoutDeviceIntRegion.
    */
   static LayoutDeviceIntRegion ConvertHRGNToRegion(HRGN aRgn);
-  /** Performs the inverse of ConvertHRGNToRegion. */
-  static nsAutoRegion RegionToHRGN(const LayoutDeviceIntRegion&);
+  /**
+   * Performs the inverse of ConvertHRGNToRegion.
+   * The region must be cleaned up with DeleteObject().
+   */
+  static HRGN RegionToHRGN(const LayoutDeviceIntRegion&);
 
   /**
    * ToIntRect converts a Windows RECT to a LayoutDeviceIntRect.
