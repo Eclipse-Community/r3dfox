@@ -670,19 +670,13 @@ Maybe<nscoord> nsBlockFrame::GetNaturalBaselineBOffset(
                                aExportContext)
           : GetBaselineBOffset(LinesRBegin(), LinesREnd(), aWM, aBaselineGroup,
                                aExportContext);
-  if (!offset && IsButtonLike()) {
-    for (const auto& line : Reversed(Lines())) {
-      if (line.IsEmpty()) {
-        continue;
-      }
-      // Buttons use the end of the content as a baseline if we haven't found
-      // one yet.
-      nscoord bEnd = line.BEnd();
-      offset.emplace(aBaselineGroup == BaselineSharingGroup::Last
-                         ? BSize(aWM) - bEnd
-                         : bEnd);
-      break;
-    }
+  if (!offset && IsButtonLike() && !mLines.empty()) {
+    // Buttons use the end of the content as a baseline if we haven't found one
+    // yet.
+    nscoord bEnd = mLines.back()->BEnd();
+    offset.emplace(aBaselineGroup == BaselineSharingGroup::Last
+                       ? BSize(aWM) - bEnd
+                       : bEnd);
   }
   return offset;
 }
@@ -4079,6 +4073,7 @@ bool nsBlockFrame::IsEmpty() {
   if (!IsSelfEmpty()) {
     return false;
   }
+
   return LinesAreEmpty();
 }
 
@@ -8263,7 +8258,6 @@ void nsBlockFrame::SetInitialChildList(ChildListID aListID,
           !GetParent()->IsListControlFrame()) ||
          pseudo == PseudoStyleType::mozSVGText) &&
         !IsMathMLFrame() && !IsColumnSetWrapperFrame() &&
-        !IsComboboxControlFrame() &&
         RefPtr<ComputedStyle>(GetFirstLetterStyle(PresContext())) != nullptr;
     NS_ASSERTION(haveFirstLetterStyle ==
                      HasAnyStateBits(NS_BLOCK_HAS_FIRST_LETTER_STYLE),
