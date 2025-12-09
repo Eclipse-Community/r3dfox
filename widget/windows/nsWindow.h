@@ -855,9 +855,6 @@ class nsWindow final : public nsIWidget {
   // Whether we're in the process of sending a WM_SETTEXT ourselves
   bool mSendingSetText = false;
 
-  // Whether we're a PIP window.
-  bool mPIPWindow : 1;
-
   // Whether we are asked to render a mica backdrop.
   bool mMicaBackdrop : 1;
 
