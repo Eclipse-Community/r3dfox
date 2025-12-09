@@ -1257,6 +1257,14 @@ class nsIWidget : public nsSupportsWeakReference {
   virtual void PrepareWindowEffects() {}
 
   /**
+   * Called on the main thread at the end of WebRender display list building.
+   */
+  virtual void AddWindowOverlayWebRenderCommands(
+      mozilla::layers::WebRenderBridgeChild* aWrBridge,
+      mozilla::wr::DisplayListBuilder& aBuilder,
+      mozilla::wr::IpcResourceUpdateQueue& aResources) {}
+
+  /**
    * Called when Gecko knows which themed widgets exist in this window.
    * The passed array contains an entry for every themed widget of the right
    * type (currently only StyleAppearance::Toolbar) within the window, except
