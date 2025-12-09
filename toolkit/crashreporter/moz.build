@@ -143,3 +143,6 @@ else:
 
 with Files("**"):
     BUG_COMPONENT = ("Toolkit", "Crash Reporting")
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"
