@@ -28,6 +28,7 @@
 #include "nsIContentInlines.h"
 #include "nsIFormControl.h"
 #include "nsIFrame.h"
+#include "nsIFormControlFrame.h"
 #include "nsLayoutUtils.h"
 #include "nsPresContext.h"
 #include "nsUnicharUtils.h"
@@ -202,7 +203,9 @@ bool HTMLButtonElement::ParseAttribute(int32_t aNamespaceID, nsAtom* aAttribute,
 }
 
 bool HTMLButtonElement::IsDisabledForEvents(WidgetEvent* aEvent) {
-  return IsElementDisabledForEvents(aEvent, GetPrimaryFrame());
+  nsIFormControlFrame* formControlFrame = GetFormControlFrame(false);
+  nsIFrame* formFrame = do_QueryFrame(formControlFrame);
+  return IsElementDisabledForEvents(aEvent, formFrame);
 }
 
 void HTMLButtonElement::GetEventTargetParent(EventChainPreVisitor& aVisitor) {
