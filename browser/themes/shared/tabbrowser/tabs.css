@@ -29,7 +29,7 @@
   --tab-pinned-margin-inline-expanded: var(--space-xsmall);
   --tab-pinned-min-width-expanded: calc(var(--tab-pinned-expanded-background-width) + 2 * var(--tab-pinned-margin-inline-expanded));
   --tab-pinned-container-margin-inline-expanded: var(--space-small);
-  --tab-border-radius: var(--border-radius-medium);
+  --tab-border-radius: var(--toolbarbutton-border-radius);
   --tab-overflow-clip-margin: 2px;
   --tab-close-button-padding: 6px;
   --tab-block-margin: 4px;
