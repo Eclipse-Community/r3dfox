@@ -140,9 +140,15 @@ static inline cairo_extend_t GfxExtendToCairoExtend(ExtendMode extend) {
 
 static inline cairo_format_t GfxFormatToCairoFormat(SurfaceFormat format) {
   switch (format) {
-    case SurfaceFormat::A8R8G8B8_UINT32:
+    case SurfaceFormat::B8G8R8A8:
+    case SurfaceFormat::R8G8B8A8:
+    case SurfaceFormat::A8R8G8B8:
+      // case SurfaceFormat::A8R8G8B8_UINT32:
       return CAIRO_FORMAT_ARGB32;
-    case SurfaceFormat::X8R8G8B8_UINT32:
+    case SurfaceFormat::B8G8R8X8:
+    case SurfaceFormat::R8G8B8X8:
+    case SurfaceFormat::X8R8G8B8:
+      // case SurfaceFormat::X8R8G8B8_UINT32:
       return CAIRO_FORMAT_RGB24;
     case SurfaceFormat::A8:
       return CAIRO_FORMAT_A8;
@@ -150,7 +156,7 @@ static inline cairo_format_t GfxFormatToCairoFormat(SurfaceFormat format) {
       return CAIRO_FORMAT_RGB16_565;
     default:
       gfxCriticalError() << "Unknown image format " << (int)format;
-      return CAIRO_FORMAT_ARGB32;
+      return CAIRO_FORMAT_INVALID;
   }
 }
 
