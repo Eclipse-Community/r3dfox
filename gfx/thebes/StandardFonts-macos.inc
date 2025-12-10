@@ -296,4 +296,5 @@ static const char* kBaseFonts[] = {
 
 static const char* kBaseFonts_13_Higher[] = {
   "Stix Two Math",
+  "Stix Two Math Regular",
 };
