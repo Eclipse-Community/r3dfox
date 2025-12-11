@@ -226,13 +226,11 @@ r3dfox-cookiebanners-desc = Recommended to leave enabled for a less annoying bro
 
 r3dfox-cookiebanners-private = Cookie banner handling mode in private browsing
 
-r3dfox-caption-width = Custom caption button mask width
+r3dfox-caption-width = Custom caption button Aero fog mask width
 
-r3dfox-caption-width-desc = This is only applicable for themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
+r3dfox-caption-desc = For themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
 
-r3dfox-caption-height = Custom caption button mask height
-
-r3dfox-caption-height-desc = This is only applicable for themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
+r3dfox-caption-height = Custom caption button Aero fog mask height
 
 r3dfox-sandbox-level = Security Sandbox Content Level
 
