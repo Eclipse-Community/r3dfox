@@ -220,10 +220,6 @@ r3dfox-accessibility = Accessibility services
 
 r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
 
-r3dfox-webaudio = Web Audio API
-
-r3dfox-webaudio-desc = Can be disabled for enhanced security, however a few websites may require it to be enabled.
-
 r3dfox-cookiebanners = Cookie banner handling mode in normal browsing
 
 r3dfox-cookiebanners-desc = Recommended to leave enabled for a less annoying browsing experience. Currently this will set cookies even when set to block all cookies.
@@ -241,6 +237,11 @@ r3dfox-caption-height-desc = This is only applicable for themes that use custom 
 r3dfox-sandbox-level = Security Sandbox Content Level
 
 r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
+
+r3dfox-webaudio =
+    .label = Disable Web Audio API
+
+r3dfox-webaudio-desc = Web Audio can be disabled for enhanced security, however a few websites may require it to be enabled.
 
 r3dfox-csp =
     .label = Disable Content Security Policy (CSP)
