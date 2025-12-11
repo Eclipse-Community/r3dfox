@@ -74,6 +74,7 @@ ac_add_options --disable-default-browser-agent
 ac_add_options --disable-maintenance-service
 ac_add_options --disable-notification-server
 ac_add_options --disable-parental-controls
+ac_add_options --without-onnx-runtime
 ac_add_options --without-wasm-sandboxed-libraries
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
