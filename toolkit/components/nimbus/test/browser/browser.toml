@@ -1,7 +1,6 @@
 [DEFAULT]
 support-files = [
   "head.js",
-  "!/toolkit/components/aboutconfig/test/browser/head.js"
 ]
 prefs = [
   "app.normandy.run_interval_seconds=0", # This turns off the update interval for fetching recipes from Remote Settings
