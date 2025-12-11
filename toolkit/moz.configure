@@ -2804,7 +2804,14 @@ with only_when(target_is_windows):
     def dxc_supports_target(target):
         return target.cpu in ("x86_64", "aarch64")
 
-    @depends(
+    option(
+        "--enable-dxcompiler",
+        help="{Enable|Disable} DXC for WebGPU on Windows",
+        when=dxc_supports_target,
+    )
+
+    @depends_if(
+        "--enable-dxcompiler",
         target,
         artifact_builds,
         valid_windows_sdk_dir,
@@ -2813,8 +2820,10 @@ with only_when(target_is_windows):
     )
     @checking("for dxcompiler.dll")
     @imports("os.path")
-    def dxcompiler(target, artifact, windows_sdk_dir, dxc_path):
+    def dxcompiler(enable_dxc, target, artifact, windows_sdk_dir, dxc_path):
         if not windows_sdk_dir and not artifact:
+            return namespace(enabled=False)
+        if not enable_dxc:
             return namespace(enabled=False)
         arch = {
             "x86_64": "x64",
