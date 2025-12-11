@@ -42,6 +42,7 @@ Preferences.addAll([
   { id: "widget.native-controls.override-aero-caption-buttons-mask-height", type: "int" },
   { id: "widget.native-controls.override-aero-caption-buttons-mask-width", type: "int" },
   { id: "browser.display.windows.non_native_menus", type: "int" },
-  { id: "dom.webaudio.enabled", type: "bool" },
-  { id: "browser.tabs.dropToPin.enabled", type: "bool" },
+  { id: "dom.webaudio.enabled", type: "bool",  inverted: true },
+  { id: "browser.tabs.dropToPin.enabled", type: "bool",  inverted: true },
+/*  { id: "browser.translations.enable", type: "bool" },*/
 ]);
