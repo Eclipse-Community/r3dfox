@@ -715,7 +715,7 @@ pref("browser.urlbar.yelp.serviceResultDistinction", false);
 
 // If `browser.urlbar.yelp.featureGate` is true, this controls whether
 // Yelp suggestions are turned on.
-pref("browser.urlbar.suggest.yelp", true);
+pref("browser.urlbar.suggest.yelp", false);
 
 // Feature gate pref for Fakespot suggestions in the urlbar.
 pref("browser.urlbar.fakespot.featureGate", false);
