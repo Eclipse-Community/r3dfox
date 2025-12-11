@@ -36,7 +36,6 @@ Preferences.addAll([
   { id: "browser.urlbar.secondaryActions.switchToTab", type: "bool" },
   { id: "gfx.dwrite.enabled", type: "bool",  inverted: true },
   { id: "browser.tabs.groups.enabled", type: "bool" },
-  { id: "browser.translations.enable", type: "bool" },
   { id: "screenshots.browser.component.enabled", type: "bool" },
   { id: "cookiebanners.service.mode", type: "int" },
   { id: "cookiebanners.service.mode.privateBrowsing", type: "int" },
