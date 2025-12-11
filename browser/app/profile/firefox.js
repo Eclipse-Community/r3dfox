@@ -656,7 +656,7 @@ pref("browser.urlbar.yelp.suggestedIndex", 0);
 
 // If `browser.urlbar.yelp.featureGate` is true, this controls whether
 // Yelp suggestions are turned on.
-pref("browser.urlbar.suggest.yelp", true);
+pref("browser.urlbar.suggest.yelp", false);
 
 // The minimum prefix length of addons keyword the user must type to trigger
 // the suggestion. 0 means the min length should be taken from Nimbus.

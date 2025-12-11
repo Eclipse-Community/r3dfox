@@ -3913,11 +3913,11 @@ pref("toolkit.aboutProcesses.profileDuration", 5);
 pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
 
 pref("datareporting.policy.dataSubmissionEnabled", false);
+pref("datareporting.policy.dataSubmissionPolicyNotifiedTime", "32503679999000");
+pref("datareporting.policy.dataSubmissionPolicyAcceptedVersion", 999);
+pref("datareporting.policy.dataSubmissionPolicyBypassNotification", true);
 #ifdef MOZ_DATA_REPORTING
   pref("datareporting.policy.dataSubmissionEnabled", true);
-  pref("datareporting.policy.dataSubmissionPolicyNotifiedTime", "0");
-  pref("datareporting.policy.dataSubmissionPolicyAcceptedVersion", 0);
-  pref("datareporting.policy.dataSubmissionPolicyBypassNotification", false);
   pref("datareporting.policy.currentPolicyVersion", 2);
   pref("datareporting.policy.minimumPolicyVersion", 1);
   pref("datareporting.policy.minimumPolicyVersion.channel-beta", 2);
