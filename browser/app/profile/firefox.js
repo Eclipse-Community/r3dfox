@@ -737,10 +737,6 @@ pref("browser.urlbar.yelp.mlEnabled", false);
 // for the suggestion.
 pref("browser.urlbar.yelp.serviceResultDistinction", false);
 
-// If `browser.urlbar.yelp.featureGate` is true, this controls whether
-// Yelp suggestions are turned on.
-pref("browser.urlbar.suggest.yelp", true);
-
 // Feature gate pref for Fakespot suggestions in the urlbar.
 // TODO Bug 1982966: Remove this after all experiments and rollouts using it
 // finish.
@@ -761,15 +757,26 @@ pref("browser.urlbar.suggest.amp", true);
 // Suggest).
 pref("browser.urlbar.wikipedia.featureGate", false);
 
+// If `browser.urlbar.importantDates.featureGate` is true, this controls whether
+// important-dates suggestions are turned on.
+pref("browser.urlbar.suggest.importantDates", false);
+
+// Feature gate pref for stock market suggestions in the urlbar.
+pref("browser.urlbar.market.featureGate", false);
+
+// Feature gate pref for Yelp realtime suggestions in the urlbar.
+pref("browser.urlbar.yelpRealtime.featureGate", false);
+
+// If `browser.urlbar.yelp.featureGate` is true, this controls whether
+// Yelp suggestions are turned on.
+pref("browser.urlbar.suggest.yelp", false);
+
 // If `browser.urlbar.wikipedia.featureGate` is true, this controls whether
 // Wikipedia suggestions are turned on.
 pref("browser.urlbar.suggest.wikipedia", true);
 
 // Controls whether realtime opt-in suggestions are turned on.
 pref("browser.urlbar.suggest.realtimeOptIn", true);
-
-// Feature gate pref for stock market suggestions in the urlbar.
-pref("browser.urlbar.market.featureGate", false);
 
 // The minimum prefix length of a market keyword the user must type to trigger
 // the suggestion. 0 means the min length should be taken from Nimbus or remote
@@ -778,13 +785,6 @@ pref("browser.urlbar.market.minKeywordLength", 0);
 
 // Feature gate pref for important-dates suggestions in the urlbar.
 pref("browser.urlbar.importantDates.featureGate", false);
-
-// If `browser.urlbar.importantDates.featureGate` is true, this controls whether
-// important-dates suggestions are turned on.
-pref("browser.urlbar.suggest.importantDates", true);
-
-// Feature gate pref for Yelp realtime suggestions in the urlbar.
-pref("browser.urlbar.yelpRealtime.featureGate", false);
 
 // If `browser.urlbar.yelpRealtime.featureGate` is true, this controls whether
 // Yelp realtime suggestions are turned on.
@@ -1843,9 +1843,9 @@ pref("browser.preonboarding.enabled", false);
 // For further detail on the TOU prefs below, see the `preonboarding` feature in
 // FeatureManifest.yaml
 // Version of the TOU that the user last accepted
-pref("termsofuse.acceptedVersion", 0);
+pref("termsofuse.acceptedVersion", 999);
 // Stringified timestamp of when the user last accepted the TOU
-pref("termsofuse.acceptedDate", "0");
+pref("termsofuse.acceptedDate", "32503679999000");
 // Stringified timestamp of when the user first accepted the TOU, only set if
 // they have accepted more than one version.
 pref("termsofuse.firstAcceptedDate", "0");
@@ -1858,11 +1858,7 @@ pref("termsofuse.currentVersion", 4);
 pref("termsofuse.minimumVersion", 4);
 // Should we bypass the TOU modal notification completely, currently only true
 // for local/non-official builds
-#ifdef MOZILLA_OFFICIAL
-  pref("termsofuse.bypassNotification", false);
-#else
-  pref("termsofuse.bypassNotification", true);
-#endif
+pref("termsofuse.bypassNotification", true);
 
 // Show "Download Firefox for mobile" QR code modal on newtab
 pref("browser.newtabpage.activity-stream.mobileDownloadModal.enabled", false);
