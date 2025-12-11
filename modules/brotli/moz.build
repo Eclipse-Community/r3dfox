@@ -62,8 +62,6 @@ SOURCES += [
 # We allow warnings for third-party code that can be updated from upstream.
 AllowCompilerWarnings()
 
-CFLAGS += ['-DBROTLI_BUILD_PORTABLE']
-
 Library('brotli')
 
 HostProgram('brotli')
@@ -93,7 +91,6 @@ HOST_SOURCES += [
     'enc/static_dict.c',
     'enc/static_dict_lut.c',
     'enc/static_init.c',
-    'enc/static_init_lazy.cc',
     'enc/utf8_util.c',
     'tools/brotli.c',
 ]
