@@ -4323,17 +4323,3 @@ set_define(
     True,
     when=moz_debug | milestone.is_early_beta_or_earlier,
 )
-
-
-# Desktop Launcher
-# ==============================================================
-with only_when(target_is_windows):
-    desktop_launcher_enabled = ~compile_environment | check_header(
-        "winhttp.h",
-        includes=["windows.h"],
-        body="auto flag = WINHTTP_FLAG_SECURE_DEFAULTS",
-        language="C++",
-        when=compile_environment,
-    )
-    set_config("DESKTOP_LAUNCHER_ENABLED", True, when=desktop_launcher_enabled)
-    set_define("DESKTOP_LAUNCHER_ENABLED", True, when=desktop_launcher_enabled)
