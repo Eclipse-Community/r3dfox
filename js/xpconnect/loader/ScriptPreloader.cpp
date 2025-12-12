@@ -668,6 +668,36 @@ void ScriptPreloader::PrepareCacheWrite() {
   PrepareCacheWriteInternal();
 }
 
+// A struct to hold reference to a CachedStencil and the snapshot of the
+// CachedStencil::mLoadTime field.
+// CachedStencil::mLoadTime field can be modified concurrently, and we need
+// to create a snapshot, in order to sort scripts.
+struct CachedStencilRefAndTime {
+  using CachedStencil = ScriptPreloader::CachedStencil;
+  CachedStencil* mStencil;
+  TimeStamp mLoadTime;
+
+  explicit CachedStencilRefAndTime(CachedStencil* aStencil)
+      : mStencil(aStencil), mLoadTime(aStencil->mLoadTime) {}
+
+  // For use with nsTArray::Sort.
+  //
+  // Orders scripts by script load time, so that scripts which are needed
+  // earlier are stored earlier, and scripts needed at approximately the
+  // same time are stored approximately contiguously.
+  struct Comparator {
+    bool Equals(const CachedStencilRefAndTime& a,
+                const CachedStencilRefAndTime& b) const {
+      return a.mLoadTime == b.mLoadTime;
+    }
+
+    bool LessThan(const CachedStencilRefAndTime& a,
+                  const CachedStencilRefAndTime& b) const {
+      return a.mLoadTime < b.mLoadTime;
+    }
+  };
+} JS_HAZ_NON_GC_POINTER;
+
 // Writes out a script cache file for the scripts accessed during early
 // startup in this session. The cache file is a little-endian binary file with
 // the following format:
@@ -722,19 +752,20 @@ Result<Ok, nsresult> ScriptPreloader::WriteCache() {
     mMonitor.AssertNotCurrentThreadOwns();
     MonitorAutoLock mal(mMonitor);
 
-    nsTArray<CachedStencil*> scripts;
+    nsTArray<CachedStencilRefAndTime> scriptRefs;
     for (auto& script : IterHash(mScripts, Match<ScriptStatus::Saved>())) {
-      scripts.AppendElement(script);
+      scriptRefs.AppendElement(CachedStencilRefAndTime(script));
     }
 
     // Sort scripts by load time, with async loaded scripts before sync scripts.
     // Since async scripts are always loaded immediately at startup, it helps to
     // have them stored contiguously.
-    scripts.Sort(CachedStencil::Comparator());
+    scriptRefs.Sort(CachedStencilRefAndTime::Comparator());
 
     OutputBuffer buf;
     size_t offset = 0;
-    for (auto script : scripts) {
+    for (auto& scriptRef : scriptRefs) {
+      auto* script = scriptRef.mStencil;
       script->mOffset = offset;
       MOZ_DIAGNOSTIC_ASSERT(
           JS::IsTranscodingBytecodeOffsetAligned(script->mOffset));
@@ -764,7 +795,8 @@ Result<Ok, nsresult> ScriptPreloader::WriteCache() {
       written += padding;
     }
 
-    for (auto script : scripts) {
+    for (auto& scriptRef : scriptRefs) {
+      auto* script = scriptRef.mStencil;
       MOZ_DIAGNOSTIC_ASSERT(JS::IsTranscodingBytecodeOffsetAligned(written));
       MOZ_TRY(Write(fd, script->Range().begin().get(), script->mSize));
 
