@@ -78,6 +78,7 @@ pref("general.useragent.override.gemini.google.com", "Mozilla/5.0 (Windows NT 10
 pref("general.useragent.override.chase.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.discord.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.gmx.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
+pref("general.useragent.override.ipcamlive.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.mail.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.routenote.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
 pref("general.useragent.override.snapchat.com", "Mozilla/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0");
