@@ -9,7 +9,7 @@
         "DisablePocket": true,
         "Extensions": {
             "Install": [
-                "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi"
+                "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
             ],
             "Uninstall": [
                 "bing@search.mozilla.org",
