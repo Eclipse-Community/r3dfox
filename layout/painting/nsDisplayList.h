@@ -3204,7 +3204,7 @@ class nsDisplayList {
     for (nsDisplayItem* item : TakeItems()) {
       items.AppendElement(Item(item));
     }
-    items.StableSort(aComparator);
+    items.template StableSort<SortBoundsCheck::Disable>(aComparator);
 
     for (Item& item : items) {
       AppendToTop(item);

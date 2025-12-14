@@ -1019,6 +1019,8 @@ struct CompareWrapper<T, U, false> {
 
 }  // namespace detail
 
+enum class SortBoundsCheck { Enable, Disable };
+
 //
 // nsTArray_Impl contains most of the guts supporting nsTArray, FallibleTArray,
 // AutoTArray.
@@ -2402,7 +2404,7 @@ class nsTArray_Impl
   // nsTArray_RelocationStrategy.
   //
   // @param aComp The Comparator used to collate elements.
-  template <class Comparator>
+  template <SortBoundsCheck Check = SortBoundsCheck::Enable, class Comparator>
   void Sort(const Comparator& aComp) {
     static_assert(std::is_move_assignable_v<value_type>);
     static_assert(std::is_move_constructible_v<value_type>);
@@ -2411,13 +2413,20 @@ class nsTArray_Impl
     auto compFn = [&comp](const auto& left, const auto& right) {
       return comp.LessThan(left, right);
     };
-    std::sort(Elements(), Elements() + Length(), compFn);
+    if constexpr (Check == SortBoundsCheck::Enable) {
+      std::sort(begin(), end(), compFn);
+    } else {
+      std::sort(Elements(), Elements() + Length(), compFn);
+    }
     ::detail::AssertStrictWeakOrder(Elements(), Elements() + Length(), compFn);
   }
 
   // A variation on the Sort method defined above that assumes that
   // 'operator<' is defined for 'value_type'.
-  void Sort() { Sort(nsDefaultComparator<value_type, value_type>()); }
+  template <SortBoundsCheck Check = SortBoundsCheck::Enable>
+  void Sort() {
+    Sort(nsDefaultComparator<value_type, value_type>());
+  }
 
   // This method sorts the elements of the array in a stable way (i.e. not
   // changing the relative order of elements considered equal by the
@@ -2428,7 +2437,7 @@ class nsTArray_Impl
   // nsTArray_RelocationStrategy.
   //
   // @param aComp The Comparator used to collate elements.
-  template <class Comparator>
+  template <SortBoundsCheck Check = SortBoundsCheck::Enable, class Comparator>
   void StableSort(const Comparator& aComp) {
     static_assert(std::is_move_assignable_v<value_type>);
     static_assert(std::is_move_constructible_v<value_type>);
@@ -2437,12 +2446,17 @@ class nsTArray_Impl
     auto compFn = [&comp](const auto& lhs, const auto& rhs) {
       return comp.LessThan(lhs, rhs);
     };
-    std::stable_sort(Elements(), Elements() + Length(), compFn);
+    if constexpr (Check == SortBoundsCheck::Enable) {
+      std::stable_sort(begin(), end(), compFn);
+    } else {
+      std::stable_sort(Elements(), Elements() + Length(), compFn);
+    }
     ::detail::AssertStrictWeakOrder(Elements(), Elements() + Length(), compFn);
   }
 
   // A variation on the StableSort method defined above that assumes that
   // 'operator<' is defined for 'value_type'.
+  template <SortBoundsCheck Check = SortBoundsCheck::Enable>
   void StableSort() {
     StableSort(nsDefaultComparator<value_type, value_type>());
   }
