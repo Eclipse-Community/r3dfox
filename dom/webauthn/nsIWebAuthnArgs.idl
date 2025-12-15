@@ -58,6 +58,8 @@ interface nsIWebAuthnRegisterArgs : nsISupports {
     // We might overwrite the provided value with "none" if the user declines the
     // consent popup.
     [must_use] readonly attribute AString attestationConveyancePreference;
+
+    readonly attribute Array<AString> hints;
 };
 
 [uuid(2e621cf4-a277-11ed-ae00-bf41a54ef553)]
@@ -93,6 +95,8 @@ interface nsIWebAuthnSignArgs : nsISupports {
     // Arguably we don't need to pass it through since WebAuthnController can
     // cancel transactions.
     readonly attribute unsigned long timeoutMS;
+
+    readonly attribute Array<AString> hints;
 
     readonly attribute boolean conditionallyMediated;
 };

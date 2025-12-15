@@ -36,6 +36,18 @@
       is(arr.length, 0, `${description} (array should be empty)`);
     }
 
+    function stringArrayEquals(actual, expected, description) {
+      is(actual.length, expected.length, `${description} (actual and expected should have the same length)`);
+      for (let i = 0; i < actual.length; i++) {
+        if (actual[i] instanceof String) {
+          throw new Error(`actual[${i}] is not a string` + typeof actual[i]);
+        }
+        if (actual[i] !== expected[i]) {
+          throw new Error(`actual and expected differ in position ${i}: ${actual[i]} vs ${expected[i]}`);
+        }
+      }
+    }
+
     function shouldThrow(func, expectedError, description) {
       let threw = false;
       try {
@@ -55,7 +67,7 @@
         pubKeyCredParams: [],
       };
       let creationOptions = PublicKeyCredential.parseCreationOptionsFromJSON(creationOptionsJSON);
-      is(Object.getOwnPropertyNames(creationOptions).length, 8, "creation options should have 8 properties");
+      is(Object.getOwnPropertyNames(creationOptions).length, 9, "creation options should have 9 properties");
       is(creationOptions.rp.id, undefined, "rp.id should be undefined");
       is(creationOptions.rp.name, "Example", "rp.name should be Example");
       arrayBufferEqualsArray(creationOptions.user.id, [ 250, 93, 234, 52, 180, 202, 38, 120 ], "user.id should be as expected");
@@ -70,6 +82,7 @@
       is(creationOptions.authenticatorSelection.requireResidentKey, false, "creationOptions.authenticatorSelection.requireResidentKey should be false");
       is(creationOptions.authenticatorSelection.userVerification, "preferred", "creationOptions.authenticatorSelection.userVerification should be preferred");
       is(creationOptions.attestation, "none", "attestation should be none");
+      stringArrayEquals(creationOptions.hints, [], "hints should be an empty array");
       is(Object.getOwnPropertyNames(creationOptions.extensions).length, 0, "extensions should be an empty object");
     });
 
@@ -88,7 +101,7 @@
         extensions: { appid: "https://www.example.com/appID", credProps: true, hmacCreateSecret: true, minPinLength: true },
       };
       let creationOptions = PublicKeyCredential.parseCreationOptionsFromJSON(creationOptionsJSON);
-      is(Object.getOwnPropertyNames(creationOptions).length, 9, "creation options should have 9 properties");
+      is(Object.getOwnPropertyNames(creationOptions).length, 10, "creation options should have 10 properties");
       is(creationOptions.rp.name, "Example", "rp.name should be Example");
       is(creationOptions.rp.id, "example.com", "rp.id should be example.com");
       arrayBufferEqualsArray(creationOptions.user.id, [ 215, 212, 213, 166, 160, 65, 56, 3 ], "user.id should be as expected");
@@ -108,6 +121,7 @@
       is(creationOptions.authenticatorSelection.residentKey, "required", "creationOptions.authenticatorSelection.residentKey should be required");
       is(creationOptions.authenticatorSelection.requireResidentKey, true, "creationOptions.authenticatorSelection.requireResidentKey should be true");
       is(creationOptions.authenticatorSelection.userVerification, "discouraged", "creationOptions.authenticatorSelection.userVerification should be discouraged");
+      stringArrayEquals(creationOptions.hints, creationOptionsJSON.hints, "creationOptions.hints should be as expected");
       is(creationOptions.attestation, "indirect", "attestation should be indirect");
       is(creationOptions.extensions.appid, "https://www.example.com/appID", "extensions.appid should be https://www.example.com/appID");
       is(creationOptions.extensions.credProps, true, "extensions.credProps should be true");
@@ -165,12 +179,13 @@
         challenge: "3yW2WHD_jbU",
       };
       let requestOptions = PublicKeyCredential.parseRequestOptionsFromJSON(requestOptionsJSON);
-      is(Object.getOwnPropertyNames(requestOptions).length, 4, "request options should have 4 properties");
+      is(Object.getOwnPropertyNames(requestOptions).length, 5, "request options should have 5 properties");
       arrayBufferEqualsArray(requestOptions.challenge, [ 223, 37, 182, 88, 112, 255, 141, 181 ], "challenge should be as expected");
       is(requestOptions.timeout, undefined, "timeout should be undefined");
       is(requestOptions.rpId, undefined, "rpId should be undefined");
       isEmptyArray(requestOptions.allowCredentials, "allowCredentials should be an empty array");
       is(requestOptions.userVerification, "preferred", "userVerification should be preferred");
+      stringArrayEquals(requestOptions.hints, [], "hints should be an empty array");
       is(Object.getOwnPropertyNames(requestOptions.extensions).length, 0, "extensions should be an empty object");
     });
 
@@ -187,7 +202,7 @@
         extensions: { appid: "https://www.example.com/anotherAppID", hmacCreateSecret: false },
       };
       let requestOptions = PublicKeyCredential.parseRequestOptionsFromJSON(requestOptionsJSON);
-      is(Object.getOwnPropertyNames(requestOptions).length, 6, "request options should have 6 properties");
+      is(Object.getOwnPropertyNames(requestOptions).length, 7, "request options should have 7 properties");
       arrayBufferEqualsArray(requestOptions.challenge, [ 64, 7, 218, 103, 1, 16, 10, 68 ], "challenge should be as expected");
       is(requestOptions.timeout, 25000, "timeout should be 25000");
       is(requestOptions.rpId, "example.com", "rpId should be example.com");
@@ -197,6 +212,7 @@
       is(requestOptions.allowCredentials[0].transports.length, 1, "allowCredentials[0].transports should have one element");
       is(requestOptions.allowCredentials[0].transports[0], "smart-card", "allowCredentials[0].transports[0] should be usb");
       is(requestOptions.userVerification, "discouraged", "userVerification should be discouraged");
+      stringArrayEquals(requestOptions.hints, requestOptionsJSON.hints, "requestOptions.hints should be as expected");
       is(requestOptions.extensions.appid, "https://www.example.com/anotherAppID", "extensions.appid should be https://www.example.com/anotherAppID");
       is(requestOptions.extensions.hmacCreateSecret, false, "extensions.hmacCreateSecret should be false");
     });

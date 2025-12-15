@@ -721,6 +721,22 @@ MacOSWebAuthnService::MakeCredential(uint64_t aTransactionId,
           crossPlatformRegistrationRequest.userVerificationPreference =
               *userVerificationPreference;
         }
+
+        if (__builtin_available(macos 13.5, *)) {
+          // Show the hybrid transport unless we have a non-empty hint list and
+          // none of the hints are for the hybrid transport.
+          bool hasHybridHint = false;
+          nsTArray<nsString> hints;
+          (void)aArgs->GetHints(hints);
+          for (nsString& hint : hints) {
+            if (hint.Equals(u"hybrid"_ns)) {
+              hasHybridHint = true;
+            }
+          }
+          platformRegistrationRequest.shouldShowHybridTransport =
+              hints.Length() == 0 || hasHybridHint;
+        }
+
         nsTArray<uint8_t> clientDataHash;
         nsresult rv = aArgs->GetClientDataHash(clientDataHash);
         if (NS_FAILED(rv)) {
@@ -1011,11 +1027,19 @@ void MacOSWebAuthnService::DoGetAssertion(
               *userVerificationPreference;
         }
         if (__builtin_available(macos 13.5, *)) {
-          // Show the hybrid transport option if (1) we have no transport hints
-          // or (2) at least one allow list entry lists the hybrid transport.
+          // Show the hybrid transport option if (1) none of the allowlist
+          // credentials list transports, or (2) at least one allow list entry
+          // lists the hybrid transport, or (3) the request has the hybrid hint.
           bool shouldShowHybridTransport =
               !transports ||
               (transports & MOZ_WEBAUTHN_AUTHENTICATOR_TRANSPORT_ID_HYBRID);
+          nsTArray<nsString> hints;
+          (void)aArgs->GetHints(hints);
+          for (nsString& hint : hints) {
+            if (hint.Equals(u"hybrid"_ns)) {
+              shouldShowHybridTransport = true;
+            }
+          }
           platformAssertionRequest.shouldShowHybridTransport =
               shouldShowHybridTransport;
         }

@@ -169,6 +169,7 @@ dictionary PublicKeyCredentialCreationOptions {
     sequence<PublicKeyCredentialDescriptor>      excludeCredentials = [];
     // FIXME: bug 1493860: should this "= {}" be here?
     AuthenticatorSelectionCriteria               authenticatorSelection = {};
+    sequence<DOMString>                          hints = [];
     DOMString                                    attestation = "none";
     // FIXME: bug 1493860: should this "= {}" be here?
     AuthenticationExtensionsClientInputs         extensions = {};
@@ -200,6 +201,7 @@ dictionary PublicKeyCredentialRequestOptions {
     USVString                            rpId;
     sequence<PublicKeyCredentialDescriptor> allowCredentials = [];
     DOMString                            userVerification = "preferred";
+    sequence<DOMString>                  hints = [];
     // FIXME: bug 1493860: should this "= {}" be here?
     AuthenticationExtensionsClientInputs extensions = {};
 };
