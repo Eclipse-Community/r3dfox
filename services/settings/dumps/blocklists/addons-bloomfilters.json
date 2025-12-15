@@ -5,6 +5,481 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "favory@sp4ce.pw:1.2.4",
+          "favory@sp4ce.pw:2.2.1",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:1.6",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:1.7",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.0",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:3.3",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:3.2",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:3.1",
+          "ultra-audio-upsampler@firefox:1.0.2",
+          "bookmark-rag@example.com:1.0.0",
+          "{faee9a9d-7fd4-4af1-b353-58d210e7ba66}:0.0.1",
+          "previews@mz.com:15.2"
+        ]
+      },
+      "schema": 1765758993362,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765780506388,
+      "id": "f4e204a9-c682-4dda-8439-02be92f7dd8e",
+      "last_modified": 1765780590414
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "mym-chat-live@mymchat.fr:2.0.6",
+          "maddenp@colorado.edu:1.0",
+          "magnolia_limited_permissions@12.34:4.2.6.8",
+          "{86e7565c-e56f-40ed-9ddd-a36bb042bf14}:1.0.3",
+          "{86e7565c-e56f-40ed-9ddd-a36bb042bf14}:1.0.2resigned1",
+          "{86e7565c-e56f-40ed-9ddd-a36bb042bf14}:1.0.1",
+          "ecourse-expander@bill.gr:1.1",
+          "aws-favorites-quickbar@example.com:1.0.0",
+          "{24bf56d4-c5f1-4baf-81de-257ad617223e}:1.0.0",
+          "{fcc8b070-b4f3-4b8e-b4a8-a0a4abe16afc}:1.0.0",
+          "{d716c670-9039-492b-bc37-eae5f9e6eab2}:1.0.0",
+          "{f4481ee6-b221-4b0f-abb1-3c0aed62303f}:1.0",
+          "{f4481ee6-b221-4b0f-abb1-3c0aed62303f}:1.1",
+          "{f4481ee6-b221-4b0f-abb1-3c0aed62303f}:1.2",
+          "{f4481ee6-b221-4b0f-abb1-3c0aed62303f}:1.3"
+        ]
+      },
+      "schema": 1765737391953,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765758906405,
+      "id": "5723fc60-b6fd-4195-b556-2a1401ae9842",
+      "last_modified": 1765758993150
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "bing-youtube-newtab@luckystar-studio.com:1.1.0",
+          "tab-harvester@extension.local:1.0.0",
+          "{a3d7d1c3-8072-5c39-962c-9fc6061857b1}:0.0.0",
+          "{a3d7d1c3-8072-5c39-962c-9fc6061857b1}:0.0.1",
+          "{a3d7d1c3-8072-5c39-962c-9fc6061857b1}:0.0.5",
+          "{e63e5605-82c5-437f-928e-3353a06f4dfc}:1.0",
+          "{9a41ac34-5d6f-4b69-938e-8054e9e0d949}:1.0",
+          "{781436a8-40d1-4f39-a326-a283ebd7ea4f}:1.0",
+          "martin.heine89@web.de:1.2"
+        ]
+      },
+      "schema": 1765715791810,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765737306101,
+      "id": "d910ffd1-aad5-45c2-ac63-c7df6bb22301",
+      "last_modified": 1765737391720
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{ed7ba470-8e54-465e-825c-99712043e01c}:1.0.1",
+          "jid1-tfBgelm3d4bLkQ@jetpack:3.4.1",
+          "easy-local-storage-manager@nhrdev.com:2.2.0",
+          "fleckenbases@hhoefling.de:2.0.6",
+          "8muses-downloader-ui-fix@yourname.com:1.5.7.1",
+          "8muses-downloader-ui-fix@yourname.com:1.5.7.2",
+          "{7ed1ec49-7438-4807-a8b9-d799e4c8caa8}:0.3.1",
+          "bread@kly.life:0.1.28"
+        ]
+      },
+      "schema": 1765694192919,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765715706552,
+      "id": "1e73c95d-d185-47fe-9f41-ca32eea7c302",
+      "last_modified": 1765715791596
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{b046d15c-185f-41c0-9ad2-edc4a2c23bac}:1.34",
+          "extension@distractshield.com:1.28",
+          "extension@distractshield.com:1.29.2",
+          "extension@distractshield.com:1.0",
+          "extension@distractshield.com:1.21",
+          "8muses-downloader-ui-fix@yourname.com:1.1",
+          "mciiogijehkdemklbdcbfkefimifhecn@chrome-store-foxified-1987658502:0.9.3",
+          "8muses-downloader-ui-fix@yourname.com:1.2",
+          "8muses-downloader-ui-fix@yourname.com:1.5.1",
+          "8muses-downloader-ui-fix@yourname.com:1.5",
+          "8muses-downloader-ui-fix@yourname.com:1.4",
+          "8muses-downloader-ui-fix@yourname.com:1.5.5",
+          "8muses-downloader-ui-fix@yourname.com:1.5.4",
+          "8muses-downloader-ui-fix@yourname.com:1.5.2",
+          "8muses-downloader-ui-fix@yourname.com:1.5.3",
+          "hidden-drops@gmail.com:0.1.0",
+          "kusa.yokoshima4951@outlook.com:0.0.1",
+          "8muses-downloader-ui-fix@yourname.com:1.5.6",
+          "8muses-downloader-ui-fix@yourname.com:1.5.6.4",
+          "8muses-downloader-ui-fix@yourname.com:1.5.6.2",
+          "8muses-downloader-ui-fix@yourname.com:1.5.6.1",
+          "8muses-downloader-ui-fix@yourname.com:1.5.7",
+          "8muses-downloader-ui-fix@yourname.com:1.5.6.3"
+        ]
+      },
+      "schema": 1765672589916,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765694106546,
+      "id": "c2c5beb3-9d86-42bc-a5ed-e02e8abf822d",
+      "last_modified": 1765694192770
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{eb31fc0c-420c-4052-bbcf-bbc4144f1363}:1.3L",
+          "{9f37c85e-a1ca-4584-8f12-f73ae3c1641e}:1.3A",
+          "batch-bookmark-updater@example.com:1.0.0",
+          "wa-incognito@sz.local:2.3.6"
+        ]
+      },
+      "schema": 1765650991534,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765672506233,
+      "id": "2235eba8-6c83-4e41-acb2-394948319566",
+      "last_modified": 1765672589717
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{32aadd9f-ebce-40df-9ab3-09b60781fed0}:4.5.2",
+          "{32aadd9f-ebce-40df-9ab3-09b60781fed0}:4.6.0",
+          "{32aadd9f-ebce-40df-9ab3-09b60781fed0}:4.7.0",
+          "new-source-viewer@example.com:1.0.3",
+          "{e7b3d39d-7dc4-44e9-9af2-54c0b64f18cc}:1.1",
+          "{e7b3d39d-7dc4-44e9-9af2-54c0b64f18cc}:1.0",
+          "redherring@bhmt:0.1.1",
+          "{167d0734-fd4f-41eb-b930-f2a3bb964959}:1.3",
+          "{656e63e3-678e-4229-8980-591883a6b3a8}:1.5",
+          "filejo_fixer_custom@example.com:1.0",
+          "filejo_fixer_custom@example.com:1.1",
+          "filejo_fixer_custom@example.com:1.12"
+        ]
+      },
+      "schema": 1765629390214,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765650906448,
+      "id": "255ee97b-348b-4b8b-889d-62f9b9753a57",
+      "last_modified": 1765650991299
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{57d21bc1-8434-5c3c-8cc8-69082edd16d9}:1.0.0",
+          "{57d21bc1-8434-5c3c-8cc8-69082edd16d9}:0.0.2",
+          "{57d21bc1-8434-5c3c-8cc8-69082edd16d9}:0.0.3",
+          "{57d21bc1-8434-5c3c-8cc8-69082edd16d9}:0.0.0",
+          "youtube-silence-skipper@example.com:1.0",
+          "@ai-assist:1.1",
+          "@ai-assist:1.0",
+          "{c8ccb4ef-a1a2-4948-9aec-fd308ac1e0f6}:1.0",
+          "{c8ccb4ef-a1a2-4948-9aec-fd308ac1e0f6}:2.0",
+          "{265738b1-74ab-451c-86e0-922f58f1fd03}:1.0",
+          "{9fe939e1-0bef-403e-b514-1408103e8e52}:2.0"
+        ]
+      },
+      "schema": 1765607787572,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765629306399,
+      "id": "eede8c99-7494-45ae-83bc-201b9deaf1ca",
+      "last_modified": 1765629390047
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{ce5246ae-cb7a-4303-b12a-c0b52d425ba0}:1.0",
+          "{5e9903cc-b510-4324-87bb-634b6762d95b}:1.0",
+          "{5e9903cc-b510-4324-87bb-634b6762d95b}:1.8.1",
+          "{8c0b10cd-4e3f-4f34-bb12-7fa78c00d2d5}:1.0",
+          "{20f99a9d-9177-47bf-a22d-24f3c6ee182f}:1.0",
+          "{3efc41ba-1d13-43c3-83ec-305ad6b8b7f2}:1.0",
+          "{3efc41ba-1d13-43c3-83ec-305ad6b8b7f2}:1.8.1",
+          "{5c8f4c68-fbbb-4ea5-99b4-3b86d652b492}:1.0",
+          "{51e46a91-2799-4455-bdcd-d505bbbe06ae}:1.5.8.2",
+          "{51e46a91-2799-4455-bdcd-d505bbbe06ae}:1.5.8",
+          "{199632b5-8dd2-4205-899d-0b1f5ad03239}:19.6.6",
+          "daum-dictionary-search@yourdomain.com:1.0",
+          "iframe-fullscreen-fit@extension:1.0"
+        ]
+      },
+      "schema": 1765586190471,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765607706390,
+      "id": "64c62fb8-b516-4e7c-aeae-88e1c8c1c72c",
+      "last_modified": 1765607787348
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "youtube-clean-copy@fylasra.com:1.0",
+          "yonatinator6000@jonathanginzburg.com:1.0",
+          "ceofood-print@ascensiontech.com:1.1.0",
+          "yonatinator6007@jonathanginzburg.com:1.0",
+          "yonatinator6007@jonathanginzburg.com:1.1",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:5.1",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:5",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.9",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.8",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.7",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.6",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.5",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.4",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:4.3"
+        ]
+      },
+      "schema": 1765564588799,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765586106136,
+      "id": "ac689b5a-ebe4-4a98-b271-926a5de98580",
+      "last_modified": 1765586190329
+    },
+    {
+      "stash": {
+        "blocked": [
+          "madison.page.41@outlook.com:1.0.4",
+          "imagedownloader@media.tools:1.0.0",
+          "plugin-extension@local.dev:1.0",
+          "plugin-extension@local.dev:1.1",
+          "plugin-extension@local.dev:1.3",
+          "@fast-safe-search:2.1",
+          "@fast-safe-search:2.2",
+          "@fast-safe-search:2.3",
+          "@fast-safe-search:2.4",
+          "@quicksafesearch:1.4",
+          "@quicksafesearch:1.5",
+          "@quick-safe-search:1.1",
+          "@quick-safe-search:1.2",
+          "@quick-safe-search:1.3",
+          "@quick-safe-search:1.4",
+          "@quick-safe-search:1.5",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.0",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.1",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.2",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.3",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.4",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.5",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.6",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.7",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.8",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:1.9",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:2.0",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:2.1",
+          "{7f60e169-99f6-44ea-9b90-2413dd89999a}:2.2",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:1",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:1.1",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:1.2",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:1.3",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:1.4",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:1.8",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:1.9",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:2.0",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:2.1",
+          "{7f953825-b576-4ec0-8b7a-d8034350f294}:2.2"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "inspectlocker@example.com:2.0.1",
+          "jedi-browser-extension@picsart.com:1.0.0",
+          "mym-chat-live@mymchat.fr:2.0.4",
+          "mym-chat-live@mymchat.fr:2.0.3",
+          "claude-usage@example.com:1.0",
+          "hsite3-downloader@arthurvanremoortel.me:1.0.0",
+          "{188de824-54f1-4be3-b440-3a1e31d264de}:1.0",
+          "mym-chat-live@mymchat.fr:2.0.5",
+          "{57d21bc1-8434-5c3c-8cc8-69082edd16d9}:0.0.1",
+          "moodle-helper@pnzgu.ru:1.0",
+          "moodle-helperr@pnzgu.ru:1.1",
+          "better-new-tab@local.addon:1.0",
+          "better-new-tab@local.addon:1.1",
+          "better-new-tab@local.addon:1.2",
+          "better-new-tab@local.addon:1.3",
+          "better-new-tab@local.addon:1.4",
+          "better-new-tab@local.addon:1.5",
+          "better-new-tab@local.addon:1.6",
+          "{efbcef5b-811e-4558-ba04-944d8bc3a630}:1.991",
+          "universal-colorscheme@local.addon:1.0"
+        ]
+      },
+      "schema": 1765542991362,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765564506358,
+      "id": "33b8074b-2b0f-4d3d-bfc7-10b142e77a05",
+      "last_modified": 1765564588668
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "hendro13124@gmail.com:1.0",
+          "hendro13124@gmail.com:1.1",
+          "new-app-front-vassd@example.com:1.0",
+          "itop-notification@internal:2.0.0",
+          "angel.9535@gmail.com:3.0",
+          "{7405e7bd-cfc6-406a-b491-7be15aa3ac46}:1.0",
+          "@owo_mail_v1.2:1.2",
+          "zenmode@woodendoor.website:1.2"
+        ]
+      },
+      "schema": 1765521390226,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765542906510,
+      "id": "afe86bdc-4f48-4c48-8cec-d2f606d947ca",
+      "last_modified": 1765542991227
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "youtube-volume-normalizer-dev@murahito130.com:1.0.0",
+          "youtube-volume-normalizer-dev@murahito130.co.jp:1.0.0",
+          "{dc5f5d17-0a0b-4576-b146-e92e5df164ac}:1.0.1212",
+          "{dc5f5d17-0a0b-4576-b146-e92e5df164ac}:1.2.1212",
+          "youtube-volume-normalizer-dev@murahito130.co.jp:1.0.2"
+        ]
+      },
+      "schema": 1765499790221,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765521306349,
+      "id": "77e618de-7a30-4655-9a97-ba43d6536401",
+      "last_modified": 1765521390118
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.1",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.2",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.3",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.4",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.5",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.6",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.7",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.8",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.9",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.10",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.11",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.12",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.13",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.14",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.15",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.16",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.0.17",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.1.0",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.1.1",
+          "{0f86f6d1-089c-4631-a9b4-97d90c462340}:1.1.2",
+          "{7957f712-f290-4fd2-a921-267d83361cc7}:1.0",
+          "{347020a8-161c-4b82-9db3-e522a35a7e44}:1.0",
+          "{3364d3cf-f457-4432-9307-e72b3da6b268}:1.0",
+          "{9f48d6ea-30c4-4489-aa17-e0d29a6fab92}:1.0",
+          "{8b8b0427-c16a-41cc-a41c-22619c54b730}:1.0",
+          "{f50c1e3e-2053-4d44-b937-0e2c9a2f300b}:1.0",
+          "{4f9405c8-09c2-4e63-aaff-c24a48ecac0e}:1.0",
+          "{f8c56a0a-89a6-4256-9da9-d92378b4e709}:1.0",
+          "{84c93644-2e1a-48e2-938e-7b9f50b5ec48}:1.0",
+          "{e7e63445-513a-428d-bc84-e86687779fce}:1.0",
+          "{d7d55132-5366-4cdb-9711-c52fc232e5b3}:1.0",
+          "{3cfe647b-110e-459e-93dc-11e1a21259a2}:1.0",
+          "youtube-volume-normalizer@example.com:1.0.0",
+          "youtube-volume-normalizer@example.com:1.1.0"
+        ]
+      },
+      "schema": 1765478192511,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765499706491,
+      "id": "8016891d-c6cd-4495-afc4-1b6806153774",
+      "last_modified": 1765499790100
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "tabvolumecontrol@eth1c.com:1.1",
+          "lee-su-threads@meetandy.ai:0.4.0",
+          "lee-su-threads@meetandy.ai:0.3.9",
+          "lee-su-threads@meetandy.ai:0.3.8",
+          "{65a50cb9-38f3-468d-8281-23b534da5e88}:1.0",
+          "{3f1ca6e4-36c2-407a-a065-9b77e95b1606}:1.0.0",
+          "{1520adf1-7215-4538-acf3-15c87a3327db}:1.0",
+          "{1520adf1-7215-4538-acf3-15c87a3327db}:2.0",
+          "{204fc77d-a533-42c5-a432-482e92fe301f}:1.0",
+          "{204fc77d-a533-42c5-a432-482e92fe301f}:2.0",
+          "{507c73f6-07b2-4607-88d2-46739ad216e7}:1.31",
+          "{b046d15c-185f-41c0-9ad2-edc4a2c23baa}:1.31",
+          "{b046d15c-185f-41c0-9ad2-edc4a2c23baa}:1.30",
+          "{b046d15c-185f-41c0-9ad2-edc4a2c23baa}:1.35",
+          "{b046d15c-185f-41c0-9ad2-edc4a2c23bab}:1.34",
+          "filejo-partner-auto-tool@example.com:1.1",
+          "filejo-partner-auto-tool@example.com:1.12",
+          "{5d428d21-58b6-4da8-ab35-b2ca7c72e7f0}:2.0",
+          "select-all-tabs@example.com:1.0",
+          "enhancer@goldenfox.com:20.5.2",
+          "{7a6131f5-8371-4d91-9ebc-d0d20e65335a}:1.0",
+          "rsc-rce-tool@firefox:1.0.2"
+        ]
+      },
+      "schema": 1765456591128,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765478106024,
+      "id": "87ddd3ef-ec28-49b3-be96-fab8693aec28",
+      "last_modified": 1765478192392
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "lowendtalkplus@example.com:1.0",
+          "{b0c59a5f-4df5-4a34-8f10-c3a9e611e12d}:1.0.3",
+          "netflux-modified@yourdomain.com:1.1.0",
+          "hide-prolific-balance@twoja-domena-email.com:1.0",
+          "rektcaptcha@venuswoodfolkxet37.com:0.1.0",
+          "{cbd44b59-dab3-4ce4-bc6a-c6ffbb46b71f}:1.0",
+          "ultra-audio-upsampler@firefox:1.0.0",
+          "{ba0134dc-76d5-40c2-8075-8e56ce2b664a}:4.0",
+          "{6b299c22-9b61-46e2-9337-15a05cd5742c}:1.0",
+          "{2098785b-9a60-48ca-94a7-fd02dd7f1368}:4.14.0",
+          "{2098785b-9a60-48ca-94a7-fd02dd7f1368}:4.8.0",
+          "{2098785b-9a60-48ca-94a7-fd02dd7f1368}:4.7.1",
+          "{2098785b-9a60-48ca-94a7-fd02dd7f1368}:4.7.0",
+          "{2098785b-9a60-48ca-94a7-fd02dd7f1368}:4.6.1",
+          "{50123e42-1e9f-431b-ab5f-d85c88426090}:0.0.0",
+          "michael@mrbos.nl:1.0",
+          "tabvolumecontrol@eth1c.com:1.0"
+        ]
+      },
+      "schema": 1765413391708,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1765456506014,
+      "id": "2a462e6f-7689-499e-82df-31d0fb4f22f1",
+      "last_modified": 1765456590887
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "yt_music_extractor@example.org:1.0",
           "Simple-Volume-Master@local:1.1",
           "Simple-Volume-Master@local:1.2",
@@ -6049,5 +6524,5 @@
       "last_modified": 1761136764909
     }
   ],
-  "timestamp": 1765413391561
+  "timestamp": 1765780590414
 }

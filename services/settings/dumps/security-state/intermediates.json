@@ -29224,24 +29224,6 @@
       "last_modified": 1576536533289
     },
     {
-      "schema": 1576535711746,
-      "derHash": "k1BhvlLI6ojANLOa39UiuzFMv1ME5acGRzXdvaMkKq8=",
-      "subject": "CN=Certigna Entity Code Signing CA,OU=0002 48146308100036,O=DHIMYOTIS,C=FR",
-      "subjectDN": "MIGIMQswCQYDVQQGEwJGUjESMBAGA1UECgwJREhJTVlPVElTMRwwGgYDVQQLDBMwMDAyIDQ4MTQ2MzA4MTAwMDM2MR0wGwYDVQRhDBROVFJGUi00ODE0NjMwODEwMDAzNjEoMCYGA1UEAwwfQ2VydGlnbmEgRW50aXR5IENvZGUgU2lnbmluZyBDQQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "dfa52fac8680622c2c208aa337be1f107052398f893cb8cdaa1bc8ee0c3c1f93",
-        "size": 2186,
-        "filename": "u3ZvFIlkZqOQDQbj9Abh3WXDOESr4pASOdoob9Oo2YI=.pem",
-        "location": "security-state-staging/intermediates/a34d09dc-c1e9-4b35-bb0f-0c7ee3e64ad8.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "u3ZvFIlkZqOQDQbj9Abh3WXDOESr4pASOdoob9Oo2YI=",
-      "crlite_enrolled": false,
-      "id": "90283279-5bef-4526-8705-37883c1dc2bc",
-      "last_modified": 1576536533281
-    },
-    {
       "schema": 1576535685544,
       "derHash": "Rcsdh0ywO9XFtuB5yPwp5RUh7lYoSGMBlkpB+Uuln4g=",
       "subject": "CN=GlobalSign Root R46,O=GlobalSign nv-sa,C=BE",
@@ -30682,5 +30664,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1765382227673
+  "timestamp": 1765637822749
 }
