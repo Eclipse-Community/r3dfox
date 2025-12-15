@@ -1,0 +1,26 @@
+schema: 1
+
+bugzilla:
+  product: Core
+  component: "DOM: Web Authentication"
+
+origin:
+  name: Microsoft WebAuthn
+  description: Win32 APIs for WebAuthn
+  url: https://github.com/microsoft/webauthn
+
+  release: 9108981ca80b3c6788fa598708dcf3cb10220ad7
+  revision: 9108981ca80b3c6788fa598708dcf3cb10220ad7
+
+  license: MIT
+
+vendoring:
+  url: https://github.com/microsoft/webauthn
+  source-hosting: github
+  vendor-directory: dom/webauthn/winwebauthn
+  exclude:
+    - "**"
+  include:
+    - LICENSE
+    - README.md
+    - webauthn.h

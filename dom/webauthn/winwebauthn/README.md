@@ -1,15 +1,19 @@
 # Description
 
-This project includes Win32 headers for communicating to Windows Hello and external secruity keys as part of WebAuthn and CTAP specification.
+## WebAuthn Specification APIs
 
-For more details about the standards, please follow these links:
-* WebAuthn: https://w3c.github.io/webauthn/
-* CTAP: https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.html
+Win32 APIs for performing operations corresponding to WebAuthn (https://w3c.github.io/webauthn) specification are present in following files.
+- webauthn.h
 
+## Plugin Passkey Authenticators Implementation APIs/Interfaces
+
+APIs, interfaces and helper functions for passkey plugin authenticator implementators are present in following files
+- pluginauthenticator.idl
+- pluginauthenticator.h
+- webauthnplugin.h
 
 # Having Issues?
 If you have any issues in adopting these APIs or need some clarification, please contact fido-dev@microsoft.com.
-
 
 # Contributing
 
