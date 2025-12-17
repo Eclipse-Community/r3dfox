@@ -45,8 +45,8 @@ class ChildProcessChannelListener final {
   };
 
   // TODO Backtrack.
-  nsTHashMap<nsUint64HashKey, Callback> mCallbacks;
-  nsTHashMap<nsUint64HashKey, CallbackArgs> mChannelArgs;
+  nsTHashMap<NoMemMoveKey<nsUint64HashKey>, Callback> mCallbacks;
+  nsTHashMap<NoMemMoveKey<nsUint64HashKey>, CallbackArgs> mChannelArgs;
 };
 
 }  // namespace mozilla::dom

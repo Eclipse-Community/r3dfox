@@ -103,9 +103,11 @@ class WebTransportParent : public PWebTransportParent,
     OnResetOrStopSendingCallback mCallback;
     nsCOMPtr<T> mStream;
   };
-  nsTHashMap<nsUint64HashKey, StreamHash<nsIWebTransportBidirectionalStream>>
+  nsTHashMap<NoMemMoveKey<nsUint64HashKey>,
+             StreamHash<nsIWebTransportBidirectionalStream>>
       mBidiStreamCallbackMap;
-  nsTHashMap<nsUint64HashKey, StreamHash<nsIWebTransportSendStream>>
+  nsTHashMap<NoMemMoveKey<nsUint64HashKey>,
+             StreamHash<nsIWebTransportSendStream>>
       mUniStreamCallbackMap;
 };
 
