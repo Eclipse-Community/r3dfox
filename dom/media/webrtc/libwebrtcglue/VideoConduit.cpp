@@ -770,6 +770,17 @@ void WebrtcVideoConduit::OnControlConfigChange() {
           mEncoderConfig.simulcast_layers.push_back(video_stream);
         }
 
+        // Set each layer's max-bitrate explicitly or libwebrtc may ignore all
+        // stream-specific max-bitrate settings later on, as provided by the
+        // VideoStreamFactory. Default to our max of 10Mbps, overriden by
+        // SDP/JS.
+        int maxBps = KBPS(10000);
+        maxBps = MinIgnoreZero(maxBps, mPrefMaxBitrate);
+        maxBps = MinIgnoreZero(maxBps, mNegotiatedMaxBitrate);
+        maxBps = MinIgnoreZero(maxBps,
+                               static_cast<int>(encodingConstraints.maxBr));
+        video_stream.max_bitrate_bps = maxBps;
+
         // Expected max number of encodings
         mEncoderConfig.number_of_streams =
             mEncoderConfig.simulcast_layers.size();
