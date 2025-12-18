@@ -83,16 +83,6 @@ function testFormattedTimeStatus(aSec, aExpected) {
   Assert.equal(status.l10n.id, aExpected);
 }
 
-function testURI(aURI, aDisp, aHost) {
-  dump("URI Test: " + [aURI, aDisp, aHost] + "\n");
-
-  let [disp, host] = DownloadUtils.getURIHost(aURI);
-
-  // Make sure we have the right display host and full host
-  Assert.equal(disp, aDisp);
-  Assert.equal(host, aHost);
-}
-
 function testGetReadableDates(aDate, aCompactValue) {
   const now = new Date(2000, 11, 31, 11, 59, 59);
 
@@ -372,27 +362,6 @@ function run_test() {
   testFormattedTimeStatus(null, "downloading-file-opens-in-seconds-2");
   testFormattedTimeStatus(0, "downloading-file-opens-in-seconds-2");
   testFormattedTimeStatus(30, "downloading-file-opens-in-seconds-2");
-
-  testURI("http://www.mozilla.org/", "mozilla.org", "www.mozilla.org");
-  testURI(
-    "http://www.city.mikasa.hokkaido.jp/",
-    "city.mikasa.hokkaido.jp",
-    "www.city.mikasa.hokkaido.jp"
-  );
-  testURI("data:text/html,Hello World", "data resource", "data resource");
-  testURI(
-    "jar:http://www.mozilla.com/file!/magic",
-    "mozilla.com",
-    "www.mozilla.com"
-  );
-  testURI("file:///C:/Cool/Stuff/", "local file", "local file");
-  // Don't test for moz-icon if we don't have a protocol handler for it (e.g. b2g):
-  if ("@mozilla.org/network/protocol;1?name=moz-icon" in Cc) {
-    testURI("moz-icon:file:///test.extension", "local file", "local file");
-    testURI("moz-icon://.extension", "moz-icon resource", "moz-icon resource");
-  }
-  testURI("about:config", "about resource", "about resource");
-  testURI("invalid.uri", "", "");
 
   testAllGetReadableDates();
 }

@@ -12,6 +12,7 @@ import { XPCOMUtils } from "resource://gre/modules/XPCOMUtils.sys.mjs";
 const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
+  BrowserUtils: "resource://gre/modules/BrowserUtils.sys.mjs",
   BrowserWindowTracker: "resource:///modules/BrowserWindowTracker.sys.mjs",
   DownloadUtils: "resource://gre/modules/DownloadUtils.sys.mjs",
   Downloads: "resource://gre/modules/Downloads.sys.mjs",
@@ -592,7 +593,13 @@ DownloadsViewUI.DownloadElementShell.prototype = {
       this.showStatus(stateLabel, hoverStatus);
       return;
     }
-    let [displayHost] = lazy.DownloadUtils.getURIHost(this.download.source.url);
+    let uri = URL.parse(this.download.source.url)?.URI;
+    let displayHost = uri
+      ? lazy.BrowserUtils.formatURIForDisplay(uri, {
+          onlyBaseDomain: true,
+        })
+      : "";
+
     let [displayDate] = lazy.DownloadUtils.getReadableDates(
       new Date(this.download.endTime)
     );

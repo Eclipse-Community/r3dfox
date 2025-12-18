@@ -36,7 +36,7 @@ add_task(async function test_check_blob_origin_representation() {
   await check_blob_origin(
     "data:text/html,<body>Some Text<br>",
     "(data)",
-    "blob"
+    "(data)"
   );
 });
 
