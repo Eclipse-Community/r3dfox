@@ -12,6 +12,12 @@ skip-if = [
 ]
 support-files = ["simple_navigator_clipboard_keydown.html"]
 
+["browser_navigator_clipboard_contextmenu_dismiss.js"]
+support-files = [
+  "file_toplevel.html",
+  "file_iframe.html",
+]
+
 ["browser_navigator_clipboard_contextmenu_suppression.js"]
 support-files = [
   "file_toplevel.html",
