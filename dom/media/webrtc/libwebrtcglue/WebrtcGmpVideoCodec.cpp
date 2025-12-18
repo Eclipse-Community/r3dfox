@@ -473,6 +473,8 @@ int32_t WebrtcGmpVideoEncoder::SetRates_g(RefPtr<WebrtcGmpVideoEncoder> aThis,
     return WEBRTC_VIDEO_CODEC_ERROR;
   }
 
+  GMP_LOG_DEBUG("GMP Encoder %p setting rate %ukbps", this, aNewBitRateKbps);
+
   GMPErr err = aThis->mGMP->SetRates(
       aNewBitRateKbps, aFrameRate
                            .map([](double aFr) {
