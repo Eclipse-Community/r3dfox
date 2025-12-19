@@ -5,6 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "builtin/FinalizationRegistryObject.h"
+#include "debugger/Debugger.h"
 #include "gc/GC.h"
 #include "gc/PublicIterators.h"
 #include "js/friend/WindowProxy.h"  // js::IsWindow, js::IsWindowProxy
@@ -446,6 +447,12 @@ JS_PUBLIC_API bool js::NukeCrossCompartmentWrappers(
       // compartment unless nukeAll is set because in that case we want to nuke
       // all outgoing wrappers for the current compartment.
       if (!nukeAll && wrapped->nonCCWRealm() != target) {
+        continue;
+      }
+
+      // Don't nuke wrappers for debugger objects. These are used in Breakpoints
+      // and nuking them breaks debugger invariants.
+      if (MOZ_UNLIKELY(wrapped->is<DebuggerInstanceObject>())) {
         continue;
       }
 
