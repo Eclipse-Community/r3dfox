@@ -454,6 +454,9 @@ Breakpoint::Breakpoint(Debugger* debugger, HandleObject wrappedDebugger,
 
 void Breakpoint::trace(JSTracer* trc) {
   TraceEdge(trc, &wrappedDebugger, "breakpoint owner");
+  // Trace the debugger object too in case |wrappedDebugger| got nuked.
+  TraceCrossCompartmentEdge(trc, wrappedDebugger, &debugger->object,
+                            "breakpoint debugger object");
   TraceEdge(trc, &handler, "breakpoint handler");
 }
 
