@@ -478,6 +478,12 @@ JS_PUBLIC_API bool js::AllowNewWrapper(JS::Compartment* target, JSObject* obj) {
 
   MOZ_ASSERT(obj->compartment() != target);
 
+  // Wrappers for debugger objects are not nuked and we must continue to allow
+  // them to be created or we will break the invariants in Compartment::wrap.
+  if (MOZ_UNLIKELY(obj->is<DebuggerInstanceObject>())) {
+    return true;
+  }
+
   if (target->nukedOutgoingWrappers ||
       obj->nonCCWRealm()->nukedIncomingWrappers) {
     return false;
