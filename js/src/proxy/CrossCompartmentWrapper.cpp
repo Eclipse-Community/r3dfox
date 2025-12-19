@@ -508,6 +508,9 @@ void js::RemapWrapper(JSContext* cx, JSObject* wobjArg,
 
   AutoDisableProxyCheck adpc;
 
+  // This can't GC (and RemapDeadWrapper suppresses it).
+  JS::AutoAssertNoGC nogc(cx);
+
   // If we're mapping to a different target (as opposed to just recomputing
   // for the same target), we must not have an existing wrapper for the new
   // target, otherwise this will break.
@@ -548,6 +551,10 @@ void js::RemapDeadWrapper(JSContext* cx, HandleObject wobj,
   MOZ_ASSERT(!newTarget->is<FinalizationRecordObject>());
 
   AutoDisableProxyCheck adpc;
+
+  // Suppress GC while we manipulate the wrapper map so that it can't observe
+  // intervening state.
+  gc::AutoSuppressGC nogc(cx);
 
   // wobj is not a cross-compartment wrapper, so we can use nonCCWRealm.
   Realm* wrealm = wobj->nonCCWRealm();
