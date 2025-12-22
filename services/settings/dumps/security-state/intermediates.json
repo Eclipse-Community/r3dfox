@@ -1,6 +1,71 @@
 {
   "data": [
     {
+      "schema": 1766199553968,
+      "derHash": "uNBo3GxmB5p1Zp5VsOo+Zv7xBHOUcer8PRZ6aBlyNPY=",
+      "attachment": {
+        "hash": "2721d976197c0971feb3b2aa3fe7ab4116f5b873f7762c1b903bed71f274889e",
+        "size": 2194,
+        "filename": "fNZ8JI9p2D_C-bsB3LH3rWejY9BGBDeW0JhMOiMfa7A=.pem",
+        "location": "security-state-staging/intermediates/4538ae28-7ee7-4f9f-9b25-494e072ba946.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "1d3479b6-a941-456d-aa49-38d4829fed8f",
+      "last_modified": 1766203022761
+    },
+    {
+      "schema": 1766199553271,
+      "derHash": "RppWJMvxJcKbHHOqTQXUsr9PhAC11WnppMpVSrTE+vU=",
+      "attachment": {
+        "hash": "b0eb06ac30b4d1952a31af513c2b2b13be71d0993ac06a3c9d45b32bfdeffd05",
+        "size": 1540,
+        "filename": "G_ANXI8TwJTdF-AFBM8IiIUPEv0Gf6H5LA_b9guG4yE=.pem",
+        "location": "security-state-staging/intermediates/55a07545-3406-49c7-b4c2-75ab41e736be.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "11abffc6-86d0-4dca-8c39-d6a546d872d0",
+      "last_modified": 1766203022758
+    },
+    {
+      "schema": 1766199552928,
+      "derHash": "Mn7JOVXJFFJhsIfG/F6sinEmK/JWjo0298L+29GxB3o=",
+      "attachment": {
+        "hash": "fce6d2adb30e15ecebfc251a25aa18fd326eb2f5bd8def6cdf2c4051fc40d421",
+        "size": 2308,
+        "filename": "IcENwofaRhqQc2PcjyjgcuebC1DnPogY1Yfis0DLQJM=.pem",
+        "location": "security-state-staging/intermediates/1b91e146-c5f2-40c0-8110-19742cfc72f7.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "40ee61ef-0bc5-4ea9-8718-4888ecf4305e",
+      "last_modified": 1766203022755
+    },
+    {
+      "schema": 1766199553624,
+      "derHash": "Gx3gaZDNCzBeLhJIBhA7Gtz/xJnyElBNx39I3QrWIgk=",
+      "attachment": {
+        "hash": "8790a12a03afdc57bfe66ff20ba236054617d0d5509f56709ce442cdb4e42a18",
+        "size": 2121,
+        "filename": "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=.pem",
+        "location": "security-state-staging/intermediates/8d7d0493-30e8-4926-b826-971a2e8d1ac7.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "b85f75ad-679d-4d04-9406-289abb01f97e",
+      "last_modified": 1766203022751
+    },
+    {
+      "schema": 1766127551521,
+      "derHash": "s+hkZ9F4886+Eec5/CFp5MeFkHjsY/tAMYmB7zpOqyY=",
+      "attachment": {
+        "hash": "c09aff236ce4f0c0fdbedb011c055253734d85ee01f4731d866797babaed2236",
+        "size": 2182,
+        "filename": "0cRTd-vc1hjNFlHcLgLCHXUeWqn80bNDH_bs9qMTSPo=.pem",
+        "location": "security-state-staging/intermediates/1c94507f-bac7-453c-806d-0ac393641919.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "9d7646ec-f495-4a54-9a7d-de78added679",
+      "last_modified": 1766131022600
+    },
+    {
       "schema": 1766026758172,
       "derHash": "f+tvjJyEekSeC3AjhsIxmqEZHzjfAtA75ks/GuGXH5Q=",
       "attachment": {
@@ -7612,78 +7677,6 @@
       "crlite_enrolled": false,
       "id": "4bd872f6-57a0-4199-b912-bd91ea605fc6",
       "last_modified": 1721872623502
-    },
-    {
-      "schema": 1721314066965,
-      "derHash": "F3cfaUf6NHJ4bTpEta3iqsupraIDujHr1L2M66/OSUo=",
-      "subject": "CN=NETLOCK TLS Qualified EV ECC CA,O=NETLOCK Kft.,L=Budapest,C=HU",
-      "subjectDN": "MHoxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEVMBMGA1UECgwMTkVUTE9DSyBLZnQuMSgwJgYDVQQDDB9ORVRMT0NLIFRMUyBRdWFsaWZpZWQgRVYgRUNDIENBMRcwFQYDVQRhDA5WQVRIVS0xMjIwMTUyMQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "c9ece95860512e413eb8e22277dcad84c1d4ea14021af9ac7e7716b861cb07fc",
-        "size": 1622,
-        "filename": "8hGei3i00u2h5PvrbQEWCXLIaozLXkbULtTHvZ-3QZg=.pem",
-        "location": "security-state-staging/intermediates/61dcf76f-a95b-4f56-b986-2147acdca2ae.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "8hGei3i00u2h5PvrbQEWCXLIaozLXkbULtTHvZ+3QZg=",
-      "crlite_enrolled": false,
-      "id": "cbb6e3e5-aef1-4dbd-9969-ee713e54f56f",
-      "last_modified": 1721314623022
-    },
-    {
-      "schema": 1721314066604,
-      "derHash": "ABJ5uUndhnDxrm2kB5E7cm9hrveKL/GcLaOVIrMdwMc=",
-      "subject": "CN=NETLOCK TLS DV ECC CA,O=NETLOCK Kft.,L=Budapest,C=HU",
-      "subjectDN": "MHAxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEVMBMGA1UECgwMTkVUTE9DSyBLZnQuMR4wHAYDVQQDDBVORVRMT0NLIFRMUyBEViBFQ0MgQ0ExFzAVBgNVBGEMDlZBVEhVLTEyMjAxNTIx",
-      "whitelist": false,
-      "attachment": {
-        "hash": "3b6ba905027ab376f8a0d1dc686ac229d8f8c842a00fb4de31f37a87ec39469b",
-        "size": 1609,
-        "filename": "li0YuffRNQ1XEOF7VTuJakr96zJ_ALD7q_pshmkp7mU=.pem",
-        "location": "security-state-staging/intermediates/1cd4921a-91a9-442f-afba-b1891d75cbcf.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "li0YuffRNQ1XEOF7VTuJakr96zJ/ALD7q/pshmkp7mU=",
-      "crlite_enrolled": false,
-      "id": "82b342ce-a491-4a61-966c-d18c2dfb17a9",
-      "last_modified": 1721314623019
-    },
-    {
-      "schema": 1721249267434,
-      "derHash": "83562S7OoS8wdQHBJrPi1t4sdBfT4bctJgacE3DniJQ=",
-      "subject": "CN=NETLOCK TLS EV ECC CA,O=NETLOCK Kft.,L=Budapest,C=HU",
-      "subjectDN": "MHAxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEVMBMGA1UECgwMTkVUTE9DSyBLZnQuMR4wHAYDVQQDDBVORVRMT0NLIFRMUyBFViBFQ0MgQ0ExFzAVBgNVBGEMDlZBVEhVLTEyMjAxNTIx",
-      "whitelist": false,
-      "attachment": {
-        "hash": "6cec58bc428099e4938b4ed602a712431dbb35289dc6c5637c2fd4085f1a4506",
-        "size": 1609,
-        "filename": "cbddOej5UNOOv4KN9cNSXUsA1PNl6KujuXDCLRgBnFg=.pem",
-        "location": "security-state-staging/intermediates/46b3b865-76a2-4411-94a8-2ab122ecabcf.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "cbddOej5UNOOv4KN9cNSXUsA1PNl6KujuXDCLRgBnFg=",
-      "crlite_enrolled": false,
-      "id": "5069295a-97e9-45cf-8b62-e71284a97699",
-      "last_modified": 1721249822940
-    },
-    {
-      "schema": 1721249267110,
-      "derHash": "0OuQhAHzMkJgJjSv1RmRU2s616qQFYb960lV/lGw5Bk=",
-      "subject": "CN=NETLOCK TLS OV ECC CA,O=NETLOCK Kft.,L=Budapest,C=HU",
-      "subjectDN": "MHAxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEVMBMGA1UECgwMTkVUTE9DSyBLZnQuMR4wHAYDVQQDDBVORVRMT0NLIFRMUyBPViBFQ0MgQ0ExFzAVBgNVBGEMDlZBVEhVLTEyMjAxNTIx",
-      "whitelist": false,
-      "attachment": {
-        "hash": "c88e2b1e7410dd323a5bc34a7c3f85bd4affb345950c976b16e9db704ef4aac9",
-        "size": 1609,
-        "filename": "i16I9ip2k2JwWRaZXmFeIeiS2KzOYhrChFGnUDooIl0=.pem",
-        "location": "security-state-staging/intermediates/4c2b366d-3949-4dd1-b8aa-a6cacea9a11f.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "i16I9ip2k2JwWRaZXmFeIeiS2KzOYhrChFGnUDooIl0=",
-      "crlite_enrolled": false,
-      "id": "ad955f30-a150-4a7e-8606-f8be1f785134",
-      "last_modified": 1721249822937
     },
     {
       "schema": 1721227673766,
@@ -30672,5 +30665,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1766030226231
+  "timestamp": 1766203022761
 }

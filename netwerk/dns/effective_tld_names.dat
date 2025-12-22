@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2025-12-18_00-40-39_UTC
-// COMMIT: 44bf7aac6858882e64ac20440367fac80486a7ce
+// VERSION: 2025-12-21_00-34-40_UTC
+// COMMIT: a0814017572883671d2f48e789e2173bb2a1e57d
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -12341,6 +12341,10 @@ eero-stage.online
 
 // concludes Amazon
 
+// Antagonist B.V. : https://www.antagonist.nl/
+// Submitted by Sander Hoentjen <systeembeheer@antagonist.nl>
+antagonist.cloud
+
 // Apigee : https://apigee.com/
 // Submitted by Apigee Security Team <security@apigee.com>
 apigee.io
@@ -12352,6 +12356,24 @@ panel.dev
 // Apphud : https://apphud.com
 // Submitted by Alexander Selivanov <alex@apphud.com>
 siiites.com
+
+// Apple : https://www.apple.com
+// Submitted by Apple DNS <dnscontact@apple.com>
+int.apple
+*.cloud.int.apple
+*.r.cloud.int.apple
+*.ap-north-1.r.cloud.int.apple
+*.ap-south-1.r.cloud.int.apple
+*.ap-south-2.r.cloud.int.apple
+*.eu-central-1.r.cloud.int.apple
+*.eu-north-1.r.cloud.int.apple
+*.us-central-1.r.cloud.int.apple
+*.us-central-2.r.cloud.int.apple
+*.us-east-1.r.cloud.int.apple
+*.us-east-2.r.cloud.int.apple
+*.us-west-1.r.cloud.int.apple
+*.us-west-2.r.cloud.int.apple
+*.us-west-3.r.cloud.int.apple
 
 // Appspace : https://www.appspace.com
 // Submitted by Appspace Security Team <security@appspace.com>
@@ -12365,6 +12387,7 @@ appudo.net
 // Appwrite : https://appwrite.io
 // Submitted by Steven Nguyen <security@appwrite.io>
 appwrite.global
+appwrite.network
 *.appwrite.run
 
 // Aptible : https://www.aptible.com/
@@ -13577,11 +13600,6 @@ flutterflow.app
 sprites.app
 fly.dev
 
-// Forgerock : https://www.forgerock.com
-// Submitted by Roderick Parr <roderick.parr@forgerock.com>
-forgeblocks.com
-id.forgerock.io
-
 // FoundryLabs, Inc : https://e2b.dev/
 // Submitted by Jiri Sveceny <security@e2b.dev>
 e2b.app
@@ -14025,6 +14043,10 @@ iki.fi
 ibxos.it
 iliadboxos.it
 
+// Imagine : https://imagine.dev
+// Submitted by Steven Nguyen <security@imagine.dev>
+imagine-proxy.work
+
 // Incsub, LLC : https://incsub.com/
 // Submitted by Aaron Edwards <sysadmins@incsub.com>
 smushcdn.com
@@ -14032,6 +14054,10 @@ wphostedmail.com
 wpmucdn.com
 tempurl.host
 wpmudev.host
+
+// Indevs : https://indevs.in
+// Submitted by Sudheer Bhuvana <security@admin.indevs.in>
+indevs.in
 
 // Individual Network Berlin e.V. : https://www.in-berlin.de/
 // Submitted by Christian Seitz <chris@in-berlin.de>
@@ -14836,10 +14862,6 @@ freeddns.us
 nsupdate.info
 nerdpol.ovh
 
-// NYC.mn : https://dot.nyc.mn/
-// Submitted by NYC.mn Subdomain Service <nyc.mn@mailfence.com>
-nyc.mn
-
 // O3O.Foundation : https://o3o.foundation/
 // Submitted by the prvcy.page Registry Team <info@o3o.foundation>
 prvcy.page
@@ -15008,6 +15030,11 @@ mypep.link
 // Submitted by Kenneth Van Alstyne <kvanalstyne@perspecta.com>
 perspecta.cloud
 
+// Ping Identity : https://www.pingidentity.com
+// Submitted by Ping Identity <security@pingidentity.com>
+forgeblocks.com
+id.forgerock.io
+
 // Plain : https://www.plain.com/
 // Submitted by Jesús Hernández <security@plain.com>
 support.site
@@ -15085,6 +15112,11 @@ e.id
 // Submitted by Yaacov Akiba Slama <admin@chirurgiens-dentistes-en-france.fr>
 chirurgiens-dentistes-en-france.fr
 byen.site
+
+// PublicZone : https://publiczone.org/
+// Submitted by PublicZone NOC Team <noc@publiczone.org>
+nyc.mn
+*.cn.st
 
 // pubtls.org : https://www.pubtls.org
 // Submitted by Kor Nielsen <kor@pubtls.org>
