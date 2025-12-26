@@ -5,6 +5,382 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "xhamster-history-auto-delete@example.com:3.1",
+          "@auto-close-no-data:1.0",
+          "dns@wesinator.github.io:0.8",
+          "timer-link-opener@example.com:1.2",
+          "{c004c39a-e41d-4227-819e-bedf1cef0418}:1.0",
+          "my-new-timer@example.com:1.2",
+          "mynew-timer@example.com:1.2",
+          "@new-tab-page.overcq.com:3.3.1.1",
+          "mynew--timer@example.com:1.2"
+        ]
+      },
+      "schema": 1766622979489,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766644505553,
+      "id": "3c2d51e8-ba74-41d9-a8c6-cf7ce29b00d0",
+      "last_modified": 1766644579982
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "optiload@yourdomain.com:1.0.1",
+          "optiload@yourdomain.com:1.0.0"
+        ]
+      },
+      "schema": 1766601378045,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766622905568,
+      "id": "69ffb1ac-796e-416d-b727-c6affb9b8ac3",
+      "last_modified": 1766622979143
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "siftahladim-ilan-ekle@ferhatcengz:1.0.0",
+          "siftahladim-ilan-ekle@ferhatcengz:1.0.1",
+          "kill_ouo_timer@null:1.0",
+          "kill_ouo_timer@null:2.0",
+          "owhefoiubewcawoiefji@null:2.0",
+          "{6cb58878-cac7-44c7-af55-1bdb809f81a7}:1.0",
+          "technopat-ai-asistan@atakan.karakus:3.2.0"
+        ]
+      },
+      "schema": 1766579791568,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766601305163,
+      "id": "8759d982-b9dd-400e-a079-6d71c2449d06",
+      "last_modified": 1766601377812
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{32a6d9ee-aafd-4ed5-a839-c922cd979de9}:11.1.0",
+          "{907ed6bd-dc2b-47d1-9ff2-5d639221847b}:1.0",
+          "{907ed6bd-dc2b-47d1-9ff2-5d639221847b}:1.1.2",
+          "{fb0d5e86-9815-4951-82f8-a2d6a3e5ed55}:1.0",
+          "{fb0d5e86-9815-4951-82f8-a2d6a3e5ed55}:1.2",
+          "{e310c726-71fb-4ee1-83e6-5886c94c9803}:1.0.0",
+          "{e310c726-71fb-4ee1-83e6-5886c94c9803}:2.2"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:6.1",
+          "{a60a9c39-104b-451b-a651-e36c6d247726}:1.6.24",
+          "{a60a9c39-104b-451b-a651-e36c6d247726}:1.6.64",
+          "{a60a9c39-104b-451b-a651-e36c6d247726}:1.6.65",
+          "{a60a9c39-104b-451b-a651-e36c6d247726}:1.6.96",
+          "{a60a9c39-104b-451b-a651-e36c6d247726}:1.6.97",
+          "precheck-widget@local:1.0",
+          "precheck-widget-gn@local:1.0",
+          "{693c5f72-d733-4fb9-aaf8-7fac32ef5a6d}:1.10",
+          "{693c5f72-d733-4fb9-aaf8-7fac32ef5a6d}:1.11",
+          "{693c5f72-d733-4fb9-aaf8-7fac32ef5a6d}:1.20",
+          "{290aab70-dc03-44dc-89e4-d0a38d428647}:1.0",
+          "{6c86738b-4526-4bb9-8211-dce8debc72f6}:1.11",
+          "{d29d24b7-cfac-4fd3-bf72-45d3f6fd41d0}:1.0",
+          "{a9c44835-5ec2-42db-b52b-cc72d3f94d4e}:1.0",
+          "{4e716b30-856f-470b-bd9a-36bc6d92f024}:1.0",
+          "{4e716b30-856f-470b-bd9a-36bc6d92f024}:1.1",
+          "{4e716b30-856f-470b-bd9a-36bc6d92f024}:1.2",
+          "{4e716b30-856f-470b-bd9a-36bc6d92f024}:1.21",
+          "{4e716b30-856f-470b-bd9a-36bc6d92f024}:1.22",
+          "{4e716b30-856f-470b-bd9a-36bc6d92f024}:1.23",
+          "{4e716b30-856f-470b-bd9a-36bc6d92f024}:1.24",
+          "civitai-comfyui-downloader@example.com:1.0.0"
+        ]
+      },
+      "schema": 1766558178769,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766579706380,
+      "id": "5553f7c7-7fe9-4ce1-9b23-ff5403b9f271",
+      "last_modified": 1766579791409
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{87462328-db80-4257-9c9e-f46da8b4090d}:1.0",
+          "{87462328-db80-4257-9c9e-f46da8b4090d}:2.0",
+          "{87462328-db80-4257-9c9e-f46da8b4090d}:3.0",
+          "{a122f33f-4f3f-49cb-9c56-2b0f9d5f2296}:1.0",
+          "emmy-tools@amazon.com:1.2.2",
+          "{595e4c4d-fd50-4a98-bf00-580b3d1b03d3}:1.3",
+          "{1357aced-aced-5312-1729-34125ace4ace}:1.0.2"
+        ]
+      },
+      "schema": 1766536589536,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766558105144,
+      "id": "52cb98bc-cd06-40cf-a87c-840acfadbb3d",
+      "last_modified": 1766558178531
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "vpn@protons.ch:1.2.9",
+          "auto_valvur24@example.com:1.0",
+          "{f822aaf8-16e7-4cb8-8161-c04c4994401a}:1.0",
+          "sc-speed-pro@max.dev:1.7.9"
+        ]
+      },
+      "schema": 1766514984205,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766536506430,
+      "id": "14b7888f-1b3d-42de-bb3a-b84504b77aa7",
+      "last_modified": 1766536589360
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "hub-manager@amazon.com:6.6",
+          "hub-manager@amazon.com:1.0",
+          "harmony-vrid@yourcompany.com:4.1",
+          "harmony-vrid@yourcompany.com:4.2",
+          "harmony-vrid@yourcompany.com:4.3",
+          "harmony-vrid@yourcompany.com:4.4",
+          "harmony-vrid@yourcompany.com:4.5",
+          "harmony-vrid@yourcompany.com:4.6",
+          "harmony-vrid@yourcompany.com:4.7",
+          "harmony-vrid@yourcompany.com:4.8",
+          "harmony-vrid@yourcompany.com:4.9",
+          "harmony-vrid@yourcompany.com:5.1",
+          "harmony-vrid@yourcompany.com:5.2",
+          "harmony-vrid@yourcompany.com:5.3",
+          "harmony-vrid@yourcompany.com:5.4",
+          "harmony-vrid@yourcompany.com:5.5",
+          "harmony-vrid@yourcompany.com:5.6",
+          "harmony-vrid@yourcompany.com:5.7",
+          "harmony-vrid@yourcompany.com:5.8",
+          "harmony-vrid@yourcompany.com:5.9",
+          "harmony-vrid@yourcompany.com:6.0",
+          "harmony-vrid@yourcompany.com:6.1",
+          "harmony-vrid@yourcompany.com:6.2",
+          "harmony-vrid@yourcompany.com:6.3",
+          "harmony-vrid@yourcompany.com:6.4",
+          "hub-manager@amazon.com:1.1",
+          "{d08bd171-a3f5-450f-9382-2d8eda13dc2a}:1.0",
+          "{d08bd171-a3f5-450f-9382-2d8eda13dc2a}:2.0",
+          "t6b@de:2.0",
+          "{7fb4f23f-d3ad-4286-a13b-fb08c87937db}:1.0.283",
+          "bahria-cms-attendance-tracker@your-name.org:1.0.0",
+          "v4-contacts@vdm-vsg.de:1.0.0"
+        ]
+      },
+      "schema": 1766493379301,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766514906131,
+      "id": "630c5b5d-7cc5-4f95-88a3-c3cb5bdd0a76",
+      "last_modified": 1766514984043
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "@head-on-dev-browser-extension:0.0.1",
+          "@grip.security.beta1:0.0.3",
+          "@grip.security.beta1:0.0.2",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:5.6",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:6.0",
+          "{d390843c-69cf-4196-9875-4b51c2b80934}:1.1",
+          "{d390843c-69cf-4196-9875-4b51c2b80934}:1.2"
+        ]
+      },
+      "schema": 1766471780805,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766493305415,
+      "id": "c84a3992-a5b6-4688-a86f-e6e2aebf0501",
+      "last_modified": 1766493379033
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "recording-extensions@skyatt.net_beta1:1.0",
+          "recording-extensions@skyatt.net_beta1:1.0beta1",
+          "recording-extensions@skyatt.net_beta1:1.1",
+          "recording-extensions@skyatt.net_beta1:1.0.0.2",
+          "skyatt-recording-extensions-beta@skyatt.net:1.0.3",
+          "skyatt-recording-extensions-beta@skyatt.net:1.0.4",
+          "hogehoge@fugafuga99.com:1.0beta1",
+          "hogehoge@fugafuga99.com:1.0beta2",
+          "hogehoge@fugafuga99.com:1.0",
+          "hogehoge@fugafuga99.com:0.1",
+          "hogehoge@fugafuga99.com:1.0BETAA1",
+          "hogehoge@fugafuga99.com:1.3",
+          "hogehoge@fugafuga99.com:1.4",
+          "youtube-volume-toggle@local:1.7",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.1.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.2.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.2.1",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.3.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.4.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.5.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.6.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.7.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.8.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.8.5",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.8.6",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.9.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.9.2",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.10.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.10.1",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.11.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.11.5",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.11.6",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.12.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.13.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.14.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.14.1",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.14.2",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.14.3",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.15.0",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.15.1",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.15.2",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.15.3",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.15.4",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.15.5",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:1.16.6",
+          "{4b726fbc-aba9-4fa7-97fd-a42c2511ddf7}:2.1.1",
+          "identra-guard@identra.ai:1.0.40"
+        ]
+      },
+      "schema": 1766450189818,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766471705064,
+      "id": "db57fcca-976d-4aa3-afa8-144247255698",
+      "last_modified": 1766471780533
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "github-notify@example.com:1.0",
+          "olih@live.at:1.0",
+          "favory@sp4ce.pw:2.3.6",
+          "{6ce7aa95-13f5-455a-b779-b0c16ace2750}:1.70",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.3",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.4",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.5",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.6",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.7",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.8",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.9",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.10",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.11",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.12",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.13",
+          "{804165e5-f1ae-45c7-a974-e00772c866e6}:1.14",
+          "{6ce7aa95-13f5-455a-b779-b0c16ace2750}:1.71",
+          "eleven-audio-amplifier@your-email.com:1.0.0",
+          "imagus-reborn@extension-id.com:2025.12.21"
+        ]
+      },
+      "schema": 1766428589924,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766450106383,
+      "id": "610ced53-29c7-40aa-98e8-1c79a9047d31",
+      "last_modified": 1766450189508
+    },
+    {
+      "stash": {
+        "blocked": [
+          "slush.addon@outlook.com:2.1.4",
+          "slush-panel2@slush.dev:2.1.4"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "pilpropj-firefox@orange.com:2.5",
+          "crystal-report-printer@myk-the-one.local:1.4.2",
+          "securesafe-pass@dswiss.com:1.0.3",
+          "bookmark-sr@razvan:1",
+          "bookmark-sr@razvan:2",
+          "favory@sp4ce.pw:2.3.5",
+          "{95939547-ac97-4441-9c0e-d89616635758}:1.0",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.0",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.1",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.2",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.3",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.4",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.5",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.6",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.7",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.8",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.9",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.10",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.11",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.12",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.13",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.14",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.15",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.16",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.17",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.18",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.19",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.20",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.21",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.22",
+          "OutlookWebAppDarkTheme@WolfDev.com:1.0.23",
+          "{3be3c089-1c4f-4bc5-bf55-33d41d96f87d}:1.0",
+          "{3be3c089-1c4f-4bc5-bf55-33d41d96f87d}:1.1"
+        ]
+      },
+      "schema": 1766406989510,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766428506282,
+      "id": "71e3d61e-a2f6-4c57-a034-a77b4f6e9d42",
+      "last_modified": 1766428589765
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{f58688c8-d4f2-470c-bceb-c07ab8d905aa}:1.0.0",
+          "{f58688c8-d4f2-470c-bceb-c07ab8d905aa}:1.2",
+          "{a1ac25bb-4182-4a19-a246-22939cd93544}:1.0.0",
+          "{a1ac25bb-4182-4a19-a246-22939cd93544}:1.3",
+          "{0abb2d5b-3b27-4822-b0de-b391b6ce3d88}:1.0.0",
+          "{b6420498-ee08-40eb-ad3b-00fc65d5ca48}:1.0.0",
+          "{54e18476-9014-4e93-9ea5-4a9c7703fb9a}:1.0.0",
+          "{2da69b3f-585b-4857-99bd-bae7c180d20d}:1.0.0",
+          "{0d338994-4e31-4df8-b71f-084aae9147e2}:1.0.0",
+          "{d67b5afd-3600-4834-9f1e-6c4fe72aa03c}:1.0.0"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "test824u73@example.com:8.2.4",
+          "test824u72@example.com:8.2.4",
+          "test824u71@example.com:8.2.4",
+          "maystor@perjika.com:1.0",
+          "maystor@perjika.com:1.0.2",
+          "alphapai-extension@rabyte.cn:1.0.2",
+          "yromeqwkaqfsd@gmail.com:1.0",
+          "yromkaq@mail.ru:1.0"
+        ]
+      },
+      "schema": 1766385393627,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1766406906673,
+      "id": "56c94e5b-5b7a-4212-8f85-37991906e233",
+      "last_modified": 1766406989276
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "{6606cc58-1cb6-4c1f-ad1c-528286e1dcfc}:0.1.0",
           "{85111c37-311f-4ea7-81fb-8e97ded12922}:1.0",
           "{8d18c107-4ec5-4654-bf5c-69421129ffdd}:1.0",
@@ -7469,5 +7845,5 @@
       "last_modified": 1761136764909
     }
   ],
-  "timestamp": 1766385393336
+  "timestamp": 1766644579982
 }
