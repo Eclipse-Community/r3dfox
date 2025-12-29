@@ -1485,7 +1485,9 @@ void nsBlockFrame::Reflow(nsPresContext* aPresContext, ReflowOutput& aMetrics,
   // will take effect for the current line list. Only to be used when there are
   // enough lines that the clamp will apply.
   auto getClampPosition = [&](uint32_t aClampCount) -> BalanceTarget {
-    MOZ_ASSERT(aClampCount < mLines.size());
+    if (NS_WARN_IF(aClampCount >= mLines.size())) {
+      return BalanceTarget{};
+    }
     auto iter = mLines.begin();
     for (uint32_t i = 0; i < aClampCount; i++) {
       ++iter;
