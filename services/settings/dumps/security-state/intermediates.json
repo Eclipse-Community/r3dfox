@@ -14751,24 +14751,6 @@
       "last_modified": 1666727874812
     },
     {
-      "schema": 1666727388343,
-      "derHash": "ppxZlm67zf7H9P8CiMhv9gNW+nhgIIuTtDoJWwYAzB4=",
-      "subject": "CN=nazwaSSL,OU=http://nazwa.pl,O=nazwa.pl sp. z o.o.,C=PL",
-      "subjectDN": "MFgxCzAJBgNVBAYTAlBMMRwwGgYDVQQKDBNuYXp3YS5wbCBzcC4geiBvLm8uMRgwFgYDVQQLDA9odHRwOi8vbmF6d2EucGwxETAPBgNVBAMMCG5hendhU1NM",
-      "whitelist": false,
-      "attachment": {
-        "hash": "882b6da025cdfc61d89e03806a350163dfdfc251470ff6e5f8433ca8370adea9",
-        "size": 1605,
-        "filename": "AW6U8qPqk114rfl2sAhiEim2Pf0mq_Rb_BeWSlVAiP4=.pem",
-        "location": "security-state-staging/intermediates/4a692d29-8a7d-4aa6-b0fa-426ad6f59300.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "AW6U8qPqk114rfl2sAhiEim2Pf0mq/Rb/BeWSlVAiP4=",
-      "crlite_enrolled": false,
-      "id": "bbeb9d9e-3dd2-4546-8c96-d7fc9be4f2e6",
-      "last_modified": 1666727874798
-    },
-    {
       "schema": 1666727382505,
       "derHash": "6sJBwEQKNoMBETgzNrwgysdAnCD26I1PhPSCe+kZ4zg=",
       "subject": "CN=e-Szigno SSL CA 2014,O=Microsec Ltd.,L=Budapest,C=HU",
@@ -16189,24 +16171,6 @@
       "crlite_enrolled": false,
       "id": "42115fab-f048-4a66-92be-15d909da568b",
       "last_modified": 1666727872798
-    },
-    {
-      "schema": 1666727452311,
-      "derHash": "I7zV16lqUTqYHq0nk25ZqAKKgHvXKGBBj2i1VaKRFnA=",
-      "subject": "CN=Certigna Identity CA,OU=0002 48146308100036,O=DHIMYOTIS,C=FR",
-      "subjectDN": "MIGCMQswCQYDVQQGEwJGUjESMBAGA1UECgwJREhJTVlPVElTMRwwGgYDVQQLDBMwMDAyIDQ4MTQ2MzA4MTAwMDM2MSIwIAYDVQRhDBlOVFJGUi0wMDAyIDQ4MTQ2MzA4MTAwMDM2MR0wGwYDVQQDDBRDZXJ0aWduYSBJZGVudGl0eSBDQQ==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "211c9fabe3b82a58caaded8a0e4fe51f77d8506e143103dc3f8db31704cb7e6e",
-        "size": 2178,
-        "filename": "lwJkDQYtogkGJEFJMX5DjskCXh2W7dNBRH_eJZlWjWo=.pem",
-        "location": "security-state-staging/intermediates/00c1f21f-a695-478a-9e33-19d48f9525d8.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "lwJkDQYtogkGJEFJMX5DjskCXh2W7dNBRH/eJZlWjWo=",
-      "crlite_enrolled": false,
-      "id": "f695b618-333e-4759-a681-19c5f52aeb16",
-      "last_modified": 1666727872784
     },
     {
       "schema": 1666727400274,
@@ -30717,5 +30681,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1766548622587
+  "timestamp": 1766937422573
 }
