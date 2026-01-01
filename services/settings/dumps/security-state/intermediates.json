@@ -10881,78 +10881,6 @@
       "last_modified": 1693407423723
     },
     {
-      "schema": 1693342092773,
-      "derHash": "snT+vm68cYZsM58Bitkz581oBbQ7/ebSGNwhFHFp12s=",
-      "subject": "CN=e-Szigno Online SSL CA 2017,O=Microsec Ltd.,L=Budapest,C=HU",
-      "subjectDN": "MHcxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEWMBQGA1UECgwNTWljcm9zZWMgTHRkLjEXMBUGA1UEYQwOVkFUSFUtMjM1ODQ0OTcxJDAiBgNVBAMMG2UtU3ppZ25vIE9ubGluZSBTU0wgQ0EgMjAxNw==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "72bc4f35ba6c3e85f36f856880dc364ba08e1ce42b81244f1ebf53e8514a8d5f",
-        "size": 1435,
-        "filename": "G_JwHP_ydSe7pufWcUyNckBrxBbnQ6Kmqw_OFPPiQI0=.pem",
-        "location": "security-state-staging/intermediates/9cda4ca9-3689-48fd-af2c-640bd25284ff.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "G/JwHP/ydSe7pufWcUyNckBrxBbnQ6Kmqw/OFPPiQI0=",
-      "crlite_enrolled": false,
-      "id": "df7a20cf-df80-4bde-8483-7d48af559d55",
-      "last_modified": 1693342624041
-    },
-    {
-      "schema": 1693342093437,
-      "derHash": "F0TXMTT5XOkWrevub3V0LEeTaGi2TSoMFi7xMpAPDuQ=",
-      "subject": "CN=e-Szigno Class3 SSL CA 2017,O=Microsec Ltd.,L=Budapest,C=HU",
-      "subjectDN": "MHcxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEWMBQGA1UECgwNTWljcm9zZWMgTHRkLjEXMBUGA1UEYQwOVkFUSFUtMjM1ODQ0OTcxJDAiBgNVBAMMG2UtU3ppZ25vIENsYXNzMyBTU0wgQ0EgMjAxNw==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "f875b715f8027d390ccd47c7e62fa9a8cb805078002c5447fead8ec98441abbd",
-        "size": 1435,
-        "filename": "69Duo3nmlQnUEvqzlU27qTDaDY9K1yN0wfdopIs9Y7s=.pem",
-        "location": "security-state-staging/intermediates/1986ba70-a9d5-4c04-9f62-2c8f532bde42.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "69Duo3nmlQnUEvqzlU27qTDaDY9K1yN0wfdopIs9Y7s=",
-      "crlite_enrolled": false,
-      "id": "0b79b1b7-45eb-4167-b5a4-52c77a4ae693",
-      "last_modified": 1693342624038
-    },
-    {
-      "schema": 1693342093097,
-      "derHash": "/Y4MjMzbuuTB8HwkjRH+u7D7PaDNDYlKioDYBKjTmn0=",
-      "subject": "CN=e-Szigno Class2 SSL CA 2017,O=Microsec Ltd.,L=Budapest,C=HU",
-      "subjectDN": "MHcxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEWMBQGA1UECgwNTWljcm9zZWMgTHRkLjEXMBUGA1UEYQwOVkFUSFUtMjM1ODQ0OTcxJDAiBgNVBAMMG2UtU3ppZ25vIENsYXNzMiBTU0wgQ0EgMjAxNw==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "eb233f6d83b210e52823cdff3145fe53c2632e2cf95904c5ac6d29368eb61943",
-        "size": 1435,
-        "filename": "HGXB7TIfcoLqLINF3LJD2A9t3V4VdHjcBv6LboViQMo=.pem",
-        "location": "security-state-staging/intermediates/36fd2d27-8c24-4aee-9ba5-feccce9483d5.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "HGXB7TIfcoLqLINF3LJD2A9t3V4VdHjcBv6LboViQMo=",
-      "crlite_enrolled": false,
-      "id": "c2701cd6-d220-4744-a18b-3a3b323259ee",
-      "last_modified": 1693342624035
-    },
-    {
-      "schema": 1693342092400,
-      "derHash": "akjnNKxvBnFAySitu8xEkkadQW3i08mnoZfWI3DqwOI=",
-      "subject": "CN=e-Szigno Qualified TLS CA 2018,O=Microsec Ltd.,L=Budapest,C=HU",
-      "subjectDN": "MHoxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEWMBQGA1UECgwNTWljcm9zZWMgTHRkLjEXMBUGA1UEYQwOVkFUSFUtMjM1ODQ0OTcxJzAlBgNVBAMMHmUtU3ppZ25vIFF1YWxpZmllZCBUTFMgQ0EgMjAxOA==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "acb85909161220196625771f857155f74f662f21acb6efeab36c92266013233a",
-        "size": 1439,
-        "filename": "qd9EIyfp7CEtbkxafeyYAuC_8wQBWqGZflkLznwnuyc=.pem",
-        "location": "security-state-staging/intermediates/86baa78d-dbf7-44c9-b002-1a204379bad6.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "qd9EIyfp7CEtbkxafeyYAuC/8wQBWqGZflkLznwnuyc=",
-      "crlite_enrolled": false,
-      "id": "9cf88ec1-23c0-487b-9991-3fc43bbf71c0",
-      "last_modified": 1693342624031
-    },
-    {
       "schema": 1693104479614,
       "derHash": "8BBP8XJ0YI8aGKHh6r+OaKUfUAqH4u+iLstiJ2P+9M8=",
       "subject": "CN=Gandi RSA Domain Validation Secure Server CA 3,O=Gandi,C=FR",
@@ -12211,60 +12139,6 @@
       "crlite_enrolled": false,
       "id": "ddc97932-2e16-48d1-84b0-3815961ddf1f",
       "last_modified": 1691204223383
-    },
-    {
-      "schema": 1690296478698,
-      "derHash": "oRXsDXPC6KuxiDE0+i3w2YXnQYgWBKQIKQfXBeJAfHI=",
-      "subject": "CN=e-Szigno Qualified TLS CA 2023,O=Microsec Ltd.,L=Budapest,C=HU",
-      "subjectDN": "MHoxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEWMBQGA1UECgwNTWljcm9zZWMgTHRkLjEXMBUGA1UEYQwOVkFUSFUtMjM1ODQ0OTcxJzAlBgNVBAMMHmUtU3ppZ25vIFF1YWxpZmllZCBUTFMgQ0EgMjAyMw==",
-      "whitelist": false,
-      "attachment": {
-        "hash": "e5582687d546ac85a09c343f23ce9764cbc06e78844654f61940dde5034b145f",
-        "size": 1439,
-        "filename": "FfstIBJRQL_OSddFhkXVXxYXvlwpeV4N5QyzQSOMer4=.pem",
-        "location": "security-state-staging/intermediates/c3eaa351-c45f-4c58-b312-1a214832f8b5.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "FfstIBJRQL/OSddFhkXVXxYXvlwpeV4N5QyzQSOMer4=",
-      "crlite_enrolled": false,
-      "id": "da49e20c-b2f2-4d31-b07b-1064e96e3b70",
-      "last_modified": 1690297023211
-    },
-    {
-      "schema": 1690296478406,
-      "derHash": "wEww5A3X6WmC+GBuvvNVSOXG9PeSpSpReM8koOn9c5Y=",
-      "subject": "CN=e-Szigno DV TLS CA 2023,O=Microsec Ltd.,L=Budapest,C=HU",
-      "subjectDN": "MHMxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEWMBQGA1UECgwNTWljcm9zZWMgTHRkLjEXMBUGA1UEYQwOVkFUSFUtMjM1ODQ0OTcxIDAeBgNVBAMMF2UtU3ppZ25vIERWIFRMUyBDQSAyMDIz",
-      "whitelist": false,
-      "attachment": {
-        "hash": "e024d6f71f79e22a937ce5712dfbf1c17be250937f7a1a1b7aaa69d96607e27b",
-        "size": 1431,
-        "filename": "XxwXFeAhoV94cB2wpw1cfCsPS8BPvJevCyCobm4QKxg=.pem",
-        "location": "security-state-staging/intermediates/6e6e1fde-6155-4773-b392-6ee7800fcbdc.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "XxwXFeAhoV94cB2wpw1cfCsPS8BPvJevCyCobm4QKxg=",
-      "crlite_enrolled": false,
-      "id": "0d228708-baa8-45e3-a4ea-0bce48f43f86",
-      "last_modified": 1690297023208
-    },
-    {
-      "schema": 1690296478088,
-      "derHash": "EtRTenVH/2PDaSNiKiga/+lIESDbeBd2qvmBofm2aNg=",
-      "subject": "CN=e-Szigno OV TLS CA 2023,O=Microsec Ltd.,L=Budapest,C=HU",
-      "subjectDN": "MHMxCzAJBgNVBAYTAkhVMREwDwYDVQQHDAhCdWRhcGVzdDEWMBQGA1UECgwNTWljcm9zZWMgTHRkLjEXMBUGA1UEYQwOVkFUSFUtMjM1ODQ0OTcxIDAeBgNVBAMMF2UtU3ppZ25vIE9WIFRMUyBDQSAyMDIz",
-      "whitelist": false,
-      "attachment": {
-        "hash": "ab5bf3cb8d3a60923137ac8e379030e9e4208f811155f11e65307099425c5d04",
-        "size": 1431,
-        "filename": "CBpKKUYnWuYNjyn6A4C6-fbIOhB5kbX1rkHpBJ-7g0Y=.pem",
-        "location": "security-state-staging/intermediates/0052bd62-f25b-4c75-b5e2-123cf02b80fe.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "CBpKKUYnWuYNjyn6A4C6+fbIOhB5kbX1rkHpBJ+7g0Y=",
-      "crlite_enrolled": false,
-      "id": "a206224b-c943-44b0-b74e-3c4bfb484c15",
-      "last_modified": 1690297023205
     },
     {
       "schema": 1689929282855,
@@ -30681,5 +30555,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1766937422573
+  "timestamp": 1767110222688
 }
