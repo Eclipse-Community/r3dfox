@@ -1,45 +1,98 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import java.text.SimpleDateFormat
 
-// This gradle scripts generates a "unique" version code for our release versions.
-//
-// The result of the version code depends on the timezone. We assume that this script will only be used
-// for release versions and running on our build servers with a fixed timezone.
-//
-// The version code is composed like: yDDDHHmm
-//  * y   = Double digit year, with 16 substracted: 2017 -> 17 -> 1
-//  * DDD = Day of the year, pad with zeros if needed: September 6th -> 249
-//  * HH  = Hour in day (00-23)
-//  * mm  = Minute in hour 
-//
-// For September 6th, 2017, 9:41 am this will generate the versionCode: 12490941 (1-249-09-41).
-//
-// Note that we only use this generated version code for builds we want to distribute. For local
-// debug builds we use a fixed versionCode to not mess with the caching mechanism of the build
-// system.
-
+/**
+ * Generates a "unique" versionCode for release builds.
+ *
+ * The resulting versionCode depends on the local timezone of the machine running this script.
+ * This is OK because we only use this for release builds on CI, where the timezone is fixed.
+ *
+ * Format: byDDDHHmm
+ *   - b    = base / epoch digit
+ *            Historically hardcoded to "3". This digit is incremented when the year-derived
+ *            component overflows its single digit (e.g., in 2026).
+ *   - y    = 1 digit derived from (two-digit year - 16), modulo 10
+ *   - DDD  = day of year (001–366), zero-padded to 3 digits
+ *   - HHmm = 24h time (00–23)(00–59)
+ *
+ * Example:
+ *   Sept 6, 2017 @ 09:41
+ *     year = 17 - 16 = 1
+ *     base = 3
+ *     -> 3-1-249-09-41 -> 312490941
+ *
+ * Historical note:
+ *   Focus first shipped in 2017. The original scheme unconditionally used (yy - 16) which
+ *   only fit in a single digit from 2017–2025.
+ *
+ * 2026 rollover:
+ *   In 2026, (yy - 16) became 10. Allowing this to grow to two digits breaks the intended
+ *   byDDDHHmm layout and can exceed Play / int limits.
+ *
+ *   To preserve:
+ *     - a single-digit `y`
+ *     - monotonic versionCodes across year boundaries
+ *
+ *   we keep `y` as (yearOffset % 10) and carry overflow into the base digit:
+ *     2025 -> base=3, y=9 -> 39DDDHHmm
+ *     2026 -> base=4, y=0 -> 40DDDHHmm
+ */
 ext {
-    def base = "3"
+    // "Epoch" digit(s). Historically this was "3".
+    // We bump it by +1 each time (yy - 16) crosses another multiple of 10 (i.e., 2026, 2036, ...).
+    def epochDigit = 3
+
     def today = new Date()
 
-    // We use the current year (double digit) and substract 16. We first released Focus in
-    // 2017 so this value will start counting at 1 and increment by one every year.
-    def year = String.valueOf((new SimpleDateFormat("yy").format(today) as int) - 16)
+    def yy = (new SimpleDateFormat("yy").format(today) as int)
+    def yearOffset = yy - 16 // 2017 -> 1, 2025 -> 9, 2026 -> 10, etc.
+    if (yearOffset < 0) {
+        throw new GradleException(
+            "versionCode yearOffset underflow: yearOffset=$yearOffset (yy=$yy)."
+        )
+    }
+
+    // Keep the "y" component as one digit, and carry overflow into the epoch digit.
+    def carry = (int) (yearOffset / 10)
+    def yearDigit = (int) (yearOffset % 10)
+
+    def epoch = epochDigit + carry
+    if (epoch >= 10) {
+        throw new GradleException(
+            "versionCode epoch overflow: epoch=$epoch (yy=$yy). Update versionCode scheme."
+        )
+    }
 
     // We use the day in the Year (e.g. 248) as opposed to month + day (0510) because it's one digit shorter.
     // If needed we pad with zeros (e.g. 25 -> 025)
     def day = String.format("%03d", (new SimpleDateFormat("D").format(today) as int))
- 
+
     // We append the hour in day (24h) and minute in hour (7:26 pm -> 1926). We do not append
     // seconds. This assumes that we do not need to build multiple release(!) builds the same
     // minute.
     def time = new SimpleDateFormat("HHmm").format(today)
 
-    generatedVersionCode = (base + year + day + time) as int
+    // Build the final versionCode using the previously-calculated inputs.
+    def versionCode = ("${epoch}${yearDigit}${day}${time}" as long)
 
+    // The Play Console has historically enforced a 2,100,000,000 cap. Keep a defensive ceiling here.
+    // Even without this, Android requires versionCode to fit in a signed 32-bit int.
+    def MAX_VERSION_CODE = 2_100_000_000
+    if (versionCode > MAX_VERSION_CODE) {
+        throw new GradleException(
+            "Generated versionCode exceeds MAX_VERSION_CODE ($MAX_VERSION_CODE): $versionCode (from $versionCodeStr)"
+        )
+    }
+    if (versionCode > Integer.MAX_VALUE) {
+        throw new GradleException(
+            "Generated versionCode exceeds Integer.MAX_VALUE: $versionCode (from $versionCodeStr)"
+        )
+    }
+
+    generatedVersionCode = (versionCode as int)
     println("Generated versionCode: $generatedVersionCode")
     println()
 }
