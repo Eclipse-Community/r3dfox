@@ -1039,6 +1039,9 @@ PdfStreamConverter.prototype = {
       );
       // The viewer does not need to handle HTTP Refresh header.
       aRequest.setResponseHeader("Refresh", "", false);
+      // There is no reason to load something via <link>: the only external
+      // resource is the pdf itself.
+      aRequest.setResponseHeader("Link", "", false);
     }
 
     lazy.PdfJsTelemetryContent.onViewerIsUsed();
