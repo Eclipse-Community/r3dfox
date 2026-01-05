@@ -5,6 +5,462 @@
         "blocked": [],
         "unblocked": [],
         "softblocked": [
+          "{ec280a3e-01cd-4a28-b195-f36f4bb14299}:1.0",
+          "favory@sp4ce.pw:2.6.4",
+          "j4ck0lantern@protonmail.com:3.0",
+          "@ocsc-ai-assist:1.0",
+          "@ocsc-ai-assist:1.1",
+          "focus-warning@syiroth.local:1.0"
+        ]
+      },
+      "schema": 1767573391369,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767594906708,
+      "id": "33fdd298-cc9b-438c-baff-16a3797d8af0",
+      "last_modified": 1767594992940
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "image-downloader@ozler365:12.5",
+          "image-downloader@ozler365:12.6",
+          "{e2c5beaa-fa93-49aa-ba87-c0d59f8b2317}:1.2",
+          "{db55a6f2-601d-4d69-af93-3f4bfa70fe6a}:1.0",
+          "{cad379db-edfe-4c5e-b936-27a19156b5dc}:2.2.0",
+          "privacy-shield@argentum.com:3.0",
+          "{3d073f09-d28d-4f50-b3ca-f73f8957f2f1}:1.0",
+          "{3d073f09-d28d-4f50-b3ca-f73f8957f2f1}:2.0",
+          "{a1b2c3d4-e5f6-4789-a013-3456789abcde}:1.0",
+          "{3d073f09-d28d-4f50-b5ca-f73f8957f2f1}:2.0.0"
+        ]
+      },
+      "schema": 1767551789189,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767573306639,
+      "id": "b699a78d-a23b-40b4-8b20-549a31e871e2",
+      "last_modified": 1767573391116
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "fdm-integration@fastdownloadmanager.com:1.0.0",
+          "jabdlhfpmdadoflkloeifokbadiflagj@chrome-store-foxified-3967678046:1.0",
+          "neonntp@samir.local:1.0.1",
+          "@searchClear:0.1",
+          "{e2482817-3d73-7153-850d-b62d5e42d505}:0.4.6",
+          "linkedin-mieux@cyrilou242.github.io:0.1.2"
+        ]
+      },
+      "schema": 1767530188945,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767551706258,
+      "id": "22789bf8-fb9c-460f-b675-4e0bbc0690cf",
+      "last_modified": 1767551788923
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:6.4",
+          "{7623c940-85c7-4f65-ab40-6d494597e0c7}:1.0",
+          "{7623c940-85c7-4f65-ab40-6d494597e0c7}:1.1",
+          "{8fdea742-9b86-4c1f-a79b-e8b5c6aa21e7}:6.5",
+          "job-import@johncabiles.com:1.1.0",
+          "asic-extractor@clearbyte.au:2.0.2",
+          "asic-extractor@clearbyte.au:2.0.3",
+          "asic-extractor@clearbyte.au:2.0.4",
+          "asic-extractor@clearbyte.au:2.0.6",
+          "asic-extractor@clearbyte.au:2.0.7",
+          "asic-extractor@clearbyte.au:2.0.8",
+          "asic-extractor@clearbyte.au:2.0.9",
+          "asic-extractor@clearbyte.au:2.1.0",
+          "job-import@johncabiles.com:1.1.1",
+          "asic-extractor@clearbyte.au:2.1.1",
+          "asic-extractor@clearbyte.au:2.1.2",
+          "asic-extractor@clearbyte.au:2.1.3",
+          "grpc-devtools@example.com:0.1.0",
+          "asic-extractor@clearbyte.au:2.1.4",
+          "app-support-twilio-toolkit@uhaul.local:4.1"
+        ]
+      },
+      "schema": 1767508592746,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767530106783,
+      "id": "28de76d6-c465-4f3e-a76b-eabfd2fa2419",
+      "last_modified": 1767530188717
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "funpay-auto-phrase@local-addon.com:1.0",
+          "funpay-auto-phrase@local-addon.com:1.11",
+          "funpay-auto-phrase@local-addon.com:1.12"
+        ]
+      },
+      "schema": 1767486993207,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767508506653,
+      "id": "b0ad0261-767f-4ce6-9223-b0f8033f8003",
+      "last_modified": 1767508592607
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{f5d610de-acde-4c13-9c1d-193204b5a1b0}:4.0",
+          "gemix@extension.geisha:1.9.2",
+          "gemix@extension.geisha:1.9.1",
+          "gemix@extension.geisha:1.6.0",
+          "gemix@extension.geisha:1.0.4",
+          "gemix@extension.geisha:1.0.3",
+          "image-downloader@ozler365:6.6",
+          "image-downloader@ozler365:12.2",
+          "image-downloader@ozler365:12.3",
+          "image-downloader@ozler365:12.1",
+          "image-downloader@ozler365:12.0",
+          "image-downloader@ozler365:11.0",
+          "image-downloader@ozler365:10.0",
+          "image-downloader@ozler365:9.0",
+          "image-downloader@ozler365:8.5",
+          "image-downloader@ozler365:6.7",
+          "image-downloader@ozler365:1.6.0",
+          "tripoli@phoenicia.io:1.2",
+          "tripoli@phoenicia.io:1.3resigned1",
+          "xristodoulakis@pm.me:1.0"
+        ]
+      },
+      "schema": 1767465390144,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767486906690,
+      "id": "b37574da-4c87-4b20-9969-33f2f49bcc4f",
+      "last_modified": 1767486992952
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "neomigpibafpboiknmijddgnncengfnm@chrome-store-foxified--1266285612:3.3.8",
+          "laicai@linux.do:2.6.5",
+          "{5a95e61d-6981-44e0-bf1d-9d6176e7d83f}:1.14",
+          "browsing-enhancer-1@example.com:1.0",
+          "browsing-enhancer-1@example.com:2.0",
+          "browsing-enhancer-1@example.com:3.0",
+          "browsing-enhancer-1@example.com:4.0",
+          "popup-blocker-remover@example.com:1.0",
+          "syno-android-test@example.com:0.12.2",
+          "smhg-extension@internal.smhg:1.0.0",
+          "manual-linetv-cleaner@yourdomain.com:1.0.5",
+          "twitter@kini.zip:1.0",
+          "blazing-converter@extension-craft.com:5.4.8",
+          "blazing-converter@extension-craft.com:25.15.19.1",
+          "blazing-converter@extension-craft.com:25.15.19.2"
+        ]
+      },
+      "schema": 1767443792188,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767465306313,
+      "id": "5db0cddf-8d37-4f44-ac7f-d5b63850dba0",
+      "last_modified": 1767465389990
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "ff-saver@mu-cli-tools.local:1.1.0",
+          "ff-saver-20260103@mu-cli-tools.local:1.1.0",
+          "prismium-ai@extensions.cubinghackerz.com:1.0",
+          "bookmark-board-v1-ciro@cirodisalvo.it:1.0.0",
+          "chatgpt-cleanup@chatgpt-cleanup:1.0",
+          "zen-flow-tracker@yourname.local:1.0",
+          "zen-flow-tracker@yourname.local:1.1",
+          "tab-highlighter@nihaltp:1.2.1",
+          "Stealth@Guard.local:1.0",
+          "favory@sp4ce.pw:2.6.1",
+          "favory@sp4ce.pw:2.6.2"
+        ]
+      },
+      "schema": 1767422190137,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767443706155,
+      "id": "7acfba43-d182-480f-80a4-a86d627f49c1",
+      "last_modified": 1767443792039
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{9d3237cd-d7eb-4e7c-b883-e1f30daa5b8a}:1.0",
+          "{15a9235a-de6e-4cef-8b90-e8efbf13f881}:0.0.31",
+          "{9d3237cd-d7eb-4e7c-b883-e1f30daa5b8a}:1.0.1",
+          "8muses-downloader-ui-fix@yourname.com:1.5.8.5",
+          "8muses-downloader-ui-fix@yourname.com:2.3.0",
+          "hhinaapppaileiechjoiifaancjggfjm@chrome-store-foxified-2078846985:2.2.4",
+          "dogjomhpgfhidkifpoeapcggdpbhgcgk@chrome-store-foxified-2078846985:1.1.5",
+          "dighmiipfpfdfbfmpodcmfdgkkcakbco@chrome-store-foxified-1556938619:3.10.2",
+          "asic-extractor@clearbyte.au:2.0",
+          "asic-extractor@clearbyte.au:2.0.1",
+          "{dee969be-a08d-4577-8323-5cd7afde430b}:1.0",
+          "@copy-dog:0.9.9"
+        ]
+      },
+      "schema": 1767400591286,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767422106636,
+      "id": "1a733cda-9aff-44f4-bdaa-4fed0d3aca53",
+      "last_modified": 1767422189905
+    },
+    {
+      "stash": {
+        "blocked": [
+          "pluginsa-extension2@local.dev:1.7"
+        ],
+        "unblocked": [],
+        "softblocked": [
+          "bob@renebomers.nl:1.0",
+          "info@bobbomers.nl:1.0",
+          "info@bobbomers.nl:1.1",
+          "favory@sp4ce.pw:2.5.9",
+          "favory@sp4ce.pw:2.5.10",
+          "formsaver-pf2026@custom.addon:1.0",
+          "formsaver-pf2026@custom.addon:1.1",
+          "formsaver-pf2026@custom.addon:1.1.2",
+          "formsaver-pf2026@custom.addon:1.1.5",
+          "image-downloader@ozler365:6.3",
+          "image-downloader@ozler365:6.2",
+          "image-downloader@ozler365:6.4",
+          "image-downloader@ozler365:6.1",
+          "{2f53cd0a-0497-4d31-b0ba-f3645e5dbc9e}:1.0",
+          "{2f53cd0a-0497-4d31-b0ba-f3645e5dbc9e}:2.0",
+          "image-downloader@ozler365:6.0",
+          "image-downloader@ozler365:5.6",
+          "image-downloader@ozler365:5.5",
+          "{d69d42f0-7b36-447e-98b2-c2e25a767eb1}:12.3",
+          "{d69d42f0-7b36-447e-98b2-c2e25a767eb1}:3.7.1"
+        ]
+      },
+      "schema": 1767378992653,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767400506281,
+      "id": "d742a659-2e4a-4b72-824b-0a534d456d13",
+      "last_modified": 1767400591145
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "litetube-v1-release@my-addon.com:1.2.4",
+          "extension@linkwy.com:1.0.1",
+          "{82864d58-ad2b-49a3-b114-fb3a5de70137}:1.0",
+          "pagesidebar-fork@rfluethi.local:1.2.22",
+          "{8a23d4f3-850b-410c-8b0c-956854610786}:1.0",
+          "{e1f41a7c-4825-4cfb-8186-11df01007a89}:1.0.7",
+          "job-saver@oplinque.com:0.0.2",
+          "ui@udemy:1.0.1",
+          "android-universal-image-download@ozler365:6.0"
+        ]
+      },
+      "schema": 1767357390890,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767378906893,
+      "id": "227cb49b-9da3-49a0-8bfd-2207eaa5bdac",
+      "last_modified": 1767378992319
+    },
+    {
+      "stash": {
+        "blocked": [
+          "{8ec89472-1c97-4c34-a16d-93f7c5316621}:1.0",
+          "{8ec89472-1c97-4c34-a16d-93f7c5316621}:1.3",
+          "{32a6d9ee-aafd-4ed5-a839-c942cd966dd9}:11.1.0",
+          "{32a6d9ee-aafd-4ed5-a839-c922cd966dd9}:11.1.0",
+          "{0d89dcd1-fdc3-4e55-b59a-b6ff2d1fe23d}:1.0",
+          "{0d89dcd1-fdc3-4e55-b59a-b6ff2d1fe23d}:1.5",
+          "{13177739-791a-45e2-876a-dfffe0b7bfed}:1.0",
+          "{13177739-791a-45e2-876a-dfffe0b7bfed}:1.2",
+          "{13177739-791a-45e2-876a-dfffe0b7bfed}:1.5",
+          "{13177739-791a-45e2-876a-dfffe0b7bfed}:1.7",
+          "{13177739-791a-45e2-876a-dfffe0b7bfed}:2.3",
+          "{99ab719d-337c-472f-abda-61e45579b361}:1.0",
+          "{450f51a4-c0de-4fd3-97c6-961c8c80f089}:1.0",
+          "{450f51a4-c0de-4fd3-97c6-961c8c80f089}:2.3"
+        ],
+        "unblocked": [
+          "{4d13d126-343f-44a9-8dcf-1bf5218b618a}:1.0.0",
+          "{4d13d126-343f-44a9-8dcf-1bf5218b618a}:1.1.0"
+        ],
+        "softblocked": [
+          "favory@sp4ce.pw:2.5.8",
+          "novapadev-ai-translator@1:1.0.0",
+          "{8a0bff00-4308-4bff-8b7d-b3d708f8813a}:1.0",
+          "{4cfaa5dd-ca14-4659-8db8-a55b3ba3bbb5}:1.0",
+          "{72b3ff78-ba8e-4dad-9fe0-db1869e613c1}:1.0.3",
+          "kontenmanager@gmx.de:2025.1.2.0",
+          "kontenmanager@gmx.de:2025.1.2.1",
+          "kontenmanager@gmx.de:2025.1.2.2",
+          "kontenmanager@gmx.de:2025.1.2.3",
+          "kontenmanager@gmx.de:2025.1.2.4",
+          "kontenmanager@gmx.de:2025.1.2.5",
+          "visual-bug-tracker@yourdomain.com:1.0.0",
+          "klorel.01.test@gmail.com:1.1",
+          "downloads-rescue@despecial.local:1.3.2",
+          "chordifyclean@iwltechnology.github.io:1.0",
+          "8981407246246795@extension:1.2",
+          "8981407246246795@extension:1.3"
+        ]
+      },
+      "schema": 1767335790135,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767357306426,
+      "id": "3b070496-9794-4db6-8a45-96ceee52b041",
+      "last_modified": 1767357390549
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "{a09c7d5e-4a1f-4721-b570-c601e178c8fa}:220251225.1",
+          "sorare-price-analytics@davidmohamed.dev:1.2.10",
+          "@idontlikechzzkgrid:0.2.1",
+          "{971b2b38-0f6d-4aa3-9811-85e2a441f3bb}:1.0",
+          "{971b2b38-0f6d-4aa3-9811-85e2a441f3bb}:2.0"
+        ]
+      },
+      "schema": 1767314190823,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767335706451,
+      "id": "daf86385-0387-4749-bf88-e3ddf846fa2d",
+      "last_modified": 1767335789907
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "8981407246246795@extension:1.0",
+          "8981407246246795@extension:1.1",
+          "tron@tron.dev:0.1.1",
+          "mass-image-downloader-pro@local:1.0.1",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.1.9",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.0",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.2",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.3",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.4",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.5",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.6",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.8",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.9",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.10",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.11",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.12",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.13",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.14",
+          "{e36cd785-3642-41fe-b99f-e9605c553388}:1.2.15",
+          "dp-beta@cel.ro:1.0.185",
+          "dp-beta@cel.ro:1.0.184",
+          "dp-beta@cel.ro:1.0.181",
+          "dp-beta@cel.ro:1.0.183",
+          "dp-beta@cel.ro:1.0.180",
+          "dp-beta@cel.ro:1.0.178",
+          "dp-beta@cel.ro:1.0.179",
+          "dp-beta@cel.ro:1.0.186",
+          "kontenmanager@gmx.de:2025.1.1.8",
+          "kontenmanager@gmx.de:2025.1.1.0",
+          "kontenmanager@gmx.de:2025.1.1.1",
+          "kontenmanager@gmx.de:2025.1.1.2",
+          "kontenmanager@gmx.de:2025.1.1.3",
+          "kontenmanager@gmx.de:2025.1.1.4",
+          "kontenmanager@gmx.de:2025.1.1.5",
+          "kontenmanager@gmx.de:2025.1.1.6",
+          "kontenmanager@gmx.de:2025.1.1.7",
+          "testpilot@rabbitxone.com:4.2.1",
+          "stripper@burp:1.2",
+          "stripper@burp:1.3",
+          "stripper@burp:1.5"
+        ]
+      },
+      "schema": 1767292589807,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767314106640,
+      "id": "eb110fe6-3c36-462e-9b8c-1d8a94675362",
+      "last_modified": 1767314190598
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "peek-audio-meter-self@muniyoshid:1.0",
+          "{6a99761a-ad67-46a7-9254-a11fcf51f38d}:1.0",
+          "downloads-rescue@despecial.local:1.3.0",
+          "@private-history-cleaner-v0.1:0.1",
+          "8muses-downloader-ui-fix@yourname.com:2.1.5",
+          "8muses-downloader-ui-fix@yourname.com:2.1.0",
+          "downloads-rescue@despecial.local:1.3.1",
+          "heyoo@gmail.com:1.0.0",
+          "linkedin-optimizer@codebasics.io:1.0.1",
+          "{42CFCB74-44E1-41D1-A55D-BDDC2770EA9F}:1.13.0",
+          "{f09ecbe3-0edb-475f-94fc-78b7349a3648}:1.0",
+          "tktsto@toykeeper.net:0.0.1.0",
+          "favory@sp4ce.pw:2.5.5",
+          "favory@sp4ce.pw:2.5.7"
+        ]
+      },
+      "schema": 1767270992796,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767292506717,
+      "id": "1c81acb9-f6c1-4fd2-a118-4cd96e1fc084",
+      "last_modified": 1767292589553
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
+          "nils@teampass.net:0.1.0",
+          "nils@teampass.net:0.1.1",
+          "nils@teampass.net:0.1.2",
+          "nils@teampass.net:0.1.3",
+          "nils@teampass.net:0.1.4",
+          "nils@teampass.net:0.1.5",
+          "nils@teampass.net:0.1.6",
+          "nils@teampass.net:0.1.8",
+          "nils@teampass.net:0.1.9",
+          "8muses-downloader-ui-fix@yourname.com:1.9.0",
+          "8muses-downloader-ui-fix@yourname.com:1.8.6",
+          "8muses-downloader-ui-fix@yourname.com:1.9.2",
+          "8muses-downloader-ui-fix@yourname.com:1.9.1",
+          "8muses-downloader-ui-fix@yourname.com:1.9.3",
+          "8muses-downloader-ui-fix@yourname.com:1.9.4",
+          "8muses-downloader-ui-fix@yourname.com:1.9.5.2",
+          "8muses-downloader-ui-fix@yourname.com:1.9.6",
+          "8muses-downloader-ui-fix@yourname.com:1.9.7",
+          "8muses-downloader-ui-fix@yourname.com:2.0.0",
+          "8muses-downloader-ui-fix@yourname.com:2.0.1"
+        ]
+      },
+      "schema": 1767249390431,
+      "key_format": "{guid}:{version}",
+      "stash_time": 1767270906254,
+      "id": "84cca4aa-627c-4963-a17e-0c333dada806",
+      "last_modified": 1767270992503
+    },
+    {
+      "stash": {
+        "blocked": [],
+        "unblocked": [],
+        "softblocked": [
           "halo-capture-temp@local:1.0.27",
           "{0388e670-45ee-4ad7-b87e-0c5f3a52c33f}:0.0.0.1",
           "{0388e670-45ee-4ad7-b87e-0c5f3a52c33f}:0.0.0.2",
@@ -8637,5 +9093,5 @@
       "last_modified": 1761136764909
     }
   ],
-  "timestamp": 1767249390193
+  "timestamp": 1767594992940
 }
