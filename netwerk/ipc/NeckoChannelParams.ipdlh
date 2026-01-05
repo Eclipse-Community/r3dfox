@@ -193,6 +193,7 @@ struct LoadInfoArgs
   nullable nsIURI             unstrippedURI;
   InterceptionInfoArg?        interceptionInfo;
   bool                        isNewWindowTarget;
+  FeaturePolicyInfo?          containerFeaturePolicyInfo;
 };
 
 /**
