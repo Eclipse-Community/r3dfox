@@ -1089,7 +1089,7 @@ class HashTableEntry {
 
   void destroy() { destroyStoredT(); }
 
-  void swap(HashTableEntry* aOther, bool aIsLive) {
+  void swap(HashTableEntry* aOther, bool aOtherIsLive) {
     // This allows types to use Argument-Dependent-Lookup, and thus use a custom
     // std::swap, which is needed by types like JS::Heap and such.
     using std::swap;
@@ -1097,10 +1097,10 @@ class HashTableEntry {
     if (this == aOther) {
       return;
     }
-    if (aIsLive) {
+    if (aOtherIsLive) {
       swap(*valuePtr(), *aOther->valuePtr());
     } else {
-      *aOther->valuePtr() = std::move(*valuePtr());
+      new (KnownNotNull, aOther->valuePtr()) NonConstT(std::move(*valuePtr()));
       destroy();
     }
   }
