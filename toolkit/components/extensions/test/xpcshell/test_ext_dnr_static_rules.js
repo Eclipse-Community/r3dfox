@@ -333,12 +333,25 @@ add_task(async function test_enable_disabled_static_rules_after_restart() {
   // been detected at the previous session. Caching too much or too little in
   // StartupCache will trigger test failures in assertStoreReadsSinceLastCall.
   const sandboxStoreSpies = sinon.createSandbox();
-  const dnrStore = ExtensionDNRStore._getStoreForTesting();
-  const spyReadDNRStore = sandboxStoreSpies.spy(dnrStore, "_readData");
+  let dnrStore = ExtensionDNRStore._getStoreForTesting();
+  const spyReadDNRStore = sandboxStoreSpies.spy(
+    Object.getPrototypeOf(dnrStore),
+    "_readData"
+  );
 
   function assertStoreReadsSinceLastCall(expectedCount, description) {
     equal(spyReadDNRStore.callCount, expectedCount, description);
     spyReadDNRStore.resetHistory();
+  }
+
+  async function promiseRestartManagerWithRealisticDNRStoreInMemory() {
+    await AddonTestUtils.promiseShutdownManager();
+    // Recreate the DNR store to ensure that we test a realistic state without
+    // cached in-memory state.
+    dnrStore = ExtensionDNRStore._recreateStoreForTesting();
+    // After the store is recreated for testing, we will still be able to track
+    // reads, because spyReadDNRStore was attached to the prototype above.
+    await AddonTestUtils.promiseStartupManager();
   }
 
   const rule_resources = [
@@ -360,7 +373,7 @@ add_task(async function test_enable_disabled_static_rules_after_restart() {
   await extension.awaitMessage("bgpage:ready");
 
   assertStoreReadsSinceLastCall(1, "Read once at initial startup");
-  await AddonTestUtils.promiseRestartManager();
+  await promiseRestartManagerWithRealisticDNRStoreInMemory();
   // Note: ordinarily, event pages do not wake up after a browser restart,
   // unless a relevant event such as runtime.onStartup is triggered. But as
   // noted in bug 1822735, "event pages without any event listeners" will be
@@ -394,7 +407,7 @@ add_task(async function test_enable_disabled_static_rules_after_restart() {
   await assertDNRGetEnabledRulesets(extension, ["ruleset_initially_disabled"]);
 
   assertStoreReadsSinceLastCall(0, "No further reads before restart");
-  await AddonTestUtils.promiseRestartManager();
+  await promiseRestartManagerWithRealisticDNRStoreInMemory();
   await extension.awaitMessage("bgpage:ready");
 
   // Regression test 2: before bug 1921353 was fixed, even with a fix to the
@@ -414,7 +427,7 @@ add_task(async function test_enable_disabled_static_rules_after_restart() {
   await extension.awaitMessage("updateEnabledRulesets:done");
   await assertDNRGetEnabledRulesets(extension, []);
 
-  await AddonTestUtils.promiseRestartManager();
+  await promiseRestartManagerWithRealisticDNRStoreInMemory();
   await extension.awaitMessage("bgpage:ready");
   assertStoreReadsSinceLastCall(0, "Read skipped because rules were disabled");
   await assertDNRGetEnabledRulesets(extension, []);
@@ -422,7 +435,35 @@ add_task(async function test_enable_disabled_static_rules_after_restart() {
   // so we do not expect another read from disk.
   assertStoreReadsSinceLastCall(0, "Read still skipped despite API call");
 
+  // Regression test for bug 2006233: The skipped read (for extension without
+  // enabled rules) should not prevent the read for extension2 (with rules).
+  const extension2 = ExtensionTestUtils.loadExtension(
+    getDNRExtension({
+      rule_resources: [{ id: "my_ruleset", enabled: true, path: "rules.json" }],
+      files: { "rules.json": JSON.stringify([getDNRRule()]) },
+      id: "dnr@initially-enabled",
+    })
+  );
+  await extension2.startup();
+  await extension2.awaitMessage("bgpage:ready");
+  assertStoreReadsSinceLastCall(1, "Read for new extension");
+
+  await dnrStore.waitSaveCacheDataForTesting();
+
+  await promiseRestartManagerWithRealisticDNRStoreInMemory();
+
+  await extension.awaitMessage("bgpage:ready");
+  await extension2.awaitMessage("bgpage:ready");
+  assertStoreReadsSinceLastCall(1, "Read due to extension2 with enabled rules");
+  await assertDNRGetEnabledRulesets(extension2, ["my_ruleset"]);
+
+  ok(
+    dnrStore._data.get(extension2.uuid).isFromStartupCache(),
+    "extension2 StoreData should be initialized from startup cache"
+  );
+
   await extension.unload();
+  await extension2.unload();
 
   sandboxStoreSpies.restore();
 });
