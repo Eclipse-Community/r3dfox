@@ -383,7 +383,6 @@ class nsCocoaWindow final : public nsBaseWidget {
   nsIWidget* mParent;        // if we're a popup, this is our parent [WEAK]
   nsIWidget* mAncestorLink;  // link to traverse ancestors [WEAK]
   BaseWindow* mWindow;                // our cocoa window [STRONG]
-  BaseWindow* mClosedRetainedWindow;  // a second strong reference to our
   // window upon closing it, held through our destructor. This is useful
   // to ensure that macOS run loops which reference the window will still
   // have something to point to even if they don't use proper retain and

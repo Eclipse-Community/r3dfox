@@ -123,7 +123,6 @@ nsCocoaWindow::nsCocoaWindow()
     : mParent(nullptr),
       mAncestorLink(nullptr),
       mWindow(nil),
-      mClosedRetainedWindow(nil),
       mDelegate(nil),
       mPopupContentView(nil),
       mFullscreenTransitionAnimation(nil),
@@ -170,12 +169,7 @@ void nsCocoaWindow::DestroyNativeWindow() {
   // sent to it after this object has been destroyed.
   mWindow.delegate = nil;
 
-  // Closing the window will also release it. Our second reference will
-  // keep it alive through our destructor. Release any reference we might
-  // have from an earlier call to DestroyNativeWindow, then create a new
-  // one.
-  [mClosedRetainedWindow autorelease];
-  mClosedRetainedWindow = [mWindow retain];
+  // Closing the window will also release it.
   MOZ_ASSERT(mWindow.releasedWhenClosed);
   [mWindow close];
 
@@ -211,8 +205,6 @@ nsCocoaWindow::~nsCocoaWindow() {
     CancelAllTransitions();
     DestroyNativeWindow();
   }
-
-  [mClosedRetainedWindow release];
 
   NS_IF_RELEASE(mPopupContentView);
   NS_OBJC_END_TRY_IGNORE_BLOCK;
