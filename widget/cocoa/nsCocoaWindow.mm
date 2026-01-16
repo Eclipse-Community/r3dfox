@@ -1604,16 +1604,22 @@ void nsCocoaWindow::ProcessTransitions() {
           // Run a local run loop until it is safe to start a native fullscreen
           // transition.
           NSRunLoop* localRunLoop = [NSRunLoop currentRunLoop];
-          while (mWindow && !CanStartNativeTransition() &&
+
+          // Retain our initial mWindow so it doesn't change under us. We'll
+          // release it after finishing the runloop.
+          NSWindow* initialWindow = mWindow;
+          [initialWindow retain];
+
+          while (!CanStartNativeTransition() &&
                  [localRunLoop runMode:NSDefaultRunLoopMode
                             beforeDate:[NSDate distantFuture]]) {
             // This loop continues to process events until
-            // CanStartNativeTransition() returns true or our native
-            // window has been destroyed.
+            // CanStartNativeTransition() returns true.
           }
 
           // This triggers an async animation, so continue.
-          [mWindow toggleFullScreen:nil];
+          [initialWindow toggleFullScreen:nil];
+          [initialWindow release];
           continue;
         }
         break;
@@ -1641,16 +1647,22 @@ void nsCocoaWindow::ProcessTransitions() {
             // Run a local run loop until it is safe to start a native
             // fullscreen transition.
             NSRunLoop* localRunLoop = [NSRunLoop currentRunLoop];
-            while (mWindow && !CanStartNativeTransition() &&
+
+            // Retain our initial mWindow so it doesn't change under us. We'll
+            // release it after finishing the runloop.
+            NSWindow* initialWindow = mWindow;
+            [initialWindow retain];
+
+            while (!CanStartNativeTransition() &&
                    [localRunLoop runMode:NSDefaultRunLoopMode
                               beforeDate:[NSDate distantFuture]]) {
               // This loop continues to process events until
-              // CanStartNativeTransition() returns true or our native
-              // window has been destroyed.
+              // CanStartNativeTransition() returns true.
             }
 
             // This triggers an async animation, so continue.
-            [mWindow toggleFullScreen:nil];
+            [initialWindow toggleFullScreen:nil];
+            [initialWindow release];
             continue;
           } else {
             NSDisableScreenUpdates();
