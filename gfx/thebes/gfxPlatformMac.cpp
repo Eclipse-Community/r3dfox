@@ -745,10 +745,7 @@ class OSXVsyncSource final : public VsyncSource {
 
   virtual ~OSXVsyncSource() {
     MOZ_ASSERT(NS_IsMainThread());
-    CGDisplayRemoveReconfigurationCallback(DisplayReconfigurationCallback,
-                                           this);
-    DisableVsync();
-    DestroyDisplayLink();
+    Shutdown();
   }
 
   static void RetryCreateDisplayLinkAndEnableVsync(nsITimer* aTimer,
@@ -757,8 +754,18 @@ class OSXVsyncSource final : public VsyncSource {
     OSXVsyncSource* osxVsyncSource =
         static_cast<OSXVsyncSource*>(aOsxVsyncSource);
     MOZ_ASSERT(osxVsyncSource);
+
+    osxVsyncSource->DisableVsync();
+    osxVsyncSource->DestroyDisplayLink();
     osxVsyncSource->CreateDisplayLink();
     osxVsyncSource->EnableVsync();
+
+    if (!osxVsyncSource->IsVsyncEnabled()) {
+      gfxWarning() << "Display reconfiguration vsync has failed; giving up.";
+      osxVsyncSource->Shutdown();
+      gfxPlatform::ResetHardwareVsyncSource();
+      gfxPlatform::ReInitFrameRate(nullptr, nullptr);
+    }
   }
 
   void CreateDisplayLink() {
@@ -794,35 +801,9 @@ class OSXVsyncSource final : public VsyncSource {
 
     if (retval != kCVReturnSuccess) {
       gfxWarning()
-<<<<<<< HEAD
-          << "Could not create a display link with all active displays. "
-             "Retrying";
-      if (*displayLink) {
-        CVDisplayLinkRelease(*displayLink);
-        *displayLink = nullptr;
-      }
-
-      // bug 1142708 - When coming back from sleep,
-      // or when changing displays, active displays may not be ready yet,
-      // even if listening for the kIOMessageSystemHasPoweredOn event
-      // from OS X sleep notifications.
-      // Active displays are those that are drawable.
-      // bug 1144638 - When changing display configurations and getting
-      // notifications from CGDisplayReconfigurationCallBack, the
-      // callback gets called twice for each active display
-      // so it's difficult to know when all displays are active.
-      // Instead, try again soon. The delay is arbitrary. 100ms chosen
-      // because on a late 2013 15" retina, it takes about that
-      // long to come back up from sleep.
-      uint32_t delay = 100;
-      mTimer->InitWithNamedFuncCallback(RetryCreateDisplayLink, this, delay,
-                                        nsITimer::TYPE_ONE_SHOT,
-                                        "RetryCreateDisplayLink");
-=======
           << "Display link was created, but is malformed; destroying it.";
       CVDisplayLinkRelease(*displayLink);
       *displayLink = nullptr;
->>>>>>> 3db184668e0f (Bug 1985140 Part 2: Make OSXVsyncSource safely retry vsync within display reconfiguration callback. r=mac-reviewers,mstange)
       return;
     }
 
@@ -902,8 +883,12 @@ class OSXVsyncSource final : public VsyncSource {
 
   void Shutdown() override {
     MOZ_ASSERT(NS_IsMainThread());
-    mTimer->Cancel();
-    mTimer = nullptr;
+    if (mTimer) {
+      mTimer->Cancel();
+      mTimer = nullptr;
+    }
+    CGDisplayRemoveReconfigurationCallback(DisplayReconfigurationCallback,
+                                           this);
     DisableVsync();
     DestroyDisplayLink();
   }
@@ -965,7 +950,7 @@ class OSXVsyncSource final : public VsyncSource {
         uint32_t delay = 100;
         mTimer->InitWithNamedFuncCallback(
             RetryCreateDisplayLinkAndEnableVsync, this, delay,
-            nsITimer::TYPE_ONE_SHOT, "RetryCreateDisplayLinkAndEnableVsync"_ns);
+            nsITimer::TYPE_ONE_SHOT, "RetryCreateDisplayLinkAndEnableVsync");
       }
     }
   }
