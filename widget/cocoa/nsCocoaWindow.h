@@ -309,7 +309,7 @@ class nsCocoaWindow final : public nsBaseWidget {
   bool HasModalDescendants() const { return mNumModalDescendants > 0; }
   bool IsModal() const { return mModal; }
 
-  NSWindow* GetCocoaWindow() { return mWindow; }
+  NSWindow* GetCocoaWindow() { return [[mWindow retain] autorelease]; }
 
   void SetMenuBar(RefPtr<nsMenuBarX>&& aMenuBar);
   nsMenuBarX* GetMenuBar();
