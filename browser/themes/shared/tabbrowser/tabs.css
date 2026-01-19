@@ -500,9 +500,14 @@
   border-radius: var(--tab-border-radius);
   list-style-image: url(chrome://global/skin/icons/close-12.svg);
 
-  &[pinned],
-  #tabbrowser-tabs[closebuttons="activetab"] > #tabbrowser-arrowscrollbox > .tabbrowser-tab > .tab-stack > .tab-content > &:not([selected]) {
+  &[pinned] {
     display: none;
+  }
+
+  @media not-moz-pref("r3dfox.customizations.enabled") {
+    #tabbrowser-tabs[closebuttons="activetab"] > #tabbrowser-arrowscrollbox > .tabbrowser-tab > .tab-stack > .tab-content > &:not([selected]) {
+      display: none;
+    }
   }
 }
 
