@@ -1814,10 +1814,10 @@ void MediaFormatReader::NotifyNewOutput(
         bool wasHardwareAccelerated = decoder.mIsHardwareAccelerated;
         decoder.mIsHardwareAccelerated =
             mVideo.mDecoder->IsHardwareAccelerated(dummy);
+        VideoData* videoData = sample->As<VideoData>();
         if (!decoder.mHasReportedVideoHardwareSupportTelemtry ||
             wasHardwareAccelerated != decoder.mIsHardwareAccelerated) {
           decoder.mHasReportedVideoHardwareSupportTelemtry = true;
-          VideoData* videoData = sample->As<VideoData>();
           glean::media::video_hardware_decoding_support
               .Get(decoder.GetCurrentInfo()->mMimeType)
               .Set(!!decoder.mIsHardwareAccelerated);
@@ -1835,6 +1835,14 @@ void MediaFormatReader::NotifyNewOutput(
           decoder.mDescription = mVideo.mDecoder->GetDescriptionName();
           decoder.LoadDecodeProperties();
         }
+#ifdef XP_WIN
+        // D3D11_YCBCR_IMAGE images are GPU based, we try to limit the amount
+        // of GPU RAM used.
+        mVideo.mIsHardwareAccelerated =
+            mVideo.mIsHardwareAccelerated ||
+            (videoData->mImage &&
+             videoData->mImage->GetFormat() == ImageFormat::D3D11_YCBCR_IMAGE);
+#endif
       }
       decoder.mDecodePerfRecorder->Record(
           sample->mTime.ToMicroseconds(),
