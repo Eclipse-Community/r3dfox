@@ -2395,14 +2395,14 @@ pref("browser.translation.neverForLanguages", "");
 
 // Enable Firefox translations powered by the Bergamot translations
 // engine https://browser.mt/.
-pref("browser.translations.enable", true);
+pref("browser.translations.enable", false);
 
 // Enable the new Firefox Translations Settings UI Design
-pref("browser.translations.newSettingsUI.enable", true);
+pref("browser.translations.newSettingsUI.enable", false);
 
 // Enable Firefox Select translations powered by Bergamot translations
 // engine https://browser.mt/.
-pref("browser.translations.select.enable", true);
+pref("browser.translations.select.enable", false);
 
 // Telemetry settings.
 // Determines if Telemetry pings can be archived locally.
@@ -3348,9 +3348,7 @@ pref("browser.menu.showViewImageInfo", true);
 pref("svg.context-properties.content.allowed-domains", "profile.accounts.firefox.com,profile.stage.mozaws.net");
 
 // Preference that allows individual users to disable Firefox Translations.
-#ifdef NIGHTLY_BUILD
-  pref("extensions.translations.disabled", true);
-#endif
+pref("extensions.translations.disabled", true);
 
 #if defined(XP_MACOSX) || defined(XP_WIN)
 pref("browser.firefoxbridge.enabled", false);
