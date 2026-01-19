@@ -678,7 +678,7 @@ ExternalTextureSourceHost::CreateFromDXGITextureHost(
     auto* textureMap = layers::GpuProcessD3D11TextureMap::Get();
     if (textureMap) {
       handle =
-          textureMap->GetSharedHandle(aTextureHost->mGpuProcessTextureId.ref());
+          textureMap->GetSharedHandleOfCopiedTexture(aTextureHost->mGpuProcessTextureId.ref());
     }
   } else if (aTextureHost->mHandle) {
     handle.emplace(aTextureHost->mHandle->GetHandle());
