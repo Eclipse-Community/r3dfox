@@ -2467,6 +2467,9 @@ pref("screenshots.browser.component.preventContentEvents", true);
 // DoH Rollout: whether to clear the mode value at shutdown.
 pref("doh-rollout.clearModeOnShutdown", false);
 
+// DoH Rollout: disable.
+pref("doh-rollout.enabled", false);
+
 // Normandy client preferences
 pref("app.normandy.api_url", "");
 pref("app.normandy.dev_mode", false);

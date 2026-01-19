@@ -12647,7 +12647,7 @@
 
 - name: network.dns.disablePrefetchFromHTTPS
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # For testing purpose only: allow dns prefetch through proxies
