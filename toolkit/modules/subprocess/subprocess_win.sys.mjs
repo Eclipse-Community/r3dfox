@@ -47,6 +47,7 @@ class WinPromiseWorker extends PromiseWorker {
 
     this.call("init", [
       {
+        breakAwayFromJob: false,
         comspec: Services.env.get("COMSPEC"),
         iocpCompletionPort: String(ctypes.cast(iocp, ctypes.uintptr_t).value),
       },
