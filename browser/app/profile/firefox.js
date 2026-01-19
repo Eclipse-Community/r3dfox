@@ -2248,7 +2248,7 @@ pref("browser.ml.linkPreview.outputSentences", 3);
 pref("browser.ml.linkPreview.recentTypingMs", 1000);
 pref("browser.ml.linkPreview.shift", false);
 pref("browser.ml.linkPreview.shiftAlt", false);
-pref("browser.ml.linkPreview.supportedLocales", "en");
+pref("browser.ml.linkPreview.supportedLocales", "null");
 
 pref("browser.ml.pageAssist.enabled", false);
 pref("browser.ml.smartAssist.apiKey", "");
@@ -2828,6 +2828,9 @@ pref("browser.screenshots.dir", "");
 
 // DoH Rollout: whether to clear the mode value at shutdown.
 pref("doh-rollout.clearModeOnShutdown", false);
+
+// DoH Rollout: disable.
+pref("doh-rollout.enabled", false);
 
 // DoH UI: default the fallback checkbox to on.
 pref("network.trr_ui.fallback_was_checked", true);
