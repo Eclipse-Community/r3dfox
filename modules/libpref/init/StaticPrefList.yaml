@@ -14255,7 +14255,7 @@
 
 - name: network.dns.disablePrefetchFromHTTPS
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # For testing purpose only: allow dns prefetch through proxies
@@ -16838,7 +16838,7 @@
 # Enable/disable CSP reporting (report-uri and report-to)
 - name: security.csp.reporting.enabled
   type: bool
-  value: true
+  value: false
   mirror: always
 
 #ifdef DEBUG
