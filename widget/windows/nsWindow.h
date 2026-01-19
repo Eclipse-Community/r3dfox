@@ -538,6 +538,7 @@ class nsWindow final : public nsIWidget {
   bool UpdateNonClientMargins(bool aReflowWindow = true);
   void UpdateDarkModeToolbar();
   void ResetLayout();
+  LayoutDeviceIntRegion ComputeNonClientRegion();
   HWND GetOwnerWnd() const { return ::GetWindow(mWnd, GW_OWNER); }
   bool IsOwnerForegroundWindow() const {
     HWND owner = GetOwnerWnd();
@@ -629,7 +630,8 @@ class nsWindow final : public nsIWidget {
   LayoutDeviceIntRegion GetOpaqueRegionForTesting() const override {
     return mOpaqueRegion;
   }
-  // Gets the translucent region, in client coordinates.
+  // Gets the translucent region, relative to the whole window, including the
+  // NC area.
   LayoutDeviceIntRegion GetTranslucentRegion();
   void MaybeInvalidateTranslucentRegion();
 
@@ -832,8 +834,8 @@ class nsWindow final : public nsIWidget {
 
   // Graphics
   LayoutDeviceIntRect mLastPaintBounds;
-  // The region of the window we know is cleared to transparent already,
-  // in client coords.
+  // The region of the window we know is cleared to transparent already
+  // (relative to the whole window).
   LayoutDeviceIntRegion mClearedRegion;
 
   ResizeState mResizeState = NOT_RESIZING;
@@ -921,6 +923,10 @@ class nsWindow final : public nsIWidget {
       mWindowBtnRect;
 
   nsString mDesktopId MOZ_GUARDED_BY(mozilla::sMainThreadCapability);
+
+  // If set, indicates the non-client-area region must be cleared to black on
+  // next paint.
+  bool mNeedsNCAreaClear = false;
 
   friend class nsWindowGfx;
 
