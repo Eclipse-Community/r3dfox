@@ -172,7 +172,7 @@ bool InterceptionAgent::PatchDll(const DllPatchInfo* dll_info,
     NTSTATUS ret = resolver->Setup(
         thunks->base, interceptions_->interceptor_base, function->function,
         interceptor, function->interceptor_address, &thunks->thunks[i],
-        &thunks->thunks[i], sizeof(ThunkData), nullptr);
+        sizeof(ThunkData), nullptr);
     if (!NT_SUCCESS(ret)) {
       NOTREACHED_NT();
       return false;
