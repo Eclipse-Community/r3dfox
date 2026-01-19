@@ -200,6 +200,9 @@ r3dfox-hover-preview =
 r3dfox-drop-to-pin =
     .label = Disable drop to pin tabs
 
+r3dfox-taskbar-tabs =
+    .label = Disable add tab to taskbar button in urlbar
+
 r3dfox-switch-to-tab =
     .label = Reverse urlbar switch to tab behavior
 
