@@ -10,23 +10,10 @@
         "Extensions": {
             "Install": [
                 "https://web.archive.org/web/20251214042957/https://addons.mozilla.org/firefox/downloads/file/4598854/ublock_origin-1.67.0.xpi"
-            ],
-            "Uninstall": [
-                "bing@search.mozilla.org",
-                "amazondotcom@search.mozilla.org",
-                "ebay@search.mozilla.org",
-                "twitter@search.mozilla.org"
             ]
         },
         "SearchEngines": {
             "PreventInstalls": false,
-            "Remove": [
-                "Bing",
-                "Amazon.com",
-                "eBay",
-                "Twitter",
-                "Perplexity"
-            ],
             "Default": "DuckDuckGo",
             "Add": [
                 {
