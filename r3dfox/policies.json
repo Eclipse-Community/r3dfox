@@ -11,23 +11,10 @@
         "Extensions": {
             "Install": [
                 "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi"
-            ],
-            "Uninstall": [
-                "bing@search.mozilla.org",
-                "amazondotcom@search.mozilla.org",
-                "ebay@search.mozilla.org",
-                "twitter@search.mozilla.org"
             ]
         },
         "SearchEngines": {
             "PreventInstalls": false,
-            "Remove": [
-                "Bing",
-                "Amazon.com",
-                "eBay",
-                "Twitter",
-                "Perplexity"
-            ],
             "Default": "DuckDuckGo",
             "Add": [
                 {
