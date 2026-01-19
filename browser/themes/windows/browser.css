@@ -25,7 +25,7 @@
   }
 }
 
-:root[customtitlebar]:not([lwtheme], [builtintheme]) {
+:root[tabsintitlebar]:not([lwtheme], [builtintheme]) {
   /* stylelint-disable-next-line media-query-no-invalid */
   @media (-moz-windows-mica) or ((-moz-windows-accent-color-in-titlebar) and -moz-pref("browser.theme.windows.accent-color-in-tabs.enabled")) {
     --toolbox-bgcolor: ActiveCaption;

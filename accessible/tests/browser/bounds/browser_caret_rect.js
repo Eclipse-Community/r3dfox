@@ -212,8 +212,8 @@ addAccessibleTask(
     info("Showing title bar");
     let titleBarChanged = BrowserTestUtils.waitForMutationCondition(
       document.documentElement,
-      { attributes: true, attributeFilter: ["customtitlebar"] },
-      () => !document.documentElement.hasAttribute("customtitlebar")
+      { attributes: true, attributeFilter: ["tabsintitlebar"] },
+      () => !document.documentElement.hasAttribute("tabsintitlebar")
     );
     await SpecialPowers.pushPrefEnv({
       set: [["browser.tabs.inTitlebar", false]],
