@@ -200,20 +200,36 @@ void PresShellWidgetListener::AndroidPipModeChanged(bool aPipMode) {
 #endif
 }
 
-void PresShellWidgetListener::PaintWindow(nsIWidget* aWidget) {
-  RefPtr ps = GetPresShell();
-  if (!ps) {
+void PresShellWidgetListener::WillPaintWindow(nsIWidget* aWidget) {
+  WindowRenderer* renderer = aWidget->GetWindowRenderer();
+  if (renderer->NeedsWidgetInvalidation()) {
     return;
+  }
+  if (RefPtr ps = mPresShell) {
+    // FIXME(bug 2002232): Why is this needed?
+    ps->PaintSynchronously();
+  }
+}
+
+bool PresShellWidgetListener::PaintWindow(nsIWidget* aWidget, LayoutDeviceIntRegion) {
+  RefPtr ps = mPresShell;
+  if (!ps) {
+    return true;
   }
   RefPtr renderer = aWidget->GetWindowRenderer();
   if (!renderer->NeedsWidgetInvalidation()) {
-    ps->PaintSynchronously();
     renderer->FlushRendering(wr::RenderReasons::WIDGET);
   } else {
     ps->SyncPaintFallback(ps->GetRootFrame(), renderer);
   }
   mozilla::StartupTimeline::RecordOnce(mozilla::StartupTimeline::FIRST_PAINT);
-  ps->DidPaintWindow();
+  return true;
+}
+
+void PresShellWidgetListener::DidPaintWindow() {
+  if (RefPtr<PresShell> presShell = mPresShell) {
+    presShell->DidPaintWindow();
+  }
 }
 
 void PresShellWidgetListener::DidCompositeWindow(

@@ -206,7 +206,7 @@ class nsMenuPopupFrame final : public nsBlockFrame, public nsIWidgetListener {
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
   nsEventStatus HandleEvent(mozilla::WidgetGUIEvent* aEvent) override;
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
-  void PaintWindow(nsIWidget* aWidget) override;
+  bool PaintWindow(nsIWidget* aWidget, mozilla::LayoutDeviceIntRegion) override;
   void DidCompositeWindow(mozilla::layers::TransactionId aTransactionId,
                           const mozilla::TimeStamp& aCompositeStart,
                           const mozilla::TimeStamp& aCompositeEnd) override;
