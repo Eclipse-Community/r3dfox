@@ -411,13 +411,22 @@ this.storage = class extends ExtensionAPIPersistent {
         managed: {
           async get(keys) {
             enforceNoTemporaryAddon(extension.id);
-            const assetsBootstrapLocation = Services.prefs.getStringPref("librewolf.uBO.assetsBootstrapLocation", undefined);
+            const assetsBootstrapLocation = Services.prefs.getStringPref(
+              "librewolf.uBO.assetsBootstrapLocation",
+              undefined
+            );
             if (extension.id == "uBlock0@raymondhill.net" && assetsBootstrapLocation) {
-              return {
-                adminSettings: {
-                  assetsBootstrapLocation
-                }
+              let data = {};
+              try {
+                let manifestData = await getManagedStorageManifestData(extension, context);
+                data = await ExtensionStorage._filterProperties(extension.id, manifestData, keys);
+              } catch (e) {
+                // no managed manifest
               }
+              return {
+                ...data,
+                adminSettings: { ...(data.adminSettings || {}), assetsBootstrapLocation },
+              };
             }
             let data = await getManagedStorageManifestData(extension, context);
             return ExtensionStorage._filterProperties(extension.id, data, keys);
