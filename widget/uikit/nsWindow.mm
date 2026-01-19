@@ -412,7 +412,11 @@ class nsAutoRetainUIKitObject {
   if (!mGeckoChild->IsVisible()) return;
 
   mWaitingForPaint = NO;
-  mGeckoChild->PaintWindow();
+
+  LayoutDeviceIntRect geckoBounds = mGeckoChild->GetBounds();
+  LayoutDeviceIntRegion region(geckoBounds);
+
+  mGeckoChild->PaintWindow(region);
 }
 
 // Called asynchronously after setNeedsDisplay in order to avoid entering the
@@ -954,10 +958,23 @@ void nsWindow::SetFocus(Raise, mozilla::dom::CallerType) {
   [mNativeView becomeFirstResponder];
 }
 
-void nsWindow::PaintWindow() {
+void nsWindow::WillPaintWindow() {
   if (mWidgetListener) {
-    mWidgetListener->PaintWindow(this);
+    mWidgetListener->WillPaintWindow(this);
   }
+}
+
+bool nsWindow::PaintWindow(LayoutDeviceIntRegion aRegion) {
+  if (!mWidgetListener) return false;
+
+  bool returnValue = false;
+  returnValue = mWidgetListener->PaintWindow(this, aRegion);
+
+  if (mWidgetListener) {
+    mWidgetListener->DidPaintWindow();
+  }
+
+  return returnValue;
 }
 
 void nsWindow::ReportMoveEvent() { NotifyWindowMoved(mBounds.x, mBounds.y); }
@@ -1124,11 +1141,13 @@ layers::NativeLayerRoot* nsWindow::GetNativeLayerRoot() {
 }
 
 void nsWindow::HandleMainThreadCATransaction() {
+  WillPaintWindow();
+
   // Trigger a synchronous OMTC composite. This will call NextSurface and
   // NotifySurfaceReady on the compositor thread to update mNativeLayerRoot's
   // contents, and the main thread (this thread) will wait inside PaintWindow
   // during that time.
-  PaintWindow();
+  PaintWindow(LayoutDeviceIntRegion(GetBounds()));
 
   {
     // Apply the changes inside mNativeLayerRoot to the underlying CALayers. Now

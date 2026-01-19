@@ -85,7 +85,8 @@ class nsWindow final : public nsIWidget {
 
   void Invalidate(const LayoutDeviceIntRect& aRect) override;
 
-  void PaintWindow();
+  void WillPaintWindow();
+  bool PaintWindow(LayoutDeviceIntRegion aRegion);
 
   bool HasModalDescendents() { return false; }
 
