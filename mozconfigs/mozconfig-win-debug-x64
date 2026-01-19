@@ -20,7 +20,6 @@ export MOZ_D3DCOMPILER_VISTA_DLL_PATH_OVERRIDE="C:/VC++/x64"
 # Media settings
 ac_add_options --disable-eme
 ac_add_options --enable-av1
-ac_add_options --enable-jxl
 ac_add_options --enable-raw
 ac_add_options --enable-webrtc
 
