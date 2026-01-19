@@ -146,13 +146,6 @@ SOURCES += [
     "TSFUtils.cpp",
 ]
 
-# Needs winrt exceptions since we're calling into the
-# Windows App SDK.
-SOURCES["WindowsUIUtils.cpp"].flags += [
-    "-Xclang",
-    "-fcxx-exceptions",
-]
-
 if CONFIG["NS_PRINTING"]:
     UNIFIED_SOURCES += [
         "nsDeviceContextSpecWin.cpp",
