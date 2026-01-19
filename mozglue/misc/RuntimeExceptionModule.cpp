@@ -79,7 +79,24 @@ void RegisterRuntimeExceptionModule() {
     return;
   }
 
-  if (FAILED(::WerRegisterRuntimeExceptionModule(
+    HMODULE hWerModule=GetModuleHandleW(L"kernel32.dll");
+
+    if (hWerModule == NULL)
+    {
+        return;
+    }
+
+    typedef HRESULT (WINAPI * WerRegisterRuntimeExceptionModuleFnPtr)(PCWSTR, PVOID);
+    WerRegisterRuntimeExceptionModuleFnPtr pFnWerRegisterRuntimeExceptionModule;
+
+    pFnWerRegisterRuntimeExceptionModule = (WerRegisterRuntimeExceptionModuleFnPtr)
+                                        GetProcAddress(hWerModule, "WerRegisterRuntimeExceptionModule");
+
+    if (pFnWerRegisterRuntimeExceptionModule == NULL)
+    {
+       return;
+    }
+  if (FAILED(pFnWerRegisterRuntimeExceptionModule(
           sModulePath,
           reinterpret_cast<PVOID>(mozilla::GetGeckoProcessType())))) {
     // The registration failed null out sModulePath to record this.
@@ -93,7 +110,24 @@ void UnregisterRuntimeExceptionModule() {
 #ifdef XP_WIN
   // If sModulePath is set then we have registered the module.
   if (*sModulePath) {
-    (void)::WerUnregisterRuntimeExceptionModule(
+    HMODULE hWerModule=GetModuleHandleW(L"kernel32.dll");
+
+    if (hWerModule == NULL)
+    {
+        return;
+    }
+
+    typedef HRESULT (WINAPI * WerRegisterRuntimeExceptionModuleFnPtr)(PCWSTR, PVOID);
+    WerRegisterRuntimeExceptionModuleFnPtr pFnWerRegisterRuntimeExceptionModule;
+
+    pFnWerRegisterRuntimeExceptionModule = (WerRegisterRuntimeExceptionModuleFnPtr)
+                                        GetProcAddress(hWerModule, "WerUnregisterRuntimeExceptionModule");
+
+    if (pFnWerRegisterRuntimeExceptionModule == NULL)
+    {
+       return;
+    }
+    (void)pFnWerRegisterRuntimeExceptionModule(
         sModulePath, reinterpret_cast<PVOID>(mozilla::GetGeckoProcessType()));
     *sModulePath = L'\0';
   }
