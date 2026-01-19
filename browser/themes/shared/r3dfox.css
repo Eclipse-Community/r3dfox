@@ -636,6 +636,10 @@
       }
     }
 
+    #TabsToolbar {
+      --toolbarbutton-inner-padding: calc((var(--tab-min-height) - 16px) / 2);
+    }
+
     #tabbrowser-tabs[overflow] .tab-drop-indicator {
       inset-inline-start: var(--tab-first-last-inline-margin) !important;
     }
