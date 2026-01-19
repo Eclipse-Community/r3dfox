@@ -439,7 +439,7 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
     rv = file->AppendNative(".r3dfox"_ns);
 #  endif  // defined(XP_MACOSX)
   } else if (!strcmp(aProperty, XRE_MOZ_USER_NATIVE_MANIFESTS)) {
-    rv = GetUserDataDirectoryHome(getter_AddRefs(file), false);
+    rv = GetUserDataDirectoryHome(getter_AddRefs(file), false, true);
     NS_ENSURE_SUCCESS(rv, rv);
 #  if defined(XP_MACOSX)
     rv = file->AppendNative("Mozilla"_ns);
@@ -474,8 +474,7 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
   else if (!strcmp(aProperty, XRE_SYS_SHARE_EXTENSION_PARENT_DIR)) {
 #  ifdef ENABLE_SYSTEM_EXTENSION_DIRS
 #    if defined(__OpenBSD__) || defined(__FreeBSD__)
-    static const char* const sysLExtDir =
-        "/usr/local/share/r3dfox/extensions";
+    static const char* const sysLExtDir = "/usr/local/share/r3dfox/extensions";
 #    else
     static const char* const sysLExtDir = "/usr/share/r3dfox/extensions";
 #    endif
@@ -1350,9 +1349,11 @@ nsresult nsXREDirProvider::AppendFromAppData(nsIFile* aFile, bool aIsDotted) {
   // Similar to nsXREDirProvider::AppendProfilePath.
   // TODO: Bug 1990407 - Evaluate if refactoring might be required there in the
   // future?
-  if (gAppData->profile) {
+  // Use aIsDotted for a different purpose here, will probably break in the future
+  if (gAppData->profile && aIsDotted) {
     nsAutoCString profile;
     profile = gAppData->profile;
+    profile = "."_ns + nsDependentCString(gAppData->profile);
     MOZ_TRY(aFile->AppendRelativeNativePath(profile));
   } else {
     nsAutoCString vendor;
@@ -1362,8 +1363,8 @@ nsresult nsXREDirProvider::AppendFromAppData(nsIFile* aFile, bool aIsDotted) {
     ToLowerCase(vendor);
     ToLowerCase(appName);
 
-    MOZ_TRY(aFile->AppendRelativeNativePath(aIsDotted ? ("."_ns + vendor)
-                                                      : vendor));
+    //MOZ_TRY(aFile->AppendRelativeNativePath(aIsDotted ? ("."_ns + vendor)
+    //                                                  : vendor));
     MOZ_TRY(aFile->AppendRelativeNativePath(appName));
   }
 
@@ -1529,27 +1530,21 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
       return NS_OK;
     }
 
-    // If the build was made against a specific profile name, MOZ_APP_PROFILE=
-    // then make sure we respect this and dont move to XDG directory
-    if (gAppData->profile) {
-      MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(aHomeDir),
-                                    getter_AddRefs(localDir)));
-    } else {
-      MOZ_TRY(GetLegacyOrXDGConfigHome(aHomeDir, getter_AddRefs(localDir)));
-      MOZ_TRY(localDir->Clone(getter_AddRefs(parentDir)));
-    }
+    // Since we set gAppData->profile and don't want to force legacy behaviour
+    MOZ_TRY(GetLegacyOrXDGConfigHome(aHomeDir, getter_AddRefs(localDir)));
+    MOZ_TRY(localDir->Clone(getter_AddRefs(parentDir)));
 
     MOZ_TRY(AppendFromAppData(localDir, false));
   }
 
+  // The profile root directory needs to exists at that point.
+  MOZ_TRY(EnsureDirectoryExists(localDir));
+
   // If required return the parent directory that matches the profile root
   // directory.
   if (aFile) {
-    parentDir.forget(aFile);
+    localDir.forget(aFile);
   }
-
-  // The profile root directory needs to exists at that point.
-  MOZ_TRY(EnsureDirectoryExists(localDir));
 
   return NS_OK;
 }
