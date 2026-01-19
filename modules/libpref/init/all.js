@@ -390,8 +390,8 @@ pref("gfx.downloadable_fonts.fallback_delay_short", 100);
 
 // comma separated list of backends to use in order of preference
 // e.g., pref("gfx.canvas.azure.backends", "direct2d,skia");
-pref("gfx.canvas.azure.backends", "skia");
-pref("gfx.content.azure.backends", "skia");
+pref("gfx.canvas.azure.backends", "skia,cairo");
+pref("gfx.content.azure.backends", "skia,cairo");
 
 #ifdef XP_WIN
   pref("gfx.webrender.flip-sequential", false);
@@ -533,6 +533,8 @@ pref("toolkit.sqlitejsm.loglevel", "Error");
 pref("toolkit.tabbox.switchByScrolling", false);
 
 // Telemetry settings.
+// Disabling telemetry hopefully
+pref("toolkit.telemetry.enabled", false);
 // Server to submit telemetry pings to.
 pref("toolkit.telemetry.server", "https://incoming.telemetry.mozilla.org");
 // Telemetry server owner. Please change if you set toolkit.telemetry.server to a different server
