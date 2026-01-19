@@ -52,6 +52,7 @@ ac_add_options --enable-lto
 ac_add_options --enable-optimize="-Qunused-arguments -O2 -msse2 -Xclang -O3"
 ac_add_options --enable-release
 ac_add_options --enable-rust-simd
+ac_add_options --enable-replace-malloc
 ac_add_options --enable-strip
 MOZ_OPTIMIZE=1
 export MOZ_OPTIMIZE=1
