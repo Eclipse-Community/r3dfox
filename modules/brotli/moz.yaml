@@ -28,13 +28,13 @@ vendoring:
     - python
     - scripts
     - tests
+    - c/tools
 
   include:
     - c/include/
     - c/common/
     - c/dec/
     - c/enc/
-    - c/tools/
 
   keep:
     - LICENSE
@@ -59,8 +59,5 @@ vendoring:
     - action: move-file
       from: '{vendor_dir}/enc/static_init.c'
       to: '{vendor_dir}/enc/static_init_enc.c'
-    - action: move-dir
-      from: '{vendor_dir}/c/tools'
-      to: '{vendor_dir}/tools'
     - action: delete-path
       path: '{vendor_dir}/c'
