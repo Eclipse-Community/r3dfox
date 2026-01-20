@@ -59,6 +59,7 @@ mk_add_options "export JAR_COMPRESSION=brotli"
 # Media settings
 ac_add_options --disable-eme
 ac_add_options --enable-av1
+ac_add_options --enable-jxl
 ac_add_options --enable-raw
 ac_add_options --enable-webrtc
 
