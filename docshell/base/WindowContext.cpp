@@ -664,6 +664,10 @@ bool IPDLParamTraits<dom::MaybeDiscarded<dom::WindowContext>>::Read(
   if (id == 0) {
     *aResult = nullptr;
   } else if (RefPtr<dom::WindowContext> wc = dom::WindowContext::GetById(id)) {
+    if (!wc->Group()->IsKnownForMessageReader(aReader)) {
+      return false;
+    }
+
     *aResult = std::move(wc);
   } else {
     aResult->SetDiscarded(id);

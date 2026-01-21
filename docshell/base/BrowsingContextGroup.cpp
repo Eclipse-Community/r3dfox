@@ -239,6 +239,42 @@ ContentParent* BrowsingContextGroup::GetHostProcess(
   return mHosts.GetWeak(aRemoteType);
 }
 
+bool BrowsingContextGroup::IsKnownForMessageReader(
+    IPC::MessageReader* aReader) {
+  if (!aReader->GetActor()) {
+    aReader->FatalError(
+        "No actor for BrowsingContextGroup::IsKnownForMessageReader");
+    return false;
+  }
+
+  mozilla::ipc::IToplevelProtocol* topActor =
+      aReader->GetActor()->ToplevelProtocol();
+  switch (topActor->GetProtocolId()) {
+    case PInProcessMsgStart:
+      // PInProcess always exists only within a single process, so we don't need
+      // to do any validation on it.
+      return true;
+
+    case PContentMsgStart:
+      // The process should only be able to name this BCG if it is
+      // subscribed, or if the BCG has been destroyed (and has therefore
+      // stopped tracking subscribers).
+      if (topActor->GetSide() == mozilla::ipc::ParentSide && !mDestroyed &&
+          !mSubscribers.Contains(static_cast<ContentParent*>(topActor))) {
+        aReader->FatalError(
+            "Process is not subscribed to this BrowsingContextGroup");
+        return false;
+      }
+      return true;
+
+    default:
+      aReader->FatalError(
+          "Unsupported toplevel actor for "
+          "BrowsingContextGroup::IsKnownForMessageReader");
+      return false;
+  }
+}
+
 void BrowsingContextGroup::UpdateToplevelsSuspendedIfNeeded() {
   if (!StaticPrefs::dom_suspend_inactive_enabled()) {
     return;
@@ -284,8 +320,8 @@ void BrowsingContextGroup::Destroy() {
                              !sBrowsingContextGroups->Contains(Id()) ||
                                  *sBrowsingContextGroups->Lookup(Id()) != this);
   }
-  mDestroyed = true;
 #endif
+  mDestroyed = true;
 
   // Make sure to call `RemoveBrowsingContextGroup` for every entry in both
   // `mHosts` and `mSubscribers`. This will visit most entries twice, but
