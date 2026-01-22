@@ -16,6 +16,7 @@
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIInputStream.h"
+#include "nsIJARChannel.h"
 #include "nsIStreamConverterService.h"
 #include "nsIWeakReferenceUtils.h"
 #include "nsIHttpChannel.h"
@@ -575,6 +576,15 @@ nsresult nsDocumentOpenInfo::TryStreamConversion(nsIChannel* aChannel) {
   nsCString srcContentType(mContentType);
   if (srcContentType.IsEmpty()) {
     srcContentType.AssignLiteral(UNKNOWN_CONTENT_TYPE);
+  }
+
+  // If this is an unknown content type loaded from a JAR file
+  // don't attempt to sniff it.
+  if (srcContentType.EqualsLiteral(UNKNOWN_CONTENT_TYPE)) {
+    if (nsCOMPtr<nsIJARChannel> jar = do_QueryInterface(aChannel)) {
+      m_targetStreamListener = nullptr;
+      return NS_ERROR_NOT_AVAILABLE;
+    }
   }
 
   nsresult rv =
