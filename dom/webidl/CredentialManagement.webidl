@@ -50,6 +50,7 @@ enum CredentialMediationRequirement {
 };
 
 dictionary CredentialCreationOptions {
+  CredentialMediationRequirement mediation = "optional";
   // This is taken from the partial definition in
   // https://w3c.github.io/webauthn/#sctn-credentialcreationoptions-extension
   [Pref="security.webauth.webauthn"]
