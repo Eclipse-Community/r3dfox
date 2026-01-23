@@ -237,7 +237,7 @@ r3dfox-caption-height = Custom caption button Aero fog mask height
 
 r3dfox-sandbox-level = Security Sandbox Content Level
 
-r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
+r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8 or above. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
 
 r3dfox-webaudio =
     .label = Disable Web Audio API
