@@ -1055,7 +1055,7 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
       sandbox::SBOX_ALL_OK == result,
       "With these static arguments AddRule should never fail, what happened?");
 
-  if ((aSandboxLevel >= 20) && (IsWin7OrLater())) {
+  if (aSandboxLevel >= 20) {
     // Content process still needs to be able to read fonts.
     wchar_t* fontsPath;
 typedef HRESULT (WINAPI* nsGetKnownFolderPath)(const GUID& rfid,
