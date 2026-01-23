@@ -155,6 +155,9 @@ int GetEffectiveContentSandboxLevel() {
   if (level < minimumLevel) {
     level = minimumLevel;
   }
+  if (!IsWin7OrLater()) {
+    level = std::min(level, 7);
+  }
 #ifdef XP_LINUX
   // Level 1 was a configuration with default-deny seccomp-bpf but
   // which allowed direct filesystem access; that required additional

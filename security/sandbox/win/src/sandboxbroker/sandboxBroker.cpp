@@ -1078,7 +1078,7 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
     accessTokenLevel = sandbox::USER_LOCKDOWN;
     initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
     delayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_UNTRUSTED;
-  } else if ((aSandboxLevel >= 8) && (IsWin7OrLater())) {
+  } else if (aSandboxLevel >= 8) {
     jobLevel = sandbox::JOB_LOCKDOWN;
     accessTokenLevel = sandbox::USER_RESTRICTED;
     // This Kingsoft DLL causes a load of ole32.dll, which fails under
@@ -1280,7 +1280,7 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
       sandbox::SBOX_ALL_OK == result,
       "With these static arguments AddRule should never fail, what happened?");
 
-  if ((aSandboxLevel >= 8) && (IsWin7OrLater())) {
+  if (aSandboxLevel >= 8) {
     // Content process still needs to be able to read fonts.
     AddCachedWindowsDirRule(
         mPolicy, sandbox::TargetPolicy::FILES_ALLOW_READONLY, FOLDERID_Fonts);
