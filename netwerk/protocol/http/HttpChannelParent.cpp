@@ -1720,8 +1720,7 @@ HttpChannelParent::SetClassifierMatchedInfo(const nsACString& aList,
                                             const nsACString& aProvider,
                                             const nsACString& aFullHash) {
   LOG(("HttpChannelParent::SetClassifierMatchedInfo [this=%p]\n", this));
-  if (!mIPCClosed) {
-    MOZ_ASSERT(mBgParent);
+  if (!mIPCClosed && mBgParent) {
     Unused << mBgParent->OnSetClassifierMatchedInfo(aList, aProvider,
                                                     aFullHash);
   }
@@ -1733,8 +1732,7 @@ HttpChannelParent::SetClassifierMatchedTrackingInfo(
     const nsACString& aLists, const nsACString& aFullHashes) {
   LOG(("HttpChannelParent::SetClassifierMatchedTrackingInfo [this=%p]\n",
        this));
-  if (!mIPCClosed) {
-    MOZ_ASSERT(mBgParent);
+  if (!mIPCClosed && mBgParent) {
     Unused << mBgParent->OnSetClassifierMatchedTrackingInfo(aLists,
                                                             aFullHashes);
   }
@@ -1748,8 +1746,7 @@ HttpChannelParent::NotifyClassificationFlags(uint32_t aClassificationFlags,
       ("HttpChannelParent::NotifyClassificationFlags "
        "classificationFlags=%" PRIu32 ", thirdparty=%d [this=%p]\n",
        aClassificationFlags, static_cast<int>(aIsThirdParty), this));
-  if (!mIPCClosed) {
-    MOZ_ASSERT(mBgParent);
+  if (!mIPCClosed && mBgParent) {
     Unused << mBgParent->OnNotifyClassificationFlags(aClassificationFlags,
                                                      aIsThirdParty);
   }
