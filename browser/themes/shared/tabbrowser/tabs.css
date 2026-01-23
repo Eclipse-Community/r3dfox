@@ -504,7 +504,7 @@
     display: none;
   }
 
-  @media not-moz-pref("r3dfox.customizations.enabled") {
+  @media (not -moz-pref("r3dfox.customizations.enabled")) {
     #tabbrowser-tabs[closebuttons="activetab"] > #tabbrowser-arrowscrollbox > .tabbrowser-tab > .tab-stack > .tab-content > &:not([selected]) {
       display: none;
     }
