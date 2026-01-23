@@ -1110,7 +1110,7 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
     accessTokenLevel = sandbox::USER_LOCKDOWN_WITH_TRAVERSE;
     initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
     delayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_UNTRUSTED;
-  } else if ((aSandboxLevel >= 8) && (IsWin7OrLater())) {
+  } else if (aSandboxLevel >= 8) {
     jobLevel = sandbox::JobLevel::kLockdown;
     accessTokenLevel = sandbox::USER_RESTRICTED;
     initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
@@ -1304,7 +1304,7 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
       sandbox::SBOX_ALL_OK == result,
       "With these static arguments AddRule should never fail, what happened?");
 
-  if ((aSandboxLevel >= 8) && (IsWin7OrLater())) {
+  if (aSandboxLevel >= 8) {
     // Content process still needs to be able to read fonts.
     AddCachedWindowsDirRule(config, sandbox::FileSemantics::kAllowReadonly,
                             FOLDERID_Fonts);
