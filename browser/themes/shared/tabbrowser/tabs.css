@@ -801,7 +801,7 @@
     display: none;
   }
 
-  @media not-moz-pref("r3dfox.customizations.enabled") {
+  @media (not -moz-pref("r3dfox.customizations.enabled")) {
     #tabbrowser-tabs[closebuttons="activetab"][orient="horizontal"] &:not([selected]) {
       display: none;
     }
