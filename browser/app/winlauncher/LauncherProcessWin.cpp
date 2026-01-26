@@ -11,19 +11,20 @@
 #include "mozilla/Attributes.h"
 #include "mozilla/CmdLineAndEnvUtils.h"
 #include "mozilla/DebugOnly.h"
-#include "mozilla/DynamicallyLinkedFunctionPtr.h"
 #include "mozilla/glue/Debug.h"
 #include "mozilla/GeckoArgs.h"
 #include "mozilla/Maybe.h"
 #include "mozilla/SafeMode.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/WindowsConsole.h"
+#include "mozilla/WindowsProcessMitigations.h"
 #include "mozilla/WindowsVersion.h"
 #include "mozilla/WinHeaderOnlyUtils.h"
 #include "nsWindowsHelpers.h"
 
 #include <windows.h>
 #include <processthreadsapi.h>
+#include <shlwapi.h>
 
 #include "DllBlocklistInit.h"
 #include "ErrorHandler.h"
@@ -110,16 +111,82 @@ static nsReturnRef<HANDLE> CreateJobAndAssignProcess(HANDLE aProcess) {
   return job.out();
 }
 
-#if !defined( \
-    PROCESS_CREATION_MITIGATION_POLICY_IMAGE_LOAD_PREFER_SYSTEM32_ALWAYS_ON)
-#  define PROCESS_CREATION_MITIGATION_POLICY_IMAGE_LOAD_PREFER_SYSTEM32_ALWAYS_ON \
-    (0x00000001ULL << 60)
-#endif  // !defined(PROCESS_CREATION_MITIGATION_POLICY_IMAGE_LOAD_PREFER_SYSTEM32_ALWAYS_ON)
+enum class VCRuntimeDLLDir : bool {
+  Application,
+  System,
+};
+static bool GetMSVCP140VersionInfo(VCRuntimeDLLDir aDir,
+                                   uint64_t& aOutVersion) {
+  wchar_t dllPath[MAX_PATH];
+  if (aDir == VCRuntimeDLLDir::Application) {
+    DWORD size = ::GetModuleFileNameW(nullptr, dllPath, MAX_PATH);
+    if (!size ||
+        (size == MAX_PATH && ::GetLastError() == ERROR_INSUFFICIENT_BUFFER) ||
+        !::PathRemoveFileSpecW(dllPath)) {
+      return false;
+    }
+  } else {
+    MOZ_ASSERT(aDir == VCRuntimeDLLDir::System);
+    UINT size = ::GetSystemDirectoryW(dllPath, MAX_PATH);
+    if (!size || size >= MAX_PATH) {
+      return false;
+    }
+  }
 
-#if !defined(PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF)
-#  define PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF \
-    (0x00000002ULL << 40)
-#endif  // !defined(PROCESS_CREATION_MITIGATION_POLICY_CONTROL_FLOW_GUARD_ALWAYS_OFF)
+  if (!::PathAppendW(dllPath, L"msvcp140.dll")) {
+    return false;
+  }
+  HMODULE crt =
+      ::LoadLibraryExW(dllPath, nullptr, LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+  if (!crt) {
+    return false;
+  }
+
+  mozilla::nt::PEHeaders headers{crt};
+  bool result = headers.GetVersionInfo(aOutVersion);
+  ::FreeLibrary(crt);
+  return result;
+}
+
+/**
+ * Choose whether we want to favor loading DLLs from the system directory over
+ * the application directory. This choice automatically propagates to all child
+ * processes. In particular, it determines whether child processes will load
+ * Visual C++ runtime DLLs from the system or the application directory at
+ * startup.
+ *
+ * Whenever possible, we want all processes to favor loading DLLs from the
+ * system directory. But if old Visual C++ runtime DLLs are installed
+ * system-wide, then we must favor loading from the application directory
+ * instead to ensure compatibility, at least during startup. So in this case we
+ * only apply the delayed variant of the mitigation and only in sandboxed
+ * processes, which is the best compromise (see SandboxBroker::LaunchApp).
+ *
+ * This function is called from the launcher process *and* the browser process.
+ * This is because if the launcher process is disabled, we still want the
+ * browser process to go through this code so that it enforces the correct
+ * choice for itself and for child processes.
+ */
+static void EnablePreferLoadFromSystem32IfCompatible() {
+  // We may already have the mitigation if we are the browser process and we
+  // inherited it from the launcher process.
+  if (!mozilla::IsPreferLoadFromSystem32Available() ||
+      mozilla::IsPreferLoadFromSystem32Enabled()) {
+    return;
+  }
+
+  // Only bail out if (1) there is a conflict because the two DLLs exist *and*
+  // (2) the version of the system DLL is problematic.
+  uint64_t systemDirVersion = 0, appDirVersion = 0;
+  if (GetMSVCP140VersionInfo(VCRuntimeDLLDir::System, systemDirVersion) &&
+      GetMSVCP140VersionInfo(VCRuntimeDLLDir::Application, appDirVersion) &&
+      systemDirVersion < appDirVersion) {
+    return;
+  }
+
+  mozilla::DebugOnly<bool> setOk = mozilla::EnablePreferLoadFromSystem32();
+  MOZ_ASSERT(setOk);
+}
 
 /**
  * Any mitigation policies that should be set on the browser process should go
@@ -127,10 +194,11 @@ static nsReturnRef<HANDLE> CreateJobAndAssignProcess(HANDLE aProcess) {
  */
 static void SetMitigationPolicies(mozilla::ProcThreadAttributes& aAttrs,
                                   const bool aIsSafeMode) {
-  if (mozilla::IsWin10AnniversaryUpdateOrLater()) {
-    aAttrs.AddMitigationPolicy(
-        PROCESS_CREATION_MITIGATION_POLICY_IMAGE_LOAD_PREFER_SYSTEM32_ALWAYS_ON);
-  }
+  // Note: Do *not* handle IMAGE_LOAD_PREFER_SYSTEM32_ALWAYS_ON here. For this
+  //       mitigation we rely on EnablePreferLoadFromSystem32IfCompatible().
+  //       The launcher process or the browser process will choose whether we
+  //       want to apply the mitigation or not, and child processes will
+  //       automatically inherit that choice.
 
 #if defined(_M_ARM64)
   // Disable CFG on older versions of ARM64 Windows to avoid a crash in COM.
@@ -285,6 +353,9 @@ Maybe<int> LauncherMain(int& argc, wchar_t* argv[],
     return Nothing();
   }
 
+  // Called from the launcher process *and* the browser process.
+  EnablePreferLoadFromSystem32IfCompatible();
+
 #if defined(MOZ_LAUNCHER_PROCESS)
   LauncherRegistryInfo regInfo;
   Maybe<bool> runAsLauncher = RunAsLauncherProcess(regInfo, argc, argv);
@@ -306,22 +377,6 @@ Maybe<int> LauncherMain(int& argc, wchar_t* argv[],
     }
 #endif  // defined(MOZ_LAUNCHER_PROCESS)
     return Nothing();
-  }
-
-  // Make sure that the launcher process itself has image load policies set
-  if (IsWin10AnniversaryUpdateOrLater()) {
-    static const StaticDynamicallyLinkedFunctionPtr<
-        decltype(&SetProcessMitigationPolicy)>
-        pSetProcessMitigationPolicy(L"kernel32.dll",
-                                    "SetProcessMitigationPolicy");
-    if (pSetProcessMitigationPolicy) {
-      PROCESS_MITIGATION_IMAGE_LOAD_POLICY imgLoadPol = {};
-      imgLoadPol.PreferSystem32Images = 1;
-
-      DebugOnly<BOOL> setOk = pSetProcessMitigationPolicy(
-          ProcessImageLoadPolicy, &imgLoadPol, sizeof(imgLoadPol));
-      MOZ_ASSERT(setOk);
-    }
   }
 
 #if defined(MOZ_SANDBOX)
