@@ -171,13 +171,19 @@ Orientation GetImageOrientation(const Mp4parseAvifInfo& aInfo) {
 }
 bool AVIFDecoderStream::ReadAt(int64_t offset, void* data, size_t size,
                                size_t* bytes_read) {
-  size = std::min(size, size_t(mBuffer->length() - offset));
-
-  if (size <= 0) {
+  CheckedInt<size_t> checkedOffset(offset);
+  if (!checkedOffset.isValid() || offset < 0 ||
+      checkedOffset.value() >= mBuffer->length()) {
+    return false;
+  }
+  CheckedInt<size_t> endPoint = checkedOffset + size;
+  if (!endPoint.isValid() || endPoint.value() > mBuffer->length()) {
     return false;
   }
 
-  memcpy(data, mBuffer->begin() + offset, size);
+  size = std::min<size_t>(size, mBuffer->length() - checkedOffset.value());
+
+  memcpy(data, mBuffer->begin() + checkedOffset.value(), size);
   *bytes_read = size;
   return true;
 }
@@ -190,11 +196,14 @@ bool AVIFDecoderStream::Length(int64_t* size) {
 
 const uint8_t* AVIFDecoderStream::GetContiguousAccess(int64_t aOffset,
                                                       size_t aSize) {
-  if (aOffset + aSize >= mBuffer->length()) {
+  CheckedInt<size_t> checkedOffset(aOffset);
+  CheckedInt<size_t> endPoint = checkedOffset + aSize;
+  if (!checkedOffset.isValid() || !endPoint.isValid() ||
+      endPoint.value() > mBuffer->length()) {
     return nullptr;
   }
 
-  return mBuffer->begin() + aOffset;
+  return mBuffer->begin() + checkedOffset.value();
 }
 
 AVIFParser::~AVIFParser() {
