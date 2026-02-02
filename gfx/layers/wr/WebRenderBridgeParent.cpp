@@ -1761,20 +1761,28 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvGetSnapshot(
   TimeStamp start = TimeStamp::Now();
   MOZ_ASSERT(bufferTexture->GetBufferDescriptor().type() ==
              BufferDescriptor::TRGBDescriptor);
-  DebugOnly<uint32_t> stride = ImageDataSerializer::GetRGBStride(
-      bufferTexture->GetBufferDescriptor().get_RGBDescriptor());
+  if (bufferTexture->GetBufferDescriptor().type() !=
+      BufferDescriptor::TRGBDescriptor) {
+    return IPC_FAIL_NO_REASON(this);
+  }
+
   uint8_t* buffer = bufferTexture->GetBuffer();
+  MOZ_ASSERT(buffer);
+  if (!buffer) {
+    return IPC_FAIL_NO_REASON(this);
+  }
+
   IntSize size = bufferTexture->GetSize();
 
-  MOZ_ASSERT(buffer);
   // For now the only formats we get here are RGBA and BGRA, and code below is
   // assuming a bpp of 4. If we allow other formats, the code needs adjusting
   // accordingly.
   MOZ_ASSERT(BytesPerPixel(bufferTexture->GetFormat()) == 4);
-  uint32_t buffer_size = size.width * size.height * 4;
+  if (BytesPerPixel(bufferTexture->GetFormat()) != 4) {
+    return IPC_FAIL_NO_REASON(this);
+  }
 
-  // Assert the stride of the buffer is what webrender expects
-  MOZ_ASSERT((uint32_t)(size.width * 4) == stride);
+  uint32_t buffer_size = size.width * size.height * 4;
 
   FlushSceneBuilds();
   FlushFrameGeneration(wr::RenderReasons::SNAPSHOT);
