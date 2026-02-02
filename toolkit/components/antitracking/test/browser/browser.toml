@@ -114,6 +114,8 @@ skip-if = ["os == 'mac' && !debug"] # Bug 1503778, 1577362
 
 ["browser_partitionedABA.js"]
 
+["browser_partitionedABBredirectToABAServiceWorkers.js"]
+
 ["browser_partitionedABnavigatestToAA.js"]
 
 ["browser_partitionedBlobSubresources.js"]

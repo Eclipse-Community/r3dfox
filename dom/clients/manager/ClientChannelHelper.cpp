@@ -9,6 +9,9 @@
 #include "ClientManager.h"
 #include "ClientSource.h"
 #include "MainThreadUtils.h"
+#include "mozilla/AntiTrackingUtils.h"
+#include "mozilla/StaticPrefs_privacy.h"
+#include "mozilla/StoragePrincipalHelper.h"
 #include "mozilla/dom/ClientsBinding.h"
 #include "mozilla/dom/ServiceWorkerDescriptor.h"
 #include "mozilla/ipc/BackgroundUtils.h"
@@ -133,6 +136,13 @@ class ClientChannelHelper : public nsIInterfaceRequestor,
     // If it's a cross-origin redirect then we discard the old reserved client
     // and create a new one.
     else {
+      // The partition-key, and in particular the foreign bit, can change on a
+      // cross-origin redirect so it is essential to update the anti-tracking
+      // info for the channel.  This will happen in nsHttpChannel::AsyncOpen but
+      // that happens strictly after now, whereas we are sampling the principal
+      // now.
+      AntiTrackingUtils::UpdateAntiTrackingInfoForChannel(aNewChannel);
+
       nsCOMPtr<nsIPrincipal> foreignPartitionedPrincipal;
       rv = StoragePrincipalHelper::GetPrincipal(
           aNewChannel,
