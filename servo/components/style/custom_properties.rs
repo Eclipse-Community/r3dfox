@@ -428,6 +428,9 @@ pub enum DeferFontRelativeCustomPropertyResolution {
 
 #[derive(Clone, Debug, MallocSizeOf, PartialEq, ToShmem)]
 struct VariableFallback {
+    // NOTE(emilio): We don't track fallback end, because we rely on the missing closing
+    // parenthesis, if any, to be inserted, which means that we can rely on our end being
+    // reference.end - 1.
     start: num::NonZeroUsize,
     first_token_type: TokenSerializationType,
     last_token_type: TokenSerializationType,
@@ -699,23 +702,23 @@ fn parse_declaration_value_block<'i, 't>(
         }
 
         macro_rules! nested {
-            () => {
-                input.parse_nested_block(|input| {
-                    parse_declaration_value_block(
+            ($closing:expr) => {{
+                let mut inner_end_position = None;
+                let result = input.parse_nested_block(|input| {
+                    let result = parse_declaration_value_block(
                         input,
                         input_start,
                         references,
                         missing_closing_characters,
-                    )
-                })?
-            };
-        }
-        macro_rules! check_closed {
-            ($closing:expr) => {
-                if !input.slice_from(token_start).ends_with($closing) {
-                    missing_closing_characters.push_str($closing)
+                    )?;
+                    inner_end_position = Some(input.position());
+                    Ok(result)
+                })?;
+                if inner_end_position.unwrap() == input.position() {
+                    missing_closing_characters.push_str($closing);
                 }
-            };
+                result
+            }};
         }
         if let Some(index) = prev_reference_index.take() {
             references.refs[index].next_token_type = serialization_type;
@@ -755,6 +758,7 @@ fn parse_declaration_value_block<'i, 't>(
                 let is_var = name.eq_ignore_ascii_case("var");
                 if is_var || name.eq_ignore_ascii_case("env") {
                     let our_ref_index = references.refs.len();
+                    let mut input_end_position = None;
                     let fallback = input.parse_nested_block(|input| {
                         // TODO(emilio): For env() this should be <custom-ident> per spec, but no other browser does
                         // that, see https://github.com/w3c/csswg-drafts/issues/3262.
@@ -810,6 +814,7 @@ fn parse_declaration_value_block<'i, 't>(
                                 first_token_type: first,
                                 last_token_type: last,
                             });
+                            input_end_position = Some(input.position());
                         } else {
                             let state = input.state();
                             // We still need to consume the rest of the potentially-unclosed
@@ -821,11 +826,14 @@ fn parse_declaration_value_block<'i, 't>(
                                 references,
                                 missing_closing_characters,
                             )?;
+                            input_end_position = Some(input.position());
                             input.reset(&state);
                         }
                         Ok(fallback)
                     })?;
-                    check_closed!(")");
+                    if input_end_position.unwrap() == input.position() {
+                        missing_closing_characters.push_str(")");
+                    }
                     prev_reference_index = Some(our_ref_index);
                     let reference = &mut references.refs[our_ref_index];
                     reference.end = input.position().byte_index() - input_start.byte_index() +
@@ -837,21 +845,17 @@ fn parse_declaration_value_block<'i, 't>(
                         references.any_env = true;
                     }
                 } else {
-                    nested!();
-                    check_closed!(")");
+                    nested!(")");
                 }
             },
             Token::ParenthesisBlock => {
-                nested!();
-                check_closed!(")");
+                nested!(")");
             },
             Token::CurlyBracketBlock => {
-                nested!();
-                check_closed!("}");
+                nested!("}");
             },
             Token::SquareBracketBlock => {
-                nested!();
-                check_closed!("]");
+                nested!("]");
             },
             Token::QuotedString(_) => {
                 let token_slice = input.slice_from(token_start);
@@ -880,8 +884,8 @@ fn parse_declaration_value_block<'i, 't>(
                     // (Unescaped U+FFFD would also work, but removing the backslash is annoying.)
                     missing_closing_characters.push_str("�")
                 }
-                if is_unquoted_url {
-                    check_closed!(")");
+                if is_unquoted_url && !input.slice_from(token_start).ends_with(")") {
+                    missing_closing_characters.push_str(")");
                 }
             },
             _ => {},
