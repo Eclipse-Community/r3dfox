@@ -10,17 +10,17 @@ function run_test() {
   // bad_certs/mitm.pem
   let cert1 = {
     sha256Fingerprint:
-      "B6:9F:87:57:A0:83:EF:E0:5F:2D:4D:81:2A:E2:04:A0:A7:E5:B2:F8:2D:44:E2:BC:FB:56:A5:41:F2:7E:D4:7A",
+      "75:02:F8:2C:6F:8F:EA:A4:6D:56:00:0D:F3:62:9C:47:4B:81:48:7E:D9:7B:0F:8A:B8:6F:8A:5E:33:B2:1F:DD",
   };
   // bad_certs/selfsigned.pem
   let cert2 = {
     sha256Fingerprint:
-      "79:38:FB:FE:A9:98:85:02:C4:36:C2:3D:9C:59:15:46:36:6A:29:84:96:83:1D:53:A0:68:3F:D9:01:01:61:6E",
+      "21:AF:1F:0F:DF:D4:6A:4A:9E:26:3A:61:D2:E1:CE:0B:24:01:8F:4A:B4:97:BB:8D:69:6A:6F:78:E4:A0:5B:3D",
   };
   // bad_certs/noValidNames.pem
   let cert3 = {
     sha256Fingerprint:
-      "D2:75:19:5B:97:84:40:A8:34:AB:A4:FE:85:94:6F:7D:43:8D:90:86:7B:5D:41:F4:49:25:73:D1:CE:18:BB:9A",
+      "55:70:48:B8:96:F5:3B:F0:52:DD:C2:FA:9D:78:BF:1E:80:0A:06:A3:CB:84:51:4B:C8:70:EC:EA:E8:A3:D9:5E",
   };
 
   let profileDir = do_get_profile();
