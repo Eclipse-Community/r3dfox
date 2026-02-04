@@ -17,8 +17,26 @@
 // 5. Needinfo the triage owner of Bugzilla's "Core :: Security: PSM" component
 //    in the bug.
 // 6. Patches to update certificates get created.
-// 7. Test the patches with a Try push.
-// 8. Land the patches on all trees whose code will still be used when the
+// 6.1. Update certificates in security/manager/ssl/tests/unit with
+//      ./mach generate-test-certs
+// 6.2. Update more certificates with
+//      ./mach python build/pgo/genpgocert.py
+// 6.3. Temporarily uncomment the code in security/manager/ssl/tests/unit/test_signed_apps/moz.build,
+//      build Firefox with |./mach build| and copy the relevant non-build files
+//      from the related object directory folder into this folder.
+// 6.4. Update the certificate fingerprints mentioned in
+//      security/manager/ssl/tests/unit/test_cert_override_read.js with
+//      openssl x509 -noout -fingerprint -sha256 -in security/manager/ssl/tests/unit/bad_certs/certName.pem
+// 6.5. Update the base64 encoded serial numbers of test-int.pem and other-test-ca.pem in
+//      security/manager/ssl/tests/unit/test_cert_storage.js
+// 6.5.1. Get the serial number value
+//        openssl x509 -noout -in security/manager/ssl/tests/unit/bad_certs/test-int.pem -serial
+// 6.5.2. base64 encode the hex value without the prefix
+// 6.5.3. Update base64 encoded value in the test file.
+// 7. Commit the changes: Mention the year of the update, the date of the
+//    next expiration and add these instructions to the commit message.
+// 8. Test the patches with a Try push.
+// 9. Land the patches on all trees whose code will still be used when the
 //    certificates expire in 3 weeks.
 add_task(async function () {
   do_get_profile();
