@@ -38,7 +38,7 @@ for ( let memtype of memtypes ) {
 
     // Serialization and deserialization of shared memories work:
 
-    let mem2 = deserialize(serialize(mem1, [], {SharedArrayBuffer: 'allow'}), {SharedArrayBuffer: 'allow'});
+    let mem2 = deserialize(serialize(mem1, [], {SharedArrayBuffer: 'allow'}), {SharedArrayBuffer: 'allow', scope: 'SameProcess'});
     assertEq(mem2 instanceof WebAssembly.Memory, true);
     let buf2 = mem2.buffer;
     assertEq(buf2 instanceof SharedArrayBuffer, true);
@@ -98,6 +98,6 @@ for ( let memtype of memtypes ) {
     let buf = mem.buffer;
     let clonedbuf = serialize(buf, [], {SharedArrayBuffer: 'allow'});
     mem.grow(1);
-    let buf2 = deserialize(clonedbuf, {SharedArrayBuffer: 'allow'});
+    let buf2 = deserialize(clonedbuf, {SharedArrayBuffer: 'allow', scope: 'SameProcess'});
     assertEq(buf.byteLength, buf2.byteLength);
 }
