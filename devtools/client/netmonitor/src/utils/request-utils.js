@@ -63,7 +63,6 @@ async function getFormDataSections(
       }
     }
   }
-
   return formDataSections;
 }
 
@@ -351,28 +350,29 @@ function parseQueryString(query) {
 /**
  * Parse a string of formdata sections into its components
  *
- * @param {string} sections - sections of formdata joined by &
- * @return {array} array of formdata params { name, value }
+ * @param {Array<string>} sections Array of sections of formdata
+ *                                 e.g ["", "a=x&b=y", "c=z"]
+ * @return {Array<object>}  Array of formdata params
+ *                          e.g [{ name: 'a', value: 'x' }, { name: 'b', value: 'y'}, { name: 'c', value: 'z'}]
  */
 function parseFormData(sections) {
-  if (!sections) {
+  if (!sections || !sections.length) {
     return [];
   }
+  const formDataParams = [];
+  const searchStr = sections
+    // Filter out empty sections
+    .filter(str => /\S/.test(str))
+    .join("&");
 
-  return sections
-    .replace(/^&/, "")
-    .split("&")
-    .map(e => {
-      const firstEqualSignIndex = e.indexOf("=");
-      const paramName =
-        firstEqualSignIndex !== -1 ? e.slice(0, firstEqualSignIndex) : e;
-      const paramValue =
-        firstEqualSignIndex !== -1 ? e.slice(firstEqualSignIndex + 1) : "";
-      return {
-        name: paramName ? getUnicodeUrlPath(paramName) : "",
-        value: paramValue ? getUnicodeUrlPath(paramValue) : "",
-      };
+  const params = new URLSearchParams(searchStr);
+  for (const [key, value] of params) {
+    formDataParams.push({
+      name: getUnicodeUrlPath(key),
+      value: getUnicodeUrlPath(value),
     });
+  }
+  return formDataParams;
 }
 
 /**

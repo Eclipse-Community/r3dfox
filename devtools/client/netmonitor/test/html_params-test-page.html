@@ -71,6 +71,7 @@
         await get("baz", "?species=in=(52,60)");
         await get("baz", "?a=&a=b");
         await get("baz", "?a=b&a=c&d=1");
+        await post("baz", "", urlencoded, "__proto__=evil_value");
       }
     </script>
   </body>
