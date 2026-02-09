@@ -237,6 +237,7 @@ class StubField {
     // These fields take up a single word.
     RawInt32,
     RawPointer,
+    ICScript,
     Shape,
     WeakShape,
     WeakGetterSetter,

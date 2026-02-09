@@ -1862,7 +1862,7 @@
     receiver: ObjId
     setter: ObjectField
     rhs: ValId
-    icScript: RawPointerField
+    icScript: ICScriptField
     sameRealm: BoolImm
     nargsAndFlags: RawInt32Field
 
@@ -2039,7 +2039,7 @@
   args:
     callee: ObjId
     argc: Int32Id
-    icScript: RawPointerField
+    icScript: ICScriptField
     flags: CallFlagsImm
     argcFixed: UInt32Imm
 
@@ -2464,7 +2464,7 @@
   args:
     receiver: ValId
     getter: ObjectField
-    icScript: RawPointerField
+    icScript: ICScriptField
     sameRealm: BoolImm
     nargsAndFlags: RawInt32Field
 

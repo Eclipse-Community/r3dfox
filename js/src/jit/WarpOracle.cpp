@@ -1227,6 +1227,7 @@ bool WarpScriptOracle::replaceNurseryAndAllocSitePointers(
     switch (fieldType) {
       case StubField::Type::RawInt32:
       case StubField::Type::RawPointer:
+      case StubField::Type::ICScript:
       case StubField::Type::RawInt64:
       case StubField::Type::Double:
         break;
