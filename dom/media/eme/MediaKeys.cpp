@@ -326,6 +326,7 @@ void MediaKeys::RejectPromise(PromiseId aId, ErrorResult&& aException,
             this, aId, errorCodeAsInt);
     return;
   }
+  RefPtr<MediaKeys> keys(this);
 
   // This promise could be a createSession or loadSession promise,
   // so we might have a pending session waiting to be resolved into
@@ -380,6 +381,7 @@ void MediaKeys::ResolvePromise(PromiseId aId) {
   if (!promise) {
     return;
   }
+  RefPtr<MediaKeys> keys(this);
 
   uint32_t token = 0;
   if (!mPromiseIdToken.Get(aId, &token)) {
