@@ -662,7 +662,7 @@ class ModuleEnvironmentObject : public EnvironmentObject {
   // `env` may be a DebugEnvironmentProxy, but not a hollow environment.
   static ModuleEnvironmentObject* find(JSObject* env);
 
-  uint32_t firstSyntheticValueSlot() { return RESERVED_SLOTS; }
+  uint32_t firstSyntheticValueSlot() { return RESERVED_SLOTS + 1; }
 
 #ifdef ENABLE_EXPLICIT_RESOURCE_MANAGEMENT
   bool addDisposableObject(JSContext* cx, JS::Handle<JS::Value> val);
