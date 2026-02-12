@@ -74,11 +74,17 @@ size_t CombinedStacks::AddStack(const Telemetry::ProcessedStack& aStack) {
 }
 
 void CombinedStacks::AddStacks(const CombinedStacks& aStacks) {
+  if (mMaxStacksCount == 0) {
+    return;
+  }
   mStacks.resize(
       std::min(mStacks.size() + aStacks.GetStackCount(), mMaxStacksCount));
 
   for (const auto& stack : aStacks.mStacks) {
     size_t index = mNextIndex;
+    if (index >= mStacks.size()) {
+      break;
+    }
     // Advance the indices of the circular queue holding the stacks.
     mNextIndex = (mNextIndex + 1) % mMaxStacksCount;
 
