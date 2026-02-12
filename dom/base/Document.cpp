@@ -652,7 +652,10 @@ class SimpleHTMLCollection final : public nsSimpleContentList,
   }
   virtual uint32_t Length() override { return nsSimpleContentList::Length(); }
   virtual Element* GetElementAt(uint32_t aIndex) override {
-    return mElements.SafeElementAt(aIndex)->AsElement();
+    if (nsIContent* content = mElements.SafeElementAt(aIndex)) {
+      return content->AsElement();
+    }
+    return nullptr;
   }
 
   virtual Element* GetFirstNamedElement(const nsAString& aName,
