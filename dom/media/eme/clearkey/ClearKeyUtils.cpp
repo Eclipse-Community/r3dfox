@@ -190,8 +190,10 @@ bool ClearKeyUtils::DecryptCbcs(const vector<uint8_t>& aKey,
 /* static */
 bool ClearKeyUtils::DecryptAES(const vector<uint8_t>& aKey,
                                vector<uint8_t>& aData, vector<uint8_t>& aIV) {
-  assert(aIV.size() == CENC_KEY_LEN);
-  assert(aKey.size() == CENC_KEY_LEN);
+  if (aKey.size() != CENC_KEY_LEN || aIV.size() != CENC_KEY_LEN) {
+    CK_LOGE("Key and IV size should be 16!");
+    return false;
+  }
 
   PK11SlotInfo* slot = PK11_GetInternalKeySlot();
   if (!slot) {
