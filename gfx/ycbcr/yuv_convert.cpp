@@ -73,6 +73,11 @@ void ConvertYCbCrToRGB32(const uint8_t* y_buf, const uint8_t* u_buf,
                          int uv_pitch, int rgb_pitch, YUVType yuv_type,
                          YUVColorSpace yuv_color_space,
                          ColorRange color_range) {
+  if (pic_x < 0 || pic_y < 0 || y_pitch < 0 || uv_pitch < 0 || rgb_pitch < 0) {
+    NS_WARNING("Negative origin or pitch is unsupported");
+    return;
+  }
+
   // Deprecated function's conversion is accurate.
   // libyuv converion is a bit inaccurate to get performance. It dynamically
   // calculates RGB from YUV to use simd. In it, signed byte is used for
