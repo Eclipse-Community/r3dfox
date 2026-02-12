@@ -419,6 +419,10 @@ class SourceBuffer final {
 
     bool SetCapacity(size_t aCapacity) {
       MOZ_ASSERT(mData, "Allocation failed but nobody checked for it");
+      MOZ_ASSERT(aCapacity > 0, "zero sized resize");
+      if (aCapacity == 0) {
+        return false;
+      }
       char* data = static_cast<char*>(realloc(mData, aCapacity));
       if (!data) {
         return false;

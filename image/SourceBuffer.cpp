@@ -206,7 +206,11 @@ nsresult SourceBuffer::Compact() {
   if (capacity == MAX_CHUNK_CAPACITY) {
     size_t lastLength = mChunks.LastElement().Length();
     if (lastLength != capacity) {
-      mChunks.LastElement().SetCapacity(lastLength);
+      if (lastLength == 0) {
+        mChunks.RemoveLastElement();
+      } else {
+        mChunks.LastElement().SetCapacity(lastLength);
+      }
     }
     return NS_OK;
   }
