@@ -89,15 +89,8 @@ class nsWindowWatcher;
 struct nsWatcherWindowEntry {
   nsWatcherWindowEntry(mozIDOMWindowProxy* aWindow,
                        nsIWebBrowserChrome* aChrome)
-      : mChrome(nullptr) {
-    mWindow = aWindow;
-    nsCOMPtr<nsISupportsWeakReference> supportsweak(do_QueryInterface(aChrome));
-    if (supportsweak) {
-      supportsweak->GetWeakReference(getter_AddRefs(mChromeWeak));
-    } else {
-      mChrome = aChrome;
-      mChromeWeak = nullptr;
-    }
+      : mWindow(do_GetWeakReference(aWindow)),
+        mChrome(do_GetWeakReference(aChrome)) {
     ReferenceSelf();
   }
   ~nsWatcherWindowEntry() = default;
@@ -106,9 +99,8 @@ struct nsWatcherWindowEntry {
   void Unlink();
   void ReferenceSelf();
 
-  mozIDOMWindowProxy* mWindow;
-  nsIWebBrowserChrome* mChrome;
-  nsWeakPtr mChromeWeak;
+  nsWeakPtr mWindow;
+  nsWeakPtr mChrome;
   // each struct is in a circular, doubly-linked list
   nsWatcherWindowEntry* mYounger;  // next younger in sequence
   nsWatcherWindowEntry* mOlder;
@@ -192,10 +184,15 @@ nsWatcherWindowEnumerator::GetNext(nsISupports** aResult) {
 
   *aResult = nullptr;
 
-  if (mCurrentPosition) {
-    CallQueryInterface(mCurrentPosition->mWindow, aResult);
+  while (mCurrentPosition) {
+    nsCOMPtr<mozIDOMWindowProxy> window =
+        do_QueryReferent(mCurrentPosition->mWindow);
+    if (window) {
+      CallQueryInterface(window, aResult);
+      mCurrentPosition = FindNext();
+      return NS_OK;
+    }
     mCurrentPosition = FindNext();
-    return NS_OK;
   }
   return NS_ERROR_FAILURE;
 }
@@ -1609,14 +1606,7 @@ nsWindowWatcher::AddWindow(mozIDOMWindowProxy* aWindow,
     // its chrome mapping and return
     info = FindWindowEntry(aWindow);
     if (info) {
-      nsCOMPtr<nsISupportsWeakReference> supportsweak(
-          do_QueryInterface(aChrome));
-      if (supportsweak) {
-        supportsweak->GetWeakReference(getter_AddRefs(info->mChromeWeak));
-      } else {
-        info->mChrome = aChrome;
-        info->mChromeWeak = nullptr;
-      }
+      info->mChrome = do_GetWeakReference(aChrome);
       return NS_OK;
     }
 
@@ -1670,7 +1660,8 @@ nsWatcherWindowEntry* nsWindowWatcher::FindWindowEntry(
   info = mOldestWindow;
   listEnd = nullptr;
   while (info != listEnd) {
-    if (info->mWindow == aWindow) {
+    nsCOMPtr<mozIDOMWindowProxy> window = do_QueryReferent(info->mWindow);
+    if (window && window == aWindow) {
       return info;
     }
     info = info->mYounger;
@@ -1701,8 +1692,11 @@ nsresult nsWindowWatcher::RemoveWindow(nsWatcherWindowEntry* aInfo) {
   // send notifications.
   nsCOMPtr<nsIObserverService> os = mozilla::services::GetObserverService();
   if (os) {
-    nsCOMPtr<nsISupports> domwin(do_QueryInterface(aInfo->mWindow));
-    os->NotifyObservers(domwin, "domwindowclosed", nullptr);
+    nsCOMPtr<mozIDOMWindowProxy> window = do_QueryReferent(aInfo->mWindow);
+    if (window) {
+      nsCOMPtr<nsISupports> domwin(do_QueryInterface(window));
+      os->NotifyObservers(domwin, "domwindowclosed", nullptr);
+    }
   }
 
   delete aInfo;
@@ -1720,12 +1714,8 @@ nsWindowWatcher::GetChromeForWindow(mozIDOMWindowProxy* aWindow,
   MutexAutoLock lock(mListLock);
   nsWatcherWindowEntry* info = FindWindowEntry(aWindow);
   if (info) {
-    if (info->mChromeWeak) {
-      return info->mChromeWeak->QueryReferent(
-          NS_GET_IID(nsIWebBrowserChrome), reinterpret_cast<void**>(aResult));
-    }
-    *aResult = info->mChrome;
-    NS_IF_ADDREF(*aResult);
+    nsCOMPtr<nsIWebBrowserChrome> chrome = do_QueryReferent(info->mChrome);
+    chrome.forget(aResult);
   }
   return NS_OK;
 }

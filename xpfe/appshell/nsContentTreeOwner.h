@@ -18,6 +18,7 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIWebBrowserChrome.h"
 #include "nsIWindowProvider.h"
+#include "nsWeakReference.h"
 
 namespace mozilla {
 class AppWindow;
@@ -27,7 +28,8 @@ class nsContentTreeOwner final : public nsIDocShellTreeOwner,
                                  public nsIBaseWindow,
                                  public nsIInterfaceRequestor,
                                  public nsIWebBrowserChrome,
-                                 public nsIWindowProvider {
+                                 public nsIWindowProvider,
+                                 public nsSupportsWeakReference {
   friend class mozilla::AppWindow;
 
  public:
