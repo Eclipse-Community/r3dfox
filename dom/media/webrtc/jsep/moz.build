@@ -13,6 +13,9 @@ LOCAL_INCLUDES += [
     "/third_party/sipcc",
 ]
 
-UNIFIED_SOURCES += ["JsepSessionImpl.cpp", "JsepTrack.cpp", "SsrcGenerator.cpp"]
+UNIFIED_SOURCES += ["JsepSessionImpl.cpp", "SsrcGenerator.cpp"]
+
+# Can not be built in unified build because of MOZ_MTLOG
+SOURCES += ["JsepTrack.cpp"]
 
 FINAL_LIBRARY = "xul"

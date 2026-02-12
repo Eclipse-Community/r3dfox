@@ -166,20 +166,7 @@ class JsepTrack {
 
   virtual const std::vector<uint32_t>& GetSsrcs() const { return mSsrcs; }
 
-  virtual std::vector<uint32_t> GetRtxSsrcs() const {
-    std::vector<uint32_t> result;
-    if (mRtxIsAllowed &&
-        Preferences::GetBool("media.peerconnection.video.use_rtx", false) &&
-        !mSsrcToRtxSsrc.empty()) {
-      MOZ_ASSERT(mSsrcToRtxSsrc.size() == mSsrcs.size());
-      for (const auto ssrc : mSsrcs) {
-        auto it = mSsrcToRtxSsrc.find(ssrc);
-        MOZ_ASSERT(it != mSsrcToRtxSsrc.end());
-        result.push_back(it->second);
-      }
-    }
-    return result;
-  }
+  virtual std::vector<uint32_t> GetRtxSsrcs() const;
 
   virtual void EnsureSsrcs(SsrcGenerator& ssrcGenerator, size_t aNumber);
 
