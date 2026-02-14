@@ -235,7 +235,12 @@ class AutoResampler final {
     MOZ_ASSERT(mResampler);
     return mResampler;
   }
-  void operator=(SpeexResamplerState* aResampler) { mResampler = aResampler; }
+  void operator=(SpeexResamplerState* aResampler) {
+    if (mResampler) {
+      speex_resampler_destroy(mResampler);
+    }
+    mResampler = aResampler;
+  }
 
  private:
   SpeexResamplerState* mResampler;
@@ -534,6 +539,24 @@ void MediaDecodeTask::FinishDecode() {
       continue;
     }
     audioData->EnsureAudioBuffer();  // could lead to a copy :(
+
+    if (audioData->mChannels != channelCount) {
+      if (audioData->mChannels > channelCount) {
+        LOG("MediaDecodeTask: Channel count increased from %u to %u mid-stream, "
+            "failing decode", channelCount, audioData->mChannels);
+        ReportFailureOnMainThread(WebAudioDecodeJob::InvalidContent);
+        return;
+      }
+      LOG("MediaDecodeTask: Channel count changed from %u to %u, reinitializing resampler",
+          channelCount, audioData->mChannels);
+      channelCount = audioData->mChannels;
+      if (sampleRate != destSampleRate) {
+        resampler = speex_resampler_init(channelCount, sampleRate, destSampleRate,
+                                         SPEEX_RESAMPLER_QUALITY_DEFAULT, nullptr);
+        speex_resampler_skip_zeros(resampler);
+      }
+    }
+
     const AudioDataValue* bufferData =
         static_cast<AudioDataValue*>(audioData->mAudioBuffer->Data());
 
