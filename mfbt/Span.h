@@ -649,7 +649,7 @@ class Span {
   constexpr Span<element_type, Count> Subspan() const {
     const size_t len = size();
     MOZ_RELEASE_ASSERT(Offset <= len &&
-                       (Count == dynamic_extent || (Offset + Count <= len)));
+                       (Count == dynamic_extent || (Count <= len - Offset)));
     return {data() + Offset, Count == dynamic_extent ? len - Offset : Count};
   }
 
@@ -677,7 +677,7 @@ class Span {
       index_type aStart, index_type aLength = dynamic_extent) const {
     const size_t len = size();
     MOZ_RELEASE_ASSERT(aStart <= len && (aLength == dynamic_extent ||
-                                         (aStart + aLength <= len)));
+                                         (aLength <= len - aStart)));
     return {data() + aStart,
             aLength == dynamic_extent ? len - aStart : aLength};
   }
