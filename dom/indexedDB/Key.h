@@ -185,7 +185,7 @@ class Key {
 
   void ReserveAutoIncrementKey(bool aFirstOfArray);
 
-  void MaybeUpdateAutoIncrementKey(int64_t aKey);
+  Result<Ok, nsresult> MaybeUpdateAutoIncrementKey(int64_t aKey);
 
  private:
   class MOZ_STACK_CLASS ArrayValueEncoder;

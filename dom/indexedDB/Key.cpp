@@ -585,19 +585,34 @@ void Key::ReserveAutoIncrementKey(bool aFirstOfArray) {
   mozilla::BigEndian::writeUint64(buffer, UINT64_MAX);
 }
 
-void Key::MaybeUpdateAutoIncrementKey(int64_t aKey) {
+Result<Ok, nsresult> Key::MaybeUpdateAutoIncrementKey(int64_t aKey) {
   if (mAutoIncrementKeyOffsets.IsEmpty()) {
-    return;
+    return Ok{};
   }
 
+  static constexpr auto maxOffset =
+      KEY_MAXIMUM_BUFFER_LENGTH - sizeof(double) - 1;
+
   for (uint32_t offset : mAutoIncrementKeyOffsets) {
+    if (offset > maxOffset) {
+      return Err(NS_ERROR_DOM_INDEXEDDB_KEY_ERR);
+    }
+
     char* buffer;
-    MOZ_ALWAYS_TRUE(mBuffer.GetMutableData(&buffer));
+    const auto capacity = mBuffer.GetMutableData(&buffer);
+    MOZ_ALWAYS_TRUE(capacity);
+
+    if (offset + sizeof(double) > capacity) {
+      return Err(NS_ERROR_DOM_INDEXEDDB_KEY_ERR);
+    }
+
     buffer += offset;
     WriteDoubleToUint64(buffer, double(aKey));
   }
 
   TrimBuffer();
+
+  return Ok{};
 }
 
 void Key::WriteDoubleToUint64(char* aBuffer, double aValue) {
