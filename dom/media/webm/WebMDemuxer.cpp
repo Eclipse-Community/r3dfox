@@ -837,6 +837,12 @@ nsresult WebMDemuxer::GetNextPacket(TrackInfo::TrackType aType,
 
           for (uint8_t i = 0; i < numPartitions; i++) {
             uint32_t partition = partitions[i];
+            if (partition > length || partition < lastOffset) {
+              WEBM_DEBUG(
+                  "Invalid partition offset: %u (length: %zu, lastOffset: %u)",
+                  partition, length, lastOffset);
+              return NS_ERROR_DOM_MEDIA_DEMUXER_ERR;
+            }
             uint32_t currentLength = partition - lastOffset;
 
             if (encrypted) {
@@ -847,8 +853,6 @@ nsresult WebMDemuxer::GetNextPacket(TrackInfo::TrackType aType,
 
             encrypted = !encrypted;
             lastOffset = partition;
-
-            MOZ_ASSERT(lastOffset <= length);
           }
 
           // Add the data between the last offset and the end of the data.
