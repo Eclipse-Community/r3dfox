@@ -17,6 +17,7 @@
 #include "mozilla/Assertions.h"
 #include "mozilla/ErrorResult.h"
 #include "mozilla/Maybe.h"
+#include "mozilla/Span.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/dom/BindingDeclarations.h"
 #include "mozilla/dom/BlobImpl.h"
@@ -173,7 +174,8 @@ bool StructuredCloneBlob::Holder::ReadStructuredCloneInternal(
       return false;
     }
 #endif
-    BlobImpls().AppendElements(&aHolder->BlobImpls()[blobOffset], blobCount);
+    BlobImpls().AppendElements(
+        Span(aHolder->BlobImpls()).Subspan(blobOffset, blobCount));
   }
 
   JSStructuredCloneData data(mStructuredCloneScope);
