@@ -552,7 +552,7 @@ bool TexUnpackBytes::TexOrSubImage(bool isSubImage, bool needsRespec,
     const auto& unpacking = unpackingRes.inspect();
     const auto stride = unpacking.metrics.bytesPerRowStride;
     // clang-format off
-    if (!ConvertIfNeeded(webgl, unpacking.state.rowLength,
+    if (!ConvertIfNeeded(webgl, unpacking.metrics.usedPixelsPerRow,
                          unpacking.metrics.totalRows,
                          format, uploadPtr, AutoAssertCast(stride),
                          format, AutoAssertCast(stride), &uploadPtr, &tempBuffer)) {

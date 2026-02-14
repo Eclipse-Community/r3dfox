@@ -1104,6 +1104,9 @@ struct ExplicitPixelPackingState final {
     // ...aligned to ALIGNMENT.
     size_t bytesPerRowStride = 0;
 
+    // SKIP_PIXELS+size.x
+    size_t usedPixelsPerRow = 0;
+
     // structuredSrcSize.y, otherwise IMAGE_HEIGHT*(SKIP_IMAGES+size.z)
     size_t totalRows = 0;
 
