@@ -16504,7 +16504,7 @@
 # 2 - spoof
 - name: privacy.spoof_english
   type: RelaxedAtomicUint32
-  value: 0
+  value: 2
   mirror: always
   do_not_use_directly: true
 
