@@ -3,7 +3,7 @@
 ##Uncomment PGO for release build
 
 # x64 build
-ac_add_options --target=x86_64 
+ac_add_options --target=x86_64
 
 # Please do not redistribute this build with official branding if you are not part of Eclipse Community.
 ac_add_options --enable-official-branding
@@ -27,6 +27,7 @@ mk_add_options MOZ_MAKE_FLAGS="-j16"
 # Build only r3dfox
 ac_add_options --enable-application=browser
 ac_add_options --disable-artifact-builds
+ac_add_options --with-ccache=sccache
 export MOZ_INCLUDE_SOURCE_INFO=1
 export MOZ_SOURCE_CHANGESET=iloveneedingtobodgechangesetfornoreason
 
@@ -109,5 +110,5 @@ export CPPFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3"
 export CXXFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3"
 export LDFLAGS="-Wl,-O3 -msse2"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
-export RUSTFLAGS="-C target-cpu=athlon64 -C target-feature=+sse2 -C codegen-units=1 -Z tune-cpu=athlon64"
+export RUSTFLAGS="-C target-cpu=athlon64 -C target-feature=+sse2 -C codegen-units=1 -C opt-level=3 -Z tune-cpu=athlon64"
 export VERBOSE=1
