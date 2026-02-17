@@ -48,45 +48,27 @@ Ability to disable e10s! (Experimental and kinda broken)
 
 If I've forgotten to put your name here, please let me know and I'll add it.
 
-[e3kskoy7wqk - Base Windows 7 support code for versions 136 and later and ESR 128.12.0 and later.](https://github.com/e3kskoy7wqk/Firefox-for-windows-7/)
+[e3kskoy7wqk](https://github.com/e3kskoy7wqk) - Base Windows 7 support code for versions 136 and later and ESR 128.12.0 and later.
 
-3y4m4r1n - Helped fix the new JumpListBuilder crashing under Vista and 7
+[3y4m4r1n](https://github.com/3y4m4r1n) - Helped fix the new JumpListBuilder crashing under Vista and 7
 
-Alex313031 - Mozconfig, general help with the browser, and changes from Mercury browser
+[Alex313031](https://github.com/Alex313031) - Mozconfig, general help with the browser, and changes from Mercury browser
 
-aubymori & ephemeralviolette - Classic about:config, disabled launcher process, and more from Nara browser
+[Feodor2](https://github.com/Feodor2) - Portable mode and Vista compatibility changes from Mypal68
 
-bbc-chi - Fullscreen transition fix
+[goodusername123](https://github.com/goodusername123) - Graphical acceleration in VMware Workstation
 
-Erizur - Improved native titlebar and modern mode from Marble browser
+[leadweedy](https://github.com/leadweedy) - Improved active tab indicator from Firefox-Proton-Square
 
-Feodor2 - Portable mode and Vista compatibility changes from Mypal68
+[Librewolf Developers](https://codeberg.org/librewolf) - Privacy tweaks from Librewolf
 
-goodusername123 - Graphical acceleration in VMware Workstation
+[Mozilla Developers](https://github.com/mozilla-firefox) - Firefox browser base
 
-i486 - Fixed non-native menus
+[QNetITQ](https://github.com/QNetITQ) - WaveFox theme
 
-kawapure & ephemeralviolette - Native Controls Patch
+[Solinus](https://solinus.neocities.org/) - Branding visuals, icons and fancy text
 
-leadweedy - Improved active tab indicator from Firefox-Proton-Square
-
-Librewolf Developers - Privacy tweaks from Librewolf
-
-Mozilla Developers - Firefox browser base
-
-newbie-461 - Fixed the installer issues
-
-QNetITQ - WaveFox theme
-
-SashaXser - Improved rustflags opts in mozconfig
-
-Solinus - Branding visuals, icons and fancy text
-
-Tor Browser Developers - Addon fix code from Tor Browser
-
-Unity Pixelheart (UnityAI) - General help with coding and the theme code (Created by @GarryStraitYT)
-
-wanderer - Various code contributions for Vista support
+[Tor Browser Developers](https://gitlab.torproject.org/tpo/applications/tor-browser) - Addon fix code from Tor Browser
 
 # Original repository readme
 
