@@ -14,7 +14,7 @@ SourceForge Downloads: ![SourceForge Downloads](https://img.shields.io/sourcefor
 
 New default theme and color scheme!
 
-More native and native like elements, scrollbar, checkboxes, radio buttons, tooltips, and more! Better than the 115 ESR patch!
+More native and native like elements, scrollbar, checkboxes, radio buttons, tooltips, and more!
 
 Aero Glass or accent color on 8/10+!
 
@@ -36,13 +36,15 @@ GPU/hardware acceleration in VMware Workstation 16 and above!
 
 general.useragent.override.(website) is back!
 
-Instant one off searches!
+Instant one off searches and classic one off search UI!
 
-Ability to disable CSP!
+Ability to restore classic right click menu items such as view image and text navigation buttons!
 
-Ability to visit websites on ports that Firefox rejects!
+Ability to disable CSP, CORS, HSTS, and SOP!
 
-Ability to disable e10s! (Experimental and kinda broken)
+Ability to disable more advanced things such as Web Audio, e10s, and more!
+
+Other options including the ability to disable tab groups, screenshot component, tab hover preview, drop to pin tabs, add tab to taskbar button, change the switch to tab behavior, and more!
 
 ## Credits
 
