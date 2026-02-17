@@ -881,8 +881,7 @@ bool GetIntrinsicValue(JSContext* cx, Handle<PropertyName*> name,
 
 static uint32_t NumTraceableArgsForCreateThis(HandleFunction fun,
                                               uint32_t argc) {
-  uint32_t numActualArgs = std::max(argc, uint32_t(fun->nargs()));
-  return numActualArgs + 1;  // Add 1 for newTarget
+  return argc + 1;  // Add 1 for newTarget
 }
 
 bool CreateThisFromIC(JSContext* cx, HandleObject callee,
