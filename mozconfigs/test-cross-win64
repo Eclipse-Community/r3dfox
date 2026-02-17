@@ -1,4 +1,4 @@
-## mozconfig for compiling r3dfox Browser for Windows on Linux
+## mozconfig for compiling r3dfox browser for Windows on Linux
 
 # x64 build
 ac_add_options --target=x86_64-pc-mingw32
