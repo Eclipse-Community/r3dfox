@@ -109,6 +109,8 @@ static const RedirEntry kRedirMap[] = {
 #ifndef MOZ_WIDGET_ANDROID
     {"config", "chrome://global/content/config.xhtml",
      nsIAboutModule::IS_SECURE_CHROME_UI},
+    {"confignew", "chrome://global/content/aboutconfig/aboutconfig.html",
+     nsIAboutModule::IS_SECURE_CHROME_UI},
 #else
     {"config", "chrome://geckoview/content/config.xhtml",
      nsIAboutModule::IS_SECURE_CHROME_UI |
