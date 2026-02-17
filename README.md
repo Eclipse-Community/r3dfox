@@ -22,7 +22,7 @@ Ability to use modern (Windows 10) theme on any OS!
 
 Full portable mode that doesn't touch AppData at all!
 
-Classic about:config page!
+Switchable Classic about:config page!
 
 Less telemetry than regular Firefox!
 

@@ -45,4 +45,5 @@ Preferences.addAll([
   { id: "dom.webaudio.enabled", type: "bool",  inverted: true },
   { id: "browser.tabs.dropToPin.enabled", type: "bool",  inverted: true },
   { id: "browser.taskbarTabs.enabled", type: "bool",  inverted: true },
+  { id: "r3dfox.ui.oldaboutconfig", type: "bool" },
 ]);

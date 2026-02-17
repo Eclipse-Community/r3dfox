@@ -639,6 +639,8 @@ pref("r3dfox.transparent.menubar", false);
 pref("r3dfox.glow.menubar", true);
 // Translucent navbar design
 pref("r3dfox.translucent.navbar", false);
+// Enable old about:config by default
+pref("r3dfox.ui.oldaboutconfig", true);
 // Disable other customizations by default
 pref("r3dfox.view.image", false);
 

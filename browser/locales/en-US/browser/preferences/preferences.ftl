@@ -209,6 +209,9 @@ r3dfox-drop-to-pin =
 r3dfox-taskbar-tabs =
     .label = Disable add tab to taskbar button in urlbar
 
+r3dfox-old-aboutconfig =
+    .label = Use the classic about:config page
+
 r3dfox-switch-to-tab =
     .label = Change urlbar switch to tab into a button
 

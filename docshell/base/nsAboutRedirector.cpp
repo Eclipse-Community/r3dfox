@@ -20,6 +20,7 @@
 #endif
 
 #define ABOUT_CONFIG_ENABLED_PREF "general.aboutConfig.enable"
+#define ABOUT_CONFIG_CLASSIC_PREF "r3dfox.ui.oldaboutconfig"
 
 NS_IMPL_ISUPPORTS(nsAboutRedirector, nsIAboutModule)
 
@@ -280,9 +281,29 @@ nsAboutRedirector::NewChannel(nsIURI* aURI, nsILoadInfo* aLoadInfo,
     return NS_OK;
   }
 
-  if (path.EqualsASCII("config") &&
-      !mozilla::Preferences::GetBool(ABOUT_CONFIG_ENABLED_PREF, true)) {
-    return NS_ERROR_NOT_AVAILABLE;
+  // Handle about:config specially to allow switching between classic and modern versions
+  if (path.EqualsASCII("config")) {
+    if (!mozilla::Preferences::GetBool(ABOUT_CONFIG_ENABLED_PREF, true)) {
+      return NS_ERROR_NOT_AVAILABLE;
+    }
+
+    bool useClassic = mozilla::Preferences::GetBool(ABOUT_CONFIG_CLASSIC_PREF, true);
+    const char* configURL = useClassic
+        ? "chrome://global/content/config.xhtml"
+        : "chrome://global/content/aboutconfig/aboutconfig.html";
+
+    nsCOMPtr<nsIURI> tempURI;
+    rv = NS_NewURI(getter_AddRefs(tempURI), configURL);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIChannel> tempChannel;
+    rv = NS_NewChannelInternal(getter_AddRefs(tempChannel), tempURI,
+                               aLoadInfo);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    tempChannel->SetOriginalURI(aURI);
+    tempChannel.forget(aResult);
+    return NS_OK;
   }
 
   for (int i = 0; i < kRedirTotal; i++) {
@@ -330,6 +351,12 @@ nsAboutRedirector::GetURIFlags(nsIURI* aURI, uint32_t* aResult) {
   nsresult rv = NS_GetAboutModuleName(aURI, name);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  // Handle about:config specially - flags are the same for both classic and modern
+  if (name.EqualsASCII("config")) {
+    *aResult = nsIAboutModule::IS_SECURE_CHROME_UI;
+    return NS_OK;
+  }
+
   for (int i = 0; i < kRedirTotal; i++) {
     if (name.EqualsASCII(kRedirMap[i].id)) {
       *aResult = kRedirMap[i].flags;
@@ -348,6 +375,15 @@ nsAboutRedirector::GetChromeURI(nsIURI* aURI, nsIURI** chromeURI) {
   nsAutoCString name;
   nsresult rv = NS_GetAboutModuleName(aURI, name);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // Handle about:config specially to return the correct chrome URI based on preference
+  if (name.EqualsASCII("config")) {
+    bool useClassic = mozilla::Preferences::GetBool(ABOUT_CONFIG_CLASSIC_PREF, true);
+    const char* configURL = useClassic
+        ? "chrome://global/content/config.xhtml"
+        : "chrome://global/content/aboutconfig/aboutconfig.html";
+    return NS_NewURI(chromeURI, configURL);
+  }
 
   for (const auto& redir : kRedirMap) {
     if (name.EqualsASCII(redir.id)) {
