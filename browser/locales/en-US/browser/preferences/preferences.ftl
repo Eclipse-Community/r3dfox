@@ -210,9 +210,9 @@ r3dfox-taskbar-tabs =
     .label = Disable add tab to taskbar button in urlbar
 
 r3dfox-switch-to-tab =
-    .label = Reverse urlbar switch to tab behavior
+    .label = Change urlbar switch to tab into a button
 
-r3dfox-switch-to-tab-desc = This should reverse the behavior of switching to an already open tab in the urlbar (require Shift/Ctrl/Alt to switch to open tab instead of preventing it), however it's a bit buggy currently and just disables it.
+r3dfox-switch-to-tab-desc = This changes switching to an already open tab in the urlbar to be a button instead of being the default when you click the item.
 
 r3dfox-advanced-header = Advanced configurations
 
