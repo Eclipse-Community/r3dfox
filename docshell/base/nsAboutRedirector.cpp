@@ -308,6 +308,30 @@ nsAboutRedirector::NewChannel(nsIURI* aURI, nsILoadInfo* aLoadInfo,
     return NS_OK;
   }
 
+  if (path.EqualsASCII("confignew")) {
+    if (!mozilla::Preferences::GetBool(ABOUT_CONFIG_ENABLED_PREF, true)) {
+      return NS_ERROR_NOT_AVAILABLE;
+    }
+
+    bool useClassic = mozilla::Preferences::GetBool(ABOUT_CONFIG_CLASSIC_PREF, true);
+    const char* configURL = useClassic
+        ? "chrome://global/content/aboutconfig/aboutconfig.html"
+        : "chrome://global/content/config.xhtml";
+
+    nsCOMPtr<nsIURI> tempURI;
+    rv = NS_NewURI(getter_AddRefs(tempURI), configURL);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIChannel> tempChannel;
+    rv = NS_NewChannelInternal(getter_AddRefs(tempChannel), tempURI,
+                               aLoadInfo);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    tempChannel->SetOriginalURI(aURI);
+    tempChannel.forget(aResult);
+    return NS_OK;
+  }
+
   for (int i = 0; i < kRedirTotal; i++) {
     if (!strcmp(path.get(), kRedirMap[i].id)) {
       nsCOMPtr<nsIChannel> tempChannel;
@@ -359,6 +383,11 @@ nsAboutRedirector::GetURIFlags(nsIURI* aURI, uint32_t* aResult) {
     return NS_OK;
   }
 
+  if (name.EqualsASCII("confignew")) {
+    *aResult = nsIAboutModule::IS_SECURE_CHROME_UI;
+    return NS_OK;
+  }
+
   for (int i = 0; i < kRedirTotal; i++) {
     if (name.EqualsASCII(kRedirMap[i].id)) {
       *aResult = kRedirMap[i].flags;
@@ -384,6 +413,14 @@ nsAboutRedirector::GetChromeURI(nsIURI* aURI, nsIURI** chromeURI) {
     const char* configURL = useClassic
         ? "chrome://global/content/config.xhtml"
         : "chrome://global/content/aboutconfig/aboutconfig.html";
+    return NS_NewURI(chromeURI, configURL);
+  }
+
+  if (name.EqualsASCII("confignew")) {
+    bool useClassic = mozilla::Preferences::GetBool(ABOUT_CONFIG_CLASSIC_PREF, true);
+    const char* configURL = useClassic
+        ? "chrome://global/content/aboutconfig/aboutconfig.html"
+        : "chrome://global/content/config.xhtml";
     return NS_NewURI(chromeURI, configURL);
   }
 
