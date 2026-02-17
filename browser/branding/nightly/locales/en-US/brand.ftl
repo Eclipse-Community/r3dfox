@@ -24,4 +24,4 @@
 # remain unchanged across different versions (Nightly, Beta, etc.).
 -brand-product-name = Plasmafox
 -vendor-short-name = Eclipse Community
-trademarkInfo = { "Plasmafox logos are copyrights of Eclipse Community." }
+trademarkInfo = { "Plasmafox is a comunity project made by Eclipse Community." }

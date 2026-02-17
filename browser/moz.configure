@@ -75,7 +75,7 @@ imply_option("MOZ_STUB_INSTALLER", True, when=requires_stub_installer)
 option(
     "--enable-r3dfox-branding",
     help="Enable Official r3dfox Branding. "
-    "Do not distribute builds unless you are part of Eclipse Community",
+    "Do not release builds with our branding unless you are part of Eclipse Community",
 )
 
 with only_when("--enable-r3dfox-branding"):
@@ -86,7 +86,7 @@ with only_when("--enable-r3dfox-branding"):
 option(
     "--enable-r3desr-branding",
     help="Enable Official r3dfox ESR Branding. "
-    "Do not distribute builds unless you are part of Eclipse Community",
+    "Do not release builds with our branding unless you are part of Eclipse Community",
 )
 
 with only_when("--enable-r3desr-branding"):
@@ -97,7 +97,7 @@ with only_when("--enable-r3desr-branding"):
 option(
     "--enable-plasmafox-branding",
     help="Enable Official plasmafox Branding. "
-    "Do not distribute builds unless you are part of Eclipse Community",
+    "Do not release builds with our branding unless you are part of Eclipse Community",
 )
 
 with only_when("--enable-plasmafox-branding"):
