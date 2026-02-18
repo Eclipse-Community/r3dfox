@@ -6614,7 +6614,8 @@ nsresult CanvasRenderingContext2D::GetImageDataArray(
   //
   // Note that we don't need to clone if we will use the place holder because
   // the place holder doesn't use actual image data.
-  if (extractionBehavior == CanvasUtils::ImageExtraction::Randomize) {
+  if (extractionBehavior == CanvasUtils::ImageExtraction::Randomize ||
+      extractionBehavior == CanvasUtils::ImageExtraction::EfficientRandomize) {
     if (readback) {
       readback = CreateDataSourceSurfaceByCloning(readback);
     }
@@ -6636,7 +6637,9 @@ nsresult CanvasRenderingContext2D::GetImageDataArray(
       // service) after we call JS_GetUint8ClampedArrayData, we will
       // pre-generate the randomness required for GeneratePlaceholderCanvasData.
       randomData = TryToGenerateRandomDataForPlaceholderCanvasData();
-    } else if (extractionBehavior == CanvasUtils::ImageExtraction::Randomize) {
+    } else if (extractionBehavior == CanvasUtils::ImageExtraction::Randomize ||
+               extractionBehavior ==
+                   CanvasUtils::ImageExtraction::EfficientRandomize) {
       // Apply the random noises if canvan randomization is enabled. We don't
       // need to calculate random noises if we are going to use the place
       // holder.
