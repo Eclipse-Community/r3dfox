@@ -648,6 +648,9 @@ pref("r3dfox.view.image", false);
 // Reload, Bookmark) as icons.
 pref("browser.menu.navigationIcons", true);
 
+// Enable browser urlbar formatting
+pref("browser.urlbar.formatting.enabled", true);
+
 // Enable JS dump() function.
 // IMPORTANT: These prefs must be here even though they're also defined in
 // StaticPrefList.yaml. They are required because MOZILLA_OFFICIAL is false in
