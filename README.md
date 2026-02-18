@@ -42,9 +42,9 @@ Ability to restore classic right click menu items such as view image and text na
 
 Ability to disable CSP, CORS, HSTS, and SOP!
 
-Ability to disable more advanced things such as Web Audio, e10s, and more!
+Ability to disable more advanced things such as geolocation, Web Audio, e10s, and more!
 
-Other options including the ability to disable tab groups, screenshot component, tab hover preview, drop to pin tabs, add tab to taskbar button, change the switch to tab behavior, and more!
+Other options including the ability to disable tab groups, screenshot component, tab hover preview, drop to pin tabs, add tab to taskbar button, urlbar foratting, change the switch to tab behavior, and more!
 
 ## Credits
 
