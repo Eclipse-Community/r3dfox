@@ -1885,6 +1885,7 @@ nsresult nsRFPService::RandomizeElements(
     return NS_OK;
   }
 
+  /*
   // Don't randomize if all groups are uniform.
   const bool allGroupsMatch = [&]() {
     auto itr = RangedPtr<const uint8_t>(aData, aSizeInBytes);
@@ -1899,6 +1900,7 @@ nsresult nsRFPService::RandomizeElements(
   if (allGroupsMatch) {
     return NS_OK;
   }
+  */
 
   auto timerId =
       glean::fingerprinting_protection::canvas_noise_calculate_time_2.Start();
