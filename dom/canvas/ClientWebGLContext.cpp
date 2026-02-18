@@ -3632,7 +3632,9 @@ void ClientWebGLContext::GetBufferSubData(GLenum target, GLintptr srcByteOffset,
       if (extraction == CanvasUtils::ImageExtraction::Placeholder) {
         dom::GeneratePlaceholderCanvasData(destView->size_bytes(),
                                            destView->Elements());
-      } else if (extraction == CanvasUtils::ImageExtraction::Randomize) {
+      } else if (extraction == CanvasUtils::ImageExtraction::Randomize ||
+                 extraction ==
+                     CanvasUtils::ImageExtraction::EfficientRandomize) {
         // We have no idea what's in the buffer. So, we randomize it as if each
         // elemSize bytes is a single element.
         uint8_t elementsPerGroup = 1,
@@ -5391,7 +5393,8 @@ void ClientWebGLContext::ReadPixels(GLint x, GLint y, GLsizei width,
       } else {
         RecordCanvasUsage(CanvasExtractionAPI::ReadPixels,
                           CSSIntSize(width, height));
-        if (extraction == CanvasUtils::ImageExtraction::Randomize) {
+        if (extraction == CanvasUtils::ImageExtraction::Randomize ||
+            extraction == CanvasUtils::ImageExtraction::EfficientRandomize) {
           const auto pii = webgl::PackingInfoInfo::For(desc.pi);
           // DoReadPixels() requres pii to be Some().
           MOZ_ASSERT(pii.isSome());
