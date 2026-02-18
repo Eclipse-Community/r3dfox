@@ -195,7 +195,6 @@ export const AboutNewTab = {
 
     const [createdTimestamp] = await Promise.all([
       profileCreatedAccessorReady,
-      trainhopFeatureReady,
       addonInitted,
     ]);
     const createdInstant = createdTimestamp
