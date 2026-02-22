@@ -758,9 +758,7 @@ nsresult AppWindow::CenterImpl(nsIAppWindow* aRelative, bool aScreen,
     return NS_OK;
   }
 
-  if (!aScreen && !aRelative) {
-    return NS_ERROR_INVALID_ARG;
-  }
+  if (!aScreen && !aRelative) return NS_ERROR_INVALID_ARG;
 
   nsCOMPtr<nsIScreenManager> screenmgr =
       do_GetService("@mozilla.org/gfx/screenmanager;1", &result);
