@@ -223,6 +223,8 @@ class nsITheme : public nsISupports {
                                    nsIFrame* aFrame,
                                    StyleAppearance aWidgetType) = 0;
 
+  virtual bool WidgetIsContainer(StyleAppearance aWidgetType) = 0;
+
   /**
    * Does the nsITheme implementation draw its own focus ring for this widget?
    */
