@@ -849,6 +849,16 @@ impl YamlFrameReader {
         dl.push_rect(info, bounds, color);
     }
 
+    fn handle_clear_rect(
+        &self,
+        dl: &mut DisplayListBuilder,
+        item: &Yaml,
+        info: &CommonItemProperties,
+    ) {
+        let bounds = item["bounds"].as_rect().expect("clear-rect type must have bounds");
+        dl.push_clear_rect(info, bounds);
+    }
+
     fn handle_hit_test(
         &mut self,
         dl: &mut DisplayListBuilder,
@@ -1588,6 +1598,7 @@ impl YamlFrameReader {
             match item_type {
                 "rect" => self.handle_rect(dl, item, &info),
                 "hit-test" => self.handle_hit_test(dl, item, &mut info),
+                "clear-rect" => self.handle_clear_rect(dl, item, &info),
                 "line" => self.handle_line(dl, item, &mut info),
                 "image" => self.handle_image(dl, wrench, item, &mut info),
                 "yuv-image" => self.handle_yuv_image(dl, wrench, item, &mut info),
