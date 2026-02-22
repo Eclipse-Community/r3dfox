@@ -4394,6 +4394,13 @@ void nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder* aBuilder,
     pseudoStackingContext = true;
   }
 
+  const nsStyleDisplay* ourDisp = StyleDisplay();
+  // Don't paint our children if the theme object is a leaf.
+  if (IsThemed(ourDisp) && !PresContext()->Theme()->WidgetIsContainer(
+                               ourDisp->EffectiveAppearance())) {
+    return;
+  }
+
   // Since we're now sure that we're adding this frame to the display list
   // (which means we're painting it, modulo occlusion), mark it as visible
   // within the displayport.
