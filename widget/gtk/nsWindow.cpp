@@ -4057,6 +4057,11 @@ gboolean nsWindow::OnExposeEvent(cairo_t* cr) {
 
   RefPtr<nsWindow> strongThis(this);
 
+  // Dispatch WillPaintWindow notification to allow scripts etc. to run
+  // before we paint. It also spins event loop which may show/hide the window
+  // so we may have new renderer etc.
+  GetPaintListener()->WillPaintWindow(this);
+
   // If the window has been destroyed during the will paint notification,
   // there is nothing left to do.
   if (mIsDestroyed) {
@@ -4082,6 +4087,9 @@ gboolean nsWindow::OnExposeEvent(cairo_t* cr) {
     layerManager->SetNeedsComposite(false);
   }
 
+  // Our bounds may have changed after calling WillPaintWindow.  Clip
+  // to the new bounds here.  The region is relative to this
+  // window.
   region.AndWith(LayoutDeviceIntRect(LayoutDeviceIntPoint(), GetClientSize()));
   LOGVERBOSE("painted region scaled %s (client size scaled %s)",
              ToString(region).c_str(), ToString(GetClientSize()).c_str());
@@ -4093,7 +4101,16 @@ gboolean nsWindow::OnExposeEvent(cairo_t* cr) {
   // If this widget uses OMTC...
   if (renderer->GetBackendType() == LayersBackend::LAYERS_WR) {
     LOG("redirect painting to OMTC rendering...");
-    listener->PaintWindow(this);
+    listener->PaintWindow(this, region);
+
+    // Re-get the listener since the will paint notification might have
+    // killed it.
+    listener = GetPaintListener();
+    if (!listener) {
+      return TRUE;
+    }
+
+    listener->DidPaintWindow();
     return TRUE;
   }
 
@@ -4126,16 +4143,25 @@ gboolean nsWindow::OnExposeEvent(cairo_t* cr) {
 
 #endif  // MOZ_X11
 
-  if (renderer->GetBackendType() == LayersBackend::LAYERS_NONE) {
-    if (GetTransparencyMode() == TransparencyMode::Transparent &&
-        mHasAlphaVisual) {
-      // If our draw target is unbuffered and we use an alpha channel,
-      // clear the image beforehand to ensure we don't get artifacts from a
-      // reused SHM image. See bug 1258086.
-      dt->ClearRect(Rect(boundsRect));
+  {
+    if (renderer->GetBackendType() == LayersBackend::LAYERS_NONE) {
+      if (GetTransparencyMode() == TransparencyMode::Transparent &&
+          mHasAlphaVisual) {
+        // If our draw target is unbuffered and we use an alpha channel,
+        // clear the image beforehand to ensure we don't get artifacts from a
+        // reused SHM image. See bug 1258086.
+        dt->ClearRect(Rect(boundsRect));
+      }
+      AutoLayerManagerSetup setupLayerManager(this, ctx.ptrOr(nullptr));
+      listener->PaintWindow(this, region);
+
+      // Re-get the listener since the will paint notification might have
+      // killed it.
+      listener = GetPaintListener();
+      if (!listener) {
+        return TRUE;
+      }
     }
-    AutoLayerManagerSetup setupLayerManager(this, ctx.ptrOr(nullptr));
-    listener->PaintWindow(this);
   }
 
 #ifdef MOZ_X11
@@ -4145,8 +4171,12 @@ gboolean nsWindow::OnExposeEvent(cairo_t* cr) {
 
   EndRemoteDrawingInRegion(dt, region);
 
+  listener->DidPaintWindow();
+
   // Synchronously flush any new dirty areas
-  if (cairo_region_t* dirtyArea = gdk_window_get_update_area(mGdkWindow)) {
+  cairo_region_t* dirtyArea = gdk_window_get_update_area(mGdkWindow);
+
+  if (dirtyArea) {
     gdk_window_invalidate_region(mGdkWindow, dirtyArea, false);
     cairo_region_destroy(dirtyArea);
     gdk_window_process_updates(mGdkWindow, false);
