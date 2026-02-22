@@ -329,9 +329,6 @@ class nsWindow final : public nsIWidget {
 
   void UpdateOpaqueRegionInternal();
   void UpdateOpaqueRegion(const LayoutDeviceIntRegion&) override;
-  LayoutDeviceIntRegion GetOpaqueRegionForTesting() const override {
-    return GetOpaqueRegion();
-  }
   LayoutDeviceIntRegion GetOpaqueRegion() const;
 
   // Exports a handle to the window, see `gdk_wayland_window_export_handle`.
