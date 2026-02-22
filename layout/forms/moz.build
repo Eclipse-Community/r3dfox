@@ -15,9 +15,7 @@ EXPORTS += [
 ]
 
 UNIFIED_SOURCES += [
-    "ButtonControlFrame.cpp",
     "HTMLSelectEventListener.cpp",
-    "InputButtonControlFrame.cpp",
     "ListMutationObserver.cpp",
     "nsCheckboxRadioFrame.cpp",
     "nsColorControlFrame.cpp",
@@ -25,6 +23,8 @@ UNIFIED_SOURCES += [
     "nsDateTimeControlFrame.cpp",
     "nsFieldSetFrame.cpp",
     "nsFileControlFrame.cpp",
+    "nsGfxButtonControlFrame.cpp",
+    "nsHTMLButtonControlFrame.cpp",
     "nsImageControlFrame.cpp",
     "nsListControlFrame.cpp",
     "nsNumberControlFrame.cpp",
