@@ -10,6 +10,7 @@
 
 #include "base/check.h"
 #include "base/win/pe_image.h"
+#include "base/win/windows_version.h"
 #include "sandbox/win/src/interception.h"
 #include "sandbox/win/src/interceptors.h"
 #include "sandbox/win/src/internal_types.h"
