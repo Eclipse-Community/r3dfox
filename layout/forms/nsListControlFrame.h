@@ -9,6 +9,7 @@
 #include "mozilla/Attributes.h"
 #include "mozilla/ScrollContainerFrame.h"
 #include "mozilla/StaticPtr.h"
+#include "nsIFormControlFrame.h"
 #include "nsISelectControlFrame.h"
 
 class nsComboboxControlFrame;
@@ -72,7 +73,11 @@ class nsListControlFrame final : public mozilla::ScrollContainerFrame,
   nsresult GetFrameName(nsAString& aResult) const final;
 #endif
 
-  void ElementStateChanged(mozilla::dom::ElementState aStates) final;
+  // nsIFormControlFrame
+  nsresult SetFormProperty(nsAtom* aName, const nsAString& aValue);
+  MOZ_CAN_RUN_SCRIPT_BOUNDARY
+  void SetFocus(bool aOn = true, bool aRepaint = false);
+
   bool ShouldPropagateComputedBSizeToScrolledContent() const final;
 
   // for accessibility purposes
@@ -140,7 +145,7 @@ class nsListControlFrame final : public mozilla::ScrollContainerFrame,
   HTMLOptionElement* GetOption(uint32_t aIndex) const;
 
   // Helper
-  bool IsFocused() const;
+  bool IsFocused() { return this == mFocused; }
 
   /**
    * Function to paint the focus rect when our nsSelectsAreaFrame is painting.
@@ -297,6 +302,7 @@ class nsListControlFrame final : public mozilla::ScrollContainerFrame,
   bool mReflowWasInterrupted : 1;
 
   RefPtr<mozilla::HTMLSelectEventListener> mEventListener;
+  static nsListControlFrame* mFocused;
 };
 
 #endif /* nsListControlFrame_h___ */
