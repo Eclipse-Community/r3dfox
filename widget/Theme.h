@@ -84,6 +84,7 @@ class Theme : protected nsNativeTheme, public nsITheme {
   ThemeGeometryType ThemeGeometryTypeForWidget(nsIFrame*,
                                                StyleAppearance) override;
   bool ThemeSupportsWidget(nsPresContext*, nsIFrame*, StyleAppearance) override;
+  bool WidgetIsContainer(StyleAppearance) override;
   bool ThemeDrawsFocusForWidget(nsIFrame*, StyleAppearance) override;
   bool ThemeNeedsComboboxDropmarker() override;
 
