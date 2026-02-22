@@ -1341,7 +1341,7 @@ const DefaultBrowserHelper = {
     this._backoffIndex = 0;
 
     try {
-      await this.shellSvc?.setDefaultBrowser(false);
+        await this.shellSvc?.setDefaultBrowser(true, false);
     } catch (e) {
       console.error(e);
     }
