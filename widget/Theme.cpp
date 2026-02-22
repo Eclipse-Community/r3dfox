@@ -1630,6 +1630,17 @@ bool Theme::ThemeSupportsWidget(nsPresContext* aPresContext, nsIFrame* aFrame,
   }
 }
 
+bool Theme::WidgetIsContainer(StyleAppearance aAppearance) {
+  switch (aAppearance) {
+    case StyleAppearance::MozMenulistArrowButton:
+    case StyleAppearance::Radio:
+    case StyleAppearance::Checkbox:
+      return false;
+    default:
+      return true;
+  }
+}
+
 bool Theme::ThemeDrawsFocusForWidget(nsIFrame*, StyleAppearance) {
   return true;
 }
