@@ -1476,6 +1476,15 @@
   mirror: always
   rust: true
 
+# 0 = always native
+# 1 = never native
+# other = default
+- name: browser.display.windows.non_native_menus
+  type: RelaxedAtomicUint32
+  value: 2
+  mirror: always
+  rust: true
+
 # This pref dictates whether or not backplates and background images
 # are to be drawn, when in high-contrast mode:
 #   false: do not draw backplates or render background images
