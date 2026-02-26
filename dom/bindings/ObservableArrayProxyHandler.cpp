@@ -277,6 +277,9 @@ bool ObservableArrayProxyHandler::GetBackingListObject(
     if (NS_WARN_IF(!newBackingListObj)) {
       return false;
     }
+    if (NS_WARN_IF(!JS_SetPrototype(aCx, newBackingListObj, nullptr))) {
+      return false;
+    }
     slotValue = JS::ObjectValue(*newBackingListObj);
     js::SetProxyReservedSlot(aProxy, OBSERVABLE_ARRAY_BACKING_LIST_OBJECT_SLOT,
                              slotValue);
