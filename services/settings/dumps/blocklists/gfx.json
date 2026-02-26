@@ -1,6 +1,32 @@
 {
   "data": [
     {
+      "os": "Linux",
+      "schema": 1755909310311,
+      "vendor": "",
+      "details": {
+        "bug": "1979007",
+        "name": "Mesa crash compiling certain shaders"
+      },
+      "devices": [],
+      "enabled": true,
+      "feature": "WEBGPU",
+      "hardware": "",
+      "driverVendor": "mesa/all",
+      "versionRange": {
+        "maxVersion": "143.0",
+        "minVersion": ""
+      },
+      "driverVersion": "25.0.4",
+      "featureStatus": "BLOCKED_DRIVER_VERSION",
+      "windowProtocol": "",
+      "driverVersionMax": "",
+      "desktopEnvironment": "",
+      "driverVersionComparator": "LESS_THAN",
+      "id": "e3e5622a-0a29-4a73-bd49-c3c2de8ec1bc",
+      "last_modified": 1771613837993
+    },
+    {
       "os": "WINNT 10.0",
       "schema": 1748268762353,
       "vendor": "0x10de",
@@ -1583,5 +1609,5 @@
       "last_modified": 1480349134090
     }
   ],
-  "timestamp": 1748485472559
+  "timestamp": 1771613837993
 }

@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2026-02-15_17-15-07_UTC
-// COMMIT: 1e7d25f31fa3b180951d9a9567e4148e105d1fdd
+// VERSION: 2026-02-24_12-30-27_UTC
+// COMMIT: 05f4a76fdee25bf064e7bfe317273afd3cc98f7f
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -6818,7 +6818,7 @@ org.zw
 
 // newGTLDs
 
-// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2026-02-15T15:24:49Z
+// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2026-02-18T15:51:43Z
 // This list is auto-generated, don't edit it manually.
 // aaa : American Automobile Association, Inc.
 // https://www.iana.org/domains/root/db/aaa.html
@@ -9476,7 +9476,7 @@ one
 // https://www.iana.org/domains/root/db/ong.html
 ong
 
-// onl : iRegistry GmbH
+// onl : Jolly Host, LLC
 // https://www.iana.org/domains/root/db/onl.html
 onl
 
@@ -10744,7 +10744,7 @@ weir
 // https://www.iana.org/domains/root/db/whoswho.html
 whoswho
 
-// wien : punkt.wien GmbH
+// wien : domainworx Service & Management GmbH
 // https://www.iana.org/domains/root/db/wien.html
 wien
 
@@ -12457,9 +12457,10 @@ beagleboard.io
 // Submitted by Herman Martinus <admin@bearblog.dev>
 bearblog.dev
 
-// Beget Ltd
-// Submitted by Lev Nekrasov <lnekrasov@beget.com>
+// Beget LLC : https://beget.com
+// Submitted by Lev Nekrasov & Nikita Radchenko <admin@beget.com>
 *.beget.app
+*.begetcdn.cloud
 
 // Besties : https://besties.house
 // Submitted by Hazel Cora <hazy@besties.house>
@@ -12914,7 +12915,11 @@ caffeine.site
 caffeine.xyz
 
 // dhosting.pl Sp. z o.o. : https://dhosting.pl/
-// Submitted by Michal Kokoszkiewicz <bok@dhosting.pl>
+// Submitted by Szczepan Redzioch <bok@dhosting.pl>
+mybox.company
+intouch.email
+mybox.me
+mybox.page
 dfirma.pl
 dkonto.pl
 you2.pl
@@ -14305,6 +14310,10 @@ khplay.nl
 // Kapsi : https://kapsi.fi
 // Submitted by Tomi Juntunen <erani@kapsi.fi>
 kapsi.fi
+
+// KataBump : https://katabump.com
+// Submitted by Thibault Lapeyre <contact@katabump.com>
+kdns.fr
 
 // Katholieke Universiteit Leuven : https://www.kuleuven.be
 // Submitted by Abuse KU Leuven <abuse@kuleuven.be>
@@ -16153,6 +16162,11 @@ localcert.net
 // Submitted by Douglas Chen <psl@windsurf.com>
 windsurf.app
 windsurf.build
+
+// WirelessCar : https://wirelesscar.com
+// Submitted by Martin Lindberg <drive-platform@wirelesscar.com>
+drive-platform.com
+drive-platform.io
 
 // WISP : https://wisp.gg
 // Submitted by Stepan Fedotov <stepan@wisp.gg>
