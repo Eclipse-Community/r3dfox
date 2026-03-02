@@ -1,4 +1,4 @@
-<span style="display:block;text-align:center">![Eclipse r3dfox](./docs/readme/banner.png)</span>
+ <span style="display:block;text-align:center">![Eclipse r3dfox](./docs/readme/banner.png)</span>
 
 r3dfox is a fork of the open source web browser Mozilla Firefox made specifically for Windows Vista, 7, and 8 compatibility.
 
@@ -14,7 +14,7 @@ SourceForge Downloads: ![SourceForge Downloads](https://img.shields.io/sourcefor
 
 New default theme and color scheme!
 
-More native and native like elements, scrollbar, checkboxes, radio buttons, tooltips, and more! Better than the 115 ESR patch!
+More native and native like elements, scrollbar, checkboxes, radio buttons, tooltips, and more!
 
 Aero Glass or accent color on 8/10+!
 
@@ -22,7 +22,7 @@ Ability to use modern (Windows 10) theme on any OS!
 
 Full portable mode that doesn't touch AppData at all!
 
-Classic about:config page!
+Switchable Classic about:config page!
 
 Less telemetry than regular Firefox!
 
@@ -36,53 +36,41 @@ GPU/hardware acceleration in VMware Workstation 16 and above!
 
 general.useragent.override.(website) is back!
 
-Instant one off searches!
+Instant one off searches and classic one off search UI!
 
-Ability to disable CSP!
+Ability to restore classic right click menu items such as view image and text navigation buttons!
 
-Ability to visit websites on ports that Firefox rejects!
+Ability to disable CSP, CORS, HSTS, and SOP!
 
-Ability to disable e10s! (Experimental and kinda broken)
+Ability to disable more advanced things such as geolocation, Web Audio, e10s, and more!
+
+Other options including the ability to disable tab groups, screenshot component, tab hover preview, drop to pin tabs, add tab to taskbar button, urlbar foratting, change the switch to tab behavior, and more!
 
 ## Credits
 
 If I've forgotten to put your name here, please let me know and I'll add it.
 
-Alex313031 - Mozconfig, general help with the browser, and changes from Mercury browser
+[e3kskoy7wqk](https://github.com/e3kskoy7wqk) - Base Windows 7 support code for versions 136 and later and ESR 128.12.0 and later.
 
-aubymori & ephemeralviolette - Classic about:config, disabled launcher process, and more from Nara browser
+[3y4m4r1n](https://github.com/3y4m4r1n) - Helped fix the new JumpListBuilder crashing under Vista and 7
 
-bbc-chi - Fullscreen transition fix
+[Alex313031](https://github.com/Alex313031) - Mozconfig, general help with the browser, and changes from Mercury browser
 
-Erizur - Improved native titlebar and modern mode from Marble browser
+[Feodor2](https://github.com/Feodor2) - Portable mode and Vista compatibility changes from Mypal68
 
-Feodor2 - Portable mode and Vista compatibility changes from Mypal68
+[goodusername123](https://github.com/goodusername123) - Graphical acceleration in VMware Workstation
 
-goodusername123 - Graphical acceleration in VMware Workstation
+[leadweedy](https://github.com/leadweedy) - Improved active tab indicator from Firefox-Proton-Square
 
-i486 - Fixed non-native menus
+[Librewolf Developers](https://codeberg.org/librewolf) - Privacy tweaks from Librewolf
 
-kawapure & ephemeralviolette - Native Controls Patch
+[Mozilla Developers](https://github.com/mozilla-firefox) - Firefox browser base
 
-leadweedy - Improved active tab indicator from Firefox-Proton-Square
+[QNetITQ](https://github.com/QNetITQ) - WaveFox theme
 
-Librewolf Developers - Privacy tweaks from Librewolf
+[Solinus](https://solinus.neocities.org/) - Branding visuals, icons and fancy text
 
-Mozilla Developers - Firefox browser base
-
-newbie-461 - Fixed the installer issues
-
-QNetITQ - WaveFox theme
-
-SashaXser - Improved rustflags opts in mozconfig
-
-Solinus - Branding visuals, icons and fancy text
-
-Tor Browser Developers - Addon fix code from Tor Browser
-
-Unity Pixelheart (UnityAI) - General help with coding and the theme code (Created by @GarryStraitYT)
-
-wanderer - Various code contributions for Vista support
+[Tor Browser Developers](https://gitlab.torproject.org/tpo/applications/tor-browser) - Addon fix code from Tor Browser
 
 # Original repository readme
 
