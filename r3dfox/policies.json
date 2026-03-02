@@ -7,7 +7,7 @@
         "DisableTelemetry": true,
         "DisableFeedbackCommands": true,
         "DisablePocket": true,
-        "SkipTermsOfUse": true, 
+        "SkipTermsOfUse": true,
         "ExtensionSettings": {
             "uBlock0@raymondhill.net": {
                 "install_url": "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi",
