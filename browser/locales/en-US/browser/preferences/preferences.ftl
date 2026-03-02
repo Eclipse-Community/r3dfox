@@ -179,11 +179,17 @@ r3dfox-functional-header = Functionality configurations
 r3dfox-one-offs =
     .label = Instant one off searches
 
+r3dfox-old-one-offs =
+    .label = Classic urlbar search UI
+
 r3dfox-view-image =
     .label = Restore classic View Image context menu options
 
 r3dfox-nav-text =
     .label = Replace context menu navigation icons with text options
+
+r3dfox-urlbar-formatting =
+    .label = Disable urlbar URL formatting
 
 r3dfox-tab-groups =
     .label = Enable tab groups
@@ -202,6 +208,12 @@ r3dfox-drop-to-pin =
 
 r3dfox-taskbar-tabs =
     .label = Disable add tab to taskbar button in urlbar
+
+r3dfox-old-aboutconfig =
+    .label = Use the classic about:config page
+
+r3dfox-geo =
+    .label = Disable browser geolocation
 
 r3dfox-switch-to-tab =
     .label = Change urlbar switch to tab into a button

@@ -667,12 +667,17 @@ pref("r3dfox.transparent.menubar", false);
 pref("r3dfox.glow.menubar", true);
 // Translucent navbar design
 pref("r3dfox.translucent.navbar", false);
+// Enable old about:config by default
+pref("r3dfox.ui.oldaboutconfig", true);
 // Disable other customizations by default
 pref("r3dfox.view.image", false);
 
 // Whether the context menu should show the navigation items (Back, Forward,
 // Reload, Bookmark) as icons.
 pref("browser.menu.navigationIcons", true);
+
+// Enable browser urlbar formatting
+pref("browser.urlbar.formatting.enabled", true);
 
 // Enable JS dump() function.
 // IMPORTANT: These prefs must be here even though they're also defined in

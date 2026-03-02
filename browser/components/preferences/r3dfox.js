@@ -45,5 +45,8 @@ Preferences.addAll([
   { id: "dom.webaudio.enabled", type: "bool",  inverted: true },
   { id: "browser.tabs.dropToPin.enabled", type: "bool",  inverted: true },
   { id: "browser.taskbarTabs.enabled", type: "bool",  inverted: true },
-/*  { id: "browser.translations.enable", type: "bool" },*/
+  { id: "r3dfox.ui.oldaboutconfig", type: "bool" },
+//  { id: "browser.urlbar.scotchBonnet.enableOverride", type: "bool",  inverted: true },
+  { id: "browser.urlbar.formatting.enabled", type: "bool",  inverted: true },
+  { id: "geo.enabled", type: "bool",  inverted: true },
 ]);
