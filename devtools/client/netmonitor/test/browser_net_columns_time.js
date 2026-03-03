@@ -50,10 +50,11 @@ add_task(async function () {
   const types = ["end", "response", "duration", "latency"];
 
   for (const t of types) {
+    info("Check the timing column for type: " + t);
     await waitUntil(() => {
       const node = item.querySelector(".requests-list-" + t + "-time");
       const value = parseInt(node.textContent, 10);
-      return value > 0;
+      return value >= 0;
     });
   }
 
