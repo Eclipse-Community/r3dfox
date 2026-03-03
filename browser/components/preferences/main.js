@@ -131,7 +131,9 @@ Preferences.addAll([
   { id: "browser.tabs.warnOnOpen", type: "bool" },
   { id: "browser.ctrlTab.sortByRecentlyUsed", type: "bool" },
   { id: "browser.tabs.hoverPreview.showThumbnails", type: "bool" },
+
   { id: "browser.tabs.groups.enabled", type: "bool" },
+
   { id: "browser.tabs.groups.smart.userEnabled", type: "bool" },
   { id: "browser.tabs.groups.smart.enabled", type: "bool" },
   { id: "privacy.userContext.ui.enabled", type: "bool" },
