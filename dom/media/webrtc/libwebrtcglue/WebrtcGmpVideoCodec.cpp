@@ -239,6 +239,7 @@ void WebrtcGmpVideoEncoder::Close_g() {
   mGMP = nullptr;
   mHost = nullptr;
   mInitting = false;
+  mInputImageMap.Clear();
 
   if (mCachedPluginId) {
     mReleasePluginEvent.Notify(*mCachedPluginId);
@@ -494,6 +495,7 @@ void WebrtcGmpVideoEncoder::Terminated() {
   mGMP = nullptr;
   mHost = nullptr;
   mInitting = false;
+  mInputImageMap.Clear();
 
   if (gmp) {
     // Do this last, since this could cause us to be destroyed
