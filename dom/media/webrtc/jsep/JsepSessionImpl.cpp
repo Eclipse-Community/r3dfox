@@ -1878,15 +1878,15 @@ nsresult JsepSessionImpl::ValidateRemoteDescription(const Sdp& description) {
     const SdpMediaSection& oldMsection =
         mCurrentRemoteDescription->GetMediaSection(i);
 
-    if (mSdpHelper.MsectionIsDisabled(newMsection) ||
-        mSdpHelper.MsectionIsDisabled(oldMsection)) {
-      continue;
-    }
-
     if (oldMsection.GetMediaType() != newMsection.GetMediaType()) {
       JSEP_SET_ERROR("Remote description changes the media type of m-line "
                      << i);
       return NS_ERROR_INVALID_ARG;
+    }
+
+    if (mSdpHelper.MsectionIsDisabled(newMsection) ||
+        mSdpHelper.MsectionIsDisabled(oldMsection)) {
+      continue;
     }
 
     bool differ = mSdpHelper.IceCredentialsDiffer(newMsection, oldMsection);
