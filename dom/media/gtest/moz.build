@@ -92,6 +92,7 @@ if CONFIG["MOZ_WEBRTC"] and CONFIG["OS_TARGET"] != "Android":
     UNIFIED_SOURCES += [
         "TestAudioDeviceEnumerator.cpp",
         "TestVideoFrameConverter.cpp",
+        "TestWebrtcGmpCodec.cpp",
     ]
 
 TEST_HARNESS_FILES.gtest += [
