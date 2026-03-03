@@ -226,4 +226,58 @@ TEST_F(TestWebrtcGmpVideoEncoder, ReUse) {
       WEBRTC_VIDEO_CODEC_OK);
   EXPECT_EQ(WaitForResolve(donePromise), true);
 }
+
+TEST_F(TestWebrtcGmpVideoEncoder, TrackedFrameDrops) {
+  using Result = webrtc::EncodedImageCallback::Result;
+  // Tell the fakeopenh264 plugin to drop some allocated input frames without
+  // telling us. It will drop every second input frame. This shall get tracked
+  // as frame drops.
+  mCodecSettings.SetFrameDropEnabled(true);
+  mEncoder->InitEncode(&mCodecSettings, mSettings);
+  WaitFor(*mEncoder->InitPluginEvent());
+
+  MozPromiseHolder<GenericPromise> encodedHolder, encodedHolder2;
+  RefPtr encodedPromise = encodedHolder.Ensure(__func__);
+  MockEncodedImageCallback callback;
+  constexpr uint32_t ntpTime = 55;
+  constexpr uint32_t ntpTime2 = ntpTime * 2;
+  EXPECT_CALL(
+      callback,
+      OnEncodedImage(Property(&webrtc::EncodedImage::NtpTimeMs, ntpTime), _))
+      .WillOnce([&] {
+        encodedHolder.Resolve(true,
+                              "TestWebrtcGmpVideoEncoder::TrackedFrameDrops");
+        return Result(Result::OK);
+      });
+  EXPECT_CALL(
+      callback,
+      OnDroppedFrame(MockEncodedImageCallback::DropReason::kDroppedByEncoder))
+      .WillOnce([&] {
+        encodedHolder2.Resolve(false,
+                               "TestWebrtcGmpVideoEncoder::TrackedFrameDrops");
+      });
+  mEncoder->RegisterEncodeCompleteCallback(&callback);
+
+  std::vector<webrtc::VideoFrameType> types = {
+      webrtc::VideoFrameType::kVideoFrameKey};
+  EXPECT_EQ(
+      mEncoder->Encode(webrtc::VideoFrame::Builder()
+                           .set_ntp_time_ms(ntpTime)
+                           .set_video_frame_buffer(CreateBlackFrame(
+                               mCodecSettings.width, mCodecSettings.height))
+                           .build(),
+                       &types),
+      WEBRTC_VIDEO_CODEC_OK);
+  EXPECT_EQ(WaitForResolve(encodedPromise), true);
+  encodedPromise = encodedHolder2.Ensure(__func__);
+  EXPECT_EQ(
+      mEncoder->Encode(webrtc::VideoFrame::Builder()
+                           .set_ntp_time_ms(ntpTime2)
+                           .set_video_frame_buffer(CreateBlackFrame(
+                               mCodecSettings.width, mCodecSettings.height))
+                           .build(),
+                       &types),
+      WEBRTC_VIDEO_CODEC_OK);
+  EXPECT_EQ(WaitForResolve(encodedPromise), false);
+}
 }  // namespace mozilla
