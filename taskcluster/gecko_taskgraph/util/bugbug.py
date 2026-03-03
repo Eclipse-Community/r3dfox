@@ -19,7 +19,7 @@ try:
 except ImportError:
     from time import time as monotonic
 
-BUGBUG_BASE_URL = "https://bugbug.herokuapp.com"
+BUGBUG_BASE_URL = "https://bugbug.moz.tools"
 RETRY_TIMEOUT = 9 * 60  # seconds
 RETRY_INTERVAL = 10  # seconds
 
