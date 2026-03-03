@@ -360,7 +360,7 @@ class FilterNodeComponentTransferSoftware : public FilterNodeSoftware {
   void RequestFromInputsForRect(const IntRect& aRect) override;
   virtual void GenerateLookupTable(ptrdiff_t aComponent,
                                    uint8_t aTables[4][256], bool aDisabled);
-  virtual void FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) = 0;
+  virtual bool FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) = 0;
 
   bool mDisableR;
   bool mDisableG;
@@ -379,10 +379,10 @@ class FilterNodeTableTransferSoftware
                     uint32_t aSize) override;
 
  protected:
-  void FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
+  bool FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
 
  private:
-  void FillLookupTableImpl(std::vector<Float>& aTableValues,
+  bool FillLookupTableImpl(std::vector<Float>& aTableValues,
                            uint8_t aTable[256]);
 
   std::vector<Float> mTableR;
@@ -402,10 +402,10 @@ class FilterNodeDiscreteTransferSoftware
                     uint32_t aSize) override;
 
  protected:
-  void FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
+  bool FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
 
  private:
-  void FillLookupTableImpl(std::vector<Float>& aTableValues,
+  bool FillLookupTableImpl(std::vector<Float>& aTableValues,
                            uint8_t aTable[256]);
 
   std::vector<Float> mTableR;
@@ -425,10 +425,10 @@ class FilterNodeLinearTransferSoftware
   void SetAttribute(uint32_t aIndex, Float aValue) override;
 
  protected:
-  void FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
+  bool FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
 
  private:
-  void FillLookupTableImpl(Float aSlope, Float aIntercept, uint8_t aTable[256]);
+  bool FillLookupTableImpl(Float aSlope, Float aIntercept, uint8_t aTable[256]);
 
   Float mSlopeR;
   Float mSlopeG;
@@ -451,10 +451,10 @@ class FilterNodeGammaTransferSoftware
   void SetAttribute(uint32_t aIndex, Float aValue) override;
 
  protected:
-  void FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
+  bool FillLookupTable(ptrdiff_t aComponent, uint8_t aTable[256]) override;
 
  private:
-  void FillLookupTableImpl(Float aAmplitude, Float aExponent, Float aOffset,
+  bool FillLookupTableImpl(Float aAmplitude, Float aExponent, Float aOffset,
                            uint8_t aTable[256]);
 
   Float mAmplitudeR;
