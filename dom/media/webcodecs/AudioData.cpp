@@ -560,7 +560,7 @@ void AudioData::CopyTo(
   uint32_t bytesPerSample = BytesPerSamples(destFormat.value());
   CheckedInt<uint32_t> copyLength = bytesPerSample;
   copyLength *= copyElementCount;
-  if (copyLength.value() > destLength) {
+  if (!copyLength.isValid() || copyLength.value() > destLength) {
     auto msg = nsPrintfCString(
         "destination buffer of length %zu too small for copying %" PRIu64
         "  elements",
