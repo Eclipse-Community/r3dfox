@@ -129,7 +129,10 @@ class FakeVideoEncoder : public GMPVideoEncoder {
                   GMPVideoEncoderCallback* callback, int32_t numberOfCores,
                   uint32_t maxPayloadSize) override {
     callback_ = callback;
-    frame_drop_state_ = codecSettings.mFrameDroppingOn ? KeepNext : NoDrop;
+    constexpr uint16_t kFrameDropCadence = 5;
+    frame_drop_cadence_ =
+        codecSettings.mFrameDroppingOn ? kFrameDropCadence : 0;
+    num_frames_since_drop_ = 0;
     frame_size_ = (maxPayloadSize > 0 && maxPayloadSize < BIG_FRAME)
                       ? maxPayloadSize
                       : BIG_FRAME;
@@ -147,13 +150,17 @@ class FakeVideoEncoder : public GMPVideoEncoder {
 
   void SendFrame(GMPVideoi420Frame* inputImage, GMPVideoFrameType frame_type,
                  int nal_type) {
-    if (frame_drop_state_ == KeepNext) {
-      GMPLOG(GL_DEBUG, "Frame dropping is on. Keeping.");
-      frame_drop_state_ = DropNext;
-    } else if (frame_drop_state_ == DropNext) {
-      GMPLOG(GL_DEBUG, "Frame dropping is on. Dropping.");
-      frame_drop_state_ = KeepNext;
-      return;
+    if (frame_drop_cadence_ > 0) {
+      const auto frame_drop_id = ++num_frames_since_drop_;
+      num_frames_since_drop_ %= frame_drop_cadence_;
+      GMPLOG(GL_DEBUG,
+             "Frame dropping is on, id="
+                 << frame_drop_id << "/" << frame_drop_cadence_ << ". "
+                 << (frame_drop_id == frame_drop_cadence_ ? "Dropping"
+                                                          : "Keeping"));
+      if (frame_drop_id == frame_drop_cadence_) {
+        return;
+      }
     }
     // Encode this in a frame that looks a little bit like H.264.
     // Send SPS/PPS/IDR to avoid confusing people
@@ -210,7 +217,7 @@ class FakeVideoEncoder : public GMPVideoEncoder {
     f->SetCompleteFrame(true);
     f->SetBufferType(GMP_BufferLength32);
 
-    GMPLOG(GL_DEBUG, "Encoding complete. type= "
+    GMPLOG(GL_DEBUG, "Encoding complete. type="
                          << f->FrameType()
                          << " NAL_type=" << (int)eframe.idr_nalu.h264_compat_
                          << " length=" << f->Size()
@@ -280,7 +287,8 @@ class FakeVideoEncoder : public GMPVideoEncoder {
 
   GMPVideoHost* host_;
   GMPVideoEncoderCallback* callback_ = nullptr;
-  enum { NoDrop, DropNext, KeepNext } frame_drop_state_ = NoDrop;
+  uint16_t frame_drop_cadence_ = 0;
+  uint16_t num_frames_since_drop_ = 0;
   uint32_t frame_size_ = BIG_FRAME;
   uint32_t frames_encoded_ = 0;
 };
