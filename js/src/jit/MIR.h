@@ -10153,7 +10153,6 @@ class MWasmLoadTableElement : public MBinaryInstruction,
   MWasmLoadTableElement(MDefinition* elements, MDefinition* index)
       : MBinaryInstruction(classOpcode, elements, index) {
     setResultType(MIRType::WasmAnyRef);
-    setMovable();
   }
 
  public:
