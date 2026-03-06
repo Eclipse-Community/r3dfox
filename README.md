@@ -60,6 +60,8 @@ If I've forgotten to put your name here, please let me know and I'll add it.
 
 [goodusername123](https://github.com/goodusername123) - Graphical acceleration in VMware Workstation
 
+[ImSwordQueen](https://github.com/ImSwordQueen) - Switchable about:config from Nocturne browser
+
 [leadweedy](https://github.com/leadweedy) - Improved active tab indicator from Firefox-Proton-Square
 
 [Librewolf Developers](https://codeberg.org/librewolf) - Privacy tweaks from Librewolf
