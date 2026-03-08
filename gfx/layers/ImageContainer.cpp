@@ -707,7 +707,7 @@ nsresult PlanarYCbCrImage::BuildSurfaceDescriptorBuffer(
 
   uint32_t bufferSize = ImageDataSerializer::ComputeYCbCrBufferSize(
       ySize, pdata->mYStride, cbcrSize, pdata->mCbCrStride, yOffset, cbOffset,
-      crOffset);
+      crOffset, pdata->mColorDepth);
 
   aSdBuffer.data() = aAllocate(bufferSize);
 

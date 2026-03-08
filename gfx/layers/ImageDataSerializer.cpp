@@ -57,17 +57,27 @@ uint32_t ComputeRGBBufferSize(IntSize aSize, SurfaceFormat aFormat) {
   return bufsize;
 }
 
+static bool CheckYCbCrStride(const gfx::IntSize& aSize, int32_t aStride,
+                             gfx::ColorDepth aDepth) {
+  gfx::SurfaceFormat format = gfx::SurfaceFormatForColorDepth(aDepth);
+  CheckedInt32 minStride =
+      CheckedInt32(gfx::BytesPerPixel(format)) * aSize.width;
+  return minStride.isValid() && aStride >= minStride.value();
+}
+
 // Minimum required shmem size in bytes
 uint32_t ComputeYCbCrBufferSize(const gfx::IntSize& aYSize, int32_t aYStride,
                                 const gfx::IntSize& aCbCrSize,
-                                int32_t aCbCrStride) {
+                                int32_t aCbCrStride, gfx::ColorDepth aDepth) {
   MOZ_ASSERT(aYSize.height >= 0 && aYSize.width >= 0);
 
   if (aYSize.height < 0 || aYSize.width < 0 || aCbCrSize.height < 0 ||
       aCbCrSize.width < 0 ||
       !gfx::Factory::AllowedSurfaceSize(IntSize(aYStride, aYSize.height)) ||
       !gfx::Factory::AllowedSurfaceSize(
-          IntSize(aCbCrStride, aCbCrSize.height))) {
+          IntSize(aCbCrStride, aCbCrSize.height)) ||
+      !CheckYCbCrStride(aYSize, aYStride, aDepth) ||
+      !CheckYCbCrStride(aCbCrSize, aCbCrStride, aDepth)) {
     return 0;
   }
 
@@ -79,14 +89,17 @@ uint32_t ComputeYCbCrBufferSize(const gfx::IntSize& aYSize, int32_t aYStride,
 uint32_t ComputeYCbCrBufferSize(const gfx::IntSize& aYSize, int32_t aYStride,
                                 const gfx::IntSize& aCbCrSize,
                                 int32_t aCbCrStride, uint32_t aYOffset,
-                                uint32_t aCbOffset, uint32_t aCrOffset) {
+                                uint32_t aCbOffset, uint32_t aCrOffset,
+                                gfx::ColorDepth aDepth) {
   MOZ_ASSERT(aYSize.height >= 0 && aYSize.width >= 0);
 
   if (aYSize.height < 0 || aYSize.width < 0 || aCbCrSize.height < 0 ||
       aCbCrSize.width < 0 ||
       !gfx::Factory::AllowedSurfaceSize(IntSize(aYStride, aYSize.height)) ||
       !gfx::Factory::AllowedSurfaceSize(
-          IntSize(aCbCrStride, aCbCrSize.height))) {
+          IntSize(aCbCrStride, aCbCrSize.height)) ||
+      !CheckYCbCrStride(aYSize, aYStride, aDepth) ||
+      !CheckYCbCrStride(aCbCrSize, aCbCrStride, aDepth)) {
     return 0;
   }
 
