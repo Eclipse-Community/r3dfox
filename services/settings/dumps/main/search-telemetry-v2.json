@@ -1,138 +1,7 @@
 {
   "data": [
     {
-      "isSPA": true,
-      "schema": 1756952145762,
-      "subframes": [],
-      "components": [
-        {
-          "type": "ad_image_row",
-          "included": {
-            "parent": {
-              "selector": "[data-testid='pam.container']"
-            },
-            "children": [
-              {
-                "selector": "[data-slide-index]",
-                "countChildren": true
-              }
-            ]
-          }
-        },
-        {
-          "type": "ad_link",
-          "included": {
-            "parent": {
-              "selector": "[data-testid='adResult']"
-            }
-          }
-        },
-        {
-          "type": "incontent_searchbox",
-          "topDown": true,
-          "included": {
-            "parent": {
-              "selector": "._1zdrb._1cR1n"
-            },
-            "related": {
-              "selector": "#search-suggestions"
-            },
-            "children": [
-              {
-                "selector": "input[type='search']"
-              }
-            ]
-          }
-        },
-        {
-          "type": "ad_link",
-          "default": true
-        }
-      ],
-      "shoppingTab": {
-        "regexp": "t=shopping",
-        "selector": "[data-testid='shoppingNavItem']",
-        "inspectRegexpInSERP": true
-      },
-      "taggedCodes": [
-        "ff_android",
-        "ff_ios",
-        "brz-moz",
-        "firefoxqwant"
-      ],
-      "telemetryId": "qwant",
-      "organicCodes": [],
-      "codeParamName": "client",
-      "pageTypeParam": {
-        "keys": [
-          "t"
-        ],
-        "pageTypes": [
-          {
-            "name": "web",
-            "target": "default_tab",
-            "values": [
-              "web"
-            ],
-            "enabled": true,
-            "isDefault": true
-          },
-          {
-            "name": "images",
-            "values": [
-              "images"
-            ],
-            "enabled": false
-          },
-          {
-            "name": "videos",
-            "values": [
-              "videos"
-            ],
-            "enabled": false
-          },
-          {
-            "name": "news",
-            "values": [
-              "news"
-            ],
-            "enabled": false
-          },
-          {
-            "name": "shopping",
-            "target": "shopping_tab",
-            "values": [
-              "shopping"
-            ],
-            "enabled": true
-          }
-        ],
-        "enableSPAHandling": true
-      },
-      "queryParamName": "q",
-      "queryParamNames": [
-        "q"
-      ],
-      "searchPageRegexp": "^https://www\\.qwant\\.com/",
-      "filter_expression": "env.version|versionCompare(\"124.0a1\")>=0",
-      "searchPageMatches": [
-        "https://www.qwant.com/*"
-      ],
-      "followOnParamNames": [],
-      "defaultPageQueryParam": {
-        "key": "t",
-        "value": "web"
-      },
-      "extraAdServersRegexps": [
-        "^https://www\\.bing\\.com/acli?c?k",
-        "^https://api\\.qwant\\.com/v3/r/",
-        "^https://fdn\\.qwant\\.com/v3/r/"
-      ],
-      "id": "19c434a3-d173-4871-9743-290ac92a3f6b",
-      "last_modified": 1757010621729
-    },
-    {
-      "schema": 1754878540963,
+      "schema": 1771804812409,
       "subframes": [],
       "components": [
         {
@@ -199,6 +68,15 @@
                 "selector": "a"
               }
             ]
+          }
+        },
+        {
+          "type": "refined_search_buttons",
+          "topDown": true,
+          "included": {
+            "parent": {
+              "selector": "a.nPDzT"
+            }
           }
         },
         {
@@ -433,7 +311,138 @@
         "url"
       ],
       "id": "635a3325-1995-42d6-be09-dbe4b2a95453",
-      "last_modified": 1754960964129
+      "last_modified": 1772656186787
+    },
+    {
+      "isSPA": true,
+      "schema": 1756952145762,
+      "subframes": [],
+      "components": [
+        {
+          "type": "ad_image_row",
+          "included": {
+            "parent": {
+              "selector": "[data-testid='pam.container']"
+            },
+            "children": [
+              {
+                "selector": "[data-slide-index]",
+                "countChildren": true
+              }
+            ]
+          }
+        },
+        {
+          "type": "ad_link",
+          "included": {
+            "parent": {
+              "selector": "[data-testid='adResult']"
+            }
+          }
+        },
+        {
+          "type": "incontent_searchbox",
+          "topDown": true,
+          "included": {
+            "parent": {
+              "selector": "._1zdrb._1cR1n"
+            },
+            "related": {
+              "selector": "#search-suggestions"
+            },
+            "children": [
+              {
+                "selector": "input[type='search']"
+              }
+            ]
+          }
+        },
+        {
+          "type": "ad_link",
+          "default": true
+        }
+      ],
+      "shoppingTab": {
+        "regexp": "t=shopping",
+        "selector": "[data-testid='shoppingNavItem']",
+        "inspectRegexpInSERP": true
+      },
+      "taggedCodes": [
+        "ff_android",
+        "ff_ios",
+        "brz-moz",
+        "firefoxqwant"
+      ],
+      "telemetryId": "qwant",
+      "organicCodes": [],
+      "codeParamName": "client",
+      "pageTypeParam": {
+        "keys": [
+          "t"
+        ],
+        "pageTypes": [
+          {
+            "name": "web",
+            "target": "default_tab",
+            "values": [
+              "web"
+            ],
+            "enabled": true,
+            "isDefault": true
+          },
+          {
+            "name": "images",
+            "values": [
+              "images"
+            ],
+            "enabled": false
+          },
+          {
+            "name": "videos",
+            "values": [
+              "videos"
+            ],
+            "enabled": false
+          },
+          {
+            "name": "news",
+            "values": [
+              "news"
+            ],
+            "enabled": false
+          },
+          {
+            "name": "shopping",
+            "target": "shopping_tab",
+            "values": [
+              "shopping"
+            ],
+            "enabled": true
+          }
+        ],
+        "enableSPAHandling": true
+      },
+      "queryParamName": "q",
+      "queryParamNames": [
+        "q"
+      ],
+      "searchPageRegexp": "^https://www\\.qwant\\.com/",
+      "filter_expression": "env.version|versionCompare(\"124.0a1\")>=0",
+      "searchPageMatches": [
+        "https://www.qwant.com/*"
+      ],
+      "followOnParamNames": [],
+      "defaultPageQueryParam": {
+        "key": "t",
+        "value": "web"
+      },
+      "extraAdServersRegexps": [
+        "^https://www\\.bing\\.com/acli?c?k",
+        "^https://api\\.qwant\\.com/v3/r/",
+        "^https://fdn\\.qwant\\.com/v3/r/"
+      ],
+      "id": "19c434a3-d173-4871-9743-290ac92a3f6b",
+      "last_modified": 1757010621729
     },
     {
       "schema": 1753236937989,
@@ -976,5 +985,5 @@
       "last_modified": 1741781945955
     }
   ],
-  "timestamp": 1757010621729
+  "timestamp": 1772656186787
 }

@@ -1,6 +1,33 @@
 {
   "data": [
     {
+      "name": "Firefox",
+      "schema": 1772237104541,
+      "status": "planned",
+      "version": "151",
+      "browserid": "firefox",
+      "id": "ca23dbaa-20c7-4027-9de8-63ec380b2f6e",
+      "last_modified": 1772548633069
+    },
+    {
+      "name": "Bun",
+      "schema": 1772094719613,
+      "status": "current",
+      "version": "1.3.10",
+      "browserid": "bun",
+      "id": "8c8475b8-52f3-488b-857b-8b39325285d9",
+      "last_modified": 1772548633066
+    },
+    {
+      "name": "Firefox for Android",
+      "schema": 1772237104669,
+      "status": "planned",
+      "version": "151",
+      "browserid": "firefox_android",
+      "id": "cded3e3a-4e7e-4627-80fb-fae915ebc9a0",
+      "last_modified": 1772548633064
+    },
+    {
       "name": "Deno",
       "schema": 1772064304810,
       "status": "current",
@@ -161,15 +188,6 @@
       "browserid": "opera_android",
       "id": "f0a6debc-856a-409d-8162-7224337e73ec",
       "last_modified": 1771325515208
-    },
-    {
-      "name": "Bun",
-      "schema": 1771027505173,
-      "status": "current",
-      "version": "1.3.9",
-      "browserid": "bun",
-      "id": "ce2c70cd-08bd-4cb1-ac2b-48b225b10102",
-      "last_modified": 1771325515203
     },
     {
       "name": "WebView Android",
@@ -361,5 +379,5 @@
       "last_modified": 1665656484764
     }
   ],
-  "timestamp": 1772094719547
+  "timestamp": 1772548633069
 }
