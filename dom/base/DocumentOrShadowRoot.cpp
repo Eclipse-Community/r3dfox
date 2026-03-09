@@ -7,6 +7,7 @@
 #include "DocumentOrShadowRoot.h"
 #include "mozilla/AnimationComparator.h"
 #include "mozilla/EventStateManager.h"
+#include "mozilla/Likely.h"
 #include "mozilla/PointerLockManager.h"
 #include "mozilla/PresShell.h"
 #include "mozilla/StyleSheet.h"
@@ -112,6 +113,10 @@ void DocumentOrShadowRoot::RemoveSheetFromStylesIfApplicable(
 void DocumentOrShadowRoot::OnSetAdoptedStyleSheets(StyleSheet& aSheet,
                                                    uint32_t aIndex,
                                                    ErrorResult& aRv) {
+  if (MOZ_UNLIKELY(aIndex > mAdoptedStyleSheets.Length())) {
+    MOZ_ASSERT_UNREACHABLE("Out of sync proxy");
+    return;
+  }
   Document& doc = *AsNode().OwnerDoc();
   // 1. If value’s constructed flag is not set, or its constructor document is
   // not equal to this DocumentOrShadowRoot's node document, throw a
@@ -159,7 +164,10 @@ void DocumentOrShadowRoot::OnSetAdoptedStyleSheets(StyleSheet& aSheet,
 void DocumentOrShadowRoot::OnDeleteAdoptedStyleSheets(StyleSheet& aSheet,
                                                       uint32_t aIndex,
                                                       ErrorResult&) {
-  MOZ_ASSERT(mAdoptedStyleSheets.ElementAt(aIndex) == &aSheet);
+  if (MOZ_UNLIKELY(mAdoptedStyleSheets.ElementAt(aIndex) != &aSheet)) {
+    MOZ_ASSERT_UNREACHABLE("Out of sync proxy");
+    return;
+  }
   mAdoptedStyleSheets.RemoveElementAt(aIndex);
   auto existingIndex = mAdoptedStyleSheets.LastIndexOf(&aSheet);
   if (existingIndex != mAdoptedStyleSheets.NoIndex && existingIndex >= aIndex) {
