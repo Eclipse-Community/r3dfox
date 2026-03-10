@@ -320,6 +320,10 @@ RefPtr<GenericPromise> RemoteWorkerController::SetServiceWorkerSkipWaitingFlag()
   AssertIsOnBackgroundThread();
   MOZ_ASSERT(mObserver);
 
+  if (!mIsServiceWorker) {
+    return GenericPromise::CreateAndResolve(false, __func__);
+  }
+
   RefPtr<GenericPromise::Private> promise =
       new GenericPromise::Private(__func__);
 
