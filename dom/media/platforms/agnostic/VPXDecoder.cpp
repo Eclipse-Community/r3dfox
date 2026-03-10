@@ -188,13 +188,17 @@ RefPtr<MediaDataDecoder::DecodePromise> VPXDecoder::ProcessDecode(
 
     if (img->fmt == VPX_IMG_FMT_I420) {
       b.mChromaSubsampling = gfx::ChromaSubsampling::HALF_WIDTH_AND_HEIGHT;
-
+      MOZ_ASSERT(img->y_chroma_shift == 1);
       b.mPlanes[1].mHeight = (img->d_h + 1) >> img->y_chroma_shift;
+      MOZ_ASSERT(img->x_chroma_shift == 1);
       b.mPlanes[1].mWidth = (img->d_w + 1) >> img->x_chroma_shift;
 
       b.mPlanes[2].mHeight = (img->d_h + 1) >> img->y_chroma_shift;
       b.mPlanes[2].mWidth = (img->d_w + 1) >> img->x_chroma_shift;
     } else if (img->fmt == VPX_IMG_FMT_I444) {
+      MOZ_ASSERT(b.mChromaSubsampling == gfx::ChromaSubsampling::FULL);
+      MOZ_ASSERT(img->y_chroma_shift == 0);
+      MOZ_ASSERT(img->x_chroma_shift == 0);
       b.mPlanes[1].mHeight = img->d_h;
       b.mPlanes[1].mWidth = img->d_w;
 
