@@ -31,6 +31,12 @@ struct ParamTraits<mozilla::EventMessage>
           mozilla::EventMessage::eEventMessage_MaxValue> {};
 
 template <>
+struct ParamTraits<mozilla::EventClassID>
+    : public ContiguousEnumSerializer<
+          mozilla::EventClassID, mozilla::EventClassID(0),
+          mozilla::EventClassID::eEventClassID_MaxValue> {};
+
+template <>
 struct ParamTraits<mozilla::BaseEventFlags> {
   using paramType = mozilla::BaseEventFlags;
 
@@ -51,7 +57,7 @@ struct ParamTraits<mozilla::WidgetEvent> {
     // Mark the event as posted to another process.
     const_cast<mozilla::WidgetEvent&>(aParam).MarkAsPostedToRemoteProcess();
 
-    WriteParam(aWriter, static_cast<mozilla::EventClassIDType>(aParam.mClass));
+    WriteParam(aWriter, aParam.mClass);
     WriteParam(aWriter, aParam.mMessage);
     WriteParam(aWriter, aParam.mRefPoint);
     WriteParam(aWriter, aParam.mFocusSequenceNumber);
@@ -61,15 +67,13 @@ struct ParamTraits<mozilla::WidgetEvent> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    mozilla::EventClassIDType eventClassID = 0;
-    bool ret = ReadParam(aReader, &eventClassID) &&
-               ReadParam(aReader, &aResult->mMessage) &&
-               ReadParam(aReader, &aResult->mRefPoint) &&
-               ReadParam(aReader, &aResult->mFocusSequenceNumber) &&
-               ReadParam(aReader, &aResult->mTimeStamp) &&
-               ReadParam(aReader, &aResult->mFlags) &&
-               ReadParam(aReader, &aResult->mLayersId);
-    aResult->mClass = static_cast<mozilla::EventClassID>(eventClassID);
+    const bool ret = ReadParam(aReader, &aResult->mClass) &&
+                     ReadParam(aReader, &aResult->mMessage) &&
+                     ReadParam(aReader, &aResult->mRefPoint) &&
+                     ReadParam(aReader, &aResult->mFocusSequenceNumber) &&
+                     ReadParam(aReader, &aResult->mTimeStamp) &&
+                     ReadParam(aReader, &aResult->mFlags) &&
+                     ReadParam(aReader, &aResult->mLayersId);
     if (ret) {
       // Reset cross process dispatching state here because the event has not
       // been dispatched to different process from current process.
