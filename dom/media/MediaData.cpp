@@ -427,6 +427,19 @@ already_AddRefed<VideoData> VideoData::CreateAndCopyData(
     NS_ERROR(r.Message().get());
     return nullptr;
   }
+  if (!ValidatePlane(aAlphaPlane)) {
+    return nullptr;
+  }
+  // The alpha plane is expected to be the same size as the luma plane.
+  // See Method 1 at https://wiki.webmproject.org/alpha-channel
+  if (aBuffer.mPlanes[0].mWidth != aAlphaPlane.mWidth ||
+      aBuffer.mPlanes[0].mHeight != aAlphaPlane.mHeight) {
+    return nullptr;
+  }
+  // ConvertI420AlphaToARGB() expects equal strides for luma and alpha
+  if (aBuffer.mPlanes[0].mStride != aAlphaPlane.mStride) {
+    return nullptr;
+  }
 
   RefPtr<VideoData> v(new VideoData(aOffset, aTime, aDuration, aKeyframe,
                                     aTimecode, aInfo.mDisplay, 0));
