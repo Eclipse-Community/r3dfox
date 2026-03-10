@@ -491,6 +491,14 @@ bool SlicedInputStream::Deserialize(
 
   const SlicedInputStreamParams& params = aParams.get_SlicedInputStreamParams();
 
+  auto end = CheckedUint64(params.start()) + params.length();
+  if (!end.isValid()) {
+    return false;
+  }
+  if (params.curPos() > end.value()) {
+    return false;
+  }
+
   nsCOMPtr<nsIInputStream> stream =
       InputStreamHelper::DeserializeInputStream(params.stream());
   if (!stream) {
