@@ -99,6 +99,15 @@ struct ParamTraits<mozilla::Telemetry::CombinedStacks> {
       return false;
     }
 
+    for (const auto& stack : aResult->mStacks) {
+      for (const auto& frame : stack) {
+        if (frame.mModIndex != std::numeric_limits<uint16_t>::max() &&
+            frame.mModIndex >= aResult->mModules.size()) {
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 };
