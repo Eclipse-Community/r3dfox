@@ -406,6 +406,11 @@ GlobalKeyListener::WalkHandlersResult GlobalKeyListener::WalkHandlersAndExecute(
 
 bool GlobalKeyListener::IsReservedKey(WidgetKeyboardEvent* aKeyEvent,
                                       KeyEventHandler* aHandler) {
+  // If the event is a reply event, it means that we've already sent the event
+  // to the remote process because of not reserved.
+  if (aKeyEvent->IsHandledInRemoteProcess()) {
+    return false;
+  }
   ReservedKey reserved = aHandler->GetIsReserved();
   // reserved="true" means that the key is always reserved. reserved="false"
   // means that the key is never reserved. Otherwise, we check site-specific

@@ -2235,6 +2235,10 @@ mozilla::ipc::IPCResult BrowserChild::RecvRealKeyEvent(
   // we need to clear the flag explicitly here because ParamTraits should
   // keep checking the flag for avoiding regression.
   localEvent.mFlags.mNoRemoteProcessDispatch = false;
+  // The parent process won't use the native key bindings of the reply event
+  // anymore. To save the IPC cost, let's clear the edit commands before sending
+  // the event back to the parent process.
+  localEvent.PreventNativeKeyBindings();
   SendReplyKeyEvent(localEvent, aUUID);
 
   return IPC_OK();

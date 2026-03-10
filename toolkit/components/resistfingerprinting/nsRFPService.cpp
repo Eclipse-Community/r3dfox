@@ -949,7 +949,7 @@ nsTHashMap<KeyboardHashKey, const SpoofingKeyboardCode*>*
 
 KeyboardHashKey::KeyboardHashKey(const KeyboardLangs aLang,
                                  const KeyboardRegions aRegion,
-                                 const KeyNameIndexType aKeyIdx,
+                                 const KeyNameIndex aKeyIdx,
                                  const nsAString& aKey)
     : mLang(aLang), mRegion(aRegion), mKeyIdx(aKeyIdx), mKey(aKey) {}
 

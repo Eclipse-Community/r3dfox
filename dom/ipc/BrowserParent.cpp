@@ -2787,7 +2787,10 @@ mozilla::ipc::IPCResult BrowserParent::RecvReplyKeyEvent(
             NS_WARN_IF(data.mPseudoCharCode != aEvent.mPseudoCharCode) ||
             NS_WARN_IF(data.mKeyNameIndex != aEvent.mKeyNameIndex) ||
             NS_WARN_IF(data.mCodeNameIndex != aEvent.mCodeNameIndex) ||
-            NS_WARN_IF(data.mModifiers != aEvent.mModifiers)) {
+            NS_WARN_IF(data.mModifiers != aEvent.mModifiers) ||
+            // The child process should've already cleared the editor commands
+            // because we don't use them.
+            NS_WARN_IF(aEvent.HasEditCommands())) {
           // Got different event data from what we stored before dispatching an
           // event with the ID.
           return Nothing();

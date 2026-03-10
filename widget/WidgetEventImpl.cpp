@@ -905,6 +905,12 @@ bool WidgetKeyboardEvent::ExecuteEditCommands(NativeKeyBindingsType aType,
     return false;
   }
 
+  // If this is a reply event, we shouldn't execute the native key bindings in
+  // the parent process.
+  if (NS_WARN_IF(IsHandledInRemoteProcess())) {
+    return false;
+  }
+
   if (!IsEditCommandsInitializedRef(aType)) {
     Maybe<WritingMode> writingMode;
     if (RefPtr<widget::TextEventDispatcher> textEventDispatcher =

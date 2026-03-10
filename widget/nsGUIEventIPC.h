@@ -422,15 +422,25 @@ struct ParamTraits<mozilla::ShortcutKeyCandidate> {
 };
 
 template <>
+struct ParamTraits<mozilla::KeyNameIndex>
+    : public ContiguousEnumSerializerInclusive<
+          mozilla::KeyNameIndex, static_cast<mozilla::KeyNameIndex>(0),
+          mozilla::KeyNameIndex::KEY_NAME_INDEX_USE_STRING> {};
+
+template <>
+struct ParamTraits<mozilla::CodeNameIndex>
+    : public ContiguousEnumSerializerInclusive<
+          mozilla::CodeNameIndex, static_cast<mozilla::CodeNameIndex>(0),
+          mozilla::CodeNameIndex::CODE_NAME_INDEX_USE_STRING> {};
+
+template <>
 struct ParamTraits<mozilla::WidgetKeyboardEvent> {
   using paramType = mozilla::WidgetKeyboardEvent;
 
   static void Write(MessageWriter* aWriter, const paramType& aParam) {
     WriteParam(aWriter, static_cast<const mozilla::WidgetInputEvent&>(aParam));
-    WriteParam(aWriter,
-               static_cast<mozilla::KeyNameIndexType>(aParam.mKeyNameIndex));
-    WriteParam(aWriter,
-               static_cast<mozilla::CodeNameIndexType>(aParam.mCodeNameIndex));
+    WriteParam(aWriter, aParam.mKeyNameIndex);
+    WriteParam(aWriter, aParam.mCodeNameIndex);
     WriteParam(aWriter, aParam.mKeyValue);
     WriteParam(aWriter, aParam.mCodeValue);
     WriteParam(aWriter, aParam.mKeyCode);
@@ -455,11 +465,9 @@ struct ParamTraits<mozilla::WidgetKeyboardEvent> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    mozilla::KeyNameIndexType keyNameIndex = 0;
-    mozilla::CodeNameIndexType codeNameIndex = 0;
     if (ReadParam(aReader, static_cast<mozilla::WidgetInputEvent*>(aResult)) &&
-        ReadParam(aReader, &keyNameIndex) &&
-        ReadParam(aReader, &codeNameIndex) &&
+        ReadParam(aReader, &aResult->mKeyNameIndex) &&
+        ReadParam(aReader, &aResult->mCodeNameIndex) &&
         ReadParam(aReader, &aResult->mKeyValue) &&
         ReadParam(aReader, &aResult->mCodeValue) &&
         ReadParam(aReader, &aResult->mKeyCode) &&
@@ -480,9 +488,6 @@ struct ParamTraits<mozilla::WidgetKeyboardEvent> {
                   &aResult->mEditCommandsForMultiLineEditorInitialized) &&
         ReadParam(aReader,
                   &aResult->mEditCommandsForRichTextEditorInitialized)) {
-      aResult->mKeyNameIndex = static_cast<mozilla::KeyNameIndex>(keyNameIndex);
-      aResult->mCodeNameIndex =
-          static_cast<mozilla::CodeNameIndex>(codeNameIndex);
       aResult->mNativeKeyEvent = nullptr;
       return true;
     }

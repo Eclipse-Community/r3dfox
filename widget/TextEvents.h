@@ -586,10 +586,23 @@ class WidgetKeyboardEvent final : public WidgetInputEvent {
   }
 
   /**
+   * Return true if this stores one or more edit commands for at least one
+   * editor type. This does not initialize them when they have not been
+   * initialized yet. Therefore, this returns just current status.
+   */
+  [[nodiscard]] bool HasEditCommands() const {
+    return !mEditCommandsForSingleLineEditor.IsEmpty() ||
+           !mEditCommandsForMultiLineEditor.IsEmpty() ||
+           !mEditCommandsForRichTextEditor.IsEmpty();
+  }
+
+  /**
    * EditCommandsConstRef() returns reference to edit commands for aType.
    */
   const nsTArray<CommandInt>& EditCommandsConstRef(
       NativeKeyBindingsType aType) const {
+    MOZ_ASSERT(!IsHandledInRemoteProcess(),
+               "Editor commands is not available on reply event");
     return const_cast<WidgetKeyboardEvent*>(this)->EditCommandsRef(aType);
   }
 
