@@ -235,18 +235,11 @@ class WidgetMouseEvent : public WidgetMouseEventBase,
   ALLOW_DEPRECATED_READPARAM
 
  public:
-  typedef bool ReasonType;
-  enum Reason : ReasonType { eReal, eSynthesized };
+  enum Reason : bool { eReal, eSynthesized };
 
-  typedef uint8_t ContextMenuTriggerType;
-  enum ContextMenuTrigger : ContextMenuTriggerType {
-    eNormal,
-    eContextMenuKey,
-    eControlClick
-  };
+  enum ContextMenuTrigger : uint8_t { eNormal, eContextMenuKey, eControlClick };
 
-  typedef uint8_t ExitFromType;
-  enum ExitFrom : ExitFromType {
+  enum ExitFrom : uint8_t {
     ePlatformChild,
     ePlatformTopLevel,
     ePuppet,
