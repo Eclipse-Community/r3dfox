@@ -5526,8 +5526,18 @@ ContentParent::AllocPContentPermissionRequestParent(
     topPrincipal = principal;
   }
   return nsContentPermissionUtils::CreateContentPermissionRequestParent(
-      aRequests, tp->GetOwnerElement(), aPrincipal, topPrincipal,
-      aIsHandlingUserInput, aMaybeUnsafePermissionDelegate, aTabId);
+      tp->GetOwnerElement(), aPrincipal, topPrincipal, aIsHandlingUserInput,
+      aMaybeUnsafePermissionDelegate, aTabId);
+}
+
+mozilla::ipc::IPCResult ContentParent::RecvPContentPermissionRequestConstructor(
+    PContentPermissionRequestParent* aActor,
+    nsTArray<PermissionRequest>&& aRequests, nsIPrincipal* aPrincipal,
+    nsIPrincipal* aTopLevelPrincipal, const bool& aIsHandlingUserInput,
+    const bool& aMaybeUnsafePermissionDelegate, const TabId& tabId) {
+  nsContentPermissionUtils::InitContentPermissionRequestParent(
+      aActor, std::move(aRequests));
+  return IPC_OK();
 }
 
 bool ContentParent::DeallocPContentPermissionRequestParent(

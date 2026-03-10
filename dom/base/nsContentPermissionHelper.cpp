@@ -44,11 +44,14 @@ class ContentPermissionRequestParent : public PContentPermissionRequestParent {
   // @param aIsRequestDelegatedToUnsafeThirdParty see
   // mIsRequestDelegatedToUnsafeThirdParty.
   ContentPermissionRequestParent(
-      const nsTArray<PermissionRequest>& aRequests, Element* aElement,
-      nsIPrincipal* aPrincipal, nsIPrincipal* aTopLevelPrincipal,
+      Element* aElement, nsIPrincipal* aPrincipal,
+      nsIPrincipal* aTopLevelPrincipal,
       const bool aHasValidTransientUserGestureActivation,
       const bool aIsRequestDelegatedToUnsafeThirdParty);
   virtual ~ContentPermissionRequestParent();
+
+  MOZ_CAN_RUN_SCRIPT_BOUNDARY
+  void Init(nsTArray<PermissionRequest>&& aRequests);
 
   bool IsBeingDestroyed();
 
@@ -64,16 +67,13 @@ class ContentPermissionRequestParent : public PContentPermissionRequestParent {
   nsTArray<PermissionRequest> mRequests;
 
  private:
-  // Not MOZ_CAN_RUN_SCRIPT because we can't annotate the thing we override yet.
-  MOZ_CAN_RUN_SCRIPT_BOUNDARY
-  virtual mozilla::ipc::IPCResult Recvprompt() override;
   virtual mozilla::ipc::IPCResult RecvDestroy() override;
   virtual void ActorDestroy(ActorDestroyReason why) override;
 };
 
 ContentPermissionRequestParent::ContentPermissionRequestParent(
-    const nsTArray<PermissionRequest>& aRequests, Element* aElement,
-    nsIPrincipal* aPrincipal, nsIPrincipal* aTopLevelPrincipal,
+    Element* aElement, nsIPrincipal* aPrincipal,
+    nsIPrincipal* aTopLevelPrincipal,
     const bool aHasValidTransientUserGestureActivation,
     const bool aIsRequestDelegatedToUnsafeThirdParty) {
   MOZ_COUNT_CTOR(ContentPermissionRequestParent);
@@ -81,7 +81,6 @@ ContentPermissionRequestParent::ContentPermissionRequestParent(
   mPrincipal = aPrincipal;
   mTopLevelPrincipal = aTopLevelPrincipal;
   mElement = aElement;
-  mRequests = aRequests.Clone();
   mHasValidTransientUserGestureActivation =
       aHasValidTransientUserGestureActivation;
   mIsRequestDelegatedToUnsafeThirdParty = aIsRequestDelegatedToUnsafeThirdParty;
@@ -91,13 +90,14 @@ ContentPermissionRequestParent::~ContentPermissionRequestParent() {
   MOZ_COUNT_DTOR(ContentPermissionRequestParent);
 }
 
-mozilla::ipc::IPCResult ContentPermissionRequestParent::Recvprompt() {
+void ContentPermissionRequestParent::Init(
+    nsTArray<PermissionRequest>&& aRequests) {
+  mRequests = std::move(aRequests);
   mProxy = new nsContentPermissionRequestProxy(this);
   if (NS_FAILED(mProxy->Init(mRequests))) {
     RefPtr<nsContentPermissionRequestProxy> proxy(mProxy);
     proxy->Cancel();
   }
-  return IPC_OK();
 }
 
 mozilla::ipc::IPCResult ContentPermissionRequestParent::RecvDestroy() {
@@ -239,17 +239,25 @@ nsresult nsContentPermissionUtils::CreatePermissionArray(
 /* static */
 PContentPermissionRequestParent*
 nsContentPermissionUtils::CreateContentPermissionRequestParent(
-    const nsTArray<PermissionRequest>& aRequests, Element* aElement,
-    nsIPrincipal* aPrincipal, nsIPrincipal* aTopLevelPrincipal,
+    Element* aElement, nsIPrincipal* aPrincipal,
+    nsIPrincipal* aTopLevelPrincipal,
     const bool aHasValidTransientUserGestureActivation,
     const bool aIsRequestDelegatedToUnsafeThirdParty, const TabId& aTabId) {
   PContentPermissionRequestParent* parent = new ContentPermissionRequestParent(
-      aRequests, aElement, aPrincipal, aTopLevelPrincipal,
+      aElement, aPrincipal, aTopLevelPrincipal,
       aHasValidTransientUserGestureActivation,
       aIsRequestDelegatedToUnsafeThirdParty);
   ContentPermissionRequestParentMap()[parent] = aTabId;
 
   return parent;
+}
+
+/* static */
+void nsContentPermissionUtils::InitContentPermissionRequestParent(
+    PContentPermissionRequestParent* aActor,
+    nsTArray<PermissionRequest>&& aRequests) {
+  static_cast<ContentPermissionRequestParent*>(aActor)->Init(
+      std::move(aRequests));
 }
 
 /* static */
@@ -301,7 +309,6 @@ nsresult nsContentPermissionUtils::AskPermission(
     }
     ContentPermissionRequestChildMap()[req.get()] = child->GetTabId();
 
-    req->Sendprompt();
     return NS_OK;
   }
 

@@ -63,10 +63,14 @@ class nsContentPermissionUtils {
   // @param aIsRequestDelegatedToUnsafeThirdParty see
   // ContentPermissionRequestParent.
   static PContentPermissionRequestParent* CreateContentPermissionRequestParent(
-      const nsTArray<PermissionRequest>& aRequests, Element* aElement,
-      nsIPrincipal* aPrincipal, nsIPrincipal* aTopLevelPrincipal,
+      Element* aElement, nsIPrincipal* aPrincipal,
+      nsIPrincipal* aTopLevelPrincipal,
       const bool aHasValidTransientUserGestureActivation,
       const bool aIsRequestDelegatedToUnsafeThirdParty, const TabId& aTabId);
+
+  static void InitContentPermissionRequestParent(
+      PContentPermissionRequestParent* aActor,
+      nsTArray<PermissionRequest>&& aRequests);
 
   static nsresult AskPermission(nsIContentPermissionRequest* aRequest,
                                 nsPIDOMWindowInner* aWindow);
