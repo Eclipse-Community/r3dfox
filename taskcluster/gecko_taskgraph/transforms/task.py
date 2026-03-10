@@ -1279,6 +1279,18 @@ def build_ship_it_shipped_payload(config, task, task_def):
 
 
 @payload_builder(
+    "shipit-merged",
+    schema={
+        Required("merge-automation-id"): int,
+    },
+)
+def build_ship_it_merged_payload(config, task, task_def):
+    worker = task["worker"]
+
+    task_def["payload"] = {"automation_id": worker["merge-automation-id"]}
+
+
+@payload_builder(
     "shipit-maybe-release",
     schema={
         Required("phase"): str,

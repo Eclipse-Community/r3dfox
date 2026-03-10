@@ -1161,8 +1161,7 @@ def target_tasks_merge_automation(full_task_graph, parameters, graph_config):
     """Select the set of tasks required to perform repository merges."""
 
     def filter(task):
-        # For now any task in the repo-update kind is ok
-        return task.kind in ["merge-automation"]
+        return task.kind in ["merge-automation", "mark-as-merged"]
 
     return [l for l, t in full_task_graph.tasks.items() if filter(t)]
 
