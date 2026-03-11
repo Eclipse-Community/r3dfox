@@ -22,7 +22,6 @@
 #include "av1/encoder/encoder.h"
 #include "av1/encoder/ethread.h"
 #include "av1/encoder/pickcdef.h"
-#include "av1/encoder/mcomp.h"
 
 // Get primary and secondary filter strength for the given strength index and
 // search method
@@ -419,14 +418,14 @@ static inline uint64_t get_filt_error(
         (bw_log2 + bh_log2);
     if (cdef_count == tot_blk_count) {
       // Calculate the offset in the buffer based on block position
-      const FULLPEL_MV this_mv = { row, col };
-      const int buf_offset = get_offset_from_fullmv(&this_mv, ref_stride);
+      const ptrdiff_t buf_offset = (ptrdiff_t)row * ref_stride + col;
+      const ptrdiff_t dst_offset = (ptrdiff_t)row * pd->dst.stride + col;
       if (pri_strength == 0 && sec_strength == 0) {
         // When CDEF strength is zero, filtering is not applied. Hence
         // error is calculated between source and unfiltered pixels
         curr_sse =
             aom_sse(&ref_buffer[buf_offset], ref_stride,
-                    get_buf_from_fullmv(&pd->dst, &this_mv), pd->dst.stride,
+                    &pd->dst.buf[dst_offset], pd->dst.stride,
                     block_size_wide[plane_bsize], block_size_high[plane_bsize]);
       } else {
         DECLARE_ALIGNED(32, uint8_t, tmp_dst8[1 << (MAX_SB_SIZE_LOG2 * 2)]);
@@ -451,17 +450,19 @@ static inline uint64_t get_filt_error(
         for (int bi = 0; bi < cdef_count; bi = bi + num_error_calc_filt_units) {
           const uint8_t by = dlist[bi].by;
           const uint8_t bx = dlist[bi].bx;
-          const int16_t by_pos = (by << bh_log2);
-          const int16_t bx_pos = (bx << bw_log2);
+          const int by_pos = (by << bh_log2);
+          const int bx_pos = (bx << bw_log2);
           // Calculate the offset in the buffer based on block position
-          const FULLPEL_MV this_mv = { row + by_pos, col + bx_pos };
-          const int buf_offset = get_offset_from_fullmv(&this_mv, ref_stride);
+          const ptrdiff_t buf_offset =
+              (ptrdiff_t)(row + by_pos) * ref_stride + (col + bx_pos);
+          const ptrdiff_t dst_offset =
+              (ptrdiff_t)(row + by_pos) * pd->dst.stride + (col + bx_pos);
           num_error_calc_filt_units = get_error_calc_width_in_filt_units(
               dlist, cdef_count, bi, pd->subsampling_x, pd->subsampling_y);
-          curr_sse += aom_sse(
-              &ref_buffer[buf_offset], ref_stride,
-              get_buf_from_fullmv(&pd->dst, &this_mv), pd->dst.stride,
-              num_error_calc_filt_units * (1 << bw_log2), (1 << bh_log2));
+          curr_sse +=
+              aom_sse(&ref_buffer[buf_offset], ref_stride,
+                      &pd->dst.buf[dst_offset], pd->dst.stride,
+                      num_error_calc_filt_units * (1 << bw_log2), 1 << bh_log2);
         }
       } else {
         DECLARE_ALIGNED(32, uint8_t, tmp_dst8[1 << (MAX_SB_SIZE_LOG2 * 2)]);
@@ -475,14 +476,13 @@ static inline uint64_t get_filt_error(
         for (int bi = 0; bi < cdef_count; bi = bi + num_error_calc_filt_units) {
           const uint8_t by = dlist[bi].by;
           const uint8_t bx = dlist[bi].bx;
-          const int16_t by_pos = (by << bh_log2);
-          const int16_t bx_pos = (bx << bw_log2);
+          const int by_pos = (by << bh_log2);
+          const int bx_pos = (bx << bw_log2);
           // Calculate the offset in the buffer based on block position
-          const FULLPEL_MV this_mv = { row + by_pos, col + bx_pos };
-          const FULLPEL_MV tmp_buf_pos = { by_pos, bx_pos };
-          const int buf_offset = get_offset_from_fullmv(&this_mv, ref_stride);
-          const int tmp_buf_offset =
-              get_offset_from_fullmv(&tmp_buf_pos, (1 << MAX_SB_SIZE_LOG2));
+          const ptrdiff_t buf_offset =
+              (ptrdiff_t)(row + by_pos) * ref_stride + (col + bx_pos);
+          const ptrdiff_t tmp_buf_offset =
+              (ptrdiff_t)by_pos * (1 << MAX_SB_SIZE_LOG2) + bx_pos;
           num_error_calc_filt_units = get_error_calc_width_in_filt_units(
               dlist, cdef_count, bi, pd->subsampling_x, pd->subsampling_y);
           curr_sse += aom_sse(
