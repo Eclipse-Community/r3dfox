@@ -169,6 +169,11 @@ struct MOZ_EMPTY_BASES IntRectTyped
                                   aRect.Height());
   }
 
+  static IntRectTyped<Units> Truncate(const RectTyped<Units, double>& aRect) {
+    return IntRectTyped(int32_t(aRect.X()), int32_t(aRect.Y()),
+                        int32_t(aRect.Width()), int32_t(aRect.Height()));
+  }
+
   // Rounding isn't meaningful on an integer rectangle.
   void Round() {}
   void RoundIn() {}
@@ -326,10 +331,10 @@ IntRectTyped<Units> RoundedToInt(const RectTyped<Units>& aRect) {
                              int32_t(copy.Width()), int32_t(copy.Height()));
 }
 
-template <class Units>
-bool RectIsInt32Safe(const RectTyped<Units>& aRect) {
-  float min = (float)std::numeric_limits<std::int32_t>::min();
-  float max = (float)std::numeric_limits<std::int32_t>::max();
+template <class Units, class F>
+bool RectIsInt32Safe(const RectTyped<Units, F>& aRect) {
+  F min = (F)std::numeric_limits<int32_t>::min();
+  F max = (F)std::numeric_limits<int32_t>::max();
   return aRect.x > min && aRect.y > min && aRect.width < max &&
          aRect.height < max && aRect.XMost() < max && aRect.YMost() < max;
 }
@@ -344,8 +349,8 @@ IntRectTyped<Units> RoundedOut(const RectTyped<Units>& aRect) {
   return IntRectTyped<Units>::RoundOut(aRect);
 }
 
-template <class Units>
-IntRectTyped<Units> TruncatedToInt(const RectTyped<Units>& aRect) {
+template <class Units, class F>
+IntRectTyped<Units> TruncatedToInt(const RectTyped<Units, F>& aRect) {
   return IntRectTyped<Units>::Truncate(aRect);
 }
 

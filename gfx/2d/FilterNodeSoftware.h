@@ -502,6 +502,7 @@ class FilterNodeConvolveMatrixSoftware : public FilterNodeSoftware {
                                                CoordType aKernelUnitLengthX,
                                                CoordType aKernelUnitLengthY);
 
+  MarginDouble GetInflateSourceMargin() const;
   IntRect InflatedSourceRect(const IntRect& aDestRect);
   IntRect InflatedDestRect(const IntRect& aSourceRect);
 
