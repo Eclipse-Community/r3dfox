@@ -41,6 +41,7 @@ use cubeb_backend::{
 };
 use mach::mach_time::{mach_absolute_time, mach_timebase_info};
 use std::cmp;
+use std::collections::HashSet;
 use std::ffi::{CStr, CString};
 use std::fmt;
 use std::mem;
@@ -49,7 +50,7 @@ use std::ptr;
 use std::slice;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
-use std::sync::{Arc, Condvar, Mutex, MutexGuard, Weak};
+use std::sync::{Arc, Condvar, LazyLock, Mutex, MutexGuard, Weak};
 use std::time::{Duration, Instant};
 const NO_ERR: OSStatus = 0;
 
@@ -69,6 +70,28 @@ const SAFE_MAX_LATENCY_FRAMES: u32 = 512;
 const VPIO_IDLE_TIMEOUT: Duration = Duration::from_secs(10);
 
 const MACOS_KERNEL_MAJOR_VERSION_MONTEREY: u32 = 21;
+
+// Global registry for tracking valid sync callback pointers.
+static SYNC_CALLBACK_REGISTRY: LazyLock<Mutex<HashSet<usize>>> =
+    LazyLock::new(|| Mutex::new(HashSet::new()));
+
+fn sync_callback_registry_register(ptr: usize) {
+    SYNC_CALLBACK_REGISTRY.lock().unwrap().insert(ptr);
+}
+
+fn sync_callback_registry_unregister(ptr: usize) {
+    SYNC_CALLBACK_REGISTRY.lock().unwrap().remove(&ptr);
+}
+
+fn with_sync_callback_ptr<F>(ptr: *mut c_void, f: F)
+where
+    F: FnOnce(),
+{
+    let guard = SYNC_CALLBACK_REGISTRY.lock().unwrap();
+    if guard.contains(&(ptr as usize)) {
+        f();
+    }
+}
 
 #[derive(Debug, PartialEq)]
 enum ParseMacOSKernelVersionError {
@@ -1508,16 +1531,16 @@ fn set_buffer_size_sync(unit: AudioUnit, devtype: DeviceType, frames: u32) -> Re
     }
 
     let waiting_time = Duration::from_millis(100);
-    let pair = Arc::new((Mutex::new(false), Condvar::new()));
-    let mut pair2 = pair.clone();
-    let pair_ptr = &mut pair2;
+    let pair = Box::new((Mutex::new(false), Condvar::new()));
+    let pair_ptr = Box::into_raw(pair);
+    sync_callback_registry_register(pair_ptr as usize);
 
     assert_eq!(
         audio_unit_add_property_listener(
             unit,
             kAudioDevicePropertyBufferFrameSize,
             buffer_size_changed_callback,
-            pair_ptr,
+            pair_ptr as *mut c_void,
         ),
         NO_ERR
     );
@@ -1528,10 +1551,14 @@ fn set_buffer_size_sync(unit: AudioUnit, devtype: DeviceType, frames: u32) -> Re
                 unit,
                 kAudioDevicePropertyBufferFrameSize,
                 buffer_size_changed_callback,
-                pair_ptr,
+                pair_ptr as *mut c_void,
             ),
             NO_ERR
         );
+        // Unregister blocks if callback is in-flight (holds registry lock)
+        sync_callback_registry_unregister(pair_ptr as usize);
+        // Safe to drop: callback has either completed or will exit early
+        unsafe { drop(Box::from_raw(pair_ptr)) };
     });
 
     set_buffer_size(unit, devtype, frames).map_err(|e| {
@@ -1544,7 +1571,7 @@ fn set_buffer_size_sync(unit: AudioUnit, devtype: DeviceType, frames: u32) -> Re
         Error::error()
     })?;
 
-    let (lock, cvar) = &*pair;
+    let (lock, cvar) = unsafe { &*pair_ptr };
     let changed = lock.lock().unwrap();
     if !*changed {
         let (chg, timeout_res) = cvar.wait_timeout(changed, waiting_time).unwrap();
@@ -1584,16 +1611,17 @@ fn set_buffer_size_sync(unit: AudioUnit, devtype: DeviceType, frames: u32) -> Re
         in_element: AudioUnitElement,
     ) {
         if in_scope == 0 {
-            // filter out the callback for global scope.
             return;
         }
-        assert!(in_element == AU_IN_BUS || in_element == AU_OUT_BUS);
-        assert_eq!(in_property_id, kAudioDevicePropertyBufferFrameSize);
-        let pair = unsafe { &mut *(in_client_data as *mut Arc<(Mutex<bool>, Condvar)>) };
-        let (lock, cvar) = &**pair;
-        let mut changed = lock.lock().unwrap();
-        *changed = true;
-        cvar.notify_one();
+        with_sync_callback_ptr(in_client_data, || {
+            assert!(in_element == AU_IN_BUS || in_element == AU_OUT_BUS);
+            assert_eq!(in_property_id, kAudioDevicePropertyBufferFrameSize);
+            let pair = unsafe { &*(in_client_data as *const (Mutex<bool>, Condvar)) };
+            let (lock, cvar) = pair;
+            let mut changed = lock.lock().unwrap();
+            *changed = true;
+            cvar.notify_one();
+        });
     }
 
     Ok(())
