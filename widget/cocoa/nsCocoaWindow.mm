@@ -5571,11 +5571,11 @@ void nsCocoaWindow::HideWindowChrome(bool aShouldHide) {
 
   // Recreate the window with the right border style.
   NSRect frameRect = mWindow.frame;
-  BOOL restorable = mWindow.restorable;
+  BOOL isPrivateWindow = !mWindow.restorable;
   DestroyNativeWindow();
   nsresult rv = CreateNativeWindow(
       frameRect, aShouldHide ? BorderStyle::None : mBorderStyle, true,
-      restorable);
+      isPrivateWindow);
   NS_ENSURE_SUCCESS_VOID(rv);
 
   // Re-import state.
