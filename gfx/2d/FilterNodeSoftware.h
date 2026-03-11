@@ -765,6 +765,9 @@ class FilterNodeLightingSoftware : public FilterNodeSoftware {
                                                CoordType aKernelUnitLengthX,
                                                CoordType aKernelUnitLengthY);
 
+  MarginDouble GetInflateSourceMargin() const;
+  IntRect InflatedSourceRect(const IntRect& aDestRect);
+
   LightType mLight;
   LightingType mLighting;
   Float mSurfaceScale;
