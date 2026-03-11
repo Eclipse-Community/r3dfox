@@ -2606,6 +2606,11 @@ void FilterNodeDisplacementMapSoftware::SetAttribute(uint32_t aIndex,
 
 void FilterNodeDisplacementMapSoftware::SetAttribute(uint32_t aIndex,
                                                      uint32_t aValue) {
+  // Refuse channel values that exceed channel maximum.
+  if (aValue > ColorChannel::COLOR_CHANNEL_MAX) {
+    return;
+  }
+
   switch (aIndex) {
     case ATT_DISPLACEMENT_MAP_X_CHANNEL:
       mChannelX = static_cast<ColorChannel>(aValue);
@@ -2652,7 +2657,7 @@ already_AddRefed<DataSourceSurface> FilterNodeDisplacementMapSoftware::Render(
   uint8_t* targetData = targetMap.GetData();
   int32_t targetStride = targetMap.GetStride();
 
-  static const ptrdiff_t channelMap[4] = {
+  static const ptrdiff_t channelMap[COLOR_CHANNEL_MAX + 1] = {
       B8G8R8A8_COMPONENT_BYTEOFFSET_R, B8G8R8A8_COMPONENT_BYTEOFFSET_G,
       B8G8R8A8_COMPONENT_BYTEOFFSET_B, B8G8R8A8_COMPONENT_BYTEOFFSET_A};
   uint16_t xChannel = channelMap[mChannelX];
