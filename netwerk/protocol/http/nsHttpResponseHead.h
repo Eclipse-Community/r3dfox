@@ -160,6 +160,9 @@ class nsHttpResponseHead {
   // https://fetch.spec.whatwg.org/#content-length-header
   nsresult ParseResponseContentLength(const nsACString& aHeaderStr)
       MOZ_REQUIRES(mRecursiveMutex);
+  void ParseContentTypeValue(const nsHttpAtom& aAtom,
+                             const nsACString& aContentTypeValue)
+      MOZ_REQUIRES(mRecursiveMutex);
 
   nsresult ParseStatusLine_locked(const nsACString& line)
       MOZ_REQUIRES(mRecursiveMutex);
@@ -210,6 +213,7 @@ class nsHttpResponseHead {
   uint16_t mStatus MOZ_GUARDED_BY(mRecursiveMutex){200};
   nsCString mStatusText MOZ_GUARDED_BY(mRecursiveMutex);
   int64_t mContentLength MOZ_GUARDED_BY(mRecursiveMutex){-1};
+  nsCString mContentTypeBuffer MOZ_GUARDED_BY(mRecursiveMutex);
   nsCString mContentType MOZ_GUARDED_BY(mRecursiveMutex);
   nsCString mContentCharset MOZ_GUARDED_BY(mRecursiveMutex);
   bool mHasCacheControl MOZ_GUARDED_BY(mRecursiveMutex){false};

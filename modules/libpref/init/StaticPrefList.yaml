@@ -13475,6 +13475,12 @@
     login-us.microsoftonline.com
   mirror: never
 
+# Whether to fallback to old mime-type parser when CMimeType::Parse fails
+- name: network.http.fallback_to_net_parse_ct
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
 # The factor by which to increase the keepalive timeout when the
 # NS_HTTP_LARGE_KEEPALIVE flag is used for a connection
 - name: network.http.largeKeepaliveFactor

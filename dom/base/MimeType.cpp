@@ -271,6 +271,7 @@ template <typename char_type>
     const nsTSubstring<char_type>& aMimeType,
     nsTSubstring<char_type>& aOutEssence,
     nsTSubstring<char_type>& aOutCharset) {
+  // https://fetch.spec.whatwg.org/#concept-header-extract-mime-type
   static char_type kCHARSET[] = {'c', 'h', 'a', 'r', 's', 'e', 't'};
   static nsTDependentSubstring<char_type> kCharset(kCHARSET, 7);
 
@@ -278,8 +279,8 @@ template <typename char_type>
   nsTAutoString<char_type> prevContentType;
   nsTAutoString<char_type> prevCharset;
 
-  prevContentType.Assign(aOutEssence);
-  prevCharset.Assign(aOutCharset);
+  aOutEssence.Truncate();
+  aOutCharset.Truncate();
 
   nsTArray<nsTDependentSubstring<char_type>> mimeTypeParts =
       SplitMimetype(aMimeType);
@@ -292,9 +293,7 @@ template <typename char_type>
     parsed = Parse(mimeTypeString);
 
     if (!parsed) {
-      aOutEssence.Truncate();
-      aOutCharset.Truncate();
-      return false;
+      continue;
     }
 
     parsed->GetEssence(aOutEssence);
@@ -320,6 +319,10 @@ template <typename char_type>
     if ((!eq && !prevCharset.IsEmpty()) || typeHasCharset) {
       prevCharset.Assign(aOutCharset);
     }
+  }
+
+  if (aOutEssence.IsEmpty()) {
+    return false;
   }
 
   return true;

@@ -293,6 +293,25 @@ void nsHttpResponseHead::FlattenNetworkOriginalHeaders(nsACString& buf) {
   mHeaders.FlattenOriginalHeader(buf);
 }
 
+class ResponseHeaderVisitor : public nsIHttpHeaderVisitor {
+  using callbackType =
+      std::function<void(const nsACString& aName, const nsACString& aValue)>;
+  NS_DECL_ISUPPORTS
+  explicit ResponseHeaderVisitor(callbackType&& aCallback)
+      : mCallback(std::move(aCallback)) {}
+
+  NS_IMETHOD VisitHeader(const nsACString& aName,
+                         const nsACString& aValue) override {
+    mCallback(aName, aValue);
+    return NS_OK;
+  }
+
+ private:
+  virtual ~ResponseHeaderVisitor() = default;
+  callbackType mCallback;
+};
+NS_IMPL_ISUPPORTS(ResponseHeaderVisitor, nsIHttpHeaderVisitor)
+
 nsresult nsHttpResponseHead::ParseCachedHead(const char* block) {
   RecursiveMutexAutoLock monitor(mRecursiveMutex);
   LOG(("nsHttpResponseHead::ParseCachedHead [this=%p]\n", this));
@@ -318,6 +337,15 @@ nsresult nsHttpResponseHead::ParseCachedHead(const char* block) {
 
   } while (true);
 
+  // fixup content-type header.
+  mContentTypeBuffer.Truncate();
+  RefPtr<ResponseHeaderVisitor> visitor = new ResponseHeaderVisitor(
+      [&](const nsACString& aName, const nsACString& aValue)
+          MOZ_REQUIRES(mRecursiveMutex) {
+            MOZ_ASSERT(nsHttp::Content_Type.val().EqualsIgnoreCase(aName));
+            ParseContentTypeValue(nsHttp::ResolveAtom(aName), aValue);
+          });
+  (void)mHeaders.GetOriginalHeader(nsHttp::Content_Type, visitor);
   return NS_OK;
 }
 
@@ -444,6 +472,33 @@ nsresult nsHttpResponseHead::ParseHeaderLine(const nsACString& line) {
   return ParseHeaderLine_locked(line, true);
 }
 
+void nsHttpResponseHead::ParseContentTypeValue(const nsHttpAtom& aAtom,
+                                               const nsACString& aValue) {
+  if (!mContentTypeBuffer.IsEmpty()) {
+    mContentTypeBuffer.AppendLiteral(",");
+  }
+  mContentTypeBuffer.Append(aValue);
+  mContentType.Truncate();
+  mContentCharset.Truncate();
+  if (CMimeType::Parse(mContentTypeBuffer, mContentType, mContentCharset)) {
+  } else if (StaticPrefs::network_http_fallback_to_net_parse_ct()) {
+    bool dummy;
+    net_ParseContentType(aValue, mContentType, mContentCharset, &dummy);
+  }
+  LOG(("ParseContentType [input=%s, type=%s, charset=%s]\n",
+       nsPromiseFlatCString(aValue).get(), mContentType.get(),
+       mContentCharset.get()));
+
+  nsAutoCString existingHeader;
+  if (NS_SUCCEEDED(mHeaders.GetHeader(aAtom, existingHeader)) &&
+      existingHeader != mContentTypeBuffer) {
+    // Always set the header to the merged buffer, as per Fetch spec.
+    DebugOnly<nsresult> rv = mHeaders.SetHeader(
+        aAtom, mContentTypeBuffer, false, nsHttpHeaderArray::eVarietyResponse);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
+  }
+}
+
 nsresult nsHttpResponseHead::ParseHeaderLine_locked(
     const nsACString& line, bool originalFromNetHeaders) {
   nsHttpAtom hdr;
@@ -487,14 +542,7 @@ nsresult nsHttpResponseHead::ParseHeaderLine_locked(
     }
 
   } else if (hdr == nsHttp::Content_Type) {
-    if (StaticPrefs::network_standard_content_type_parsing_response_headers() &&
-        CMimeType::Parse(val, mContentType, mContentCharset)) {
-    } else {
-      bool dummy;
-      net_ParseContentType(val, mContentType, mContentCharset, &dummy);
-    }
-    LOG(("ParseContentType [input=%s, type=%s, charset=%s]\n", val.get(),
-         mContentType.get(), mContentCharset.get()));
+    ParseContentTypeValue(hdr, val);
   } else if (hdr == nsHttp::Cache_Control) {
     ParseCacheControl(mHeaders.PeekHeader(hdr));
   } else if (hdr == nsHttp::Pragma) {
