@@ -10,6 +10,7 @@
 #define ALLOW_LATE_NSHTTP_H_INCLUDE 1
 #include "base/basictypes.h"
 
+#include "ipc/EnumSerializer.h"
 #include "ipc/IPCMessageUtils.h"
 #include "ipc/IPCMessageUtilsSpecializations.h"
 #include "nsHttp.h"
@@ -33,6 +34,19 @@ struct RequestHeaderTuple {
 };
 
 typedef CopyableTArray<RequestHeaderTuple> RequestHeaderTuples;
+
+struct HttpVersionValidator {
+  using IntegralType = std::underlying_type_t<HttpVersion>;
+
+  static bool IsLegalValue(const IntegralType e) {
+    return e == static_cast<IntegralType>(HttpVersion::UNKNOWN) ||
+           e == static_cast<IntegralType>(HttpVersion::v0_9) ||
+           e == static_cast<IntegralType>(HttpVersion::v1_0) ||
+           e == static_cast<IntegralType>(HttpVersion::v1_1) ||
+           e == static_cast<IntegralType>(HttpVersion::v2_0) ||
+           e == static_cast<IntegralType>(HttpVersion::v3_0);
+  }
+};
 
 }  // namespace net
 }  // namespace mozilla
@@ -60,6 +74,18 @@ struct ParamTraits<mozilla::net::RequestHeaderTuple> {
     return true;
   }
 };
+
+template <>
+struct ParamTraits<mozilla::net::HttpVersion>
+    : public EnumSerializer<mozilla::net::HttpVersion,
+                            mozilla::net::HttpVersionValidator> {};
+
+template <>
+struct ParamTraits<mozilla::net::nsHttpRequestHead::ParsedMethodType>
+    : public ContiguousEnumSerializerInclusive<
+          mozilla::net::nsHttpRequestHead::ParsedMethodType,
+          mozilla::net::nsHttpRequestHead::kMethod_Custom,
+          mozilla::net::nsHttpRequestHead::kMethod_Trace> {};
 
 template <>
 struct ParamTraits<mozilla::net::nsHttpAtom> {
@@ -192,33 +218,29 @@ struct ParamTraits<mozilla::net::nsHttpRequestHead> {
     aParam.Enter();
     WriteParam(aWriter, aParam.mHeaders);
     WriteParam(aWriter, aParam.mMethod);
-    WriteParam(aWriter, static_cast<uint32_t>(aParam.mVersion));
+    WriteParam(aWriter, aParam.mVersion);
     WriteParam(aWriter, aParam.mRequestURI);
     WriteParam(aWriter, aParam.mPath);
     WriteParam(aWriter, aParam.mOrigin);
-    WriteParam(aWriter, static_cast<uint8_t>(aParam.mParsedMethod));
+    WriteParam(aWriter, aParam.mParsedMethod);
     WriteParam(aWriter, aParam.mHTTPS);
     aParam.Exit();
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    uint32_t version;
-    uint8_t method;
     aResult->Enter();
     if (!ReadParam(aReader, &aResult->mHeaders) ||
         !ReadParam(aReader, &aResult->mMethod) ||
-        !ReadParam(aReader, &version) ||
+        !ReadParam(aReader, &aResult->mVersion) ||
         !ReadParam(aReader, &aResult->mRequestURI) ||
         !ReadParam(aReader, &aResult->mPath) ||
         !ReadParam(aReader, &aResult->mOrigin) ||
-        !ReadParam(aReader, &method) || !ReadParam(aReader, &aResult->mHTTPS)) {
+        !ReadParam(aReader, &aResult->mParsedMethod) ||
+        !ReadParam(aReader, &aResult->mHTTPS)) {
       aResult->Exit();
       return false;
     }
 
-    aResult->mVersion = static_cast<mozilla::net::HttpVersion>(version);
-    aResult->mParsedMethod =
-        static_cast<mozilla::net::nsHttpRequestHead::ParsedMethodType>(method);
     aResult->Exit();
     return true;
   }
@@ -234,7 +256,7 @@ struct ParamTraits<mozilla::net::nsHttpResponseHead> {
                     const paramType& aParam) MOZ_NO_THREAD_SAFETY_ANALYSIS {
     aParam.Enter();
     WriteParam(aWriter, aParam.mHeaders);
-    WriteParam(aWriter, static_cast<uint32_t>(aParam.mVersion));
+    WriteParam(aWriter, aParam.mVersion);
     WriteParam(aWriter, aParam.mStatus);
     WriteParam(aWriter, aParam.mStatusText);
     WriteParam(aWriter, aParam.mContentLength);
@@ -255,10 +277,9 @@ struct ParamTraits<mozilla::net::nsHttpResponseHead> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    uint32_t version;
     aResult->Enter();
     if (!ReadParam(aReader, &aResult->mHeaders) ||
-        !ReadParam(aReader, &version) ||
+        !ReadParam(aReader, &aResult->mVersion) ||
         !ReadParam(aReader, &aResult->mStatus) ||
         !ReadParam(aReader, &aResult->mStatusText) ||
         !ReadParam(aReader, &aResult->mContentLength) ||
@@ -279,7 +300,6 @@ struct ParamTraits<mozilla::net::nsHttpResponseHead> {
       return false;
     }
 
-    aResult->mVersion = static_cast<mozilla::net::HttpVersion>(version);
     aResult->Exit();
     return true;
   }
