@@ -2786,11 +2786,6 @@ void BrowsingContext::DidSet(FieldIndex<IDX_ExplicitActive>,
   });
 }
 
-bool BrowsingContext::CanSet(FieldIndex<IDX_InRDMPane>, const bool&,
-                             ContentParent* aSource) {
-  return XRE_IsParentProcess() && IsTop() && !aSource;
-}
-
 void BrowsingContext::DidSet(FieldIndex<IDX_InRDMPane>, bool aOldValue) {
   MOZ_ASSERT(IsTop(),
              "Should only set InRDMPane in the top-level browsing context");
