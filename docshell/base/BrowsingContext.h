@@ -1092,6 +1092,7 @@ class BrowsingContext : public nsILoadContext, public nsWrapperCache {
     return IsTop();
   }
 
+  bool CanSet(FieldIndex<IDX_InRDMPane>, const bool&, ContentParent* aSource);
   void DidSet(FieldIndex<IDX_InRDMPane>, bool aOldValue);
 
   void DidSet(FieldIndex<IDX_EmbedderColorSchemes>,
