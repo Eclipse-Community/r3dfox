@@ -275,6 +275,12 @@ void FontFace::MaybeResolve() {
     return;
   }
 
+  if (NS_IsMainThread() && !nsContentUtils::IsSafeToRunScript()) {
+    nsContentUtils::AddScriptRunner(NewRunnableMethod(
+        "FontFace::MaybeResolve", this, &FontFace::MaybeResolve));
+    return;
+  }
+
   mLoaded->MaybeResolve(this);
 }
 
