@@ -156,7 +156,8 @@ BufferTextureData* BufferTextureData::CreateForYCbCr(
     gfx::ColorRange aColorRange, gfx::ChromaSubsampling aSubsampling,
     TextureFlags aTextureFlags) {
   uint32_t bufSize = ImageDataSerializer::ComputeYCbCrBufferSize(
-      aYSize, aYStride, aCbCrSize, aCbCrStride, aColorDepth);
+      aDisplay, aYSize, aYStride, aCbCrSize, aCbCrStride, aColorDepth,
+      aSubsampling);
   if (bufSize == 0) {
     return nullptr;
   }

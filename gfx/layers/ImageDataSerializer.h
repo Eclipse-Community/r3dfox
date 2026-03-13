@@ -40,14 +40,18 @@ uint32_t ComputeRGBBufferSize(gfx::IntSize aSize, gfx::SurfaceFormat aFormat);
 /// This function is meant as a helper to know how much shared memory we need
 /// to allocate in a shmem in order to place a shared YCbCr image blob of
 /// given dimensions.
-uint32_t ComputeYCbCrBufferSize(const gfx::IntSize& aYSize, int32_t aYStride,
+uint32_t ComputeYCbCrBufferSize(const gfx::IntRect& aDisplay,
+                                const gfx::IntSize& aYSize, int32_t aYStride,
                                 const gfx::IntSize& aCbCrSize,
-                                int32_t aCbCrStride, gfx::ColorDepth aDepth);
-uint32_t ComputeYCbCrBufferSize(const gfx::IntSize& aYSize, int32_t aYStride,
+                                int32_t aCbCrStride, gfx::ColorDepth aDepth,
+                                const gfx::ChromaSubsampling aSubsampling);
+uint32_t ComputeYCbCrBufferSize(const gfx::IntRect& aDisplay,
+                                const gfx::IntSize& aYSize, int32_t aYStride,
                                 const gfx::IntSize& aCbCrSize,
                                 int32_t aCbCrStride, uint32_t aYOffset,
                                 uint32_t aCbOffset, uint32_t aCrOffset,
-                                gfx::ColorDepth aDepth);
+                                gfx::ColorDepth aDepth,
+                                const gfx::ChromaSubsampling aSubsampling);
 uint32_t ComputeYCbCrBufferSize(uint32_t aBufferSize);
 
 void ComputeYCbCrOffsets(int32_t yStride, int32_t yHeight, int32_t cbCrStride,
