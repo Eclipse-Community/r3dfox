@@ -83,7 +83,7 @@ uint32_t ComputeYCbCrBufferSize(const gfx::IntRect& aDisplay,
           IntSize(aCbCrStride, aCbCrSize.height)) ||
       !CheckYCbCrStride(aYSize, aYStride, aDepth) ||
       !CheckYCbCrStride(aCbCrSize, aCbCrStride, aDepth) ||
-      !(ChromaSize(aYSize, aSubsampling) <= aCbCrSize)) {
+      (aCbCrSize != ChromaSize(aYSize, aSubsampling))) {
     return 0;
   }
 
