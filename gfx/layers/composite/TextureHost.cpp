@@ -279,9 +279,10 @@ already_AddRefed<TextureHost> CreateBackendIndependentTextureHost(
             case BufferDescriptor::TYCbCrDescriptor: {
               const YCbCrDescriptor& ycbcr = desc.get_YCbCrDescriptor();
               reqSize = ImageDataSerializer::ComputeYCbCrBufferSize(
-                  ycbcr.ySize(), ycbcr.yStride(), ycbcr.cbCrSize(),
-                  ycbcr.cbCrStride(), ycbcr.yOffset(), ycbcr.cbOffset(),
-                  ycbcr.crOffset(), ycbcr.colorDepth());
+                  ycbcr.display(), ycbcr.ySize(), ycbcr.yStride(),
+                  ycbcr.cbCrSize(), ycbcr.cbCrStride(), ycbcr.yOffset(),
+                  ycbcr.cbOffset(), ycbcr.crOffset(), ycbcr.colorDepth(),
+                  ycbcr.chromaSubsampling());
               break;
             }
             case BufferDescriptor::TRGBDescriptor: {
