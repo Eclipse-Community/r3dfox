@@ -16,6 +16,7 @@
 #include "GLContextProvider.h"
 #include "GLLibraryLoader.h"
 #include "nsExceptionHandler.h"
+#include "mozilla/CheckedInt.h"
 #include "mozilla/Range.h"
 #include "mozilla/EnumeratedRange.h"
 #include "mozilla/StaticPrefs_gfx.h"
@@ -1864,12 +1865,16 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvGetSnapshot(
     return IPC_FAIL_NO_REASON(this);
   }
 
-  uint32_t buffer_size = size.width * size.height * 4;
+  auto buffer_size = (CheckedInt<size_t>(size.width) * size.height * 4);
+  if (!buffer_size.isValid()) {
+    return IPC_FAIL_NO_REASON(this);
+  }
 
   FlushSceneBuilds();
   FlushFrameGeneration(wr::RenderReasons::SNAPSHOT);
   mApi->Readback(start, size, bufferTexture->GetFormat(),
-                 Range<uint8_t>(buffer, buffer_size), aNeedsYFlip);
+                 Range<uint8_t>(buffer, buffer_size.value()),
+                 aNeedsYFlip);
 
   return IPC_OK();
 }
