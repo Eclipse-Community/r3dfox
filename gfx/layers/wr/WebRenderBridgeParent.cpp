@@ -315,8 +315,19 @@ class MOZ_STACK_CLASS AutoWebRenderBridgeParentAsyncMessageSender final {
     mWebRenderBridgeParent->SendPendingAsyncMessages();
     if (mActorsToDestroy) {
       // Destroy the actors after sending the async messages because the latter
-      // may contain references to some actors.
+      // may contain references to some actors. De-duplicate the array to avoid
+      // destroying the same texture parent actor twice.
+      nsTHashSet<PTextureParent*> seenTextureParents;
       for (const auto& op : *mActorsToDestroy) {
+        // Peek inside the op (as DestroyActor does) to see if we are about
+        // to destroy a PTextureParent.
+        if (op.type() == OpDestroy::TPTexture) {
+          PTextureParent* textureParent = op.get_PTexture().AsParent();
+          if (!seenTextureParents.EnsureInserted(textureParent)) {
+            // Already seen, so skip this one.
+            continue;
+          }
+        }
         mWebRenderBridgeParent->DestroyActor(op);
       }
     }
