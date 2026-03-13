@@ -1320,6 +1320,28 @@ system.os:
       - gijs@mozilla.com
     expires: never
 
+  libstdcxx_version:
+    type: string
+    lifetime: application
+    description: |
+      The Operating System's libstdc++ highest GLIBCXX version.
+      Linux only.
+      e.g. "3.4.33"
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2016621
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2016621
+    data_sensitivity:
+      - technical
+    notification_emails:
+      - mhommey@mozilla.com
+    expires: never
+    send_in_pings:
+      - metrics
+      - sync
+      - update
+      - third-party-modules
+
   service_pack_major:
     type: quantity
     unit: version

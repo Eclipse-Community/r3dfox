@@ -62,6 +62,9 @@
 #if defined(XP_LINUX)
 #  include <unistd.h>
 #  include <fstream>
+#  ifndef ANDROID
+#    include <link.h>
+#  endif
 #  include "mozilla/Tokenizer.h"
 #  include "mozilla/widget/LSBUtils.h"
 #  include "nsCharSeparatedTokenizer.h"
@@ -1423,6 +1426,106 @@ BOOL WINAPI IsUserCetAvailableInEnvironment(_In_ DWORD UserCetEnvironment);
 #  define USER_CET_ENVIRONMENT_WIN32_PROCESS 0x00000000
 #endif
 
+#if defined(XP_LINUX) && !defined(ANDROID)
+static constexpr char kGlibcxxPrefix[] = "GLIBCXX_";
+static constexpr size_t kGlibcxxPrefixLen = sizeof(kGlibcxxPrefix) - 1;
+
+static int CompareGlibcxxVersions(const char* a, const char* b) {
+  int aMajor = 0, aMinor = 0, aPatch = 0;
+  int bMajor = 0, bMinor = 0, bPatch = 0;
+
+  sscanf(a, "%d.%d.%d", &aMajor, &aMinor, &aPatch);
+  sscanf(b, "%d.%d.%d", &bMajor, &bMinor, &bPatch);
+
+  if (aMajor != bMajor) return aMajor - bMajor;
+  if (aMinor != bMinor) return aMinor - bMinor;
+  return aPatch - bPatch;
+}
+
+static int LibStdCxxVersionCallback(struct dl_phdr_info* aInfo, size_t aSize,
+                                    void* aData) {
+  auto* version = static_cast<nsCString*>(aData);
+
+  if (aSize < sizeof(*aInfo) || !aInfo->dlpi_name ||
+      !strstr(aInfo->dlpi_name, "libstdc++")) {
+    return 0;
+  }
+
+  for (size_t i = 0; i < aInfo->dlpi_phnum; ++i) {
+    if (aInfo->dlpi_phdr[i].p_type == PT_DYNAMIC) {
+      const auto* dyn = reinterpret_cast<const ElfW(Dyn)*>(
+          aInfo->dlpi_addr + aInfo->dlpi_phdr[i].p_vaddr);
+
+      ElfW(Addr) verdef_ptr = 0;
+      size_t verdefnum = 0;
+      ElfW(Addr) strtab_ptr = 0;
+
+      for (; dyn->d_tag != DT_NULL; ++dyn) {
+        switch (dyn->d_tag) {
+          case DT_VERDEF:
+            verdef_ptr = dyn->d_un.d_ptr;
+            break;
+          case DT_VERDEFNUM:
+            verdefnum = dyn->d_un.d_val;
+            break;
+          case DT_STRTAB:
+            strtab_ptr = dyn->d_un.d_ptr;
+            break;
+        }
+      }
+
+      if (!verdef_ptr || !verdefnum || !strtab_ptr) {
+        return 0;
+      }
+
+      const ElfW(Verdef)* verdef = reinterpret_cast<const ElfW(Verdef)*>(
+          verdef_ptr < aInfo->dlpi_addr ? aInfo->dlpi_addr + verdef_ptr
+                                        : verdef_ptr);
+      const char* strtab = reinterpret_cast<const char*>(
+          strtab_ptr < aInfo->dlpi_addr ? aInfo->dlpi_addr + strtab_ptr
+                                        : strtab_ptr);
+
+      const char* highestVersion = nullptr;
+      for (size_t j = 0; j < verdefnum; ++j) {
+        if (verdef->vd_cnt > 0) {
+          const auto* verdaux = reinterpret_cast<const ElfW(Verdaux)*>(
+              reinterpret_cast<const char*>(verdef) + verdef->vd_aux);
+          const char* verName = strtab + verdaux->vda_name;
+
+          if (strncmp(verName, kGlibcxxPrefix, kGlibcxxPrefixLen) == 0) {
+            if (!highestVersion ||
+                CompareGlibcxxVersions(verName + kGlibcxxPrefixLen,
+                                       highestVersion + kGlibcxxPrefixLen) >
+                    0) {
+              highestVersion = verName;
+            }
+          }
+        }
+
+        if (verdef->vd_next == 0) {
+          break;
+        }
+        verdef = reinterpret_cast<const ElfW(Verdef)*>(
+            reinterpret_cast<const char*>(verdef) + verdef->vd_next);
+      }
+
+      if (highestVersion) {
+        version->Assign(highestVersion + kGlibcxxPrefixLen);
+      }
+
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+static bool GetLibStdCxxVersion(nsCString& aVersion) {
+  dl_iterate_phdr(LibStdCxxVersionCallback, &aVersion);
+  return !aVersion.IsEmpty();
+}
+#endif
+
 nsresult nsSystemInfo::Init() {
   // check that it is called from the main thread on all platforms.
   MOZ_ASSERT(NS_IsMainThread());
@@ -1672,6 +1775,13 @@ nsresult nsSystemInfo::Init() {
   if (widget::lsb::GetLSBRelease(dist, desc, release, codename)) {
     SetPropertyAsACString(u"distro"_ns, dist);
     SetPropertyAsACString(u"distroVersion"_ns, release);
+  }
+
+  if (XRE_IsParentProcess()) {
+    nsCString libstdcxxVersion;
+    glean::system_os::libstdcxx_version.Set(
+        GetLibStdCxxVersion(libstdcxxVersion) ? libstdcxxVersion
+                                              : nsDependentCString("unknown"));
   }
 #endif
 
