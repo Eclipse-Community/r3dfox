@@ -61,7 +61,7 @@ class GLContextEGL final : public GLContext {
   }
 
   static GLContextEGL* Cast(GLContext* gl) {
-    MOZ_ASSERT(gl->GetContextType() == GLContextType::EGL);
+    MOZ_RELEASE_ASSERT(gl->GetContextType() == GLContextType::EGL);
     return static_cast<GLContextEGL*>(gl);
   }
 

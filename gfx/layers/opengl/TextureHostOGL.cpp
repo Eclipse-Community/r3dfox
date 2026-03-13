@@ -81,6 +81,11 @@ already_AddRefed<TextureHost> CreateTextureHostOGL(
 #endif
 
     case SurfaceDescriptor::TEGLImageDescriptor: {
+      if (aDeallocator && !aDeallocator->IsSameProcess()) {
+        gfxCriticalError()
+            << "EGLImageDescriptor must only be used in same process";
+        return nullptr;
+      }
       const EGLImageDescriptor& desc = aDesc.get_EGLImageDescriptor();
       result = new EGLImageTextureHost(aFlags, (EGLImage)desc.image(),
                                        (EGLSync)desc.fence(), desc.size(),
@@ -109,6 +114,11 @@ already_AddRefed<TextureHost> CreateTextureHostOGL(
 #endif
 
     case SurfaceDescriptor::TSurfaceDescriptorSharedGLTexture: {
+      if (aDeallocator && !aDeallocator->IsSameProcess()) {
+        gfxCriticalError() << "SurfaceDescriptorSharedGLTexture must only be "
+                              "used in same process";
+        return nullptr;
+      }
       const auto& desc = aDesc.get_SurfaceDescriptorSharedGLTexture();
       result =
           new GLTextureHost(aFlags, desc.texture(), desc.target(),
