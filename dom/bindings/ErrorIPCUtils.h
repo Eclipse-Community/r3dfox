@@ -7,11 +7,8 @@
 #ifndef IPC_ErrorIPCUtils_h
 #define IPC_ErrorIPCUtils_h
 
-#include <utility>
-
 #include "ipc/EnumSerializer.h"
 #include "ipc/IPCMessageUtils.h"
-#include "mozilla/Assertions.h"
 #include "mozilla/ErrorResult.h"
 
 namespace IPC {
@@ -24,64 +21,18 @@ struct ParamTraits<mozilla::dom::ErrNum>
 
 template <>
 struct ParamTraits<mozilla::ErrorResult> {
-  typedef mozilla::ErrorResult paramType;
-
-  static void Write(MessageWriter* aWriter, const paramType& aParam) {
-    // It should be the case that mMightHaveUnreportedJSException can only be
-    // true when we're expecting a JS exception.  We cannot send such messages
-    // over the IPC channel since there is no sane way of transferring the JS
-    // value over to the other side.  Callers should never do that.
-    MOZ_ASSERT_IF(aParam.IsJSException(),
-                  aParam.mMightHaveUnreportedJSException);
-    if (aParam.IsJSException()
-#ifdef DEBUG
-        || aParam.mMightHaveUnreportedJSException
-#endif
-    ) {
-      MOZ_CRASH(
-          "Cannot encode an ErrorResult representing a Javascript exception");
-    }
-
-    WriteParam(aWriter, aParam.mResult);
-    WriteParam(aWriter, aParam.IsErrorWithMessage());
-    WriteParam(aWriter, aParam.IsDOMException());
-    if (aParam.IsErrorWithMessage()) {
-      aParam.SerializeMessage(aWriter);
-    } else if (aParam.IsDOMException()) {
-      aParam.SerializeDOMExceptionInfo(aWriter);
-    }
+  static void Write(MessageWriter* aWriter,
+                    const mozilla::ErrorResult& aParam) {
+    aParam.SerializeErrorResult(aWriter);
   }
 
-  static void Write(MessageWriter* aWriter, paramType&& aParam) {
-    Write(aWriter, static_cast<const paramType&>(aParam));
+  static void Write(MessageWriter* aWriter, mozilla::ErrorResult&& aParam) {
+    aParam.SerializeErrorResult(aWriter);
     aParam.SuppressException();
   }
 
-  static bool Read(MessageReader* aReader, paramType* aResult) {
-    paramType readValue;
-    if (!ReadParam(aReader, &readValue.mResult)) {
-      return false;
-    }
-    bool hasMessage = false;
-    if (!ReadParam(aReader, &hasMessage)) {
-      return false;
-    }
-    bool hasDOMExceptionInfo = false;
-    if (!ReadParam(aReader, &hasDOMExceptionInfo)) {
-      return false;
-    }
-    if (hasMessage && hasDOMExceptionInfo) {
-      // Shouldn't have both!
-      return false;
-    }
-    if (hasMessage && !readValue.DeserializeMessage(aReader)) {
-      return false;
-    } else if (hasDOMExceptionInfo &&
-               !readValue.DeserializeDOMExceptionInfo(aReader)) {
-      return false;
-    }
-    *aResult = std::move(readValue);
-    return true;
+  static bool Read(MessageReader* aReader, mozilla::ErrorResult* aResult) {
+    return aResult->DeserializeErrorResult(aReader);
   }
 };
 
@@ -90,14 +41,11 @@ struct ParamTraits<mozilla::CopyableErrorResult> {
   typedef mozilla::CopyableErrorResult paramType;
 
   static void Write(MessageWriter* aWriter, const paramType& aParam) {
-    ParamTraits<mozilla::ErrorResult>::Write(aWriter, aParam);
+    aParam.SerializeErrorResult(aWriter);
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    // We can't cast *aResult to ErrorResult&, so cheat and just cast
-    // to ErrorResult*.
-    return ParamTraits<mozilla::ErrorResult>::Read(
-        aReader, reinterpret_cast<mozilla::ErrorResult*>(aResult));
+    return aResult->DeserializeErrorResult(aReader);
   }
 };
 

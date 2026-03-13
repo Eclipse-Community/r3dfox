@@ -260,39 +260,6 @@ nsTArray<nsCString>& TErrorResult<CleanupPolicy>::CreateErrorMessageHelper(
 }
 
 template <typename CleanupPolicy>
-void TErrorResult<CleanupPolicy>::SerializeMessage(
-    IPC::MessageWriter* aWriter) const {
-  using namespace IPC;
-  AssertInOwningThread();
-  MOZ_ASSERT(mUnionState == HasMessage);
-  MOZ_ASSERT(mExtra.mMessage);
-  WriteParam(aWriter, mExtra.mMessage->mArgs);
-  WriteParam(aWriter, mExtra.mMessage->mErrorNumber);
-}
-
-template <typename CleanupPolicy>
-bool TErrorResult<CleanupPolicy>::DeserializeMessage(
-    IPC::MessageReader* aReader) {
-  using namespace IPC;
-  AssertInOwningThread();
-  auto readMessage = MakeUnique<Message>();
-  if (!ReadParam(aReader, &readMessage->mArgs) ||
-      !ReadParam(aReader, &readMessage->mErrorNumber)) {
-    return false;
-  }
-  if (!readMessage->HasCorrectNumberOfArguments()) {
-    return false;
-  }
-
-  MOZ_ASSERT(mUnionState == HasNothing);
-  InitMessage(readMessage.release());
-#ifdef DEBUG
-  mUnionState = HasMessage;
-#endif  // DEBUG
-  return true;
-}
-
-template <typename CleanupPolicy>
 void TErrorResult<CleanupPolicy>::SetPendingExceptionWithMessage(
     JSContext* aCx, const char* context) {
   AssertInOwningThread();
@@ -401,34 +368,106 @@ struct TErrorResult<CleanupPolicy>::DOMExceptionInfo {
 };
 
 template <typename CleanupPolicy>
-void TErrorResult<CleanupPolicy>::SerializeDOMExceptionInfo(
+void TErrorResult<CleanupPolicy>::SerializeErrorResult(
     IPC::MessageWriter* aWriter) const {
   using namespace IPC;
   AssertInOwningThread();
-  MOZ_ASSERT(mUnionState == HasDOMExceptionInfo);
-  MOZ_ASSERT(mExtra.mDOMExceptionInfo);
-  WriteParam(aWriter, mExtra.mDOMExceptionInfo->mMessage);
-  WriteParam(aWriter, mExtra.mDOMExceptionInfo->mRv);
+
+  // It should be the case that mMightHaveUnreportedJSException can only be
+  // true when we're expecting a JS exception.  We cannot send such messages
+  // over the IPC channel since there is no sane way of transferring the JS
+  // value over to the other side.  Callers should never do that.
+  MOZ_ASSERT(!mMightHaveUnreportedJSException);
+  if (IsJSException() || IsJSContextException()) {
+    MOZ_CRASH(
+        "Cannot serialize an ErrorResult representing a Javascript exception");
+  }
+
+  WriteParam(aWriter, mResult);
+  if (IsErrorWithMessage()) {
+    MOZ_ASSERT(mResult == NS_ERROR_INTERNAL_ERRORRESULT_TYPEERROR ||
+               mResult == NS_ERROR_INTERNAL_ERRORRESULT_RANGEERROR);
+    MOZ_ASSERT(mUnionState == HasMessage);
+    MOZ_ASSERT(mExtra.mMessage);
+
+    WriteParam(aWriter, mExtra.mMessage->mArgs);
+    WriteParam(aWriter, mExtra.mMessage->mErrorNumber);
+  } else if (IsDOMException()) {
+    MOZ_ASSERT(mResult == NS_ERROR_INTERNAL_ERRORRESULT_DOMEXCEPTION);
+    MOZ_ASSERT(mUnionState == HasDOMExceptionInfo);
+    MOZ_ASSERT(mExtra.mDOMExceptionInfo);
+
+    WriteParam(aWriter, mExtra.mDOMExceptionInfo->mMessage);
+    WriteParam(aWriter, mExtra.mDOMExceptionInfo->mRv);
+  } else {
+    MOZ_ASSERT(mUnionState == HasNothing);
+  }
 }
 
 template <typename CleanupPolicy>
-bool TErrorResult<CleanupPolicy>::DeserializeDOMExceptionInfo(
+bool TErrorResult<CleanupPolicy>::DeserializeErrorResult(
     IPC::MessageReader* aReader) {
   using namespace IPC;
   AssertInOwningThread();
-  nsCString message;
-  nsresult rv;
-  if (!ReadParam(aReader, &message) || !ReadParam(aReader, &rv)) {
+
+  nsresult result;
+  if (!ReadParam(aReader, &result)) {
     return false;
   }
 
-  MOZ_ASSERT(mUnionState == HasNothing);
-  MOZ_ASSERT(IsDOMException());
-  InitDOMExceptionInfo(new DOMExceptionInfo(rv, message));
+  switch (result) {
+    case NS_ERROR_INTERNAL_ERRORRESULT_JS_EXCEPTION:
+    case NS_ERROR_INTERNAL_ERRORRESULT_EXCEPTION_ON_JSCONTEXT:
+      // JS exceptions can not be serialized.
+      return false;
+
+    case NS_ERROR_INTERNAL_ERRORRESULT_TYPEERROR:
+    case NS_ERROR_INTERNAL_ERRORRESULT_RANGEERROR: {
+      nsTArray<nsCString> args;
+      dom::ErrNum errorNumber;
+      if (!ReadParam(aReader, &args) || !ReadParam(aReader, &errorNumber)) {
+        return false;
+      }
+
+      if (GetErrorArgCount(errorNumber) != args.Length()) {
+        return false;
+      }
+
+      for (nsCString& arg : args) {
+        if (Utf8ValidUpTo(arg) != arg.Length()) {
+          return false;
+        }
+      }
+
+      ClearUnionData();
+
+      nsTArray<nsCString>& messageArgsArray =
+          CreateErrorMessageHelper(errorNumber, result);
+      messageArgsArray = std::move(args);
+      MOZ_ASSERT(mExtra.mMessage->HasCorrectNumberOfArguments(),
+                 "validated earlier");
 #ifdef DEBUG
-  mUnionState = HasDOMExceptionInfo;
-#endif  // DEBUG
-  return true;
+      mUnionState = HasMessage;
+#endif
+      return true;
+    }
+
+    case NS_ERROR_INTERNAL_ERRORRESULT_DOMEXCEPTION: {
+      nsCString message;
+      nsresult rv;
+      if (!ReadParam(aReader, &message) || !ReadParam(aReader, &rv)) {
+        return false;
+      }
+
+      ThrowDOMException(rv, message);
+      return true;
+    }
+
+    default:
+      ClearUnionData();
+      AssignErrorCode(result);
+      return true;
+  }
 }
 
 template <typename CleanupPolicy>
