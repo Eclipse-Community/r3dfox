@@ -275,11 +275,15 @@ bool BufferTextureData::BorrowMappedData(MappedTextureData& aData) {
 
   gfx::IntSize size = GetSize();
 
+  auto stride = ImageDataSerializer::ComputeRGBStride(GetFormat(), size.width);
+  if (stride == 0) {
+    return false;
+  }
+
   aData.data = GetBuffer();
   aData.size = size;
   aData.format = GetFormat();
-  aData.stride =
-      ImageDataSerializer::ComputeRGBStride(aData.format, size.width);
+  aData.stride = stride;
 
   return true;
 }
