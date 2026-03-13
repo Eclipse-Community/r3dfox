@@ -46,7 +46,7 @@ void SourceSurfaceSharedDataWrapper::Init(
     MOZ_CRASH("Invalid shared memory handle!");
   }
 
-  bool mapped = EnsureMapped();
+  bool mapped = EnsureMapped(len);
   if ((sizeof(uintptr_t) <= 4 ||
        StaticPrefs::image_mem_shared_unmap_force_enabled_AtStartup()) &&
       len / 1024 >
@@ -77,15 +77,10 @@ void SourceSurfaceSharedDataWrapper::Init(SourceSurfaceSharedData* aSurface) {
   mBuf = aSurface->mBuf;
 }
 
-bool SourceSurfaceSharedDataWrapper::EnsureMapped() {
+bool SourceSurfaceSharedDataWrapper::EnsureMapped(size_t aLength) {
   MOZ_ASSERT(!GetData());
 
-  auto computedStride =
-      CheckedInt<int32_t>(mSize.width) * BytesPerPixel(mFormat);
-  if (mSize.width < 0 || mSize.height < 0 || mStride < 0 ||
-      !computedStride.isValid() || mStride < computedStride.value() ||
-      !gfx::Factory::AllowedSurfaceSize(mSize) ||
-      mBufHandle.Size() < GetAlignedDataLength()) {
+  if (mBufHandle.Size() < aLength) {
     return false;
   }
 
@@ -123,8 +118,9 @@ bool SourceSurfaceSharedDataWrapper::Map(MapType aMapType,
         SharedSurfacesParent::RemoveTracking(this);
       }
       if (!dataPtr) {
-        if (!EnsureMapped()) {
-          NS_ABORT_OOM(GetAlignedDataLength());
+        size_t len = GetAlignedDataLength();
+        if (!EnsureMapped(len)) {
+          NS_ABORT_OOM(len);
         }
         dataPtr = GetData();
       }
