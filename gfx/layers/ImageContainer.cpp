@@ -756,9 +756,6 @@ nsresult PlanarYCbCrImage::BuildSurfaceDescriptorBuffer(
       pdata->mPictureRect, ySize, pdata->mYStride, cbcrSize, pdata->mCbCrStride,
       yOffset, cbOffset, crOffset, pdata->mColorDepth,
       pdata->mChromaSubsampling);
-  if (bufferSize == 0) {
-    return NS_ERROR_FAILURE;
-  }
 
   aSdBuffer.data() = aAllocate(bufferSize);
 
