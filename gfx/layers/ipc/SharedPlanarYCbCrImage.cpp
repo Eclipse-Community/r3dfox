@@ -170,8 +170,7 @@ nsresult SharedPlanarYCbCrImage::CreateEmptyBuffer(
   // will try to manage this memory without knowing it belongs to a
   // shmem.
   mBufferSize = ImageDataSerializer::ComputeYCbCrBufferSize(
-      mData.mPictureRect, aYSize, mData.mYStride, aCbCrSize, mData.mCbCrStride,
-      mData.mColorDepth, mData.mChromaSubsampling);
+      aYSize, mData.mYStride, aCbCrSize, mData.mCbCrStride, mData.mColorDepth);
   mSize = mData.mPictureRect.Size();
   mOrigin = mData.mPictureRect.TopLeft();
 
