@@ -1768,11 +1768,12 @@ void DocAccessible::DoInitialUpdate() {
   }
 #endif
 
-  // Fire reorder event after the document tree is constructed. Note, since
-  // this reorder event is processed by parent document then events targeted to
-  // this document may be fired prior to this reorder event. If this is
-  // a problem then consider to keep event processing per tab document.
-  if (!IsRoot()) {
+  // Fire a reorder event on the OuterDocAccessible after the document tree is
+  // constructed. Note that since this reorder event is processed by the parent
+  // document, events targeted to this child document may be fired prior to this
+  // reorder event. We don't fire a reorder event for remote documents; the
+  // parent process handles that.
+  if (!IPCDoc() && !IsRoot()) {
     RefPtr<AccReorderEvent> reorderEvent = new AccReorderEvent(LocalParent());
     ParentDocument()->FireDelayedEvent(reorderEvent);
   }

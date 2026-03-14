@@ -611,6 +611,18 @@ mozilla::ipc::IPCResult DocAccessibleParent::RecvMutationEvents(
 
 mozilla::ipc::IPCResult DocAccessibleParent::RecvRequestAckMutationEvents() {
   if (!mShutdown) {
+    if (!mIsInitialTreeDone) {
+      // This is the first request for an ACK, which means we now have the
+      // initial tree.
+      mIsInitialTreeDone = true;
+      // If this document is already bound to its embedder, fire a reorder event
+      // to notify the client that the embedded document is available. If not,
+      // this will be handled when this document is bound in AddChildDoc.
+      if (RemoteAccessible* parent = RemoteParent()) {
+        parent->Document()->FireEvent(parent,
+                                      nsIAccessibleEvent::EVENT_REORDER);
+      }
+    }
     Unused << SendAckMutationEvents();
   }
   return IPC_OK();
@@ -944,20 +956,21 @@ ipc::IPCResult DocAccessibleParent::AddChildDoc(DocAccessibleParent* aChildDoc,
     }
 #endif  // defined(XP_WIN)
   }
-  // We need to fire a reorder event on the outer doc accessible. There are two
-  // cases this addresses:
-  // 1. An out-of-process embedded iframe document is loaded. For same-process
-  // documents, this is fired by the content process, but this isn't possible
-  // when the document is in a different process to its embedder.
-  // 2. The embedded document is already loaded, but it is being embedded under
-  // a new OuterDocAccessible due to re-creation of the OuterDocAccessible. In
-  // that case, the content process won't fire a reorder event even for
-  // same-process documents. It's important that we do this for remote
-  // same-process iframes because there is a short period after the re-created
-  // OuterDocAccessible fires a show event where the embedded document hasn't
-  // been bound yet.
-  // FireEvent fires both OS and XPCOM events.
-  FireEvent(outerDoc, nsIAccessibleEvent::EVENT_REORDER);
+  // We need to fire a reorder event on the embedder. We do this here rather
+  // than in the content process for two reasons:
+  // 1. It isn't possible for the content process to fire a reorder event on the
+  // embedder when the embedded document is in a different process to its
+  // embedder.
+  // 2. Doing it here ensures that the event is fired after the child document
+  // is bound. Otherwise, there could be a short period where the content
+  // process has fired the reorder event, but the child document isn't bound
+  // yet.
+  // However, if the initial tree hasn't been received yet, we don't want to
+  // fire the reorder event yet. That gets handled in
+  // RecvRequestAckMutationEvents.
+  if (aChildDoc->mIsInitialTreeDone) {
+    FireEvent(outerDoc, nsIAccessibleEvent::EVENT_REORDER);
+  }
 
   return IPC_OK();
 }
