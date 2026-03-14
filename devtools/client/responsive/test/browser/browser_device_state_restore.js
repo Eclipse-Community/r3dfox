@@ -10,15 +10,13 @@ const DEFAULT_DPPX = window.devicePixelRatio;
 
 /* eslint-disable max-len */
 const TEST_DEVICE = {
-  name: "iPhone 6/7/8",
-  width: 375,
-  height: 667,
-  pixelRatio: 2,
+  name: "iPhone 17 / 17 Pro",
+  width: 402,
+  height: 874,
+  pixelRatio: 3,
   userAgent:
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
   touch: true,
-  firefoxOS: false,
-  os: "iOS",
   featured: true,
 };
 /* eslint-enable max-len */
