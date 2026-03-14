@@ -264,6 +264,11 @@ bool DocAccessibleParent::AttachChild(RemoteAccessible* aParent,
     return false;
   }
 
+  if (aParent == aChild) {
+    MOZ_ASSERT_UNREACHABLE("Attempt to make an accessible its own child!");
+    return false;
+  }
+
   aParent->AddChildAt(aIndex, aChild);
   aChild->SetParent(aParent);
   // ProxyCreated might have already been called if aChild is being moved.
@@ -303,6 +308,10 @@ void DocAccessibleParent::ShutdownOrPrepareForMove(RemoteAccessible* aAcc) {
     // the show event. For now, clear all of them by moving them to a temporary.
     auto children{std::move(aAcc->mChildren)};
     for (RemoteAccessible* child : children) {
+      if (child == aAcc) {
+        MOZ_ASSERT_UNREACHABLE(
+            "Somehow an accessible got added as a child of itself!");
+      }
       ShutdownOrPrepareForMove(child);
     }
   }
