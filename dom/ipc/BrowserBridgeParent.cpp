@@ -304,14 +304,14 @@ IPCResult BrowserBridgeParent::RecvSetEmbedderAccessible(
   if (!aID) {
     return IPC_FAIL(this, "Attempt to set embedder without id");
   }
-  if (a11y::DocAccessibleParent* embeddedDoc = GetDocAccessibleParent()) {
+  if (GetDocAccessibleParent()) {
     // The embedded DocAccessibleParent has already been created. This can
-    // happen if, for example, an iframe is hidden and then shown or
-    // an iframe is reflowed by layout.
-    if (embeddedDoc->RemoteParent()) {
-      return IPC_FAIL(this,
-                      "Attempt to embed doc which already has an embedder");
-    }
+    // happen if, for example, an iframe is hidden and then shown or an iframe
+    // Accessible is re-created. In the case of re-creation, the old iframe
+    // Accessible still exists at this point because this IPDL message is
+    // received *before* we receive the accessibility hide and show events. This
+    // is okay; DocAccessibleParent will store this as a pending OOP child
+    // document and add it when the new OuterDocAccessible arrives.
     mEmbedderAccessibleDoc->AddChildDoc(this);
   }
   return IPC_OK();

@@ -274,6 +274,9 @@ void DocAccessibleParent::AttachChild(RemoteAccessible* aParent,
       }
       MOZ_ASSERT(bridge->GetEmbedderAccessibleDoc() == this);
       if (DocAccessibleParent* childDoc = bridge->GetDocAccessibleParent()) {
+        MOZ_DIAGNOSTIC_ASSERT(!childDoc->RemoteParent(),
+                              "Pending OOP child doc shouldn't have parent "
+                              "once new OuterDoc is attached");
         AddChildDoc(childDoc, aChild->ID(), false);
       }
       return true;
@@ -940,13 +943,21 @@ ipc::IPCResult DocAccessibleParent::AddChildDoc(DocAccessibleParent* aChildDoc,
       aChildDoc->SetEmulatedWindowHandle(mEmulatedWindowHandle);
     }
 #endif  // defined(XP_WIN)
-    // We need to fire a reorder event on the outer doc accessible.
-    // For same-process documents, this is fired by the content process, but
-    // this isn't possible when the document is in a different process to its
-    // embedder.
-    // FireEvent fires both OS and XPCOM events.
-    FireEvent(outerDoc, nsIAccessibleEvent::EVENT_REORDER);
   }
+  // We need to fire a reorder event on the outer doc accessible. There are two
+  // cases this addresses:
+  // 1. An out-of-process embedded iframe document is loaded. For same-process
+  // documents, this is fired by the content process, but this isn't possible
+  // when the document is in a different process to its embedder.
+  // 2. The embedded document is already loaded, but it is being embedded under
+  // a new OuterDocAccessible due to re-creation of the OuterDocAccessible. In
+  // that case, the content process won't fire a reorder event even for
+  // same-process documents. It's important that we do this for remote
+  // same-process iframes because there is a short period after the re-created
+  // OuterDocAccessible fires a show event where the embedded document hasn't
+  // been bound yet.
+  // FireEvent fires both OS and XPCOM events.
+  FireEvent(outerDoc, nsIAccessibleEvent::EVENT_REORDER);
 
   return IPC_OK();
 }
