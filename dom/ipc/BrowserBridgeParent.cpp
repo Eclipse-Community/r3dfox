@@ -280,10 +280,13 @@ IPCResult BrowserBridgeParent::RecvSetEmbedderAccessible(
 #  if defined(ANDROID)
   MonitorAutoLock mal(nsAccessibilityService::GetAndroidMonitor());
 #  endif
-  MOZ_ASSERT(aDoc || mEmbedderAccessibleDoc,
-             "Embedder doc shouldn't be cleared if it wasn't set");
-  MOZ_ASSERT(!mEmbedderAccessibleDoc || !aDoc || mEmbedderAccessibleDoc == aDoc,
-             "Embedder doc shouldn't change from one doc to another");
+  if (!aDoc && !mEmbedderAccessibleDoc) {
+    return IPC_FAIL(this, "Embedder doc shouldn't be cleared if it wasn't set");
+  }
+  if (mEmbedderAccessibleDoc && aDoc && mEmbedderAccessibleDoc != aDoc) {
+    return IPC_FAIL(this,
+                    "Embedder doc shouldn't change from one doc to another");
+  }
   if (!aDoc && mEmbedderAccessibleDoc &&
       !mEmbedderAccessibleDoc->IsShutdown()) {
     // We're clearing the embedder doc, so remove the pending child doc addition
@@ -293,14 +296,22 @@ IPCResult BrowserBridgeParent::RecvSetEmbedderAccessible(
   mEmbedderAccessibleDoc = static_cast<a11y::DocAccessibleParent*>(aDoc);
   mEmbedderAccessibleID = aID;
   if (!aDoc) {
-    MOZ_ASSERT(!aID);
+    if (aID) {
+      return IPC_FAIL(this, "Attempt to clear embedder but id given");
+    }
     return IPC_OK();
   }
-  MOZ_ASSERT(aID);
-  if (GetDocAccessibleParent()) {
+  if (!aID) {
+    return IPC_FAIL(this, "Attempt to set embedder without id");
+  }
+  if (a11y::DocAccessibleParent* embeddedDoc = GetDocAccessibleParent()) {
     // The embedded DocAccessibleParent has already been created. This can
     // happen if, for example, an iframe is hidden and then shown or
     // an iframe is reflowed by layout.
+    if (embeddedDoc->RemoteParent()) {
+      return IPC_FAIL(this,
+                      "Attempt to embed doc which already has an embedder");
+    }
     mEmbedderAccessibleDoc->AddChildDoc(this);
   }
   return IPC_OK();
