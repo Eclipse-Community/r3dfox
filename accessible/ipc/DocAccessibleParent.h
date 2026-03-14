@@ -325,7 +325,7 @@ class DocAccessibleParent : public RemoteAccessible,
   };
 
   RemoteAccessible* CreateAcc(const AccessibleData& aAccData);
-  void AttachChild(RemoteAccessible* aParent, uint32_t aIndex,
+  bool AttachChild(RemoteAccessible* aParent, uint32_t aIndex,
                    RemoteAccessible* aChild);
   [[nodiscard]] bool CheckDocTree() const;
   xpcAccessibleGeneric* GetXPCAccessible(RemoteAccessible* aProxy);
