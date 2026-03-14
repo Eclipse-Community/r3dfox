@@ -11,8 +11,6 @@ support-files = [
 ["browser_hidden_iframe.js"]
 https_first_disabled = true
 
-["browser_iframe_recreation.js"]
-
 ["browser_nested_iframe.js"]
 
 ["browser_reframe_root.js"]

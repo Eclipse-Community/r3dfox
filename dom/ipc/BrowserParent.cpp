@@ -1291,14 +1291,6 @@ mozilla::ipc::IPCResult BrowserParent::RecvPDocAccessibleConstructor(
     return IPC_OK();
   }
 
-  if (auto* prevTopLevel = GetTopLevelDocAccessible()) {
-    // Sometimes, we can get a new top level DocAccessibleParent before the
-    // old one gets destroyed. The old one will die pretty shortly anyway,
-    // so just destroy it now. If we don't do this, GetTopLevelDocAccessible()
-    // might return the wrong document for a short while.
-    prevTopLevel->Destroy();
-  }
-
   if (aBrowsingContext) {
     doc->SetBrowsingContext(aBrowsingContext.get_canonical());
   }
@@ -1333,6 +1325,13 @@ mozilla::ipc::IPCResult BrowserParent::RecvPDocAccessibleConstructor(
       return IPC_FAIL_NO_REASON(this);
     }
 
+    if (auto* prevTopLevel = GetTopLevelDocAccessible()) {
+      // Sometimes, we can get a new top level DocAccessibleParent before the
+      // old one gets destroyed. The old one will die pretty shortly anyway,
+      // so just destroy it now. If we don't do this, GetTopLevelDocAccessible()
+      // might return the wrong document for a short while.
+      prevTopLevel->Destroy();
+    }
     doc->SetTopLevel();
     a11y::DocManager::RemoteDocAdded(doc);
 #  ifdef XP_WIN

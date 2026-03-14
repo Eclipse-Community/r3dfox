@@ -330,9 +330,6 @@ class DocAccessibleParent : public RemoteAccessible,
   [[nodiscard]] bool CheckDocTree() const;
   xpcAccessibleGeneric* GetXPCAccessible(RemoteAccessible* aProxy);
 
-  /**
-   * Fire an event to both OS and XPCOM consumers.
-   */
   void FireEvent(RemoteAccessible* aAcc, const uint32_t& aType);
 
   /**
@@ -368,10 +365,9 @@ class DocAccessibleParent : public RemoteAccessible,
   uint32_t mPendingShowIndex = 0;
   nsTHashSet<uint64_t> mMovingIDs;
   uint64_t mActorID;
-  bool mTopLevel : 1;
-  bool mTopLevelInContentProcess : 1;
-  bool mShutdown : 1;
-  bool mIsInitialTreeDone : 1 = false;
+  bool mTopLevel;
+  bool mTopLevelInContentProcess;
+  bool mShutdown;
   RefPtr<dom::CanonicalBrowsingContext> mBrowsingContext;
 
   nsTHashSet<RefPtr<dom::BrowserBridgeParent>> mPendingOOPChildDocs;

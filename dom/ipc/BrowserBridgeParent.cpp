@@ -280,13 +280,10 @@ IPCResult BrowserBridgeParent::RecvSetEmbedderAccessible(
 #  if defined(ANDROID)
   MonitorAutoLock mal(nsAccessibilityService::GetAndroidMonitor());
 #  endif
-  if (!aDoc && !mEmbedderAccessibleDoc) {
-    return IPC_FAIL(this, "Embedder doc shouldn't be cleared if it wasn't set");
-  }
-  if (mEmbedderAccessibleDoc && aDoc && mEmbedderAccessibleDoc != aDoc) {
-    return IPC_FAIL(this,
-                    "Embedder doc shouldn't change from one doc to another");
-  }
+  MOZ_ASSERT(aDoc || mEmbedderAccessibleDoc,
+             "Embedder doc shouldn't be cleared if it wasn't set");
+  MOZ_ASSERT(!mEmbedderAccessibleDoc || !aDoc || mEmbedderAccessibleDoc == aDoc,
+             "Embedder doc shouldn't change from one doc to another");
   if (!aDoc && mEmbedderAccessibleDoc &&
       !mEmbedderAccessibleDoc->IsShutdown()) {
     // We're clearing the embedder doc, so remove the pending child doc addition
@@ -296,22 +293,14 @@ IPCResult BrowserBridgeParent::RecvSetEmbedderAccessible(
   mEmbedderAccessibleDoc = static_cast<a11y::DocAccessibleParent*>(aDoc);
   mEmbedderAccessibleID = aID;
   if (!aDoc) {
-    if (aID) {
-      return IPC_FAIL(this, "Attempt to clear embedder but id given");
-    }
+    MOZ_ASSERT(!aID);
     return IPC_OK();
   }
-  if (!aID) {
-    return IPC_FAIL(this, "Attempt to set embedder without id");
-  }
+  MOZ_ASSERT(aID);
   if (GetDocAccessibleParent()) {
     // The embedded DocAccessibleParent has already been created. This can
-    // happen if, for example, an iframe is hidden and then shown or an iframe
-    // Accessible is re-created. In the case of re-creation, the old iframe
-    // Accessible still exists at this point because this IPDL message is
-    // received *before* we receive the accessibility hide and show events. This
-    // is okay; DocAccessibleParent will store this as a pending OOP child
-    // document and add it when the new OuterDocAccessible arrives.
+    // happen if, for example, an iframe is hidden and then shown or
+    // an iframe is reflowed by layout.
     mEmbedderAccessibleDoc->AddChildDoc(this);
   }
   return IPC_OK();
