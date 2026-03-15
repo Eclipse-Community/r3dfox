@@ -13,6 +13,7 @@
 #include "mozilla/layers/SharedSurfacesChild.h"
 #include "mozilla/layers/SharedSurfacesParent.h"
 #include "nsDebug.h"  // for NS_ABORT_OOM
+#include "mozilla/image/SurfaceCache.h"
 
 #include "base/process_util.h"
 
@@ -84,7 +85,7 @@ bool SourceSurfaceSharedDataWrapper::EnsureMapped() {
       CheckedInt<int32_t>(mSize.width) * BytesPerPixel(mFormat);
   if (mSize.width < 0 || mSize.height < 0 || mStride < 0 ||
       !computedStride.isValid() || mStride < computedStride.value() ||
-      !gfx::Factory::AllowedSurfaceSize(mSize) ||
+      !image::SurfaceCache::IsLegalSize(mSize) ||
       mBufHandle.Size() < GetAlignedDataLength()) {
     return false;
   }

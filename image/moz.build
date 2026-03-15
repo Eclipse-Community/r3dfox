@@ -65,8 +65,10 @@ EXPORTS.mozilla.image += [
     "ICOFileHeaders.h",
     "ImageMemoryReporter.h",
     "ImageUtils.h",
+    "PlaybackType.h",
     "Resolution.h",
     "SourceBuffer.h",
+    "SurfaceCache.h",
     "SurfaceFlags.h",
     "WebRenderImageProvider.h",
 ]
