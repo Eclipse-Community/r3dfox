@@ -2458,9 +2458,11 @@ template <typename CoordType>
 already_AddRefed<DataSourceSurface> FilterNodeConvolveMatrixSoftware::DoRender(
     const IntRect& aRect, CoordType aKernelUnitLengthX,
     CoordType aKernelUnitLengthY) {
+  // Ensure multiply fits in an int32_t so convolve math won't overflow.
+  auto kernelArea = CheckedInt32(mKernelSize.width) * mKernelSize.height;
   if (mKernelSize.width <= 0 || mKernelSize.height <= 0 ||
-      mKernelMatrix.size() !=
-          uint32_t(mKernelSize.width * mKernelSize.height) ||
+      !kernelArea.isValid() ||
+      mKernelMatrix.size() != size_t(kernelArea.value()) ||
       !IntRect(IntPoint(0, 0), mKernelSize).Contains(mTarget) ||
       mDivisor == 0) {
     return Factory::CreateDataSourceSurface(aRect.Size(),
