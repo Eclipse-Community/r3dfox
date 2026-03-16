@@ -245,6 +245,11 @@ bool DocAccessibleParent::AttachChild(RemoteAccessible* aParent,
     return false;
   }
 
+  if (aParent == aChild) {
+    MOZ_ASSERT_UNREACHABLE("Attempt to make an accessible its own child!");
+    return false;
+  }
+
   aParent->AddChildAt(aIndex, aChild);
   aChild->SetParent(aParent);
   // ProxyCreated might have already been called if aChild is being moved.
