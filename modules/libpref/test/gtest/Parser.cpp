@@ -492,5 +492,17 @@ pref("int.ok", 0);
     "test:4: prefs parse error: unknown keyword\n"
   );
 
+  // UTF-8 BOM should be skipped at the start of the input.
+  USER("\xEF\xBB\xBF" R"(
+user_pref("int.ok", 1);
+    )",
+    ""
+  );
+
+  // UTF-8 BOM followed by no content.
+  USER("\xEF\xBB\xBF",
+    ""
+  );
+
   // clang-format on
 }
