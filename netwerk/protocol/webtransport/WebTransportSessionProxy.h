@@ -191,7 +191,8 @@ class WebTransportSessionProxy final
   nsTArray<std::function<void(nsresult)>> mPendingCreateStreamEvents
       MOZ_GUARDED_BY(mMutex);
   nsCOMPtr<nsIEventTarget> mTarget MOZ_GUARDED_BY(mMutex);
-  nsTArray<RefPtr<nsIWebTransportHash>> mServerCertHashes;
+  nsTArray<RefPtr<nsIWebTransportHash>> mServerCertHashes
+      MOZ_GUARDED_BY(mMutex);
   bool mDedicatedConnection;  // for WebTranport
   nsIWebTransport::HTTPVersion mHTTPVersion = nsIWebTransport::HTTPVersion::h3;
 };
