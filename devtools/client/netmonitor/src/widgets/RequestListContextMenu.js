@@ -746,7 +746,7 @@ class RequestListContextMenu {
     };
 
     const options = JSON.stringify(fetchOptions, null, 4);
-    const fetchString = `await fetch("${url}", ${options});`;
+    const fetchString = `await fetch(${JSON.stringify(url)}, ${options});`;
     return fetchString;
   }
 
