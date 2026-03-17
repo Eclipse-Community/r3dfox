@@ -6595,6 +6595,12 @@ mozilla::ipc::IPCResult LSRequestBase::RecvCancel() {
 mozilla::ipc::IPCResult LSRequestBase::RecvFinish() {
   AssertIsOnOwningThread();
 
+  // A well-behaved content process only sends Finish() after receiving Ready(),
+  // which transitions us to WaitingForFinish.
+  if (NS_WARN_IF(mState != State::WaitingForFinish)) {
+    return IPC_FAIL(this, "Finish received in unexpected state");
+  }
+
   Finish();
 
   return IPC_OK();
