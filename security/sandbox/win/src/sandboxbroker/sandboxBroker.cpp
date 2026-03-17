@@ -400,34 +400,34 @@ static void AddLLVMProfilePathDirectoryToPolicy(
 #undef WSTRING
 
 static void EnsureAppLockerAccess(sandbox::TargetPolicy* aPolicy) {
-  if (aPolicy->GetLockdownTokenLevel() < sandbox::USER_LIMITED) {
-    // The following rules are to allow DLLs to be loaded when the token level
-    // blocks access to AppLocker. If the sandbox does not allow access to the
-    // DLL or the AppLocker rules specifically block it, then it will not load.
-    auto result = aPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_FILES,
-                                   sandbox::TargetPolicy::FILES_ALLOW_READONLY,
-                                   L"\\Device\\SrpDevice");
-    if (sandbox::SBOX_ALL_OK != result) {
-      NS_ERROR("Failed to add rule for SrpDevice.");
-      LOG_E("Failed (ResultCode %d) to add read access to SrpDevice", result);
-    }
-    result = aPolicy->AddRule(
-        sandbox::TargetPolicy::SUBSYS_REGISTRY,
-        sandbox::TargetPolicy::REG_ALLOW_READONLY,
-        L"HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Srp\\GP\\");
-    if (sandbox::SBOX_ALL_OK != result) {
-      NS_ERROR("Failed to add rule for Srp\\GP.");
-      LOG_E("Failed (ResultCode %d) to add read access to Srp\\GP", result);
-    }
-    // On certain Windows versions there is a double slash before GP.
-    result = aPolicy->AddRule(
-        sandbox::TargetPolicy::SUBSYS_REGISTRY,
-        sandbox::TargetPolicy::REG_ALLOW_READONLY,
-        L"HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Srp\\\\GP\\");
-    if (sandbox::SBOX_ALL_OK != result) {
-      NS_ERROR("Failed to add rule for Srp\\\\GP.");
-      LOG_E("Failed (ResultCode %d) to add read access to Srp\\\\GP", result);
-    }
+  // At USER_LIMITED and above AppLocker is not blocked.
+  if (aPolicy->GetLockdownTokenLevel() >= sandbox::USER_LIMITED) {
+    return;
+  }
+
+  // The ntdll check SaferpIsV2PolicyPresent reads from this key.
+  auto result = aPolicy->AddRule(
+      sandbox::TargetPolicy::SUBSYS_REGISTRY,
+      sandbox::TargetPolicy::REG_ALLOW_READONLY,
+      LR"(HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Srp\GP\)");
+  if (sandbox::SBOX_ALL_OK != result) {
+    NS_ERROR(R"(Failed to add rule for Srp\GP.)");
+    LOG_E(R"(Failed (ResultCode %d) to add read access to Srp\GP)", result);
+  }
+
+  // When AppLocker is deployed via Mobile Device Management, without this
+  // rule SaferpIsV2PolicyPresent silently fails to detect AppLocker, causing
+  // the AppLocker check to be bypassed entirely.
+  AddCachedWindowsDirRule(aPolicy, sandbox::TargetPolicy::FILES_ALLOW_READONLY,
+                          FOLDERID_System, uR"(\AppLocker\MDM)"_ns);
+
+  // Read access to this device is required to make the AppLocker ioctl call.
+  result = aPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_FILES,
+                            sandbox::TargetPolicy::FILES_ALLOW_READONLY,
+                            LR"(\Device\SrpDevice)");
+  if (sandbox::SBOX_ALL_OK != result) {
+    NS_ERROR("Failed to add rule for SrpDevice.");
+    LOG_E("Failed (ResultCode %d) to add read access to SrpDevice", result);
   }
 }
 
