@@ -571,6 +571,9 @@ static bool BlockIsSingleTest(MBasicBlock* phiBlock, MBasicBlock* testBlock,
     MOZ_RELEASE_ASSERT(phiBlock->lastIns()->isGoto());
     MOZ_RELEASE_ASSERT(phiBlock->lastIns()->toGoto()->target() == testBlock);
     MOZ_RELEASE_ASSERT(testBlock->numPredecessors() == 1);
+    if (!phiBlock->begin()->isGoto()) {
+      return false;
+    }
   }
 
   auto iter = testBlock->rbegin();
