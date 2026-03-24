@@ -60,5 +60,5 @@
       }
     }
   },
-  "required": ["providerId", "searchPageRegexp", "includeParams"]
+  "required": ["providerId", "searchPageRegexp"]
 }
