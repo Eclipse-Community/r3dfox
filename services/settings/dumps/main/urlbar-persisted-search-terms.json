@@ -1,6 +1,31 @@
 {
   "data": [
     {
+      "schema": 1773806379382,
+      "providerId": "google",
+      "excludeParams": [
+        {
+          "key": "udm",
+          "values": []
+        },
+        {
+          "key": "tbm",
+          "values": []
+        }
+      ],
+      "includeParams": [],
+      "searchPageRegexp": "^https://www\\.google\\.[^/]+/search\\b",
+      "id": "1a479a17-f8cf-4ce1-9086-41d1f3ef7b69",
+      "last_modified": 1773858354869
+    },
+    {
+      "schema": 1773705620356,
+      "providerId": "bing",
+      "searchPageRegexp": "^https://www\\.bing\\.com\\/search\\b",
+      "id": "eb97a1c7-112c-4d61-bcc0-07feaaac4643",
+      "last_modified": 1773858354866
+    },
+    {
       "schema": 1719398671127,
       "providerId": "qwant",
       "includeParams": [
@@ -44,5 +69,5 @@
       "last_modified": 1719927826946
     }
   ],
-  "timestamp": 1719927826949
+  "timestamp": 1773858354869
 }
