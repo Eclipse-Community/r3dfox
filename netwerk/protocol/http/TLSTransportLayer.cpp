@@ -508,8 +508,16 @@ TLSTransportLayer::OpenOutputStream(uint32_t aFlags, uint32_t aSegmentSize,
 
 NS_IMETHODIMP
 TLSTransportLayer::Close(nsresult aReason) {
-  LOG(("TLSTransportLayer::Close [this=%p reason=%" PRIx32 "]\n", this,
-       static_cast<uint32_t>(aReason)));
+  bool onSocketThread = OnSocketThread();
+  LOG(("TLSTransportLayer::Close [this=%p reason=%" PRIx32 "] sts=%d", this,
+       static_cast<uint32_t>(aReason), onSocketThread));
+
+  if (!onSocketThread) {
+    gSocketTransportService->Dispatch(NS_NewRunnableFunction(
+        "TLSTransportLayer::Close",
+        [self = RefPtr{this}, aReason] { self->Close(aReason); }));
+    return NS_OK;
+  }
 
   mInputCallback = nullptr;
   mOutputCallback = nullptr;
