@@ -311,9 +311,9 @@ export var Utils = {
    * const attachmentsURL = await Downloader.baseAttachmentsURL();
    * console.log(attachmentsURL);
    */
-  async baseAttachmentsURL() {
-    if (!_cdnURLs[Utils.SERVER_URL]) {
-      const resp = await Utils.fetch(`${Utils.SERVER_URL}/`);
+  async baseAttachmentsURL(serverUrl = Utils.SERVER_URL) {
+    if (!_cdnURLs[serverUrl]) {
+      const resp = await Utils.fetch(`${serverUrl}/`);
       const serverInfo = await resp.json();
       // Server capabilities expose attachments configuration.
       const {
@@ -322,10 +322,9 @@ export var Utils = {
         },
       } = serverInfo;
       // Make sure the URL always has a trailing slash.
-      _cdnURLs[Utils.SERVER_URL] =
-        base_url + (base_url.endsWith("/") ? "" : "/");
+      _cdnURLs[serverUrl] = base_url + (base_url.endsWith("/") ? "" : "/");
     }
-    return _cdnURLs[Utils.SERVER_URL];
+    return _cdnURLs[serverUrl];
   },
 
   /**
