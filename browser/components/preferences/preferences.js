@@ -443,7 +443,6 @@ const CONFIG_PANES = Object.freeze({
       "pageNavigation",
       "media",
       "performance",
-      "recommendations",
     ],
     iconSrc: "chrome://global/skin/icons/cursor-arrow.svg",
     module: "chrome://browser/content/preferences/config/tabs-browsing.mjs",
