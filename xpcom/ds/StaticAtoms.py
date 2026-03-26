@@ -2553,6 +2553,7 @@ STATIC_ATOMS = [
     Atom("PseudoStyle_ViewTransitionOld", ":view-transition-old"),
     Atom("PseudoStyle_ViewTransitionNew", ":view-transition-new"),
     Atom("PseudoStyle_MozSnapshotContainingBlock", ":-moz-snapshot-containing-block"),
+    Atom("PseudoStyle_MozFocusInner", ":-moz-focus-inner"),
     Atom("PseudoStyle_MozNumberSpinBox", ":-moz-number-spin-box"),
     Atom("PseudoStyle_MozNumberSpinUp", ":-moz-number-spin-up"),
     Atom("PseudoStyle_MozNumberSpinDown", ":-moz-number-spin-down"),
