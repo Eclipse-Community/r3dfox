@@ -2642,7 +2642,6 @@ SettingGroupManager.registerGroups({
       },
     ],
   },
-  defaultBrowser: createDefaultBrowserConfig(),
   startup: {
     l10nId: "startup-group",
     headingLevel: 2,
@@ -2680,10 +2679,6 @@ SettingGroupManager.registerGroups({
         id: "windowsLaunchOnLoginDisabledProfileBox",
         control: "moz-message-bar",
         l10nId: "startup-windows-launch-on-login-profile-disabled",
-      },
-      {
-        id: "alwaysCheckDefault",
-        l10nId: "always-check-default",
       },
     ],
   },
@@ -5363,7 +5358,6 @@ var gMainPane = {
     initSettingGroup("translations");
     initSettingGroup("spellCheck");
     initSettingGroup("performance");
-    initSettingGroup("defaultBrowser");
     initSettingGroup("startup");
     initSettingGroup("importBrowserData");
     initSettingGroup("networkProxy");
