@@ -59,6 +59,7 @@ pref_groups = [
     "javascript",
     "layers",
     "layout",
+    "librewolf",
     "logging",
     "mathml",
     "media",

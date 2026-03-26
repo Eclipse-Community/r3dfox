@@ -644,6 +644,14 @@ parent:
      */
     async ShowCanvasPermissionPrompt(nsCString aOrigin,
                                      bool aHideDoorHanger);
+    /**
+     * This function is used to notify the parent that it should display a
+     * WebGL permission prompt.
+     *
+     * @param aOrigin origin string of the document that is requesting access.
+     */
+    async ShowWebGLPermissionPrompt(nsCString aOrigin,
+                                                                       bool aHideDoorHanger);
 
     sync SetSystemFont(nsCString aFontName);
     sync GetSystemFont() returns (nsCString retval);

@@ -270,6 +270,9 @@ Preferences.addAll([
   { id: "network.trr.default_provider_uri", type: "string" },
   { id: "network.trr.custom_uri", type: "string" },
   { id: "doh-rollout.disable-heuristics", type: "bool" },
+
+  // Permissions
+  { id: "webgl.disabled", type: "bool" },
 ]);
 
 // Study opt out
@@ -1091,6 +1094,13 @@ var gPrivacyPane = {
       "xrSettingsButton",
       "command",
       gPrivacyPane.showXRExceptions
+    );
+    document.getElementById("webglSettingsRow").hidden =
+      Services.prefs.getBoolPref("webgl.disabled", true);
+    setEventListener(
+      "webglSettingsButton",
+      "command",
+      gPrivacyPane.showWebGLExceptions
     );
     setEventListener(
       "cameraSettingsButton",
@@ -2701,6 +2711,22 @@ var gPrivacyPane = {
    */
   showXRExceptions() {
     let params = { permissionType: "xr" };
+
+    gSubDialog.open(
+      "chrome://browser/content/preferences/dialogs/sitePermissions.xhtml",
+      { features: "resizable=yes" },
+      params
+    );
+  },
+
+  // WebGL
+
+  /**
+   * Displays the WebGL exceptions dialog where specific site WebGL
+   * preferences can be set.
+   */
+  showWebGLExceptions() {
+    let params = { permissionType: "webgl" };
 
     gSubDialog.open(
       "chrome://browser/content/preferences/dialogs/sitePermissions.xhtml",
