@@ -126,7 +126,7 @@ class HTMLFieldSetElement final : public nsGenericHTMLFormControlElement,
   // List of elements which have this fieldset as first fieldset ancestor.
   nsTArray<nsGenericHTMLFormElement*> mDependentElements;
 
-  nsIContent* mFirstLegend;
+  RefPtr<nsIContent> mFirstLegend;
 
   /**
    * Number of invalid and candidate for constraint validation
