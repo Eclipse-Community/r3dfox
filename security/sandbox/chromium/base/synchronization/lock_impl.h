@@ -45,9 +45,9 @@ class BASE_EXPORT LockImpl {
   friend class base::win::internal::ScopedHandleVerifier;
 
 #if BUILDFLAG(IS_WIN)
-  using NativeHandle = CHROME_SRWLOCK;
+  typedef char NativeHandle[100];
 #elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-  using NativeHandle = pthread_mutex_t;
+  typedef pthread_mutex_t NativeHandle;
 #endif
 
   LockImpl();
