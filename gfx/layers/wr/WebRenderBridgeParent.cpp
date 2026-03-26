@@ -494,20 +494,17 @@ struct WROTSAlloc {
 
 static bool ReadRawFont(const OpAddRawFont& aOp, wr::ShmSegmentsReader& aReader,
                         wr::TransactionBuilder& aUpdates) {
-  wr::Vec<uint8_t> sourceBytes;
-  Maybe<Range<uint8_t>> ptr =
-      aReader.GetReadPointerOrCopy(aOp.bytes(), sourceBytes);
-  if (ptr.isNothing()) {
-    gfxCriticalNote << "No read pointer from reader for sanitizing font "
+  wr::Vec<uint8_t> source;
+  if (!aReader.Read(aOp.bytes(), source)) {
+    gfxCriticalNote << "Failed to read data for sanitizing font "
                     << aOp.key().mHandle;
     return false;
   }
-  Range<uint8_t>& source = ptr.ref();
   // Attempt to sanitize the font before passing it along for updating.
   // Ensure that we're not strict here about font types, since any font that
   // failed generating a descriptor might end up here as raw font data.
   size_t lengthHint = gfxOTSContext::GuessSanitizedFontSize(
-      source.begin().get(), source.length(), false);
+      source.Data(), source.Length(), false);
   if (!lengthHint) {
     gfxCriticalNote << "Could not determine font type for sanitizing font "
                     << aOp.key().mHandle;
@@ -515,7 +512,7 @@ static bool ReadRawFont(const OpAddRawFont& aOp, wr::ShmSegmentsReader& aReader,
   }
   gfxOTSExpandingMemoryStream<WROTSAlloc> output(lengthHint);
   gfxOTSContext otsContext;
-  if (!otsContext.Process(&output, source.begin().get(), source.length())) {
+  if (!otsContext.Process(&output, source.Data(), source.Length())) {
     gfxCriticalNote << "Failed sanitizing font " << aOp.key().mHandle;
     return false;
   }
