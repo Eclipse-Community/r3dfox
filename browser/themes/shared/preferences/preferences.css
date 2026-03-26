@@ -1623,6 +1623,11 @@ setting-group[groupid="aiStatesDescription"] {
   }
 }
 
+#support-firefox,
+.mission-message {
+  display: none;
+}
+
 #dohProviderSelect {
   --select-max-width: 235px;
 }
