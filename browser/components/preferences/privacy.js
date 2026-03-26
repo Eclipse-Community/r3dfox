@@ -3597,6 +3597,10 @@ var gPrivacyPane = {
 
     this.initWebAuthn();
 
+    if (Services.prefs.getBoolPref("librewolf.hidePasswdmgr", false)) {
+      document.getElementById("passwordsGroup")?.remove();
+    }
+
     // Notify observers that the UI is now ready
     Services.obs.notifyObservers(window, "privacy-pane-loaded");
   },
