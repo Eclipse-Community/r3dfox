@@ -305,7 +305,11 @@ bool WebRenderLayerScrollData::ValidateSubtree(
     const WebRenderLayerScrollData* currentChild =
         &aParent.mLayerScrollData[currentChildIndex];
     childDescendantCounts += currentChild->mDescendantCount;
-    currentChild->ValidateSubtree(aParent, aVisitCounts, currentChildIndex);
+    if (!currentChild->ValidateSubtree(aParent, aVisitCounts,
+                                       currentChildIndex)) {
+      // If a subtree is invalid, we are also invalid.
+      return false;
+    }
 
     // The current child's descendants come first in the array, and the next
     // element after that is our next child.
