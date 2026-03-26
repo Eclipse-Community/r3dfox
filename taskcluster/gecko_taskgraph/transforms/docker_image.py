@@ -172,9 +172,6 @@ def fill_template(config, tasks):
                 # FIXME: We aren't currently propagating the exit code
             },
         }
-        # Retry for 'funsize-update-generator' if exit status code is -1
-        if image_name in ["funsize-update-generator"]:
-            taskdesc["worker"]["retry-exit-status"] = [-1]
 
         worker = taskdesc["worker"]
 
