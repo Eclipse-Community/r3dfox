@@ -19,7 +19,7 @@
  *          openTabContextMenu closeTabContextMenu
  *          openToolsMenu closeToolsMenu
  *          imageBuffer imageBufferFromDataURI
- *          getInlineOptionsBrowser getMenuitemImage getRawMenuitemImage
+ *          getInlineOptionsBrowser
  *          getListStyleImage getRawListStyleImage getPanelForNode
  *          awaitExtensionPanel awaitPopupResize
  *          promiseContentDimensions alterContent
@@ -145,37 +145,22 @@ function getInlineOptionsBrowser(aboutAddonsBrowser) {
   return contentDocument.getElementById("addon-inline-options");
 }
 
-function _ensurePopupsInitialized(element) {
+function getRawListStyleImage(button) {
   // Ensure popups are initialized so that the elements are rendered and
   // getComputedStyle works.
   for (
-    let popup = element.closest("panel,menupopup");
+    let popup = button.closest("panel,menupopup");
     popup;
     popup = popup.parentElement?.closest("panel,menupopup")
   ) {
     popup.ensureInitialized();
   }
-}
 
-function getRawListStyleImage(button) {
-  _ensurePopupsInitialized(button);
   return button.ownerGlobal.getComputedStyle(button).listStyleImage;
 }
 
 function getListStyleImage(button) {
   let match = /url\("([^"]*)"\)/.exec(getRawListStyleImage(button));
-  return match && match[1];
-}
-
-function getRawMenuitemImage(menuitem) {
-  _ensurePopupsInitialized(menuitem);
-  return menuitem.ownerGlobal
-    .getComputedStyle(menuitem)
-    .getPropertyValue("--webextension-menuitem-image");
-}
-
-function getMenuitemImage(menuitem) {
-  let match = /url\("([^"]*)"\)/.exec(getRawMenuitemImage(menuitem));
   return match && match[1];
 }
 

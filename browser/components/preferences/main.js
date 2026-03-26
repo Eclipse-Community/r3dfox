@@ -7080,7 +7080,6 @@ var gMainPane = {
       saveMenuItem.setAttribute("action", Ci.nsIHandlerInfo.saveToDisk);
       document.l10n.setAttributes(saveMenuItem, "applications-action-save");
       saveMenuItem.setAttribute(APP_ICON_ATTR_NAME, "save");
-      saveMenuItem.className = "menuitem-iconic";
       menuPopup.appendChild(saveMenuItem);
     }
 

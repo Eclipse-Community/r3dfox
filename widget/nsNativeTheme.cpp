@@ -28,7 +28,6 @@
 #include "mozilla/ScrollContainerFrame.h"
 #include "mozilla/StaticPrefs_layout.h"
 #include "mozilla/dom/DocumentInlines.h"
-#include "nsXULElement.h"
 #include <algorithm>
 
 using namespace mozilla;
@@ -49,16 +48,15 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
     return ElementState();
   }
 
-  bool isXULElement = frameContent->IsXULElement();
-  if (aAppearance == StyleAppearance::Checkbox ||
-      aAppearance == StyleAppearance::Radio) {
-    if (nsXULElement::FromNodeOrNull(frameContent->GetParent())) {
+  const bool isXULElement = frameContent->IsXULElement();
+  if (isXULElement) {
+    if (aAppearance == StyleAppearance::Checkbox ||
+        aAppearance == StyleAppearance::Radio) {
       aFrame = aFrame->GetParent();
-      frameContent = frameContent->GetParent();
-      isXULElement = true;
+      frameContent = aFrame->GetContent();
     }
+    MOZ_ASSERT(frameContent && frameContent->IsElement());
   }
-  MOZ_ASSERT(frameContent && frameContent->IsElement());
 
   ElementState flags = frameContent->AsElement()->StyleState();
   nsNumberControlFrame* numberControlFrame =

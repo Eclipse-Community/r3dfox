@@ -144,6 +144,6 @@
 }
 
 .menuitem-iconic[data-usercontextid] {
-  --menuitem-icon: var(--identity-icon);
+  list-style-image: var(--identity-icon);
   --menuitem-icon-fill: var(--identity-icon-color);
 }
