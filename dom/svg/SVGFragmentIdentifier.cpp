@@ -152,7 +152,7 @@ bool SVGFragmentIdentifier::ProcessFragmentIdentifier(
   MOZ_ASSERT(aDocument->GetRootElement()->IsSVGElement(nsGkAtoms::svg),
              "expecting an SVG root element");
 
-  auto* rootElement = SVGSVGElement::FromNode(aDocument->GetRootElement());
+  RefPtr rootElement = SVGSVGElement::FromNode(aDocument->GetRootElement());
 
   const auto* viewElement =
       SVGViewElement::FromNodeOrNull(aDocument->GetElementById(aAnchorName));
