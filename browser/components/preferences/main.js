@@ -4151,6 +4151,70 @@ SettingGroupManager.registerGroups({
       },
     ],
   },
+  librewolfBehavior: {
+    l10nId: "librewolf-general-heading2",
+    headingLevel: 2,
+    items: [
+      {
+        id: "librewolfExtensionUpdate",
+        l10nId: "librewolf-extension-update-checkbox2",
+      },
+      {
+        id: "librewolfSync",
+        l10nId: "librewolf-sync-checkbox2",
+      },
+      {
+        id: "librewolfMiddleClick",
+        l10nId: "librewolf-autocopy-checkbox2",
+      },
+      {
+        id: "librewolfUserChrome",
+        l10nId: "librewolf-styling-checkbox2",
+      },
+    ],
+  },
+  librewolfNetworking: {
+    l10nId: "librewolf-network-heading2",
+    headingLevel: 2,
+    items: [
+      {
+        id: "librewolfIPv6",
+        l10nId: "librewolf-ipv6-checkbox2",
+      }
+    ],
+  },
+  librewolfPrivacy: {
+    l10nId: "librewolf-privacy-heading2",
+    headingLevel: 2,
+    items: [
+      {
+        id: "librewolfCrossOrigin",
+        l10nId: "librewolf-xorigin-ref-checkbox2",
+      },
+    ],
+  },
+  librewolfFingerprinting: {
+    l10nId: "librewolf-broken-heading2",
+    headingLevel: 2,
+    items: [
+      {
+        id: "librewolfRFP",
+        l10nId: "librewolf-rfp-checkbox2",
+      },
+      {
+        id: "librewolfLetterboxing",
+        l10nId: "librewolf-letterboxing-checkbox2",
+      },
+      {
+        id: "librewolfWebGLPrompt",
+        l10nId: "librewolf-webgl-checkbox2",
+      },
+      {
+        id: "librewolfWebGLPromptHide",
+        l10nId: "librewolf-webgl-prompt-checkbox2",
+      },
+    ],
+  },
   searchSuggestions: {
     l10nId: "search-suggestions-header-2",
     headingLevel: 2,
