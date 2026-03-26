@@ -618,7 +618,7 @@ var gPrivacyPane = {
     initSettingGroup("securityPrivacyStatus");
     initSettingGroup("securityPrivacyWarnings");
     initSettingGroup("httpsOnly");
-    initSettingGroup("browsingProtection");
+    //initSettingGroup("browsingProtection");
     initSettingGroup("cookiesAndSiteData");
     initSettingGroup("cookiesAndSiteData2");
     initSettingGroup("certificates");
@@ -626,7 +626,6 @@ var gPrivacyPane = {
     initSettingGroup("history");
     initSettingGroup("history2");
     initSettingGroup("permissions");
-    initSettingGroup("dataCollection");
     initSettingGroup("privacyPanel");
     initSettingGroup("dnsOverHttps");
     initSettingGroup("dnsOverHttpsAdvanced");
