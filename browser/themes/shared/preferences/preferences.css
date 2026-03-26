@@ -244,6 +244,10 @@ setting-group:has(> moz-card).spotlight {
   list-style-image: url("chrome://browser/skin/preferences/category-privacy-security.svg");
 }
 
+#category-librewolf > .category-icon {
+  list-style-image: url("chrome://browser/skin/preferences/category-librewolf.svg");
+}
+
 #category-sync > .category-icon {
   list-style-image: url("chrome://browser/skin/preferences/category-sync.svg");
 }
