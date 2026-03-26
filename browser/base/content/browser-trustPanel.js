@@ -262,6 +262,9 @@ class TrustPanel {
         .getElementById("trustpanel-toggle")
         .addEventListener("click", () => this.#toggleTrackingProtection());
       document
+        .getElementById("identity-popup-allow-sitedata-button")
+        .addEventListener("click", () => this.#toggleCookiesAllowed());
+      document
         .getElementById("identity-popup-remove-cert-exception")
         .addEventListener("click", () => this.#removeCertException());
       document
@@ -270,6 +273,30 @@ class TrustPanel {
 
       this.#popup.addEventListener("popupshown", this);
     }
+  }
+
+  #toggleCookiesAllowed() {
+    const pressed = document.getElementById("identity-popup-allow-sitedata-toggle").toggleAttribute(
+      "pressed"
+    );
+
+    if (pressed) {
+      Services.perms.addFromPrincipal(
+        gBrowser.contentPrincipal,
+        "cookie",
+        Services.perms.ALLOW_ACTION,
+        Services.perms.EXPIRE_NEVER
+      );
+    } else {
+      Services.perms.removeFromPrincipal(gBrowser.contentPrincipal, "cookie");
+    }
+  }
+
+  #areCookiesAllowed() {
+    return Services.perms.testExactPermissionFromPrincipal(
+        gBrowser.contentPrincipal,
+        "cookie"
+      ) === Services.perms.ALLOW_ACTION;
   }
 
   async showPopup(opts = {}) {
@@ -394,6 +421,9 @@ class TrustPanel {
         : "trustpanel-etp-toggle-off",
       { host: this.#host }
     );
+
+    let toggleCookies = document.getElementById("identity-popup-allow-sitedata-toggle");
+    toggleCookies.toggleAttribute("pressed", this.#areCookiesAllowed());
 
     let hostElement = document.getElementById("trustpanel-popup-host");
     hostElement.setAttribute("value", this.#host);
