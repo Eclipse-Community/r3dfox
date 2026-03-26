@@ -233,12 +233,48 @@ float WinUtils::SystemDPI() {
 // static
 double WinUtils::SystemScaleFactor() { return SystemDPI() / 96.0; }
 
+typedef HRESULT(WINAPI* GETDPIFORMONITORPROC)(HMONITOR, MONITOR_DPI_TYPE, UINT*,
+                                              UINT*);
+
+typedef HRESULT(WINAPI* GETPROCESSDPIAWARENESSPROC)(HANDLE,
+                                                    PROCESS_DPI_AWARENESS*);
+
+GETDPIFORMONITORPROC sGetDpiForMonitor;
+GETPROCESSDPIAWARENESSPROC sGetProcessDpiAwareness;
+
+static bool SlowIsPerMonitorDPIAware() {
+  // Intentionally leak the handle.
+  HMODULE shcore = LoadLibraryEx(L"shcore", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+  if (shcore) {
+    sGetDpiForMonitor =
+        (GETDPIFORMONITORPROC)GetProcAddress(shcore, "GetDpiForMonitor");
+    sGetProcessDpiAwareness = (GETPROCESSDPIAWARENESSPROC)GetProcAddress(
+        shcore, "GetProcessDpiAwareness");
+  }
+  PROCESS_DPI_AWARENESS dpiAwareness;
+  return sGetDpiForMonitor && sGetProcessDpiAwareness &&
+         SUCCEEDED(
+             sGetProcessDpiAwareness(GetCurrentProcess(), &dpiAwareness)) &&
+         dpiAwareness == PROCESS_PER_MONITOR_DPI_AWARE;
+}
+
+/* static */
+bool WinUtils::IsPerMonitorDPIAware() {
+  static bool perMonitorDPIAware = SlowIsPerMonitorDPIAware();
+  return perMonitorDPIAware;
+}
+
 /* static */
 float WinUtils::MonitorDPI(HMONITOR aMonitor) {
-  UINT dpiX, dpiY = 96;
-  GetDpiForMonitor(aMonitor ? aMonitor : GetPrimaryMonitor(), MDT_EFFECTIVE_DPI,
-                   &dpiX, &dpiY);
-  return dpiY;
+  if (IsPerMonitorDPIAware()) {
+    UINT dpiX, dpiY = 96;
+    sGetDpiForMonitor(aMonitor ? aMonitor : GetPrimaryMonitor(),
+                      MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+    return dpiY;
+  }
+
+  // We're not per-monitor aware, use system DPI instead.
+  return SystemDPI();
 }
 
 /* static */
@@ -279,9 +315,14 @@ WinUtils::GetPrimaryMonitor() {
 /* static */
 HMONITOR
 WinUtils::MonitorFromRect(const gfx::Rect& rect) {
-  RECT globalWindowBounds = {NSToIntRound(rect.X()), NSToIntRound(rect.Y()),
-                             NSToIntRound(rect.XMost()),
-                             NSToIntRound(rect.YMost())};
+  // convert coordinates from desktop to device pixels for MonitorFromRect
+  double dpiScale =
+      IsPerMonitorDPIAware() ? 1.0 : LogToPhysFactor(GetPrimaryMonitor());
+
+  RECT globalWindowBounds = {NSToIntRound(dpiScale * rect.X()),
+                             NSToIntRound(dpiScale * rect.Y()),
+                             NSToIntRound(dpiScale * (rect.XMost())),
+                             NSToIntRound(dpiScale * (rect.YMost()))};
 
   return ::MonitorFromRect(&globalWindowBounds, MONITOR_DEFAULTTONEAREST);
 }
@@ -298,7 +339,7 @@ int WinUtils::GetSystemMetricsForDpi(int nIndex, UINT dpi) {
   if (HasSystemMetricsForDpi()) {
     return sGetSystemMetricsForDpi(nIndex, dpi);
   } else {
-    double scale = dpi / SystemDPI();
+    double scale = IsPerMonitorDPIAware() ? dpi / SystemDPI() : 1.0;
     return NSToIntRound(::GetSystemMetrics(nIndex) * scale);
   }
 }

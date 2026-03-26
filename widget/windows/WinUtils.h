@@ -215,6 +215,7 @@ class WinUtils {
    */
   static double SystemScaleFactor();
 
+  static bool IsPerMonitorDPIAware();
   /**
    * Get the DPI of the given monitor if it's per-monitor DPI aware, otherwise
    * return the system DPI.
