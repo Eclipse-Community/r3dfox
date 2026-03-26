@@ -77,7 +77,7 @@ class Theme : protected nsNativeTheme, public nsITheme {
                                            StyleAppearance) override;
   Transparency GetWidgetTransparency(nsIFrame*, StyleAppearance) override;
   bool WidgetAttributeChangeRequiresRepaint(StyleAppearance,
-                                            nsAtom* aAttribute) final;
+                                            nsAtom* aAttribute) override;
   bool WidgetAppearanceDependsOnWindowFocus(StyleAppearance) override;
   /*bool NeedToClearBackgroundBehindWidget(
       nsIFrame*, StyleAppearance) override;*/
