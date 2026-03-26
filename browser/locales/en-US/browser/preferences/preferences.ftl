@@ -2569,3 +2569,8 @@ security-privacy-issue-warning-ech =
 security-privacy-issue-warning-proxy-autodetection =
   .label = Proxy auto-configuration is enabled
   .description = Proxy auto-configuration could let untrusted networks to monitor your activity.
+
+## Permissions
+
+permissions-webgl2 =
+    .label = WebGL
