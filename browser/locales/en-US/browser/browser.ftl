@@ -1568,3 +1568,8 @@ trustpanel-cryptominer-tab-list-header = These sites are trying to cryptomine:
 reduced-protection-infobar-message = <strong>Site looks broken?</strong> Reload the page to temporarily lower your tracking protection.
 reduced-protection-infobar-reload-button = Reload
   .accesskey = R
+
+urlbar-webgl-notification-anchor =
+    .tooltiptext = Manage WebGL context creation permission
+urlbar-webgl-blocked =
+    .tooltiptext = You have blocked WebGL context creation for this website.
