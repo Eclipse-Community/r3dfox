@@ -2602,7 +2602,7 @@ nsEventStatus nsMenuPopupFrame::HandleEvent(mozilla::WidgetGUIEvent* aEvent) {
   return status;
 }
 
-void nsMenuPopupFrame::PaintWindow(nsIWidget* aWidget) {
+bool nsMenuPopupFrame::PaintWindow(nsIWidget* aWidget, LayoutDeviceIntRegion) {
   MOZ_ASSERT(aWidget == mWidget);
   nsAutoScriptBlocker scriptBlocker;
   RefPtr ps = PresShell();
@@ -2612,6 +2612,7 @@ void nsMenuPopupFrame::PaintWindow(nsIWidget* aWidget) {
   } else {
     ps->SyncPaintFallback(this, renderer);
   }
+  return true;
 }
 
 void nsMenuPopupFrame::DidCompositeWindow(

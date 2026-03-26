@@ -179,6 +179,13 @@ bool nsWindow::OnPaint() {
   mLastPaintBounds = mBounds;
 
   RefPtr<nsWindow> strongThis(this);
+  if (nsIWidgetListener* listener = GetPaintListener()) {
+    // WillPaintWindow will update our transparent area if needed, which we use
+    // below. Note that this might kill the listener.
+    listener->WillPaintWindow(this);
+  }
+
+  bool didPaint = false;
   // BeginPaint/EndPaint must be called to make Windows think that invalid
   // area is painted. Otherwise it will continue sending the same message
   // endlessly. Note that we need to call it after WillPaintWindow, which
@@ -189,8 +196,38 @@ bool nsWindow::OnPaint() {
   HDC hDC = ::BeginPaint(mWnd, &ps);
   auto endPaint = MakeScopeExit([&] {
     ::EndPaint(mWnd, &ps);
-    mLastPaintEndTime = TimeStamp::Now();
+    if (didPaint) {
+      mLastPaintEndTime = TimeStamp::Now();
+      if (nsIWidgetListener* listener = GetPaintListener()) {
+        listener->DidPaintWindow();
+      }
+    }
   });
+
+  LayoutDeviceIntRegion region = GetRegionToPaint(ps, hDC);
+  LayoutDeviceIntRegion regionToClear;
+  // Clear the translucent region if needed.
+  if (isTransparent) {
+    auto translucentRegion = GetTranslucentRegion();
+    // Clear the parts of the translucent region that aren't clear already or
+    // that Windows has told us to repaint.
+    // NOTE(emilio): Ordering of region ops is a bit subtle to avoid
+    // unnecessary copies, but we want to end up with:
+    //   regionToClear = translucentRegion - (mClearedRegion - region)
+    //   mClearedRegion = translucentRegion;
+    //   And add translucentRegion to region afterwards.
+    regionToClear = translucentRegion;
+    if (!mClearedRegion.IsEmpty()) {
+      mClearedRegion.SubOut(region);
+      regionToClear.SubOut(mClearedRegion);
+    }
+    region.OrWith(translucentRegion);
+    mClearedRegion = std::move(translucentRegion);
+  }
+
+  if (region.IsEmpty() || !GetPaintListener()) {
+    return false;
+  }
 
   Maybe<FallbackPaintContext> fallback;
   if (isFallback) {
@@ -209,23 +246,12 @@ bool nsWindow::OnPaint() {
     fallback.emplace(this, std::move(targetSurface), std::move(dt));
   }
 
-  LayoutDeviceIntRegion region = GetRegionToPaint(ps, hDC);
-  if (!mClearedRegion.IsEmpty()) {
-    // Don't consider regions that Windows has told us to repaint as clear, even
-    // if we've cleared them before.
-    mClearedRegion.SubOut(region);
+  if (knowsCompositor && layerManager) {
+    layerManager->SendInvalidRegion(region.ToUnknownRegion());
+    layerManager->ScheduleComposite(wr::RenderReasons::WIDGET);
   }
 
-  auto ComputeAndClearTranslucentRegion = [&]() {
-    if (!isTransparent) {
-      return;
-    }
-    const LayoutDeviceIntRegion translucentRegion = GetTranslucentRegion();
-    auto regionToClear = translucentRegion;
-    if (!mClearedRegion.IsEmpty()) {
-      regionToClear.SubOut(mClearedRegion);
-    }
-    mClearedRegion = std::move(translucentRegion);
+  if (!regionToClear.IsEmpty()) {
     auto black = reinterpret_cast<HBRUSH>(::GetStockObject(BLACK_BRUSH));
     // We could use RegionToHRGN, but at least for simple regions (and
     // possibly for complex ones too?) FillRect is faster; see bug 1946365
@@ -242,33 +268,6 @@ bool nsWindow::OnPaint() {
         ::FillRect(hDC, &rect, black);
       }
     }
-    region.OrWith(regionToClear);
-  };
-
-  // This is a bit subtle: For fallback windows, we paint directly into the DC,
-  // so we need to clear it before PaintWindow().
-  //
-  // For composited windows, we first need to paint (so that we know the
-  // translucent area, which is computed from the display list), then we clear
-  // it.
-  //
-  // We don't track the transparent region for popups (meaning we always rely on
-  // the whole client area being cleared) so this works out.
-  if (fallback) {
-    ComputeAndClearTranslucentRegion();
-  }
-
-  if (auto* listener = GetPaintListener()) {
-    listener->PaintWindow(this);
-  }
-
-  if (!fallback) {
-    ComputeAndClearTranslucentRegion();
-  }
-
-  if (knowsCompositor && layerManager && !region.IsEmpty()) {
-    layerManager->SendInvalidRegion(region.ToUnknownRegion());
-    layerManager->ScheduleComposite(wr::RenderReasons::WIDGET);
   }
 
 #ifdef WIDGET_DEBUG_OUTPUT
@@ -276,12 +275,18 @@ bool nsWindow::OnPaint() {
                        (int32_t)mWnd);
 #endif  // WIDGET_DEBUG_OUTPUT
 
+  bool result = true;
+  if (nsIWidgetListener* listener = GetPaintListener()) {
+    result = listener->PaintWindow(this, region);
+  }
+
   if (!isFallback && !gfxEnv::MOZ_DISABLE_FORCE_PRESENT()) {
     NS_DispatchToMainThread(NewRunnableMethod("nsWindow::ForcePresent", this,
                                               &nsWindow::ForcePresent));
   }
 
-  return true;
+  didPaint = true;
+  return result;
 }
 
 bool nsWindow::NeedsToTrackWindowOcclusionState() {

@@ -375,8 +375,9 @@ class nsCocoaWindow final : public nsIWidget {
   int32_t RoundsWidgetCoordinatesTo() override;
 
   // Mac specific methods
-  void PaintWindow();
-  void PaintWindowInDrawTarget(mozilla::gfx::DrawTarget* aDT,
+  void WillPaintWindow();
+  bool PaintWindow(LayoutDeviceIntRegion aRegion);
+  bool PaintWindowInDrawTarget(mozilla::gfx::DrawTarget* aDT,
                                const LayoutDeviceIntRegion& aRegion,
                                const mozilla::gfx::IntSize& aSurfaceSize);
 
