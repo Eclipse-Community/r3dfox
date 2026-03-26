@@ -379,7 +379,7 @@ const INFERENCE_PAD_PRESETS = {
     device: "cpu",
     backend: "onnx",
   },
-  openai: {
+/*  openai: {
     inputArgs: [
       {
         role: "system",
@@ -398,7 +398,7 @@ const INFERENCE_PAD_PRESETS = {
     apiKey: "ollama",
     baseURL: "http://localhost:11434/v1",
     backend: "openai",
-  },
+  }, */
 };
 
 const PREDEFINED = Object.keys(INFERENCE_PAD_PRESETS);
