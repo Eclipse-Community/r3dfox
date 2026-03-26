@@ -389,8 +389,6 @@ function init_all() {
     this.removeAttribute("keyboard-navigation");
   });
 
-  maybeDisplayPoliciesNotice();
-
   window.addEventListener("hashchange", onHashChange);
   window.addEventListener("beforeunload", onBeforeunload);
 
