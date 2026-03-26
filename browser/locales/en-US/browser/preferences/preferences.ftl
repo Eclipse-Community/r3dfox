@@ -718,7 +718,7 @@ play-drm-content =
     .label = Play DRM-controlled content
     .accesskey = P
 
-play-drm-content-learn-more = Learn more
+play-drm-content-learn-more = Why we disable it
 
 ## About Firefox
 
@@ -739,7 +739,7 @@ update-application-updates-managed-by-os =
 
 # Variables:
 # $version (string) - Firefox version
-update-application-version = Version { $version } <a data-l10n-name="learn-more">What’s new</a>
+update-application-version = Version { $version } <a data-l10n-name="learn-more">Visit the repositories</a>
 
 update-history-2 =
     .label = Show update history
