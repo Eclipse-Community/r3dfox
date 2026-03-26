@@ -695,7 +695,67 @@ Preferences.addSetting({
   id: "web-appearance-override-warning",
   setup: emitChange => {
     FORCED_COLORS_QUERY.addEventListener("change", emitChange);
-    return () => FORCED_COLORS_QUERY.removeEventListener("change", emitChange);
+
+    const updateRfpUi = () => {
+      document.getElementById("web-appearance-rfp-warning")?.remove();
+      const chooser = document.getElementById("web-appearance-chooser");
+      const container = document.getElementById("webAppearanceGroup");
+      const rfp = Services.prefs.getBoolPref("privacy.resistFingerprinting", false);
+
+      if (chooser) {
+        chooser.style.opacity = rfp ? "0.3" : "1";
+        chooser.style.pointerEvents = rfp ? "none" : "all";
+      }
+
+      if (rfp && container && !document.getElementById("web-appearance-rfp-warning")) {
+        const infoBox = document.createElement("div");
+        infoBox.id = "web-appearance-rfp-warning";
+        infoBox.className = "info-box-container";
+        infoBox.style.display = "flex";
+        infoBox.style.alignItems = "center";
+        infoBox.style.marginTop = "10px";
+        infoBox.style.marginBottom = "5px";
+        const text = document.createElement("div");
+        text.innerText = "This feature is disabled because ResistFingerprinting is enabled. This means LibreWolf will force web content to display in a light theme.";
+        infoBox.appendChild(text);
+        const a = document.createElement("a");
+        a.className = "text-link";
+        a.href = "https://librewolf.net/docs/faq/#why-is-librewolf-forcing-light-theme";
+        a.innerText = " Learn more";
+        infoBox.appendChild(a);
+        const insertBeforeNode = container.children[1] ? container.children[1].nextSibling : null;
+        container.insertBefore(infoBox, insertBeforeNode);
+      }
+    };
+
+    const prefObserver = {
+      observe() {
+        updateRfpUi();
+      },
+    };
+    Services.prefs.addObserver("privacy.resistFingerprinting", prefObserver);
+
+    const ensurePaneReady = cb => {
+      const id = "webAppearanceGroup";
+      if (document.getElementById(id)) return cb();
+      const mo = new MutationObserver((_, obs) => {
+        if (document.getElementById(id)) {
+          obs.disconnect();
+          cb();
+        }
+      });
+      mo.observe(document.documentElement, { childList: true, subtree: true });
+      setTimeout(() => { try { mo.disconnect(); } catch (e) {} ; cb(); }, 1000);
+    };
+
+    ensurePaneReady(() => {
+      updateRfpUi();
+    });
+
+    return () => {
+      FORCED_COLORS_QUERY.removeEventListener("change", emitChange);
+      Services.prefs.removeObserver("privacy.resistFingerprinting", prefObserver);
+    };
   },
   visible: () => {
     return FORCED_COLORS_QUERY.matches;
