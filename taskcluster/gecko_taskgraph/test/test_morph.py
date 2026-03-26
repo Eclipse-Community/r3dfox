@@ -194,7 +194,7 @@ def test_make_index_tasks(make_taskgraph, graph_config):
 
     assert index_task.task["payload"]["command"][0] == "insert-indexes.js"
     assert index_task.task["payload"]["env"]["TARGET_TASKID"] == "a-tid"
-    assert index_task.task["payload"]["env"]["INDEX_RANK"] == 1540722354
+    assert index_task.task["payload"]["env"]["INDEX_RANK"] == "1540722354"
 
     # check the scope summary
     assert index_task.task["scopes"] == ["index:insert-task:gecko.v2.mozilla-central.*"]

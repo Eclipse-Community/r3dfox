@@ -169,7 +169,7 @@ def make_index_task(
     task.task["payload"]["command"] = ["insert-indexes.js"] + index_paths
     task.task["payload"]["env"] = {
         "TARGET_TASKID": parent_task.task_id,
-        "INDEX_RANK": index_rank,
+        "INDEX_RANK": f"{index_rank}",
     }
     return task
 
