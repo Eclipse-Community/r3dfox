@@ -814,9 +814,10 @@ static bool IsCloaked(HWND hwnd) {
  *
  **************************************************************/
 
-nsWindow::nsWindow()
+nsWindow::nsWindow(bool aIsChildWindow)
     : nsIWidget(BorderStyle::Default),
       mFrameState(std::in_place, this),
+      mIsChildWindow(aIsChildWindow),
       mMicaBackdrop(false),
       mLastPaintEndTime(TimeStamp::Now()),
       mCachedHitTestTime(TimeStamp::Now()),
@@ -1455,7 +1456,7 @@ DWORD nsWindow::WindowStyle() {
       break;
 
     case WindowType::Popup:
-      style = WS_OVERLAPPED | WS_POPUP | WS_CLIPCHILDREN;
+      style = WS_OVERLAPPED | WS_POPUP;
       break;
 
     default:
@@ -1469,6 +1470,13 @@ DWORD nsWindow::WindowStyle() {
   }
 
   style &= ~WindowStylesRemovedForBorderStyle(mBorderStyle);
+
+  if (mIsChildWindow) {
+    style |= WS_CLIPCHILDREN;
+    if (!(style & WS_POPUP)) {
+      style |= WS_CHILD;  // WS_POPUP and WS_CHILD are mutually exclusive.
+    }
+  }
 
   VERIFY_WINDOW_STYLE(style);
   return style;
@@ -6995,6 +7003,14 @@ bool nsWindow::ShouldUseOffMainThreadCompositing() {
   if (mWindowType == WindowType::Popup && mPopupType == PopupType::Tooltip) {
     return false;
   }
+
+  // Content rendering of popup is always done by child window.
+  // See nsDocumentViewer::ShouldAttachToTopLevel().
+  if (mWindowType == WindowType::Popup && !mIsChildWindow) {
+    MOZ_ASSERT(!mParent);
+    return false;
+  }
+
   return nsIWidget::ShouldUseOffMainThreadCompositing();
 }
 
@@ -8354,7 +8370,7 @@ already_AddRefed<nsIWidget> nsIWidget::CreateTopLevelWindow() {
 }
 
 already_AddRefed<nsIWidget> nsIWidget::CreateChildWindow() {
-  nsCOMPtr<nsIWidget> window = new nsWindow();
+  nsCOMPtr<nsIWidget> window = new nsWindow(true);
   return window.forget();
 }
 
