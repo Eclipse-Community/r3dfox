@@ -2837,9 +2837,6 @@ bool nsWindow::UpdateNonClientMargins(bool aReflowWindow) {
         }
       }
     }
-  } else if (mPiPType == PiPType::MediaPiP &&
-             !StaticPrefs::widget_windows_pip_decorations_enabled()) {
-    metrics.mOffset = metrics.DefaultMargins();
   } else {
     metrics.mOffset = NormalWindowNonClientOffset();
   }
