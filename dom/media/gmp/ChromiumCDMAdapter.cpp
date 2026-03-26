@@ -20,6 +20,7 @@
 #ifdef XP_WIN
 #  include <strsafe.h>
 #  include <windows.h>
+#  include <bcrypt.h>
 
 #  include <unordered_map>
 #  include <vector>
@@ -221,6 +222,9 @@ typedef BOOL(WINAPI* SetThreadInformationFnPtr)(
 static WindowsDllInterceptor::FuncHookType<SetThreadInformationFnPtr>
     sOriginalSetThreadInformationFnPtr;
 
+static WindowsDllInterceptor::FuncHookType<decltype(&GetProcAddress)>
+    sOriginalGetProcAddressFnPtr;
+
 static std::unordered_map<std::wstring, std::wstring>* sDeviceNames = nullptr;
 
 DWORD WINAPI QueryDosDeviceWHook(LPCWSTR lpDeviceName, LPWSTR lpTargetPath,
@@ -308,6 +312,19 @@ BOOL WINAPI MozSetThreadInformation(
   return TRUE;
 }
 
+BOOL WINAPI MozProcessPrng(PBYTE pbData, SIZE_T cbData) {
+  return ::BCryptGenRandom(nullptr, pbData, cbData,
+                           BCRYPT_USE_SYSTEM_PREFERRED_RNG) == STATUS_SUCCESS;
+}
+
+FARPROC WINAPI MozGetProcAddress(HMODULE hModule, LPCSTR lpProcName) {
+  if (strcmp(lpProcName, "ProcessPrng") == 0) {
+    return reinterpret_cast<FARPROC>(&MozProcessPrng);
+  }
+
+  return sOriginalGetProcAddressFnPtr(hModule, lpProcName);
+}
+
 static void InitializeHooks() {
   static bool initialized = false;
   if (initialized) {
@@ -342,6 +359,11 @@ static void InitializeHooks() {
                                                   "SetThreadInformation",
                                                   &MozSetThreadInformation)) {
         GMP_LOG_WARNING("Failed to hook SetThreadInformation");
+      }
+
+      if (!sOriginalGetProcAddressFnPtr.Set(
+              sKernel32Intercept, "GetProcAddress", &MozGetProcAddress)) {
+        GMP_LOG_WARNING("Failed to hook GetProcAddress");
       }
     } else {
       GMP_LOG_WARNING(
