@@ -1846,8 +1846,6 @@ cookie-banner-blocker-checkbox-label =
 
 content-blocking-enhanced-tracking-protection = Enhanced Tracking Protection
 
-content-blocking-section-top-level-description = Trackers follow you around online to collect information about your browsing habits and interests. { -brand-short-name } blocks many of these trackers and other malicious scripts.
-
 content-blocking-learn-more = Learn more
 
 content-blocking-fpi-incompatibility-warning = You are using First Party Isolation (FPI), which overrides some of { -brand-short-name }’s cookie settings.
@@ -2569,6 +2567,11 @@ security-privacy-issue-warning-ech =
 security-privacy-issue-warning-proxy-autodetection =
   .label = Proxy auto-configuration is enabled
   .description = Proxy auto-configuration could let untrusted networks to monitor your activity.
+
+
+## Privacy & Security preferences
+
+content-blocking-section-top-level-description = LibreWolf supports - and it enables by default - Enhanced Tracking Protection in Strict mode. This is one of the most important settings in the browser, as it provides state partitioning, strict blocking lists and other neat privacy features. We do not recommend changing to other modes.
 
 ## Permissions
 
