@@ -202,6 +202,20 @@ Preferences.addSetting({
   id: "xrSettingsButton",
   onUserClick: () => showPermissionExceptions({ permissionType: "xr" }),
 });
+
+Preferences.addSetting({
+  id: "webglDisabled",
+  pref: "webgl.disabled",
+});
+Preferences.addSetting({
+  id: "webglSettingsButton",
+  onUserClick: () => showPermissionExceptions({ permissionType: "webgl" }),
+  deps: ["webglDisabled"],
+  visible: deps => {
+    return !deps.webglDisabled.value;
+  },
+});
+
 Preferences.addSetting({
   id: "popupPolicy",
   pref: "dom.disable_open_during_load",
@@ -603,6 +617,16 @@ SettingGroupManager.registerGroups({
               ".iconSrc": "chrome://browser/skin/notification-icons/xr.svg",
               "search-l10n-ids":
                 "permissions-remove.label,permissions-remove-all.label,permissions-site-xr-window2.title,permissions-site-xr-desc,permissions-site-xr-disable-label,permissions-site-xr-disable-desc,",
+            },
+          },
+          {
+            id: "webglSettingsButton",
+            control: "moz-box-button",
+            l10nId: "permissions-webgl2",
+            controlAttrs: {
+              ".iconSrc": "chrome://browser/skin/notification-icons/webgl.svg",
+              "search-l10n-ids":
+               "permissions-remove.label,permissions-remove-all.label,permissions-site-webgl-window2.title,permissions-site-webgl-desc",
             },
           },
         ],
