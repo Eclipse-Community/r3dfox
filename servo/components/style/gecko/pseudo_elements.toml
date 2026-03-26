@@ -73,6 +73,11 @@ argument = "PtNameAndClassSelector"
 [-moz-snapshot-containing-block]
 enabled_in = "ua"
 
+# XXXbz should we really allow random content to style these?  Maybe
+# use our flags to prevent that?
+[-moz-focus-inner]
+enabled_in = "ua"
+
 # HTML5 Forms pseudo elements
 [-moz-number-spin-box]
 supports_user_action_state = true
