@@ -344,17 +344,33 @@
     Call OnUpdateDesktopLauncherHandler
   !endif
 
+  ; Adds a pinned Task Bar shortcut (see MigrateTaskBarShortcut for details).
+  ; When we enabled this feature for Windows 10 & 11 we decided _not_ to pin
+  ; during an update (even once) because we already offered to do when the
+  ; the user originally installed, and we don't want to go against their
+  ; explicit wishes.
+  ; For Windows 7 and 8, we've been doing this ~forever, and those users may
+  ; not have experienced the onboarding offer to pin to taskbar, so we're
+  ; leaving it enabled there.
+  ${If} ${AtMostWin2012R2}
+    ${MigrateTaskBarShortcut} "$AddTaskbarSC"
+  ${EndIf}
+
   ; Update the name/icon/AppModelID of our shortcuts as needed, then update the
   ; lastwritetime of the Start Menu shortcut to clear the tile icon cache.
   ; Do this for both shell contexts in case the user has shortcuts in multiple
   ; locations, then restore the previous context at the end.
   SetShellVarContext all
   ${UpdateShortcutsBranding}
-  ${TouchStartMenuShortcut}
+  ${If} ${AtLeastWin8}
+    ${TouchStartMenuShortcut}
+  ${EndIf}
   Call FixShortcutAppModelIDs
   SetShellVarContext current
   ${UpdateShortcutsBranding}
-  ${TouchStartMenuShortcut}
+  ${If} ${AtLeastWin8}
+    ${TouchStartMenuShortcut}
+  ${EndIf}
   Call FixShortcutAppModelIDs
   ${If} $RegHive == "HKLM"
     SetShellVarContext all
@@ -405,13 +421,15 @@
   ; Record the Windows Error Reporting module
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\RuntimeExceptionHelperModules" "$INSTDIR\mozwer.dll" 0
 
-  ; Apply LPAC permissions to install directory.
-  Push "Marker"
-  AccessControl::GrantOnFile \
-    "$INSTDIR" "(${LpacFirefoxInstallFilesSid})" "GenericRead + GenericExecute"
-  Pop $TmpVal ; get "Marker" or error msg
-  ${If} $TmpVal != "Marker"
-    Pop $TmpVal ; get "Marker"
+  ${If} ${AtLeastWin10}
+    ; Apply LPAC permissions to install directory.
+    Push "Marker"
+    AccessControl::GrantOnFile \
+      "$INSTDIR" "(${LpacFirefoxInstallFilesSid})" "GenericRead + GenericExecute"
+    Pop $TmpVal ; get "Marker" or error msg
+    ${If} $TmpVal != "Marker"
+      Pop $TmpVal ; get "Marker"
+    ${EndIf}
   ${EndIf}
 
 !ifdef MOZ_MAINTENANCE_SERVICE
@@ -463,7 +481,9 @@
   ${ResetLauncherProcessDefaults}
 !endif
 
-  ${WriteToastNotificationRegistration} $RegHive
+  ${If} ${AtLeastWin10}
+    ${WriteToastNotificationRegistration} $RegHive
+  ${EndIf}
 
 ; Make sure the scheduled task registration for the default browser agent gets
 ; updated, but only if we're not the instance of PostUpdate that was started
