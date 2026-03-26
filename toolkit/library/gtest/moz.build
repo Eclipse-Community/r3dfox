@@ -24,6 +24,11 @@ LOCAL_INCLUDES += [
     "/xpcom/build",
 ]
 
+if CONFIG["OS_ARCH"] == "WINNT":
+    UNIFIED_SOURCES += [
+        "TestUCRTDepends.cpp",
+    ]
+
 USE_LIBS += [
     "static:xul",
 ]
