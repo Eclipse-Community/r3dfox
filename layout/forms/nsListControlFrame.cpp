@@ -87,6 +87,7 @@ bool nsListControlFrame::IsFocused() const {
 void nsListControlFrame::InvalidateFocus() { InvalidateFrame(); }
 
 NS_QUERYFRAME_HEAD(nsListControlFrame)
+  NS_QUERYFRAME_ENTRY(nsISelectControlFrame)
   NS_QUERYFRAME_ENTRY(nsListControlFrame)
 NS_QUERYFRAME_TAIL_INHERITING(ScrollContainerFrame)
 
@@ -578,10 +579,12 @@ dom::HTMLOptionElement* nsListControlFrame::GetOption(uint32_t aIndex) const {
   return Select().Item(aIndex);
 }
 
-void nsListControlFrame::OnOptionSelected(int32_t aIndex, bool aSelected) {
+NS_IMETHODIMP
+nsListControlFrame::OnOptionSelected(int32_t aIndex, bool aSelected) {
   if (aSelected) {
     ScrollToIndex(aIndex);
   }
+  return NS_OK;
 }
 
 void nsListControlFrame::OnContentReset() { ResetList(true); }
@@ -643,15 +646,27 @@ uint32_t nsListControlFrame::GetNumberOfOptions() {
   return options->Length();
 }
 
-void nsListControlFrame::DoneAddingChildren() { ResetList(true); }
+//----------------------------------------------------------------------
+// nsISelectControlFrame
+//----------------------------------------------------------------------
 
-void nsListControlFrame::AddOption(int32_t aIndex) {
+NS_IMETHODIMP
+nsListControlFrame::DoneAddingChildren() {
+  ResetList(true);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsListControlFrame::AddOption(int32_t aIndex) {
   // Make sure we scroll to the selected option as needed
   mNeedToReset = true;
 
-  if (Select().IsDoneAddingChildren()) {
-    mPostChildrenLoadedReset = true;
+  if (!Select().IsDoneAddingChildren()) {
+    return NS_OK;
   }
+
+  mPostChildrenLoadedReset = true;
+  return NS_OK;
 }
 
 static int32_t DecrementAndClamp(int32_t aSelectionIndex, int32_t aLength) {
@@ -659,7 +674,8 @@ static int32_t DecrementAndClamp(int32_t aSelectionIndex, int32_t aLength) {
                       : std::max(0, aSelectionIndex - 1);
 }
 
-void nsListControlFrame::RemoveOption(int32_t aIndex) {
+NS_IMETHODIMP
+nsListControlFrame::RemoveOption(int32_t aIndex) {
   MOZ_ASSERT(aIndex >= 0, "negative <option> index");
 
   // Need to reset if we're a dropdown
@@ -687,6 +703,7 @@ void nsListControlFrame::RemoveOption(int32_t aIndex) {
   }
 
   InvalidateFocus();
+  return NS_OK;
 }
 
 //---------------------------------------------------------
@@ -761,6 +778,10 @@ nsListControlFrame::OnSetSelectedIndex(int32_t aOldIndex, int32_t aNewIndex) {
   }
 #endif
 }
+
+//----------------------------------------------------------------------
+// End nsISelectControlFrame
+//----------------------------------------------------------------------
 
 class AsyncReset final : public Runnable {
  public:

@@ -9,6 +9,7 @@
 #include "mozilla/Attributes.h"
 #include "mozilla/ScrollContainerFrame.h"
 #include "mozilla/StaticPtr.h"
+#include "nsISelectControlFrame.h"
 
 class nsComboboxControlFrame;
 class nsPresContext;
@@ -29,7 +30,8 @@ class HTMLOptionsCollection;
  * Frame-based listbox.
  */
 
-class nsListControlFrame final : public mozilla::ScrollContainerFrame {
+class nsListControlFrame final : public mozilla::ScrollContainerFrame,
+                                 public nsISelectControlFrame {
  public:
   using HTMLOptionElement = mozilla::dom::HTMLOptionElement;
 
@@ -90,19 +92,22 @@ class nsListControlFrame final : public mozilla::ScrollContainerFrame {
   uint32_t GetNumberOfOptions();
 
   MOZ_CAN_RUN_SCRIPT_BOUNDARY void OnContentReset();
-  void AddOption(int32_t aIndex);
-  void RemoveOption(int32_t aIndex);
+
+  // nsISelectControlFrame
+  NS_IMETHOD AddOption(int32_t index) final;
+  NS_IMETHOD RemoveOption(int32_t index) final;
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
-  void DoneAddingChildren();
+  NS_IMETHOD DoneAddingChildren() final;
 
   /**
    * Gets the content (an option) by index and then set it as
    * being selected or not selected.
    */
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
-  void OnOptionSelected(int32_t aIndex, bool aSelected);
+  NS_IMETHOD OnOptionSelected(int32_t aIndex, bool aSelected) final;
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
-  void OnSetSelectedIndex(int32_t aOldIndex, int32_t aNewIndex);
+  NS_IMETHOD_(void)
+  OnSetSelectedIndex(int32_t aOldIndex, int32_t aNewIndex) final;
 
   /**
    * Mouse event listeners.

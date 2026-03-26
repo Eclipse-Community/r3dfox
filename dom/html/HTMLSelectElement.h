@@ -22,7 +22,7 @@
 class nsContentList;
 class nsIDOMHTMLOptionElement;
 class nsIHTMLCollection;
-class nsListControlFrame;
+class nsISelectControlFrame;
 
 namespace mozilla {
 
@@ -396,7 +396,7 @@ class HTMLSelectElement final : public nsGenericHTMLFormControlElementWithState,
    *                           its selected state to aSelected.
    * @param aNotify whether to notify the style system and such
    */
-  void OnOptionSelected(nsListControlFrame* aSelectFrame, int32_t aIndex,
+  void OnOptionSelected(nsISelectControlFrame* aSelectFrame, int32_t aIndex,
                         bool aSelected, bool aChangeOptionState, bool aNotify);
   /**
    * Restore state to a particular state string (representing the options)
@@ -458,8 +458,11 @@ class HTMLSelectElement final : public nsGenericHTMLFormControlElementWithState,
   int32_t GetFirstChildOptionIndex(nsIContent* aOptions, int32_t aStartIndex,
                                    int32_t aEndIndex);
 
-  /** Get the frame as an nsListControlFrame (MAY RETURN nullptr) */
-  nsListControlFrame* GetListBoxFrame();
+  /**
+   * Get the frame as an nsISelectControlFrame (MAY RETURN nullptr)
+   * @return the select frame, or null
+   */
+  nsISelectControlFrame* GetSelectFrame();
 
   /**
    * Helper method for dispatching ContentReset notifications to list box
