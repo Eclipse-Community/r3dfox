@@ -259,8 +259,8 @@ void SamplerThread::SleepMicro(uint32_t aMicroseconds) {
     // value is relative rather than absolute
     const LARGE_INTEGER duration{
         .QuadPart = static_cast<int64_t>(aMicroseconds) * -10LL};
-    const bool b = ::SetWaitableTimerEx(mHiResTimer, &duration, 0, nullptr,
-                                        nullptr, nullptr, 0);
+    const bool b = ::SetWaitableTimer(mHiResTimer, &duration, 0, nullptr,
+                                        nullptr, 0);
     MOZ_RELEASE_ASSERT(b);
     const DWORD r = ::WaitForSingleObject(mHiResTimer, INFINITE);
     MOZ_RELEASE_ASSERT(r == WAIT_OBJECT_0);
