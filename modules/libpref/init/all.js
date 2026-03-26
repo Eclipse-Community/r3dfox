@@ -3155,7 +3155,8 @@ pref("network.tcp.keepalive.idle_time", 600); // seconds; 10 mins
 
 // All the Geolocation preferences are here.
 //
-pref("geo.provider.network.url", "https://api.beacondb.net/v1/geolocate");
+#ifndef ANDROID
+  pref("geo.provider.network.url", "https://api.beacondb.net/v1/geolocate");
 
   // Timeout to wait before sending the location request.
   pref("geo.provider.network.timeToWaitBeforeSending", 5000);
