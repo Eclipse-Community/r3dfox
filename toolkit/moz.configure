@@ -22,13 +22,14 @@ def check_moz_app_id(moz_app_id, build_project):
 
 project_flag(
     env="MOZ_APP_VENDOR",
+    default="Mozilla",
     nargs=1,
     help='Used for application.ini\'s "Vendor" field, which also impacts profile location and user-visible fields',
 )
 
 project_flag(
     env="MOZ_APP_UA_NAME",
-    default="",
+    default="Firefox",
     nargs=1,
     help="Application name in the User Agent string",
 )
