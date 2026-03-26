@@ -925,8 +925,18 @@ class nsIWidget : public nsSupportsWeakReference {
    */
   virtual LayoutDeviceIntRect GetClientBounds() { return GetBounds(); }
 
-  /** Whether to extend the client area into the titlebar. */
-  virtual void SetCustomTitlebar(bool) {}
+  /**
+   * Sets the non-client area dimensions of the window. Pass -1 to restore
+   * the system default frame size for that border. Pass zero to remove
+   * a border, or pass a specific value adjust a border. Units are in
+   * pixels. (DPI dependent)
+   *
+   * Platform notes:
+   *  Windows: shrinking top non-client height will remove application
+   *  icon and window title text. Glass desktops will refuse to set
+   *  dimensions between zero and size < system default.
+   */
+  virtual nsresult SetNonClientMargins(const LayoutDeviceIntMargin&) { return NS_ERROR_NOT_IMPLEMENTED; }
 
   /**
    * Sets the region around the edges of the window that can be dragged to
