@@ -214,11 +214,6 @@ run-if = [
   "os == 'win'",
 ]
 
-["TestStackWalkInitialization"]
-run-if = [
-  "os == 'win' && arch == 'x86_64'",
-]
-
 ["TestTextUtils"]
 
 ["TestThreadSafeWeakPtr"]
