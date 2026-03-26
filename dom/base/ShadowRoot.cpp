@@ -213,7 +213,7 @@ void ShadowRoot::Unattach() {
 
 void ShadowRoot::InvalidateStyleAndLayoutOnSubtree(Element* aElement) {
   MOZ_ASSERT(aElement);
-  Document* doc = GetComposedDoc();
+  Document* doc = aElement->GetComposedDoc();
   if (!doc) {
     return;
   }

@@ -136,7 +136,7 @@ class ShadowRoot final : public DocumentFragment, public DocumentOrShadowRoot {
    * It is important that this runs _before_ actually shuffling the flat tree
    * around, so that layout knows the actual tree that it needs to invalidate.
    */
-  void InvalidateStyleAndLayoutOnSubtree(Element*);
+  static void InvalidateStyleAndLayoutOnSubtree(Element*);
 
  private:
   void InsertSheetIntoAuthorData(size_t aIndex, StyleSheet&,
