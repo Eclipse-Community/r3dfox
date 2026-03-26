@@ -1604,3 +1604,9 @@ reduced-protection-infobar-reload-button = Reload
   .accesskey = R
 reduced-protection-infobar-never-show-button = Don’t show again
   .accesskey = D
+
+
+urlbar-webgl-notification-anchor =
+    .tooltiptext = Manage WebGL context creation permission
+urlbar-webgl-blocked =
+    .tooltiptext = You have blocked WebGL context creation for this website.
