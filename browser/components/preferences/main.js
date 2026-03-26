@@ -3286,18 +3286,6 @@ SettingGroupManager.registerGroups({
         supportPage: "media-keyboard-control",
       },
       {
-        id: "cfrRecommendations",
-        l10nId: "browsing-cfr-recommendations",
-        supportPage: "extensionrecommendations",
-        subcategory: "cfraddons",
-      },
-      {
-        id: "cfrRecommendations-features",
-        l10nId: "browsing-cfr-features",
-        supportPage: "extensionrecommendations",
-        subcategory: "cfrfeatures",
-      },
-      {
         id: "linkPreviewEnabled",
         l10nId: "link-preview-settings-enable",
         subcategory: "link-preview",
