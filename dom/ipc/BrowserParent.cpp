@@ -4098,6 +4098,29 @@ mozilla::ipc::IPCResult BrowserParent::RecvShowCanvasPermissionPrompt(
   return IPC_OK();
 }
 
+mozilla::ipc::IPCResult BrowserParent::RecvShowWebGLPermissionPrompt(const nsCString& aOrigin, const bool& aHideDoorHanger) {
+  nsCOMPtr<nsIBrowser> browser =
+         mFrameElement ? mFrameElement->AsBrowser() : nullptr;
+  if (!browser) {
+    // If the tab is being closed, the browser may not be available.
+    // In this case we can ignore the request.
+    return IPC_OK();
+  }
+  nsCOMPtr<nsIObserverService> os = services::GetObserverService();
+  if (!os) {
+    return IPC_FAIL_NO_REASON(this);
+  }
+  nsresult rv = os->NotifyObservers(
+      browser,
+      aHideDoorHanger ? "webgl-permissions-prompt-hide-doorhanger"
+                                         : "webgl-permissions-prompt",
+      NS_ConvertUTF8toUTF16(aOrigin).get());
+  if (NS_FAILED(rv)) {
+    return IPC_FAIL_NO_REASON(this);
+  }
+  return IPC_OK();
+}
+
 mozilla::ipc::IPCResult BrowserParent::RecvVisitURI(
     nsIURI* aURI, nsIURI* aLastVisitedURI, const uint32_t& aFlags,
     const uint64_t& aBrowserId) {
