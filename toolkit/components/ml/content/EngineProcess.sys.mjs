@@ -27,7 +27,6 @@ export const BACKENDS = Object.freeze({
   llamaCpp: "llama.cpp",
   bestLlama: "best-llama",
   bestOnnx: "best-onnx",
-  openai: "openai",
   staticEmbeddings: "static-embeddings",
 });
 
