@@ -433,7 +433,7 @@ pref("browser.urlbar.deduplication.thresholdDays", 0);
 
 pref("browser.urlbar.scotchBonnet.enableOverride", false);
 
-pref("browser.urlbar.trustPanel.featureGate", true);
+pref("browser.urlbar.trustPanel.featureGate", false);
 
 // Once Perplexity has entered search mode at least once,
 // we no longer show the Perplexity onboarding callout.
@@ -2964,7 +2964,7 @@ pref("browser.toolbars.bookmarks.showOtherBookmarks", true);
 
 // Felt Privacy pref to control simplified private browsing UI
 pref("browser.privatebrowsing.felt-privacy-v1", false);
-pref("security.certerrors.felt-privacy-v1", true);
+pref("security.certerrors.felt-privacy-v1", false);
 
 
 // Prefs to control the Firefox Account toolbar menu.
