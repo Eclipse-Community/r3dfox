@@ -420,6 +420,6 @@ button.text-link .button-text {
 }
 
 /* Indent options in optgroups */
-#ContentSelectDropdown menuitem[indented] > .menu-text {
+#ContentSelectDropdown menuitem[indented] > .menu-iconic-text {
   padding-inline-start: 2em;
 }
