@@ -366,7 +366,7 @@ xul|menulist > xul|menupopup {
 
   --panel-border-color: var(--border-color);
   --panel-border-radius: 2px;
-  --panel-background: var(--in-content-table-background);
+  --panel-background: var(--background-color-box);
   --panel-color: var(--text-color);
   --panel-padding: 0;
 }
