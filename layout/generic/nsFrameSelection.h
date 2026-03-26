@@ -279,6 +279,13 @@ class nsFrameSelection final {
                                           CaretAssociationHint aHint);
 
  public:
+  [[nodiscard]] bool IsAvailable() const {
+    // mDomSelections is initialized at construction and cleared if the cycle
+    // collector unlink them so that if the first selection is available, the
+    // others should be fine.
+    return !!mDomSelections[0];
+  }
+
   /**
    * Sets the type of the selection based on whether a selection is created
    * by doubleclick, long tapping a word or tripleclick.
