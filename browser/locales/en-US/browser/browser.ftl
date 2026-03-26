@@ -1569,6 +1569,7 @@ reduced-protection-infobar-message = <strong>Site looks broken?</strong> Reload 
 reduced-protection-infobar-reload-button = Reload
   .accesskey = R
 
+identity-allow-site-data = Always store cookies/data for this site
 urlbar-webgl-notification-anchor =
     .tooltiptext = Manage WebGL context creation permission
 urlbar-webgl-blocked =
