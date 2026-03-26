@@ -449,6 +449,13 @@ var gBrowserInit = {
       }
     }
 
+    if (Services.prefs.getBoolPref("librewolf.hidePasswdmgr", false)) {
+      PanelMultiView.getViewNode(
+        document,
+        "appMenu-passwords-button"
+      )?.remove();
+    }
+
     this._loadHandled = true;
   },
 
