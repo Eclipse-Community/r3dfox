@@ -97,10 +97,12 @@
       var(--toolbarbutton-icon-fill-attention-text-dark)
     );
 
+@media not (-moz-windows-default-theme) {
     --toolbox-bgcolor: var(--lwt-accent-color);
     --toolbox-bgcolor-inactive: var(--lwt-accent-color-inactive, var(--lwt-accent-color));
     --toolbox-textcolor: var(--lwt-text-color, currentColor);
     --toolbox-textcolor-inactive: var(--lwt-text-color, currentColor);
+}
   }
 }
 
@@ -112,7 +114,9 @@
 @media not ((forced-colors) or (-moz-native-theme)) {
   :root:not([lwtheme]) {
     --toolbar-color: light-dark(var(--color-gray-100), var(--color-gray-05));
+  @media (-moz-windows-default-theme) {
     --toolbar-bgcolor: light-dark(#f9f9fb, rgb(43, 42, 51));
+  }
 
     --toolbar-field-border-color: var(--border-color-transparent);
     --toolbar-field-background-color: light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30));
@@ -128,5 +132,11 @@
     --toolbox-textcolor: light-dark(rgb(21, 20, 26), rgb(251, 251, 254));
     --toolbox-bgcolor-inactive: var(--toolbox-bgcolor);
     --toolbox-textcolor-inactive: var(--toolbox-textcolor);
+  }
+}
+
+@media (-moz-windows-default-theme) {
+  :root {
+    --toolbar-bgcolor: -moz-dialog;
   }
 }
