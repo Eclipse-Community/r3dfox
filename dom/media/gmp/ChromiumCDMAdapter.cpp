@@ -214,6 +214,13 @@ typedef BOOL(WINAPI* GetProcessMitigationPolicyFnPtr)(
 static WindowsDllInterceptor::FuncHookType<GetProcessMitigationPolicyFnPtr>
     sOriginalGetProcessMitigationPolicyFnPtr;
 
+typedef BOOL(WINAPI* SetThreadInformationFnPtr)(
+    HANDLE hThread, THREAD_INFORMATION_CLASS ThreadInformationClass,
+    LPVOID ThreadInformation, DWORD ThreadInformationSize);
+
+static WindowsDllInterceptor::FuncHookType<SetThreadInformationFnPtr>
+    sOriginalSetThreadInformationFnPtr;
+
 static std::unordered_map<std::wstring, std::wstring>* sDeviceNames = nullptr;
 
 DWORD WINAPI QueryDosDeviceWHook(LPCWSTR lpDeviceName, LPWSTR lpTargetPath,
@@ -295,6 +302,12 @@ BOOL WINAPI MozGetProcessMitigationPolicy(
   return TRUE;
 }
 
+BOOL WINAPI MozSetThreadInformation(
+    HANDLE hThread, THREAD_INFORMATION_CLASS ThreadInformationClass,
+    LPVOID ThreadInformation, DWORD ThreadInformationSize) {
+  return TRUE;
+}
+
 static void InitializeHooks() {
   static bool initialized = false;
   if (initialized) {
@@ -316,15 +329,24 @@ static void InitializeHooks() {
     auto k32Exports = nt::PEExportSection<interceptor::MMPolicyInProcess>::Get(
         k32mod, policy);
     if (k32Exports.ReplaceExportNameTableEntry("GetProcessPreferredUILanguages",
-                                               "GetProcessMitigationPolicy")) {
+                                               "GetProcessMitigationPolicy") &&
+        k32Exports.ReplaceExportNameTableEntry("SetThreadIdealProcessorEx",
+                                               "SetThreadInformation")) {
       sKernel32Intercept.Init("kernel32.dll");
       if (!sOriginalGetProcessMitigationPolicyFnPtr.Set(
               sKernel32Intercept, "GetProcessMitigationPolicy",
               &MozGetProcessMitigationPolicy)) {
         GMP_LOG_WARNING("Failed to hook GetProcessMitigationPolicy");
       }
+      if (!sOriginalSetThreadInformationFnPtr.Set(sKernel32Intercept,
+                                                  "SetThreadInformation",
+                                                  &MozSetThreadInformation)) {
+        GMP_LOG_WARNING("Failed to hook SetThreadInformation");
+      }
     } else {
-      GMP_LOG_WARNING("Failed to rename to GetProcessMitigationPolicy");
+      GMP_LOG_WARNING(
+          "Failed to rename to GetProcessMitigationPolicy and/or "
+          "SetThreadInformation");
     }
   }
 }
