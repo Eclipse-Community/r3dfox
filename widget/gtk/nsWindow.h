@@ -949,6 +949,11 @@ class nsWindow final : public nsIWidget {
   void LogPopupGravity(GdkGravity aGravity);
 #endif
 
+  bool IsTopLevelWindowType() const {
+    return mWindowType == WindowType::TopLevel ||
+           mWindowType == WindowType::Dialog;
+  }
+
   // Toplevel window (first element) of linked list of Wayland popups. It's null
   // if we're the toplevel.
   RefPtr<nsWindow> mWaylandToplevel;
