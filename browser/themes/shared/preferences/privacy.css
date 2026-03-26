@@ -37,6 +37,10 @@
   list-style-image: url(chrome://browser/skin/notification-icons/xr.svg);
 }
 
+.webgl-icon {
+  list-style-image: url(chrome://browser/skin/notification-icons/webgl.svg);
+}
+
 .camera-icon {
   list-style-image: url(chrome://browser/skin/notification-icons/camera.svg);
 }
