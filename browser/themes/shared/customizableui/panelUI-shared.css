@@ -14,6 +14,13 @@
   --panel-banner-item-update-supported-bgcolor: light-dark(#2ac3a2, #54ffbd);
   --panel-banner-item-info-icon-bgcolor: light-dark(#0090ed, #80ebff);
 
+  --arrowpanel-menuitem-margin-block: 0;
+  --arrowpanel-menuitem-margin-inline: 8px;
+  --arrowpanel-menuitem-margin: var(--arrowpanel-menuitem-margin-block) var(--arrowpanel-menuitem-margin-inline);
+  --arrowpanel-menuitem-padding-block: 8px;
+  --arrowpanel-menuitem-padding-inline: 8px;
+  --arrowpanel-menuitem-padding: var(--arrowpanel-menuitem-padding-block) var(--arrowpanel-menuitem-padding-inline);
+  --arrowpanel-menuitem-border-radius: 4px;
   --menu-panel-width: 22.35em;
   --menu-panel-width-wide: 29em;
 
@@ -312,9 +319,6 @@ panelview {
     --panel-border-radius: var(--arrowpanel-border-radius);
     --panel-padding: var(--panel-subview-body-padding);
     --panel-shadow-margin: var(--arrowpanel-shadow-margin);
-    --menuitem-border-radius: var(--arrowpanel-menuitem-border-radius);
-    --menuitem-padding: var(--arrowpanel-menuitem-padding);
-    --menuitem-margin: var(--arrowpanel-menuitem-margin);
   }
 
   menupopup {
@@ -1190,6 +1194,7 @@ panelmultiview[mainViewId="PanelUI-fxa"] #PanelUI-remotetabs-syncnow {
   display: none;
 }
 
+.toolbar-menupopup :is(menu, menuitem),
 .subview-subheader,
 panelview .toolbarbutton-1,
 .subviewbutton,
