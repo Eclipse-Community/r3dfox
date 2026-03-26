@@ -1035,7 +1035,6 @@ struct ParamTraits<mozilla::InputData> {
   template <typename T>
   static bool Read(MessageReader* aReader, mozilla::InputType aInputType,
                    T* aResult) {
-    static_assert(std::derived_from<T, mozilla::InputData> == true);
     if (!Read(aReader, static_cast<mozilla::InputData*>(aResult))) {
       return false;
     }

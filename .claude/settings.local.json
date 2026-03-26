@@ -1,0 +1,11 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "moz"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__moz__get_bugzilla_bug"
+    ]
+  }
+}
