@@ -167,3 +167,6 @@ LOCAL_INCLUDES += [
     "../build",
     "/toolkit/xre",
 ]
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"
