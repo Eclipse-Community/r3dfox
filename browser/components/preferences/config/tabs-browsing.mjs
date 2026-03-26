@@ -548,16 +548,6 @@ Preferences.addSetting({
   },
 });
 
-// Recommendations settings
-Preferences.addSetting({
-  id: "cfrRecommendations",
-  pref: "browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons",
-});
-Preferences.addSetting({
-  id: "cfrRecommendations-features",
-  pref: "browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features",
-});
-
 // Browser layout settings
 Preferences.addSetting({
   id: "browserLayoutRadioGroup",
@@ -776,25 +766,6 @@ SettingGroupManager.registerGroups({
       },
     ],
   },
-  recommendations: {
-    l10nId: "recommendations-group",
-    headingLevel: 2,
-    iconSrc: "chrome://browser/skin/trending.svg",
-    items: [
-      {
-        id: "cfrRecommendations",
-        l10nId: "browsing-cfr-recommendations",
-        supportPage: "extensionrecommendations",
-        subcategory: "cfraddons",
-      },
-      {
-        id: "cfrRecommendations-features",
-        l10nId: "browsing-cfr-features",
-        supportPage: "extensionrecommendations",
-        subcategory: "cfrfeatures",
-      },
-    ],
-  },
   // Bug 2028609: the following sections are needed to ensure settings keep
   // working in legacy views, and can be removed when the pref is flipped
   drm: {
@@ -825,18 +796,6 @@ SettingGroupManager.registerGroups({
             l10nId: "browsing-picture-in-picture-enable-when-switching-tabs",
           },
         ],
-      },
-      {
-        id: "cfrRecommendations",
-        l10nId: "browsing-cfr-recommendations",
-        supportPage: "extensionrecommendations",
-        subcategory: "cfraddons",
-      },
-      {
-        id: "cfrRecommendations-features",
-        l10nId: "browsing-cfr-features",
-        supportPage: "extensionrecommendations",
-        subcategory: "cfrfeatures",
       },
       {
         id: "linkPreviewEnabled",
