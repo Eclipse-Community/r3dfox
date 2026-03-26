@@ -1,0 +1,377 @@
+{
+  "data": [
+    {
+      "schema": 1619432100208,
+      "appliesTo": [
+        {
+          "included": {
+            "everywhere": true
+          }
+        }
+      ],
+      "webExtension": {
+        "id": "ddg@search.mozilla.org"
+      },
+      "id": "c0b26c0e-63e6-4235-b2ce-5f16b6a8bf87",
+      "last_modified": 1654094046000
+    },
+    {
+      "schema": 1613245306902,
+      "appliesTo": [
+        {
+          "included": {
+            "everywhere": true
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "af",
+                "an",
+                "ar",
+                "ast",
+                "az",
+                "bg",
+                "br",
+                "bs",
+                "cy",
+                "da",
+                "de",
+                "dsb",
+                "el",
+                "eo",
+                "et",
+                "eu",
+                "fa",
+                "fi",
+                "fy-NL",
+                "ga-IE",
+                "gd",
+                "gl",
+                "gn",
+                "he",
+                "hr",
+                "hsb",
+                "hu",
+                "ia",
+                "id",
+                "is",
+                "it",
+                "ka",
+                "kab",
+                "kk",
+                "km",
+                "kn",
+                "lij",
+                "lo",
+                "lt",
+                "ltg",
+                "lv",
+                "mk",
+                "mr",
+                "ms",
+                "my",
+                "nl",
+                "oc",
+                "pl",
+                "rm",
+                "ro",
+                "ru",
+                "si",
+                "sk",
+                "sl",
+                "sq",
+                "sr",
+                "sv-SE",
+                "ta",
+                "te",
+                "th",
+                "tl",
+                "tr",
+                "uk",
+                "ur",
+                "uz",
+                "vi",
+                "wo",
+                "zh-CN",
+                "zh-TW"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "$USER_LOCALE"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "be"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "be",
+              "be-tarask"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "bn",
+                "bn-BD",
+                "bn-IN"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "bn"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "ca",
+                "ca-valencia"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "ca"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "cak",
+                "es-AR",
+                "es-CL",
+                "es-ES",
+                "es-MX",
+                "trs"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "es"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "cs"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "cz"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "ff",
+                "fr",
+                "son"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "fr"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "gu-IN"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "gu"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "hi-IN"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "hi"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "hy-AM"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "hy"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "ja-JP-macos",
+                "ja"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "ja"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "ko"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "kr"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "nb-NO"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "NO"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "ne-NP"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "ne"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "nn-NO"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "NN"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "pa-IN"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "pa"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "pt-BR",
+                "pt-PT"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "pt"
+            ]
+          }
+        },
+        {
+          "included": {
+            "locales": {
+              "matches": [
+                "szl"
+              ]
+            }
+          },
+          "webExtension": {
+            "locales": [
+              "pl"
+            ]
+          }
+        },
+        {
+          "override": true,
+          "orderHint": 1000,
+          "application": {
+            "distributions": [
+              "MozillaOnline"
+            ]
+          }
+        }
+      ],
+      "webExtension": {
+        "id": "wikipedia@search.mozilla.org"
+      },
+      "id": "3f3beb1d-e32e-40a4-b6ed-56741803e1d8",
+      "last_modified": 1654094046000
+    }
+  ],
+  "timestamp": 1654094046000
+}
