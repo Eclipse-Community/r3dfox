@@ -615,7 +615,8 @@ UniquePtr<uint8_t[]> OffscreenCanvasDisplayHelper::GetImageBuffer(
       principal, imageBuffer.get(), dataSurface->GetSize().width,
       dataSurface->GetSize().height,
       dataSurface->GetSize().width * dataSurface->GetSize().height * 4);
-  if (aExtractionBehavior == CanvasUtils::ImageExtraction::Randomize) {
+  if (aExtractionBehavior == CanvasUtils::ImageExtraction::Randomize ||
+      aExtractionBehavior == CanvasUtils::ImageExtraction::EfficientRandomize) {
     nsRFPService::RandomizePixels(
         cookieJarSettings, principal, imageBuffer.get(),
         dataSurface->GetSize().width, dataSurface->GetSize().height,
