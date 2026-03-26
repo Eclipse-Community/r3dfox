@@ -38,6 +38,7 @@
     href="chrome://browser/skin/preferences/containers.css"
   />
   <link rel="stylesheet" href="chrome://browser/skin/preferences/privacy.css" />
+  <link rel="stylesheet" href="chrome://browser/skin/preferences/librewolf.css" />
   <link rel="stylesheet" href="chrome://browser/content/preferences/widgets/setting-group.css" />
   <link rel="stylesheet" href="chrome://browser/content/preferences/widgets/setting-pane.css" />
   <link rel="stylesheet" href="chrome://browser/content/preferences/widgets/setting-control.css" />
@@ -155,10 +156,10 @@
         iconsrc="chrome://browser/skin/preferences/category-sync.svg"
         data-l10n-id="pane-sync-title3">
       </html:moz-page-nav-button>
-      <html:moz-page-nav-button id="category-ai-features"
-        view="paneAi"
-        iconsrc="chrome://global/skin/icons/highlights.svg"
-        data-l10n-id="pane-ai-controls-title">
+      <html:moz-page-nav-button id="category-librewolf"
+        view="paneLibrewolf"
+        iconsrc="chrome://browser/skin/preferences/category-librewolf.svg"
+        data-l10n-id="pane-librewolf-title">
       </html:moz-page-nav-button>
       <html:moz-page-nav-button id="category-accessibility"
         view="paneAccessibility"
@@ -232,6 +233,7 @@
 #include home.inc.xhtml
 #include search.inc.xhtml
 #include privacy.inc.xhtml
+#include librewolf.inc.xhtml
 #include containers.inc.xhtml
 #include sync.inc.xhtml
 #include moreFromMozilla.inc.xhtml
