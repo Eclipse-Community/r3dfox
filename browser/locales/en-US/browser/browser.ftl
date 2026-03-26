@@ -1606,6 +1606,7 @@ reduced-protection-infobar-never-show-button = Don’t show again
   .accesskey = D
 
 
+identity-allow-site-data = Always store cookies/data for this site
 urlbar-webgl-notification-anchor =
     .tooltiptext = Manage WebGL context creation permission
 urlbar-webgl-blocked =
