@@ -1,0 +1,39 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+<script src="chrome://browser/content/preferences/librewolf.js"/>
+
+<html:template id="template-paneLibrewolf">
+
+<hbox class="subcategory" hidden="true" data-category="paneLibrewolf">
+  <html:h1 data-l10n-id="librewolf-header"/>
+</hbox>
+
+<vbox class="subcategory" hidden="true" data-category="paneLibrewolf">
+  <html:setting-group groupid="librewolfBehavior"/>
+  <html:setting-group groupid="librewolfNetworking" style="padding-top: 25px;"/>
+  <html:setting-group groupid="librewolfPrivacy" style="padding-top: 25px;"/>
+  <html:setting-group groupid="librewolfFingerprinting" style="padding-top: 25px;"/>
+</vbox>
+
+<hbox class="subcategory" hidden="true" data-category="paneLibrewolf" style="margin-top: 25px">
+    <html:h1 data-l10n-id="librewolf-footer"/>
+</hbox>
+
+<groupbox data-category="paneLibrewolf" hidden="true">
+  <vbox align="start">
+    <hbox>
+      <button id="librewolf-config-link" is="highlightable-button" flex="1">
+        <image class="librewolf-button-icon" src="chrome://browser/skin/preferences/category-general.svg" />
+        <label data-l10n-id="librewolf-config-link"></label>
+      </button>
+      <button id="librewolf-open-profile" is="highlightable-button" flex="1">
+        <image class="librewolf-button-icon" src="chrome://browser/skin/open.svg" />
+        <label data-l10n-id="librewolf-open-profile"></label>
+      </button>
+    </hbox>
+  </vbox>
+</groupbox>
+
+</html:template>
