@@ -1042,6 +1042,10 @@ let gPermissions = {
         return !SitePermissions.resistFingerprinting;
       },
     },
+    
+    "webgl": {
+//      exactHostMatch: true,
+    },
 
     midi: {
       exactHostMatch: true,

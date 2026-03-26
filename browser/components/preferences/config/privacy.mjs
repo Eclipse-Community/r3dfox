@@ -330,6 +330,19 @@ export class PrivacySettingHelpers {
   }
 
   /**
+   * Displays the WebGL exceptions dialog where specific site WebGL
+   * preferences can be set.
+   */
+  static showWebGLExceptions() {
+    let params = { permissionType: "webgl" };
+    gSubDialog.open(
+      "chrome://browser/content/preferences/dialogs/sitePermissions.xhtml",
+      { features: "resizable=yes" },
+      params
+    );
+  }
+
+  /**
    * Displays the camera exceptions dialog where specific site camera
    * preferences can be set.
    */
@@ -657,6 +670,7 @@ Preferences.addAll([
 
   // Media
   { id: "media.autoplay.default", type: "int" },
+  { id: "webgl.disabled", type: "bool" },
 
   // Popups
   { id: "dom.disable_open_during_load", type: "bool" },
@@ -1968,6 +1982,16 @@ SettingGroupManager.registerGroups({
               ".iconSrc": "chrome://browser/skin/notification-icons/xr.svg",
               "search-l10n-ids":
                 "permissions-remove.label,permissions-remove-all.label,permissions-site-xr-window2.title,permissions-site-xr-desc,permissions-site-xr-disable-label,permissions-site-xr-disable-desc,",
+            },
+          },
+          {
+            id: "webglSettingsButton",
+            control: "moz-box-button",
+            l10nId: "permissions-webgl2",
+            controlAttrs: {
+              ".iconSrc": "chrome://browser/skin/notification-icons/webgl.svg",
+              "search-l10n-ids":
+               "permissions-remove.label,permissions-remove-all.label,permissions-site-webgl-window2.title,permissions-site-webgl-desc",
             },
           },
         ],
@@ -4175,6 +4199,19 @@ Preferences.addSetting({
 Preferences.addSetting({
   id: "xrSettingsButton",
   onUserClick: () => PrivacySettingHelpers.showXRExceptions(),
+});
+
+Preferences.addSetting({
+  id: "webglDisabled",
+  pref: "webgl.disabled",
+});
+Preferences.addSetting({
+  id: "webglSettingsButton",
+  onUserClick: () => PrivacySettingHelpers.showWebGLExceptions(),
+  deps: ["webglDisabled"],
+  visible: deps => {
+    return !deps.webglDisabled.value;
+  },
 });
 
 Preferences.addSetting({
