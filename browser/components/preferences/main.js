@@ -3886,34 +3886,6 @@ SettingGroupManager.registerGroups({
     headingLevel: 2,
     items: [
       {
-        id: "historyMode",
-        control: "moz-select",
-        options: [
-          {
-            value: "remember",
-            l10nId: "history-remember-option-all",
-          },
-          { value: "dontremember", l10nId: "history-remember-option-never2" },
-          { value: "custom", l10nId: "history-remember-option-custom2" },
-        ],
-        controlAttrs: {
-          "search-l10n-ids": `
-            history-remember-description4,
-            history-dontremember-description4,
-            history-custom-description4,
-            history-private-browsing-permanent.label,
-            history-remember-browser-option.label,
-            history-remember-search-option.label,
-            history-clear-on-close-option.label,
-            history-clear-on-close-settings.label
-          `,
-        },
-      },
-      {
-        id: "privateBrowsingAutoStart",
-        l10nId: "history-private-browsing-permanent",
-      },
-      {
         id: "rememberHistory",
         l10nId: "history-remember-browser-option",
       },
@@ -5198,39 +5170,6 @@ SettingGroupManager.registerGroups({
             id: "enableQuickActions",
             l10nId: "addressbar-locbar-quickactions-option",
             supportPage: "quick-actions-firefox-search-bar",
-          },
-          {
-            id: "firefoxSuggestAll",
-            l10nId: "addressbar-locbar-suggest-all-option-2",
-            items: [
-              {
-                id: "firefoxSuggestSponsored",
-                l10nId: "addressbar-locbar-suggest-sponsored-option-2",
-              },
-              {
-                id: "firefoxSuggestOnlineEnabledToggle",
-                l10nId: "addressbar-firefox-suggest-online",
-                supportPage: "firefox-suggest",
-                subcategory: "w_what-is-firefox-suggest",
-              },
-            ],
-          },
-          {
-            id: "dismissedSuggestionsDescription",
-            l10nId: "addressbar-dismissed-suggestions-label-2",
-            control: "moz-fieldset",
-            controlAttrs: {
-              headinglevel: 3,
-            },
-            items: [
-              {
-                id: "restoreDismissedSuggestions",
-                l10nId: "addressbar-restore-dismissed-suggestions-button-2",
-                control: "moz-button",
-                iconSrc:
-                  "chrome://global/skin/icons/arrow-counterclockwise-16.svg",
-              },
-            ],
           },
         ],
       },
