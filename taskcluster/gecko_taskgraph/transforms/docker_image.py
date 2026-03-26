@@ -175,7 +175,7 @@ def fill_template(config, tasks):
 
         worker = taskdesc["worker"]
 
-        if image_name == "image_builder":
+        if image_name == "image_builder" or True:
             worker["docker-image"] = IMAGE_BUILDER_IMAGE
             digest_data.append(f"image-builder-image:{IMAGE_BUILDER_IMAGE}")
         else:
