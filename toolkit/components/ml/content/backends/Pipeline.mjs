@@ -14,7 +14,7 @@ ChromeUtils.defineESModuleGetters(
     LlamaCppPipeline:
       "chrome://global/content/ml/backends/LlamaCppPipeline.mjs",
     PipelineOptions: "chrome://global/content/ml/EngineProcess.sys.mjs",
-    OpenAIPipeline: "chrome://global/content/ml/backends/OpenAIPipeline.mjs",
+//    OpenAIPipeline: "chrome://global/content/ml/backends/OpenAIPipeline.mjs",
     StaticEmbeddingsPipeline:
       "chrome://global/content/ml/backends/StaticEmbeddingsPipeline.mjs",
   },
@@ -50,9 +50,9 @@ export async function getBackend(consumer, wasm, options) {
     case "llama.cpp":
       factory = lazy.LlamaCppPipeline.initialize;
       break;
-    case "openai":
+/*    case "openai":
       factory = lazy.OpenAIPipeline.initialize;
-      break;
+      break; */
     case "static-embeddings":
       factory = lazy.StaticEmbeddingsPipeline.initialize;
       break;
