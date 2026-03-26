@@ -239,6 +239,7 @@ Preferences.addAll([
 
   // Translations
   { id: "browser.translations.automaticallyPopup", type: "bool" },
+  { id: "browser.translations.enable", type: "bool" },
 ]);
 
 if (AppConstants.HAVE_SHELL_SERVICE) {
@@ -5561,6 +5562,10 @@ var gMainPane = {
     }
 
     // Notify observers that the UI is now ready
+    Preferences.addSyncFromPrefListener(
+      document.getElementById("translations-manage-enable"),
+      () => this.readEnableTranslations()
+    );
     Services.obs.notifyObservers(window, "main-pane-loaded");
     this.setInitialized();
   },
@@ -5665,39 +5670,36 @@ var gMainPane = {
     button.disabled = !preference.value;
     return undefined;
   },
+  
+  readEnableTranslations(skipInit = false) {
+    const translationsEnabled = Preferences.get("browser.translations.enable").value;
+    document.getElementById("innerTranslationsGroup").hidden = !translationsEnabled;
+    if (!this._translationsInitialized && !skipInit)
+      this.initTranslations();
+  },
+
+  _translationsInitialized: false,
+
 
   /**
    * Initialize the translations view.
    */
   async initTranslations() {
-    let legacyTranslationsVisible = Preferences.getSetting(
-      "legacyTranslationsVisible"
-    );
+    this.readEnableTranslations(true);
+    
+    if (!Services.prefs.getBoolPref("browser.translations.enable")) {
+       return;
+    }
+    
+    this._translationsInitialized = true;
+    
     /**
      * Which phase a language download is in.
      *
      * @typedef {"downloaded" | "loading" | "uninstalled"} DownloadPhase
      */
 
-    let translationsGroup = document.getElementById("translationsGroup");
-    let setTranslationsGroupVisbility = () => {
-      // Immediately show the group so that the async load of the component does
-      // not cause the layout to jump. The group will be empty initially.
-      translationsGroup.hidden = !legacyTranslationsVisible.visible;
-      translationsGroup.classList.toggle(
-        "setting-hidden",
-        translationsGroup.hidden
-      );
-    };
-    setTranslationsGroupVisbility();
 
-    legacyTranslationsVisible.on("change", setTranslationsGroupVisbility);
-    window.addEventListener(
-      "unload",
-      () =>
-        legacyTranslationsVisible.off("change", setTranslationsGroupVisbility),
-      { once: true }
-    );
 
     class TranslationsState {
       /**
