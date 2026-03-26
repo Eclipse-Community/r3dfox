@@ -742,6 +742,8 @@ class BrowserParent final : public PBrowserParent,
   mozilla::ipc::IPCResult RecvShowCanvasPermissionPrompt(
       const nsCString& aOrigin, const bool& aHideDoorHanger);
 
+  mozilla::ipc::IPCResult RecvShowWebGLPermissionPrompt(const nsCString& aOrigin, const bool& aHideDoorHanger);
+
   mozilla::ipc::IPCResult RecvSetSystemFont(const nsCString& aFontName);
   mozilla::ipc::IPCResult RecvGetSystemFont(nsCString* aFontName);
 
