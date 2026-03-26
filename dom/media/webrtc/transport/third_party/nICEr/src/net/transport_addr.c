@@ -281,6 +281,9 @@ int nr_transport_addr_get_addrstring(const nr_transport_addr *addr, char *str, i
     int _status;
 
     if (addr->fqdn[0]) {
+      if (maxlen <= (int)(strlen(addr->fqdn))) {
+        ABORT(R_BAD_ARGS);
+      }
       strncpy(str, addr->fqdn, maxlen);
     } else {
       const char* res;
