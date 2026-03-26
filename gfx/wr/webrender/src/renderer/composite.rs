@@ -41,6 +41,7 @@ pub(super) struct OcclusionItemKey {
 
 pub(super) struct SwapChainLayer {
     pub occlusion: occlusion::FrontToBackBuilder<OcclusionItemKey>,
+    pub clear_tiles: Vec<occlusion::Item<OcclusionItemKey>>,
 }
 
 pub(super) struct CompositeTileState {
@@ -370,6 +371,23 @@ impl Renderer {
                         },
                     }
                 }
+                CompositeTileSurface::Clear => {
+                    let dummy = TextureSource::Dummy;
+                    let image_buffer_kind = dummy.image_buffer_kind();
+                    let instance = CompositeInstance::new(
+                        tile_rect,
+                        clip_rect,
+                        PremultipliedColorF::BLACK,
+                        flip,
+                        clip,
+                    );
+                    let features = instance.get_rgb_features();
+                    (
+                        instance,
+                        BatchTextures::composite_rgb(dummy),
+                        (CompositeSurfaceFormat::Rgba, image_buffer_kind, features, None),
+                    )
+                }
                 CompositeTileSurface::Texture { surface: ResolvedSurfaceTexture::Native { .. } } => {
                     unreachable!("bug: found native surface in simple composite path");
                 }
@@ -501,6 +519,21 @@ impl Renderer {
             self.gpu_profiler.finish_sampler(opaque_sampler);
         }
 
+        // Draw clear tiles
+        if !layer.clear_tiles.is_empty() {
+            let transparent_sampler = self.gpu_profiler.start_sampler(GPU_SAMPLER_TAG_TRANSPARENT);
+            self.set_blend(true, FramebufferKind::Main);
+            self.device.set_blend_mode_premultiplied_dest_out();
+            self.draw_tile_list(
+                layer.clear_tiles.iter(),
+                &composite_state,
+                &composite_state.external_surfaces,
+                projection,
+                &mut results.stats,
+            );
+            self.gpu_profiler.finish_sampler(transparent_sampler);
+        }
+
         // Draw alpha tiles
         let alpha_items = layer.occlusion.alpha_items();
         if !alpha_items.is_empty() {
@@ -535,7 +568,11 @@ impl Renderer {
         let _gm = self.gpu_profiler.start_marker("framebuffer");
         let _timer = self.gpu_profiler.start_timer(GPU_TAG_COMPOSITE);
 
-        let num_tiles = composite_state.tiles.len();
+        // We are only interested in tiles backed with actual cached pixels so we don't
+        // count clear tiles here.
+        let num_tiles = composite_state.tiles
+            .iter()
+            .filter(|tile| tile.kind != TileKind::Clear).count();
         self.profile.set(profiler::PICTURE_TILES, num_tiles);
 
         let (window_is_opaque, enable_screenshot)  = match self.compositor_config.layer_compositor() {
@@ -573,6 +610,7 @@ impl Renderer {
             });
 
             swapchain_layers.push(SwapChainLayer {
+                        clear_tiles: Vec::new(),
                 occlusion: occlusion::FrontToBackBuilder::with_capacity(cap, cap),
             });
         }
@@ -621,7 +659,8 @@ impl Renderer {
             // Determine if the tile is an external surface or content
             let usage = match tile.surface {
                 CompositeTileSurface::Texture { .. } |
-                CompositeTileSurface::Color { .. } => {
+                CompositeTileSurface::Color { .. } |
+                CompositeTileSurface::Clear => {
                     CompositorSurfaceUsage::Content
                 }
                 CompositeTileSurface::ExternalSurface { external_surface_index } => {
@@ -772,6 +811,7 @@ impl Renderer {
                 });
 
                 swapchain_layers.push(SwapChainLayer {
+                    clear_tiles: Vec::new(),
                     occlusion: occlusion::FrontToBackBuilder::with_capacity(cap, cap),
                 })
             }
@@ -779,39 +819,44 @@ impl Renderer {
 
             // Caluclate actual visible tile's rects
 
-            let is_opaque = tile.kind == TileKind::Opaque;
+            match tile.kind {
+                TileKind::Opaque | TileKind::Alpha => {
+                    let is_opaque = tile.kind != TileKind::Alpha;
 
-            match tile.clip_index {
-                Some(clip_index) => {
-                    let clip = composite_state.get_compositor_clip(clip_index);
+                    match tile.clip_index {
+                        Some(clip_index) => {
+                            let clip = composite_state.get_compositor_clip(clip_index);
 
-                    // TODO(gw): Make segment builder generic on unit to avoid casts below.
-                    segment_builder.initialize(
-                        rect.cast_unit(),
-                        None,
-                        rect.cast_unit(),
-                    );
-                    segment_builder.push_clip_rect(
-                        clip.rect.cast_unit(),
-                        Some(clip.radius),
-                        ClipMode::Clip,
-                    );
-                    segment_builder.build(|segment| {
-                        let key = OcclusionItemKey { tile_index: idx, needs_mask: segment.has_mask };
+                            // TODO(gw): Make segment builder generic on unit to avoid casts below.
+                            segment_builder.initialize(
+                                rect.cast_unit(),
+                                None,
+                                rect.cast_unit(),
+                            );
+                            segment_builder.push_clip_rect(
+                                clip.rect.cast_unit(),
+                                Some(clip.radius),
+                                ClipMode::Clip,
+                            );
+                            segment_builder.build(|segment| {
+                                let key = OcclusionItemKey { tile_index: idx, needs_mask: segment.has_mask };
 
-                        full_render_occlusion.add(
-                            &segment.rect.cast_unit(),
-                            is_opaque && !segment.has_mask,
-                            key,
-                        );
-                    });
+                                full_render_occlusion.add(
+                                    &segment.rect.cast_unit(),
+                                    is_opaque && !segment.has_mask,
+                                    key,
+                                );
+                            });
+                        }
+                        None => {
+                            full_render_occlusion.add(&rect, is_opaque, OcclusionItemKey {
+                                tile_index: idx,
+                                needs_mask: false,
+                            });
+                        }
+                    }
                 }
-                None => {
-                    full_render_occlusion.add(&rect, is_opaque, OcclusionItemKey {
-                        tile_index: idx,
-                        needs_mask: false,
-                    });
-                }
+                TileKind::Clear => {}
             }
         }
 
@@ -841,6 +886,7 @@ impl Renderer {
                     });
 
                     swapchain_layers.push(SwapChainLayer {
+                clear_tiles: Vec::new(),
                         occlusion: occlusion::FrontToBackBuilder::with_capacity(cap, cap),
                     });
                 }
@@ -895,11 +941,16 @@ impl Renderer {
                 let mut combined_dirty_rect = DeviceRect::zero();
 
                 for tile in composite_state.tiles.iter() {
+                    if tile.kind == TileKind::Clear {
+                        continue;
+                    }
+
                     if tile.tile_id.is_none() {
                         match tile.surface {
                             CompositeTileSurface::ExternalSurface { .. } => {}
                             CompositeTileSurface::Texture { .. }  |
-                            CompositeTileSurface::Color { .. } => {
+                            CompositeTileSurface::Color { .. } |
+                            CompositeTileSurface::Clear => {
                                 unreachable!();
                             },
                         }
@@ -1027,28 +1078,32 @@ impl Renderer {
                 Some(layer_index) => layer_index,
             };
 
-            // For normal tiles, add to occlusion tracker
+            // For normal tiles, add to occlusion tracker. For clear tiles, add directly
+            // to the swapchain tile list
             let layer = &mut swapchain_layers[layer_index];
 
-            let is_opaque = tile.kind == TileKind::Opaque;
+            // Clear tiles overwrite whatever is under them, so they are treated as opaque.
+            match tile.kind {
+                TileKind::Opaque | TileKind::Alpha => {
+                    let is_opaque = tile.kind != TileKind::Alpha;
 
-            match tile.clip_index {
-                Some(clip_index) => {
-                    let clip = composite_state.get_compositor_clip(clip_index);
+                    match tile.clip_index {
+                        Some(clip_index) => {
+                            let clip = composite_state.get_compositor_clip(clip_index);
 
-                        // TODO(gw): Make segment builder generic on unit to avoid casts below.
-                    segment_builder.initialize(
-                        rect.cast_unit(),
-                        None,
-                        rect.cast_unit(),
-                    );
-                    segment_builder.push_clip_rect(
-                        clip.rect.cast_unit(),
-                        Some(clip.radius),
-                        ClipMode::Clip,
-                    );
-                    segment_builder.build(|segment| {
-                        let key = OcclusionItemKey { tile_index: idx, needs_mask: segment.has_mask };
+                                // TODO(gw): Make segment builder generic on unit to avoid casts below.
+                            segment_builder.initialize(
+                                rect.cast_unit(),
+                                None,
+                                rect.cast_unit(),
+                            );
+                            segment_builder.push_clip_rect(
+                                clip.rect.cast_unit(),
+                                Some(clip.radius),
+                                ClipMode::Clip,
+                            );
+                            segment_builder.build(|segment| {
+                                let key = OcclusionItemKey { tile_index: idx, needs_mask: segment.has_mask };
 
                         let radius = if segment.edge_flags ==
                             EdgeMask::TOP | EdgeMask::LEFT &&
@@ -1087,18 +1142,27 @@ impl Renderer {
                             }
                         }
 
-                        layer.occlusion.add(
-                            &segment.rect.cast_unit(),
-                            is_opaque && !segment.has_mask,
-                            key,
-                        );
-                    });
+                                layer.occlusion.add(
+                                    &segment.rect.cast_unit(),
+                                    is_opaque && !segment.has_mask,
+                                    key,
+                                );
+                            });
+                        }
+                        None => {
+                            layer.occlusion.add(&rect, is_opaque, OcclusionItemKey {
+                                tile_index: idx,
+                                needs_mask: false,
+                            });
+                        }
+                    }
                 }
-                None => {
-                    layer.occlusion.add(&rect, is_opaque, OcclusionItemKey {
-                        tile_index: idx,
-                        needs_mask: false,
-                    });
+                TileKind::Clear => {
+                    // Clear tiles are specific to how we render the window buttons on
+                    // Windows 8. They clobber what's under them so they can be treated as opaque,
+                    // but require a different blend state so they will be rendered after the opaque
+                    // tiles and before transparent ones.
+                    layer.clear_tiles.push(occlusion::Item { rectangle: rect, key: OcclusionItemKey { tile_index: idx, needs_mask: false } });
                 }
             }
         }
@@ -1346,6 +1410,9 @@ impl Renderer {
                 // Work out how many dirty rects WR produced, and if that's more than
                 // what the device supports.
                 for tile in &composite_state.tiles {
+                    if tile.kind == TileKind::Clear {
+                        continue;
+                    }
                     let dirty_rect = composite_state
                         .get_device_rect(&tile.local_dirty_rect, tile.transform_index);
 

@@ -4,7 +4,7 @@
 
 use api::{BorderRadius, ClipMode, ColorF, ColorU, RasterSpace};
 use api::{ImageRendering, RepeatMode, PrimitiveFlags};
-use api::{PropertyBinding, Shadow};
+use api::{PremultipliedColorF, PropertyBinding, Shadow};
 use api::{PrimitiveKeyKind, FillRule, POLYGON_CLIP_VERTEX_MAX};
 use api::units::*;
 use euclid::{SideOffsets2D, Size2D};
@@ -485,6 +485,7 @@ pub enum PrimitiveTemplateKind {
     Rectangle {
         color: PropertyBinding<ColorF>,
     },
+    Clear,
 }
 
 impl PrimitiveTemplateKind {
@@ -495,6 +496,10 @@ impl PrimitiveTemplateKind {
         scene_properties: &SceneProperties,
     ) {
         match *self {
+            PrimitiveTemplateKind::Clear => {
+                // Opaque black with operator dest out
+                writer.push_one(PremultipliedColorF::BLACK);
+            }
             PrimitiveTemplateKind::Rectangle { ref color, .. } => {
                 writer.push_one(scene_properties.resolve_color(color).premultiplied())
             }
@@ -508,6 +513,9 @@ impl PrimitiveTemplateKind {
 impl From<PrimitiveKeyKind> for PrimitiveTemplateKind {
     fn from(kind: PrimitiveKeyKind) -> Self {
         match kind {
+            PrimitiveKeyKind::Clear => {
+                PrimitiveTemplateKind::Clear
+            }
             PrimitiveKeyKind::Rectangle { color, .. } => {
                 PrimitiveTemplateKind::Rectangle {
                     color: color.into(),
@@ -574,6 +582,7 @@ impl PatternBuilder for PrimitiveTemplate {
         _state: &mut PatternBuilderState,
     ) -> crate::pattern::Pattern {
         match self.kind {
+            PrimitiveTemplateKind::Clear => Pattern::clear(),
             PrimitiveTemplateKind::Rectangle { ref color, .. } => {
                 let color = ctx.scene_properties.resolve_color(color);
                 Pattern::color(color)
@@ -586,6 +595,7 @@ impl PatternBuilder for PrimitiveTemplate {
         ctx: &PatternBuilderContext,
     ) -> ColorF {
         match self.kind {
+            PrimitiveTemplateKind::Clear => ColorF::BLACK,
             PrimitiveTemplateKind::Rectangle { ref color, .. } => {
                 ctx.scene_properties.resolve_color(color)
             }
@@ -636,6 +646,9 @@ impl PrimitiveTemplate {
         self.common.gpu_buffer_address = writer.finish();
 
         self.opacity = match self.kind {
+            PrimitiveTemplateKind::Clear => {
+                PrimitiveOpacity::translucent()
+            }
             PrimitiveTemplateKind::Rectangle { ref color, .. } => {
                 PrimitiveOpacity::from_alpha(scene_properties.resolve_color(color).a)
             }
@@ -666,6 +679,11 @@ impl InternablePrimitive for PrimitiveKeyKind {
         prim_store: &mut PrimitiveStore,
     ) -> PrimitiveInstanceKind {
         match key.kind {
+            PrimitiveKeyKind::Clear => {
+                PrimitiveInstanceKind::Clear {
+                    data_handle
+                }
+            }
             PrimitiveKeyKind::Rectangle { color, .. } => {
                 let color_binding_index = match color {
                     PropertyBinding::Binding(..) => {
@@ -949,6 +967,9 @@ impl IsVisible for PrimitiveKeyKind {
     //           primitive types to use this.
     fn is_visible(&self) -> bool {
         match *self {
+            PrimitiveKeyKind::Clear => {
+                true
+            }
             PrimitiveKeyKind::Rectangle { ref color, .. } => {
                 match *color {
                     PropertyBinding::Value(value) => value.a > 0,
@@ -974,6 +995,9 @@ impl CreateShadow for PrimitiveKeyKind {
                 PrimitiveKeyKind::Rectangle {
                     color: PropertyBinding::Value(shadow.color.into()),
                 }
+            }
+            PrimitiveKeyKind::Clear => {
+                panic!("bug: this prim is not supported in shadow contexts");
             }
         }
     }
@@ -1065,6 +1089,11 @@ pub enum PrimitiveInstanceKind {
         visible_tiles_range: GradientTileRange,
         use_legacy_path: bool,
     },
+    /// Clear out a rect, used for special effects.
+    Clear {
+        /// Handle to the common interned data for this primitive.
+        data_handle: PrimitiveDataHandle,
+    },
     /// Render a portion of a specified backdrop.
     BackdropCapture {
         data_handle: BackdropCaptureDataHandle,
@@ -1133,6 +1162,7 @@ impl PrimitiveInstance {
 
     pub fn uid(&self) -> intern::ItemUid {
         match &self.kind {
+            PrimitiveInstanceKind::Clear { data_handle, .. } |
             PrimitiveInstanceKind::Rectangle { data_handle, .. } => {
                 data_handle.uid()
             }

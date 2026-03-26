@@ -663,6 +663,7 @@ class DisplayListBuilder final {
                    const layers::ScrollableLayerGuid::ViewID& aScrollId,
                    const gfx::CompositorHitTestInfo& aHitInfo,
                    SideBits aSideBits);
+  void PushClearRect(const wr::LayoutRect& aBounds);
 
   void PushBackdropFilter(const wr::LayoutRect& aBounds,
                           const wr::ComplexClipRegion& aRegion,
