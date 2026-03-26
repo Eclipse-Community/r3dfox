@@ -20,6 +20,7 @@ Preferences.addAll([
   { id: "privacy.spoof_english", type: "int" },
   { id: "layout.spellcheckDefault", type: "int" },
   { id: "browser.translations.automaticallyPopup", type: "bool" },
+  { id: "browser.translations.enable", type: "bool" },
 ]);
 
 /**
