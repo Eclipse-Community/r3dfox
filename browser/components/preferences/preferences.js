@@ -573,8 +573,6 @@ function init_all() {
     gotoPref(event.target.view);
   });
 
-  maybeDisplayPoliciesNotice();
-
   window.addEventListener("hashchange", onHashChange);
   window.addEventListener("beforeunload", onBeforeunload);
 
