@@ -1512,3 +1512,9 @@ trustpanel-cryptominer-not-blocking-tab-header = { $count ->
   *[other] { -brand-product-name } allowed { $count } cryptominers
 }
 trustpanel-cryptominer-tab-list-header = These sites are trying to cryptomine:
+
+
+urlbar-webgl-notification-anchor =
+    .tooltiptext = Manage WebGL context creation permission
+urlbar-webgl-blocked =
+    .tooltiptext = You have blocked WebGL context creation for this website.
