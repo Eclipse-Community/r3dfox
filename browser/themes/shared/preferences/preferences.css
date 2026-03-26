@@ -1626,6 +1626,11 @@ setting-pane[onsearchpane] {
   }
 }
 
+#support-firefox,
+.mission-message {
+  display: none;
+}
+
 #dohProviderSelect {
   --select-max-width: 235px;
 }
