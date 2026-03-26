@@ -7,6 +7,7 @@
 /* import-globals-from home.js */
 /* import-globals-from search.js */
 /* import-globals-from privacy.js */
+/* import-globals-from librewolf.js */
 /* import-globals-from sync.js */
 /* import-globals-from moreFromMozilla.js */
 /* import-globals-from r3dfox.js */
@@ -527,6 +528,7 @@ function init_all() {
   register_module("paneHome", gHomePane);
   register_module("paneSearch", gSearchPane);
   register_module("panePrivacy", gPrivacyPane);
+  register_module("paneLibrewolf", gLibrewolfPane);
   register_module("paneR3dfox", gR3dfoxPane);
 
   // Restore the cached Firefox Labs nav button visibility so it shows

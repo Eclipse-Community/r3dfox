@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="chrome://browser/skin/preferences/search.css" />
   <link rel="stylesheet" href="chrome://browser/content/usercontext/usercontext.css" />
   <link rel="stylesheet" href="chrome://browser/skin/preferences/privacy.css" />
+  <link rel="stylesheet" href="chrome://browser/skin/preferences/librewolf.css" />
   <link rel="stylesheet" href="chrome://browser/content/preferences/widgets/setting-group.css" />
   <link rel="stylesheet" href="chrome://browser/content/preferences/widgets/setting-pane.css" />
   <link rel="stylesheet" href="chrome://browser/content/preferences/widgets/setting-control.css" />
@@ -149,6 +150,11 @@
         iconsrc="chrome://browser/skin/preferences/category-r3dfox.svg"
         data-l10n-id="pane-r3dfox-title">
       </html:moz-page-nav-button>
+      <html:moz-page-nav-button id="category-librewolf"
+        view="paneLibrewolf"
+        iconsrc="chrome://browser/skin/preferences/category-general.svg"
+        data-l10n-id="pane-librewolf-title">
+      </html:moz-page-nav-button>
       <html:moz-page-nav-button id="category-appearance"
         view="paneAppearance"
         iconsrc="chrome://global/skin/icons/eye.svg"
@@ -251,6 +257,7 @@
 #include home.inc.xhtml
 #include search.inc.xhtml
 #include privacy.inc.xhtml
+#include librewolf.inc.xhtml
 #include sync.inc.xhtml
 #include moreFromMozilla.inc.xhtml
 #include r3dfox.inc.xhtml
