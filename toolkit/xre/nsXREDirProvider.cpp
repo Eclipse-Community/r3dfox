@@ -378,6 +378,14 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
     rv = GetUserDataDirectoryHome(getter_AddRefs(file), false);
     NS_ENSURE_SUCCESS(rv, rv);
 #  if defined(XP_MACOSX)
+    rv = file->AppendNative("LibreWolf"_ns);
+#  else   // defined(XP_MACOSX)
+    rv = file->AppendNative(".librewolf"_ns);
+#  endif  // defined(XP_MACOSX)
+  } else if (!strcmp(aProperty, XRE_MOZ_USER_NATIVE_MANIFESTS)) {
+    rv = GetUserDataDirectoryHome(getter_AddRefs(file), false, true);
+    NS_ENSURE_SUCCESS(rv, rv);
+#  if defined(XP_MACOSX)
     rv = file->AppendNative("Mozilla"_ns);
 #  else   // defined(XP_MACOSX)
     rv = file->AppendNative(".mozilla"_ns);
@@ -410,8 +418,7 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
   else if (!strcmp(aProperty, XRE_SYS_SHARE_EXTENSION_PARENT_DIR)) {
 #  ifdef ENABLE_SYSTEM_EXTENSION_DIRS
 #    if defined(__OpenBSD__) || defined(__FreeBSD__)
-    static const char* const sysLExtDir =
-        "/usr/local/share/librewolf/extensions";
+    static const char* const sysLExtDir = "/usr/local/share/librewolf/extensions";
 #    else
     static const char* const sysLExtDir = "/usr/share/librewolf/extensions";
 #    endif
