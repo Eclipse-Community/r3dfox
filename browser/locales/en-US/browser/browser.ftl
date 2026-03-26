@@ -1670,3 +1670,6 @@ reduced-protection-infobar-reload-button = Reload
   .accesskey = R
 reduced-protection-infobar-never-show-button = Don’t show again
   .accesskey = D
+
+
+identity-allow-site-data = Always store cookies/data for this site
