@@ -10811,6 +10811,20 @@
   mirror: always
 
 #---------------------------------------------------------------------------
+# Prefs starting with "librewolf."
+#---------------------------------------------------------------------------
+
+- name: librewolf.webgl.prompt
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
+- name: librewolf.webgl.prompt.hide
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
+#---------------------------------------------------------------------------
 # Prefs starting with "logging."
 #---------------------------------------------------------------------------
 

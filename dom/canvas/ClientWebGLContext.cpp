@@ -13,6 +13,8 @@
 #include "HostWebGLContext.h"
 #include "js/PropertyAndElement.h"  // JS_DefineElement
 #include "js/ScalarType.h"          // js::Scalar::Type
+#include "mozilla/StaticPrefs_librewolf.h"
+#include "mozilla/dom/BrowserChild.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/ToJSValue.h"
 #include "mozilla/dom/TypedArray.h"
@@ -35,6 +37,8 @@
 #include "mozilla/StaticPrefs_webgl.h"
 #include "nsContentUtils.h"
 #include "nsDisplayList.h"
+#include "nsIPrincipal.h"
+#include "nsIPermissionManager.h"
 #include "TexUnpackBlob.h"
 #include "WebGLFormats.h"
 #include "WebGLMethodDispatcher.h"
@@ -843,6 +847,131 @@ static bool IsWebglOutOfProcessEnabled() {
   return StaticPrefs::webgl_out_of_process();
 }
 
+static uint32_t GetWebGLPermission(nsIPrincipal* aPrincipal) {
+  if (!aPrincipal) {
+    return nsIPermissionManager::UNKNOWN_ACTION;
+  }
+
+  if (IsUnrestrictedPrincipal(aPrincipal)) {
+    return true;
+  }
+
+  nsresult rv;
+  nsCOMPtr<nsIPermissionManager> permissionManager =
+      do_GetService(NS_PERMISSIONMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, nsIPermissionManager::UNKNOWN_ACTION);
+
+  uint32_t permission;
+  rv = permissionManager->TestPermissionFromPrincipal(
+      aPrincipal, "webgl"_ns, &permission);
+  NS_ENSURE_SUCCESS(rv, nsIPermissionManager::UNKNOWN_ACTION);
+
+  return permission;
+}
+
+static bool IsWebGLAllowed_impl(
+       bool webGLDisabled, JSContext* aCx,
+       nsIPrincipal* aPrincipal,
+       const std::function<void(const nsAutoString&)>& aReportToConsole,
+       const std::function<void(bool)>& aTryPrompt) {
+
+       if(!webGLDisabled) {
+               return true;
+       }
+
+       if (!aCx) {
+               return false;
+       }
+
+       if (IsUnrestrictedPrincipal(aPrincipal)) {
+               return true;
+       }
+
+       Maybe<nsAutoCString> origin = Nothing();
+       auto getOrigin = [&]() {
+               if (origin.isSome()) {
+                       return origin->IsEmpty();
+               }
+
+               nsAutoCString originResult;
+               nsresult rv = NS_ERROR_FAILURE;
+               if (aPrincipal) {
+                       rv = aPrincipal->GetOrigin(originResult);
+               }
+               origin = NS_SUCCEEDED(rv) ? Some(originResult) : Some(""_ns);
+
+               return NS_SUCCEEDED(rv);
+       };
+
+       uint64_t permission = GetWebGLPermission(aPrincipal);
+       switch (permission) {
+               case nsIPermissionManager::ALLOW_ACTION:
+                       return true;
+               case nsIPermissionManager::DENY_ACTION:
+                       return false;
+               default:
+                       break;
+       }
+
+       bool hidePermissionDoorhanger = StaticPrefs::librewolf_webgl_prompt_hide();
+
+       nsAutoString message;
+       message.AppendPrintf("Blocked %s from creating WebGL context but prompting the user.",
+                                               getOrigin() ? origin->get() : "unknown");
+       aReportToConsole(message);
+
+       aTryPrompt(hidePermissionDoorhanger);
+
+       return false;
+}
+
+static bool IsWebGLAllowed(dom::Document* aDocument, JSContext* aCx,
+                                  nsIPrincipal* aPrincipal) {
+       if(NS_WARN_IF(!aDocument)) {
+               return false;
+       }
+
+       bool webGLDisabled = StaticPrefs::librewolf_webgl_prompt();
+
+       if (!webGLDisabled) {
+               return true;
+       }
+
+       auto reportToConsole = [&](const nsAutoString& message) {
+               nsContentUtils::ReportToConsoleNonLocalized(
+                       message, nsIScriptError::warningFlag, "Security"_ns, aDocument);
+       };
+
+       auto prompt = [&](bool hidePermissionDoorhanger) {
+    if (!aPrincipal) {
+      return;
+    }
+
+    nsAutoCString origin;
+    nsresult rv = aPrincipal->GetOrigin(origin);
+    if (NS_FAILED(rv)) {
+      return;
+    }
+
+    if (!XRE_IsContentProcess()) {
+      MOZ_ASSERT_UNREACHABLE(
+          "Who's calling this from the parent process without a chrome window "
+          "(it would have been exempt from the RFP targets)?");
+      return;
+    }
+
+    nsPIDOMWindowOuter* win = aDocument->GetWindow();
+    if (RefPtr<dom::BrowserChild> browserChild =
+            dom::BrowserChild::GetFrom(win)) {
+      browserChild->SendShowWebGLPermissionPrompt(origin, hidePermissionDoorhanger);
+    }
+  };
+
+       return IsWebGLAllowed_impl(
+      webGLDisabled, aCx, aPrincipal,
+      reportToConsole, prompt);
+}
+
 bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
   const auto pNotLost = std::make_shared<webgl::NotLostData>(*this);
   auto& notLost = *pNotLost;
@@ -876,6 +1005,17 @@ bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
         .size = requestedSize,
         .options = options,
     };
+
+       if (mCanvasElement && !StaticPrefs::webgl_disabled()) {
+               if(!IsWebGLAllowed(mCanvasElement->OwnerDoc(),
+                                  nsContentUtils::GetCurrentJSContext(),
+                                  mCanvasElement->NodePrincipal())) {
+
+                       return Err("WebGL is currently disabled.");
+               }
+       }
+
+
 
     // -
 
