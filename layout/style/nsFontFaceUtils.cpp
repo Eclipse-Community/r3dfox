@@ -48,7 +48,8 @@ static bool IsFontReferenced(const ComputedStyle& aStyle,
 static FontUsageKind StyleFontUsage(nsIFrame* aFrame, ComputedStyle* aStyle,
                                     nsPresContext* aPresContext,
                                     const gfxUserFontEntry* aFont,
-                                    const nsAString& aFamilyName) {
+                                    const nsAString& aFamilyName,
+                                    bool aIsExtraStyle) {
   MOZ_ASSERT(NS_ConvertUTF8toUTF16(aFont->FamilyName()) == aFamilyName);
 
   auto FontIsUsed = [&aFont, &aPresContext,
@@ -78,9 +79,15 @@ static FontUsageKind StyleFontUsage(nsIFrame* aFrame, ComputedStyle* aStyle,
 
   if (aStyle->DependsOnInheritedFontMetrics() &&
       !(usage & FontUsageKind::FontMetrics)) {
-    nsIFrame* provider = nullptr;
-    if (auto* parentStyle = aFrame->GetParentComputedStyle(&provider);
-        parentStyle && FontIsUsed(parentStyle)) {
+    ComputedStyle* parentStyle = nullptr;
+    if (aIsExtraStyle) {
+      parentStyle = aFrame->Style();
+    } else {
+      nsIFrame* provider = nullptr;
+      parentStyle = aFrame->GetParentComputedStyle(&provider);
+    }
+
+    if (parentStyle && FontIsUsed(parentStyle)) {
       usage |= FontUsageKind::FontMetrics;
     }
   }
@@ -93,8 +100,25 @@ static FontUsageKind FrameFontUsage(nsIFrame* aFrame,
                                     const gfxUserFontEntry* aFont,
                                     const nsAString& aFamilyName) {
   // check the style of the frame
-  return StyleFontUsage(aFrame, aFrame->Style(), aPresContext, aFont,
-                        aFamilyName);
+  FontUsageKind kind = StyleFontUsage(aFrame, aFrame->Style(), aPresContext,
+                                      aFont, aFamilyName, /* extra = */ false);
+  if (kind == FontUsageKind::Max) {
+    return kind;
+  }
+
+  // check additional styles
+  int32_t contextIndex = 0;
+  for (ComputedStyle* extraContext;
+       (extraContext = aFrame->GetAdditionalComputedStyle(contextIndex));
+       ++contextIndex) {
+    kind |= StyleFontUsage(aFrame, extraContext, aPresContext, aFont,
+                           aFamilyName, /* extra = */ true);
+    if (kind == FontUsageKind::Max) {
+      break;
+    }
+  }
+
+  return kind;
 }
 
 // TODO(emilio): Can we use the restyle-hint machinery instead of this?

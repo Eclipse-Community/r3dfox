@@ -65,6 +65,8 @@ nsresult nsMathMLmencloseFrame::AllocateMathMLChar(MencloseNotation mask) {
   }
 
   // No need to track the ComputedStyle given to our MathML chars.
+  // The Style System will use Get/SetAdditionalComputedStyle() to keep it
+  // up-to-date if dynamic changes arise.
   uint32_t i = mMathMLChar.Length();
   nsAutoString Char;
 

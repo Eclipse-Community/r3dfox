@@ -138,6 +138,12 @@ class nsMathMLChar {
     mBoundingMetrics = aBoundingMetrics;
   }
 
+  // Hooks to access the extra leaf ComputedStyles given to the MathMLChars.
+  // They provide an interface to make them accessible to the Style System via
+  // the Get/Set AdditionalComputedStyle() APIs. Owners of MathMLChars
+  // should honor these APIs.
+  mozilla::ComputedStyle* GetComputedStyle() const;
+
   void SetComputedStyle(mozilla::ComputedStyle* aComputedStyle);
 
   nscoord ItalicCorrection() const { return mItalicCorrection; }

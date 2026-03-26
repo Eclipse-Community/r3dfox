@@ -1982,6 +1982,16 @@ RubyMetrics nsIFrame::RubyMetrics(float aRubyMetricsFactor) const {
       nscoord(NS_round(fm->TrimmedDescent() * aRubyMetricsFactor))};
 }
 
+ComputedStyle* nsIFrame::GetAdditionalComputedStyle(int32_t aIndex) const {
+  MOZ_ASSERT(aIndex >= 0, "invalid index number");
+  return nullptr;
+}
+
+void nsIFrame::SetAdditionalComputedStyle(int32_t aIndex,
+                                          ComputedStyle* aComputedStyle) {
+  MOZ_ASSERT(aIndex >= 0, "invalid index number");
+}
+
 nscoord nsIFrame::SynthesizeFallbackBaseline(
     WritingMode aWM, BaselineSharingGroup aBaselineGroup) const {
   const auto margin = GetLogicalUsedMargin(aWM);
@@ -11745,6 +11755,9 @@ nsChangeHint nsIFrame::UpdateStyleOfOwnedChildFrame(
     nsIFrame* aChildFrame, ComputedStyle* aNewComputedStyle,
     ServoRestyleState& aRestyleState,
     const Maybe<ComputedStyle*>& aContinuationComputedStyle) {
+  MOZ_ASSERT(!aChildFrame->GetAdditionalComputedStyle(0),
+             "We don't handle additional styles here");
+
   // Figure out whether we have an actual change.  It's important that we do
   // this, for several reasons:
   //
@@ -11783,6 +11796,7 @@ nsChangeHint nsIFrame::UpdateStyleOfOwnedChildFrame(
                                          : aNewComputedStyle;
   for (nsIFrame* kid = aChildFrame->GetNextContinuation(); kid;
        kid = kid->GetNextContinuation()) {
+    MOZ_ASSERT(!kid->GetAdditionalComputedStyle(0));
     kid->SetComputedStyle(continuationStyle);
   }
 
@@ -12099,6 +12113,15 @@ void nsIFrame::AddSizeOfExcludingThisForTree(nsWindowSizes& aSizes) const {
   if (!aSizes.mState.HaveSeenPtr(mComputedStyle)) {
     mComputedStyle->AddSizeOfIncludingThis(aSizes,
                                            &aSizes.mLayoutComputedValuesNonDom);
+  }
+
+  // And our additional styles.
+  int32_t index = 0;
+  while (auto* extra = GetAdditionalComputedStyle(index++)) {
+    if (!aSizes.mState.HaveSeenPtr(extra)) {
+      extra->AddSizeOfIncludingThis(aSizes,
+                                    &aSizes.mLayoutComputedValuesNonDom);
+    }
   }
 
   for (const auto& childList : ChildLists()) {

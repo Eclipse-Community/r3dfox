@@ -1013,6 +1013,25 @@ class nsIFrame : public nsQueryFrame {
   }
 
   /**
+   * These methods are to access any additional ComputedStyles that
+   * the frame may be holding.
+   *
+   * These are styles that are children of the frame's primary style and are NOT
+   * used as styles for any child frames.
+   *
+   * These contexts also MUST NOT have any child styles whatsoever. If you need
+   * to insert styles into the style tree, then you should create pseudo element
+   * frames to own them.
+   *
+   * The indicies must be consecutive and implementations MUST return null if
+   * asked for an index that is out of range.
+   */
+  virtual ComputedStyle* GetAdditionalComputedStyle(int32_t aIndex) const;
+
+  virtual void SetAdditionalComputedStyle(int32_t aIndex,
+                                          ComputedStyle* aComputedStyle);
+
+  /**
    * @param aSelectionStatus nsISelectionController::getDisplaySelection.
    */
   already_AddRefed<ComputedStyle> ComputeSelectionStyle(
