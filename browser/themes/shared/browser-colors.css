@@ -5,12 +5,14 @@
 @import url("chrome://global/skin/design-system/toolbar.css");
 
 :root {
-@media not (-moz-windows-default-theme) {
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
   &:where([tabsintitlebar]) {
     --toolbox-bgcolor: ActiveCaption;
     --toolbox-textcolor: CaptionText;
     --toolbox-bgcolor-inactive: InactiveCaption;
     --toolbox-textcolor-inactive: InactiveCaptionText;
+  }
   }
 }
 
