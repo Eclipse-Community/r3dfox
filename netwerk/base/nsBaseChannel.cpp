@@ -41,7 +41,7 @@ class ScopedRequestSuspender {
   }
 
  private:
-  nsIRequest* mRequest;
+  nsCOMPtr<nsIRequest> mRequest;
 };
 
 // Used to suspend data events from mRequest within a function scope.  This is
