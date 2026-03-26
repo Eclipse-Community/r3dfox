@@ -1307,6 +1307,13 @@ class nsIWidget : public nsSupportsWeakReference {
 
   PopupLevel GetPopupLevel() { return mPopupLevel; }
 
+  // return true if this is a popup widget with a native titlebar
+  bool IsPopupWithTitleBar() const {
+    return (mWindowType == WindowType::Popup &&
+            mBorderStyle != BorderStyle::Default &&
+            mBorderStyle & BorderStyle::Title);
+  }
+
   /**
    * Internal methods
    */
