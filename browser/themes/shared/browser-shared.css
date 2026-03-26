@@ -199,7 +199,6 @@ body {
   transition: background-color var(--inactive-window-transition);
 
   &:-moz-window-inactive {
-    background-color: var(--toolbox-bgcolor-inactive);
     color: var(--toolbox-textcolor-inactive);
   }
 
