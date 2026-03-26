@@ -353,8 +353,6 @@ const CONFIG_PANES = Object.freeze({
       "history2",
       // Bug 1968118: move these elsewhere
       "permissions",
-      // Bug 1968118: move these elsewhere
-      "dataCollection",
       "nonTechnicalPrivacy2",
       "dnsOverHttps",
       "connectionLink",
