@@ -51,6 +51,7 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
   const bool isXULElement = frameContent->IsXULElement();
   if (isXULElement) {
     if (aAppearance == StyleAppearance::Checkbox ||
+        aAppearance == StyleAppearance::Treeheadersortarrow ||
         aAppearance == StyleAppearance::Radio) {
       aFrame = aFrame->GetParent();
       frameContent = aFrame->GetContent();
