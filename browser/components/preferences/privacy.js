@@ -1597,6 +1597,16 @@ var gPrivacyPane = {
     PrivacySettingHelpers.showXRExceptions();
   },
 
+  // WebGL
+
+  /**
+  * Displays the WebGL exceptions dialog where specific site WebGL
+  * preferences can be set.
+  */
+  showWebGLExceptions() {
+    PrivacySettingHelpers.showWebGLExceptions();
+  },
+
   // CAMERA
 
   /**
