@@ -10004,7 +10004,7 @@ var TabBarVisibility = {
       .getElementById("browser")
       .classList.toggle(
         "browser-toolbox-background",
-        CustomTitlebar.enabled && hasVerticalTabs
+        TabsInTitlebar.enabled && hasVerticalTabs
       );
 
     if (
