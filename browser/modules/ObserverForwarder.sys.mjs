@@ -14,6 +14,8 @@ let lazy = {};
 ChromeUtils.defineESModuleGetters(lazy, {
   CanvasPermissionPromptHelper:
     "moz-src:///browser/modules/CanvasPermissionPromptHelper.sys.mjs",
+  WebGLPermissionPromptHelper:
+    "moz-src:///browser/modules/WebGLPermissionPromptHelper.sys.mjs",
   FilePickerCrashed: "resource:///modules/FilePickerCrashed.sys.mjs",
   PluginManager: "resource:///actors/PluginParent.sys.mjs",
   UnexpectedScriptObserver:
@@ -28,6 +30,9 @@ ChromeUtils.defineESModuleGetters(lazy, {
 let gObservers = {
   "canvas-permissions-prompt": ["CanvasPermissionPromptHelper"],
   "canvas-permissions-prompt-hide-doorhanger": ["CanvasPermissionPromptHelper"],
+  
+  "webgl-permissions-prompt": ["WebGLPermissionPromptHelper"],
+  "webgl-permissions-prompt-hide-doorhanger": ["WebGLPermissionPromptHelper"],
 
   "UnexpectedJavaScriptLoad-Live": ["UnexpectedScriptObserver"],
   "UnexpectedJavaScriptLoad-UserTookAction": ["UnexpectedScriptObserver"],
