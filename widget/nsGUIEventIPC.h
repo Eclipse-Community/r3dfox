@@ -1032,6 +1032,17 @@ struct ParamTraits<mozilla::InputData> {
     WriteParam(aWriter, aParam.mLayersId);
   }
 
+  template <typename T>
+  static bool Read(MessageReader* aReader, mozilla::InputType aInputType,
+                   T* aResult) {
+    static_assert(std::derived_from<T, mozilla::InputData> == true);
+    if (!Read(aReader, static_cast<mozilla::InputData*>(aResult))) {
+      return false;
+    }
+    return aResult->mInputType == aInputType;
+  }
+
+ private:
   static bool Read(MessageReader* aReader, paramType* aResult) {
     return ReadParam(aReader, &aResult->mInputType) &&
            ReadParam(aReader, &aResult->mTimeStamp) &&
@@ -1118,7 +1129,8 @@ struct ParamTraits<mozilla::MultiTouchInput> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, static_cast<mozilla::InputData*>(aResult)) &&
+    return ParamTraits<mozilla::InputData>::Read(
+               aReader, mozilla::MULTITOUCH_INPUT, aResult) &&
            ReadParam(aReader, &aResult->mType) &&
            ReadParam(aReader, &aResult->mTouches) &&
            ReadParam(aReader, &aResult->mHandledByAPZ) &&
@@ -1160,7 +1172,8 @@ struct ParamTraits<mozilla::MouseInput> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, static_cast<mozilla::InputData*>(aResult)) &&
+    return ParamTraits<mozilla::InputData>::Read(aReader, mozilla::MOUSE_INPUT,
+                                                 aResult) &&
            ReadParam(aReader, &aResult->mButtonType) &&
            ReadParam(aReader, &aResult->mType) &&
            ReadParam(aReader, &aResult->mInputSource) &&
@@ -1211,7 +1224,8 @@ struct ParamTraits<mozilla::PanGestureInput>
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, static_cast<mozilla::InputData*>(aResult)) &&
+    return ParamTraits<mozilla::InputData>::Read(
+               aReader, mozilla::PANGESTURE_INPUT, aResult) &&
            ReadParam(aReader, &aResult->mType) &&
            ReadParam(aReader, &aResult->mPanStartPoint) &&
            ReadParam(aReader, &aResult->mPanDisplacement) &&
@@ -1267,7 +1281,8 @@ struct ParamTraits<mozilla::PinchGestureInput> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, static_cast<mozilla::InputData*>(aResult)) &&
+    return ParamTraits<mozilla::InputData>::Read(
+               aReader, mozilla::PINCHGESTURE_INPUT, aResult) &&
            ReadParam(aReader, &aResult->mType) &&
            ReadParam(aReader, &aResult->mSource) &&
            ReadParam(aReader, &aResult->mScreenOffset) &&
@@ -1299,7 +1314,8 @@ struct ParamTraits<mozilla::TapGestureInput> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, static_cast<mozilla::InputData*>(aResult)) &&
+    return ParamTraits<mozilla::InputData>::Read(
+               aReader, mozilla::TAPGESTURE_INPUT, aResult) &&
            ReadParam(aReader, &aResult->mType) &&
            ReadParam(aReader, &aResult->mPoint) &&
            ReadParam(aReader, &aResult->mLocalPoint);
@@ -1362,7 +1378,8 @@ struct ParamTraits<mozilla::ScrollWheelInput> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, static_cast<mozilla::InputData*>(aResult)) &&
+    return ParamTraits<mozilla::InputData>::Read(
+               aReader, mozilla::SCROLLWHEEL_INPUT, aResult) &&
            ReadParam(aReader, &aResult->mDeltaType) &&
            ReadParam(aReader, &aResult->mScrollMode) &&
            ReadParam(aReader, &aResult->mOrigin) &&
@@ -1406,7 +1423,8 @@ struct ParamTraits<mozilla::KeyboardInput> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, static_cast<mozilla::InputData*>(aResult)) &&
+    return ParamTraits<mozilla::InputData>::Read(
+               aReader, mozilla::KEYBOARD_INPUT, aResult) &&
            ReadParam(aReader, &aResult->mType) &&
            ReadParam(aReader, &aResult->mKeyCode) &&
            ReadParam(aReader, &aResult->mCharCode) &&
