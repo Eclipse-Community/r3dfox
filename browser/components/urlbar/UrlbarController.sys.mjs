@@ -1075,6 +1075,11 @@ class TelemetryEvent {
       pickedActionKey: details.element?.dataset.action ?? null,
     };
 
+    // Skip telemetry for intervention tips
+    if (details.provider == "UrlbarProviderInterventions") {
+      return;
+    }
+
     let { queryContext } = this._controller._lastQueryContextWrapper || {};
 
     this.#recordSearchEngagementTelemetry(method, startEventInfo, {
