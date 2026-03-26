@@ -188,6 +188,15 @@
   list-style-image: url(chrome://browser/skin/canvas-blocked.svg);
 }
 
+#webgl-notification-icon,
+.webgl-icon {
+  list-style-image: url(chrome://browser/skin/webgl.svg);
+}
+
+.webgl-icon.blocked-permission-icon {
+  list-style-image: url(chrome://browser/skin/webgl-blocked.svg);
+}
+
 #webauthn-notification-icon,
 .popup-notification-icon[popupid^="webauthn-prompt-"] {
   list-style-image: url(chrome://browser/skin/fingerprint.svg);

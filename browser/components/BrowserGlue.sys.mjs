@@ -36,6 +36,8 @@ ChromeUtils.defineESModuleGetters(lazy, {
   DownloadsViewableInternally:
     "resource:///modules/DownloadsViewableInternally.sys.mjs",
   ExtensionsUI: "resource:///modules/ExtensionsUI.sys.mjs",
+  WebGLPermissionPromptHelper:
+    "moz-src:///browser/modules/WebGLPermissionPromptHelper.sys.mjs",
   // FilePickerCrashed is used by the `listeners` object below.
   // eslint-disable-next-line mozilla/valid-lazy
   FilePickerCrashed: "resource:///modules/FilePickerCrashed.sys.mjs",
@@ -134,6 +136,10 @@ ChromeUtils.defineLazyGetter(lazy, "gBrowserBundle", function () {
 
 const listeners = {
   observers: {
+
+    "webgl-permissions-prompt": ["WebGLPermissionPromptHelper"],
+    "webgl-permissions-prompt-hide-doorhanger": ["WebGLPermissionPromptHelper"],
+
     "file-picker-crashed": ["FilePickerCrashed"],
     "gmp-plugin-crash": ["PluginManager"],
     "plugin-crashed": ["PluginManager"],

@@ -30,6 +30,10 @@ const sitePermissionsL10n = {
     disableLabel: "permissions-site-xr-disable-label",
     disableDescription: "permissions-site-xr-disable-desc",
   },
+  webgl: {
+    window: "permissions-site-webgl-window2",
+    description: "permissions-site-webgl-desc",
+  },
   camera: {
     window: "permissions-site-camera-window2",
     description: "permissions-site-camera-desc",
