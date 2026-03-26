@@ -5,7 +5,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "KnowsCompositor.h"
-#include "mozilla/layers/ImageDataSerializer.h"
 #include "mozilla/layers/ImageBridgeChild.h"
 #include "mozilla/ipc/ProtocolUtils.h"
 
@@ -54,55 +53,6 @@ void KnowsCompositorMediaProxy::SyncWithCompositor(
 bool IsSurfaceDescriptorValid(const SurfaceDescriptor& aSurface) {
   return aSurface.type() != SurfaceDescriptor::T__None &&
          aSurface.type() != SurfaceDescriptor::Tnull_t;
-}
-
-uint8_t* GetAddressFromDescriptor(const SurfaceDescriptor& aDescriptor) {
-  MOZ_ASSERT(IsSurfaceDescriptorValid(aDescriptor));
-  MOZ_RELEASE_ASSERT(
-      aDescriptor.type() == SurfaceDescriptor::TSurfaceDescriptorBuffer,
-      "GFX: surface descriptor is not the right type.");
-
-  auto memOrShmem = aDescriptor.get_SurfaceDescriptorBuffer().data();
-  if (memOrShmem.type() == MemoryOrShmem::TShmem) {
-    return memOrShmem.get_Shmem().get<uint8_t>();
-  } else {
-    return reinterpret_cast<uint8_t*>(memOrShmem.get_uintptr_t());
-  }
-}
-
-already_AddRefed<gfx::DataSourceSurface> GetSurfaceForDescriptor(
-    const SurfaceDescriptor& aDescriptor) {
-  if (aDescriptor.type() != SurfaceDescriptor::TSurfaceDescriptorBuffer) {
-    return nullptr;
-  }
-  uint8_t* data = GetAddressFromDescriptor(aDescriptor);
-  auto rgb =
-      aDescriptor.get_SurfaceDescriptorBuffer().desc().get_RGBDescriptor();
-  uint32_t stride = ImageDataSerializer::GetRGBStride(rgb);
-  return gfx::Factory::CreateWrappingDataSourceSurface(data, stride, rgb.size(),
-                                                       rgb.format());
-}
-
-void DestroySurfaceDescriptor(ipc::IShmemAllocator* aAllocator,
-                              SurfaceDescriptor* aSurface) {
-  MOZ_ASSERT(aSurface);
-
-  SurfaceDescriptorBuffer& desc = aSurface->get_SurfaceDescriptorBuffer();
-  switch (desc.data().type()) {
-    case MemoryOrShmem::TShmem: {
-      aAllocator->DeallocShmem(desc.data().get_Shmem());
-      break;
-    }
-    case MemoryOrShmem::Tuintptr_t: {
-      uint8_t* ptr = (uint8_t*)desc.data().get_uintptr_t();
-      GfxMemoryImageReporter::WillFree(ptr);
-      delete[] ptr;
-      break;
-    }
-    default:
-      MOZ_CRASH("surface type not implemented!");
-  }
-  *aSurface = SurfaceDescriptor();
 }
 
 }  // namespace mozilla::layers

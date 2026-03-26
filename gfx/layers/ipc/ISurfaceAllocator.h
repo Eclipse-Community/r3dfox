@@ -205,14 +205,6 @@ class LegacySurfaceDescriptorAllocator {
 
 bool IsSurfaceDescriptorValid(const SurfaceDescriptor& aSurface);
 
-already_AddRefed<gfx::DataSourceSurface> GetSurfaceForDescriptor(
-    const SurfaceDescriptor& aDescriptor);
-
-uint8_t* GetAddressFromDescriptor(const SurfaceDescriptor& aDescriptor);
-
-void DestroySurfaceDescriptor(mozilla::ipc::IShmemAllocator* aAllocator,
-                              SurfaceDescriptor* aSurface);
-
 class GfxMemoryImageReporter final : public nsIMemoryReporter {
   ~GfxMemoryImageReporter() = default;
 

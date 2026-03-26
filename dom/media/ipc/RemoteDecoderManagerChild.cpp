@@ -27,6 +27,7 @@
 #include "mozilla/MozPromise.h"
 #include "mozilla/StaticPrefs_media.h"
 #include "mozilla/StaticPtr.h"
+#include "mozilla/layers/ImageDataSerializer.h"
 #include "nsContentUtils.h"
 #include "nsIObserver.h"
 #include "nsPrintfCString.h"
@@ -43,6 +44,8 @@ namespace mozilla {
 
 #define LOG(msg, ...) \
   MOZ_LOG(gRemoteDecodeLog, LogLevel::Debug, (msg, ##__VA_ARGS__))
+#define LOGE(msg, ...) \
+  MOZ_LOG(gRemoteDecodeLog, LogLevel::Error, (msg, ##__VA_ARGS__))
 
 using namespace layers;
 using namespace gfx;
@@ -840,6 +843,31 @@ bool RemoteDecoderManagerChild::DeallocShmem(mozilla::ipc::Shmem& aShmem) {
   return PRemoteDecoderManagerChild::DeallocShmem(aShmem);
 }
 
+static already_AddRefed<gfx::DataSourceSurface> GetSurfaceForDescriptor(
+    const SurfaceDescriptor& aDescriptor) {
+  const auto& sdb = aDescriptor.get_SurfaceDescriptorBuffer();
+  const auto& shmem = sdb.data().get_Shmem();
+  const auto& rgb = sdb.desc().get_RGBDescriptor();
+  const uint32_t stride = ImageDataSerializer::GetRGBStride(rgb);
+  const size_t requiredSize =
+      ImageDataSerializer::ComputeRGBBufferSize(rgb.size(), rgb.format());
+  if (shmem.Size<uint8_t>() < requiredSize) {
+    LOGE("Shmem too small for required buffer size");
+    return nullptr;
+  }
+
+  return gfx::Factory::CreateWrappingDataSourceSurface(
+      shmem.get<uint8_t>(), stride, rgb.size(), rgb.format());
+}
+
+static void DestroySurfaceDescriptor(ipc::IShmemAllocator* aAllocator,
+                                     SurfaceDescriptor* aSurface) {
+  MOZ_ASSERT(aSurface);
+  const SurfaceDescriptorBuffer& desc = aSurface->get_SurfaceDescriptorBuffer();
+  aAllocator->DeallocShmem(desc.data().get_Shmem());
+  *aSurface = SurfaceDescriptor();
+}
+
 struct SurfaceDescriptorUserData {
   SurfaceDescriptorUserData(RemoteDecoderManagerChild* aAllocator,
                             SurfaceDescriptor& aSD)
@@ -875,14 +903,20 @@ already_AddRefed<SourceSurface> RemoteDecoderManagerChild::Readback(
       });
   SyncRunnable::DispatchToThread(managerThread, task);
 
-  if (!IsSurfaceDescriptorValid(sd)) {
+  if (sd.type() != SurfaceDescriptor::TSurfaceDescriptorBuffer) {
+    LOGE("Unexpected SurfaceDescriptor type in Readback");
+    return nullptr;
+  }
+  auto& sdb = sd.get_SurfaceDescriptorBuffer();
+  if (sdb.data().type() != MemoryOrShmem::TShmem) {
+    LOGE("Unexpected SurfaceDescriptorBuffer data type in Readback");
     return nullptr;
   }
 
   RefPtr<DataSourceSurface> source = GetSurfaceForDescriptor(sd);
   if (!source) {
     DestroySurfaceDescriptor(this, &sd);
-    NS_WARNING("Failed to map SurfaceDescriptor in Readback");
+    LOGE("Failed to map SurfaceDescriptor in Readback");
     return nullptr;
   }
 
@@ -932,5 +966,6 @@ void RemoteDecoderManagerChild::SetSupported(
 }
 
 #undef LOG
+#undef LOGE
 
 }  // namespace mozilla
