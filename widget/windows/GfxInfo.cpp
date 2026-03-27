@@ -1990,9 +1990,9 @@ nsresult GfxInfo::GetFeatureStatusImpl(
         !adapterVendorID.Equals(
             GfxDriverInfo::GetDeviceVendor(DeviceVendor::Qualcomm),
             nsCaseInsensitiveStringComparator) &&
-        !adapterVendorID.Equals(
+        !(mWindowsVersion <= kWindows8_1 && adapterVendorID.Equals(
             GfxDriverInfo::GetDeviceVendor(DeviceVendor::VMWare),
-            nsCaseInsensitiveStringComparator) &&
+            nsCaseInsensitiveStringComparator)) &&
         // FIXME - these special hex values are currently used in xpcshell tests
         // introduced by bug 625160 patch 8/8. Maybe these tests need to be
         // adjusted now that we're only whitelisting intel/ati/nvidia.
@@ -2004,6 +2004,10 @@ nsresult GfxInfo::GetFeatureStatusImpl(
               GfxDriverInfo::GetDeviceVendor(DeviceVendor::VirtualBox),
               nsCaseInsensitiveStringComparator)) {
         aFailureId = "FEATURE_FAILURE_VM_VENDOR";
+      } else if (mWindowsVersion >= kWindows10 && adapterVendorID.Equals(
+            GfxDriverInfo::GetDeviceVendor(DeviceVendor::VMWare),
+            nsCaseInsensitiveStringComparator)) {
+        aFailureId = "FEATURE_FAILURE_VMWARE_FAILS_10";
       } else if (adapterVendorID.Equals(GfxDriverInfo::GetDeviceVendor(
                                             DeviceVendor::MicrosoftBasic),
                                         nsCaseInsensitiveStringComparator)) {
