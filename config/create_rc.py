@@ -252,6 +252,7 @@ def generate_module_rc():
         + [last_winversion_segment(buildid, app_version_display)]
     )
     display_name = buildconfig.substs.get("MOZ_APP_DISPLAYNAME", "Mozilla")
+    app_vendor = buildconfig.substs.get("MOZ_APP_VENDOR")
 
     milestone_string = milestone
 
@@ -266,6 +267,7 @@ def generate_module_rc():
 
     defines = {
         "MOZ_APP_DISPLAYNAME": display_name,
+        "MOZ_APP_VENDOR": app_vendor,
         "MOZ_APP_VERSION": app_version,
         "MOZ_APP_WINVERSION": app_winversion,
     }
