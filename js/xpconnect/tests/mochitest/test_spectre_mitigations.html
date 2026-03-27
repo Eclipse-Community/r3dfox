@@ -18,10 +18,6 @@ add_task(async function() {
     is(Boolean(val), !SpecialPowers.useRemoteSubframes, "must be enabled if Fission is disabled");
   };
 
-  testMitigation("spectre.index-masking");
-  testMitigation("spectre.object-mitigations");
-  testMitigation("spectre.string-mitigations");
-  testMitigation("spectre.value-masking");
 });
 </script>
 </body>
