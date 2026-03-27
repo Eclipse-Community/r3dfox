@@ -50,6 +50,20 @@
                 permissions-exceptions-manage-etp-desc,
               "/>
     </hbox>
+    <hbox id="rfpIncompatibilityWarning" class="info-box-container" hidden="true">
+      <vbox class="info-icon-container">
+        <html:img class="info-icon"></html:img>
+      </vbox>
+      <vbox flex="1">
+        <description>
+          <html:span data-l10n-id="content-blocking-rfp-incompatibility-warning"/>
+          <html:a is="moz-support-link"
+                  class="learnMore"
+                  support-page="resist-fingerprinting"
+          />
+        </description>
+      </vbox>
+    </hbox>
     <hbox id="fpiIncompatibilityWarning" class="info-box-container" hidden="true">
       <vbox class="info-icon-container">
         <html:img class="info-icon"></html:img>
@@ -64,7 +78,7 @@
       <radiogroup id="contentBlockingCategoryRadio"
                   preference="browser.contentblocking.category"
                   aria-labelledby="trackingProtectionMenuDesc">
-        <vbox id="contentBlockingOptionStandard" class="privacy-detailedoption info-box-container" hidden="true">
+        <vbox id="contentBlockingOptionStandard" class="privacy-detailedoption info-box-container">
           <hbox>
             <radio id="standardRadio"
                    value="standard"
@@ -229,7 +243,7 @@
                         is="highlightable-button"
                         data-l10n-id="content-blocking-reload-tabs-button"/>
               </html:div>
-              <vbox class="content-blocking-warning info-box-container" hidden="true">
+              <vbox class="content-blocking-warning info-box-container">
                 <hbox>
                   <image class="content-blocking-warning-image"/>
                   <label class="content-blocking-warning-title" data-l10n-id="content-blocking-warning-title-2"/>
@@ -245,7 +259,7 @@
             </vbox>
           </vbox>
         </vbox>
-        <vbox id="contentBlockingOptionCustom" class="privacy-detailedoption info-box-container" hidden="true">
+        <vbox id="contentBlockingOptionCustom" class="privacy-detailedoption info-box-container">
           <hbox>
             <radio id="customRadio"
                    value="custom"
@@ -378,20 +392,6 @@
         </vbox>
       </radiogroup>
     </vbox>
-    <hbox id="rfpIncompatibilityWarning" class="info-box-container" hidden="true">
-      <vbox class="info-icon-container">
-        <html:img class="info-icon"></html:img>
-      </vbox>
-      <vbox flex="1">
-        <description>
-          <html:span data-l10n-id="content-blocking-rfp-incompatibility-warning"/>
-          <html:a is="moz-support-link"
-                  class="learnMore"
-                  support-page="resist-fingerprinting"
-          />
-        </description>
-      </vbox>
-    </hbox>
   </vbox>
 </groupbox>
 <html:setting-group id="nonTechnicalPrivacyGroup" groupid="nonTechnicalPrivacy" data-category="panePrivacy" hidden="true" data-srd-groupid="nonTechnicalPrivacy2"/>
