@@ -508,13 +508,19 @@ struct ParamTraits<mozilla::WidgetKeyboardEvent> {
 };
 
 template <>
+struct ParamTraits<mozilla::TextRangeStyle::LineStyle>
+    : ContiguousEnumSerializerInclusive<
+          mozilla::TextRangeStyle::LineStyle,
+          mozilla::TextRangeStyle::LineStyle::None,
+          mozilla::TextRangeStyle::LineStyle::Wavy> {};
+
+template <>
 struct ParamTraits<mozilla::TextRangeStyle> {
   using paramType = mozilla::TextRangeStyle;
 
   static void Write(MessageWriter* aWriter, const paramType& aParam) {
     WriteParam(aWriter, aParam.mDefinedStyles);
-    WriteParam(aWriter, static_cast<mozilla::TextRangeStyle::LineStyleType>(
-                            aParam.mLineStyle));
+    WriteParam(aWriter, aParam.mLineStyle);
     WriteParam(aWriter, aParam.mIsBoldLine);
     WriteParam(aWriter, aParam.mForegroundColor);
     WriteParam(aWriter, aParam.mBackgroundColor);
@@ -522,19 +528,20 @@ struct ParamTraits<mozilla::TextRangeStyle> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    mozilla::TextRangeStyle::LineStyleType lineStyle;
-    if (!ReadParam(aReader, &aResult->mDefinedStyles) ||
-        !ReadParam(aReader, &lineStyle) ||
-        !ReadParam(aReader, &aResult->mIsBoldLine) ||
-        !ReadParam(aReader, &aResult->mForegroundColor) ||
-        !ReadParam(aReader, &aResult->mBackgroundColor) ||
-        !ReadParam(aReader, &aResult->mUnderlineColor)) {
-      return false;
-    }
-    aResult->mLineStyle = mozilla::TextRangeStyle::ToLineStyle(lineStyle);
-    return true;
+    return ReadParam(aReader, &aResult->mDefinedStyles) &&
+           ReadParam(aReader, &aResult->mLineStyle) &&
+           ReadParam(aReader, &aResult->mIsBoldLine) &&
+           ReadParam(aReader, &aResult->mForegroundColor) &&
+           ReadParam(aReader, &aResult->mBackgroundColor) &&
+           ReadParam(aReader, &aResult->mUnderlineColor);
   }
 };
+
+template <>
+struct ParamTraits<mozilla::TextRangeType>
+    : ContiguousEnumSerializerInclusive<
+          mozilla::TextRangeType, mozilla::TextRangeType::eUninitialized,
+          mozilla::TextRangeType::eSelectedClause> {};
 
 template <>
 struct ParamTraits<mozilla::TextRange> {
@@ -543,20 +550,15 @@ struct ParamTraits<mozilla::TextRange> {
   static void Write(MessageWriter* aWriter, const paramType& aParam) {
     WriteParam(aWriter, aParam.mStartOffset);
     WriteParam(aWriter, aParam.mEndOffset);
-    WriteParam(aWriter, mozilla::ToRawTextRangeType(aParam.mRangeType));
+    WriteParam(aWriter, aParam.mRangeType);
     WriteParam(aWriter, aParam.mRangeStyle);
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    mozilla::RawTextRangeType rawTextRangeType;
-    if (ReadParam(aReader, &aResult->mStartOffset) &&
-        ReadParam(aReader, &aResult->mEndOffset) &&
-        ReadParam(aReader, &rawTextRangeType) &&
-        ReadParam(aReader, &aResult->mRangeStyle)) {
-      aResult->mRangeType = mozilla::ToTextRangeType(rawTextRangeType);
-      return true;
-    }
-    return false;
+    return ReadParam(aReader, &aResult->mStartOffset) &&
+           ReadParam(aReader, &aResult->mEndOffset) &&
+           ReadParam(aReader, &aResult->mRangeType) &&
+           ReadParam(aReader, &aResult->mRangeStyle);
   }
 };
 
