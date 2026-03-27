@@ -1654,7 +1654,7 @@
 # See bug 1772569
 - name: browser.download.open_pdf_attachments_inline
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # See bug 1811830
@@ -1968,7 +1968,7 @@
 # Minimal interval between two save operations in milliseconds (while the user is active).
 - name: browser.sessionstore.interval
   type: RelaxedAtomicUint32
-  value: 15000
+  value: 60000
   mirror: always
 
 # Disable collection of data for session store using the native collector code,
@@ -2023,7 +2023,7 @@
 # no (0), yes (1), or default (2), which is true everywhere except Linux.
 - name: browser.tabs.inTitlebar
   type: int32_t
-  value: 2
+  value: 1
   mirror: always
 
 # If set, middle clicking on a link opens the link in a new tab.
@@ -2424,7 +2424,7 @@
 # 2: Reject-all if possible, otherwise accept-all.
 - name: cookiebanners.service.mode
   type: uint32_t
-  value: 0
+  value: 1
   mirror: always
 
 # When set to true, cookie banners are detected and detection events are
@@ -2439,7 +2439,7 @@
 # options as the normal browsing pref above.
 - name: cookiebanners.service.mode.privateBrowsing
   type: uint32_t
-  value: 0
+  value: 1
   mirror: always
 
 # Enables use of global CookieBannerRules, which apply to all sites. This is
@@ -3871,7 +3871,7 @@
 # Whether origin trials are enabled.
 - name: dom.origin-trials.enabled
   type: bool
-  value: true
+  value: false
   mirror: always
 
 # Whether we use the test key to verify tokens.
@@ -3898,11 +3898,7 @@
 # 0: normal, 1: always-enabled, 2: always-disabled
 - name: dom.origin-trials.private-attribution.state
   type: RelaxedAtomicInt32
-#ifdef ANDROID
   value: 2
-#else
-  value: 0
-#endif
   mirror: always
 
 # Origin trial state for MLS
@@ -8640,7 +8636,7 @@
 # Chunk size for calls to the image decoders.
 - name: image.mem.decode_bytes_at_a_time
   type: uint32_t
-  value: 16384
+  value: 32768
   mirror: once
 
 # Discards inactive image frames and re-decodes them on demand from
@@ -9670,25 +9666,25 @@
   #       default value of false.
 -   name: javascript.options.spectre.index_masking
     type: bool
-    value: true
+    value: false
     mirror: always  # LoadStartupJSPrefs
     do_not_use_directly: true
 
 -   name: javascript.options.spectre.object_mitigations
     type: bool
-    value: true
+    value: false
     mirror: always  # LoadStartupJSPrefs
     do_not_use_directly: true
 
 -   name: javascript.options.spectre.string_mitigations
     type: bool
-    value: true
+    value: false
     mirror: always  # LoadStartupJSPrefs
     do_not_use_directly: true
 
 -   name: javascript.options.spectre.value_masking
     type: bool
-    value: true
+    value: false
     mirror: always  # LoadStartupJSPrefs
     do_not_use_directly: true
 
@@ -13793,21 +13789,21 @@
 # Changes cookieBehavior=5 to block third-party cookies by default
 - name: network.cookie.cookieBehavior.optInPartitioning
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # Changes cookieBehavior=5 to block third-party cookies in the private browsing
 # mode.
 - name: network.cookie.cookieBehavior.optInPartitioning.pbmode
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # Whether to block third-party tracker cookie and storage access when
 # cookieBehavior=5.
 - name: network.cookie.cookieBehavior.trackerCookieBlocking
   type: bool
-  value: false
+  value: true
   mirror: always
 
 # Whether to support CHIPS(Cookies Having Independent Partitioned State).
@@ -15294,7 +15290,7 @@
 # Allow RFC1918 address in responses?
 - name: network.trr.allow-rfc1918
   type: RelaxedAtomicBool
-  value: false
+  value: true
   mirror: always
 
 # Whether to apply split horizon mitigations when using TRR.
@@ -15832,7 +15828,7 @@
 # 1 => Cubic
 - name: network.http.http3.cc_algorithm
   type: RelaxedAtomicUint32
-  value: 1
+  value: 0
   mirror: always
   rust: true
 
@@ -16368,12 +16364,12 @@
 
 - name: nglayout.initialpaint.delay
   type: int32_t
-  value: 5
+  value: 100
   mirror: always
 
 - name: nglayout.initialpaint.delay_in_oopif
   type: int32_t
-  value: 5
+  value: 100
   mirror: always
 
 #---------------------------------------------------------------------------
@@ -18903,7 +18899,7 @@
 # Delay in milliseconds for tooltips
 - name: ui.tooltip.delay_ms
   type: uint32_t
-  value: 500
+  value: 100
   mirror: always
 
 # If the user puts a finger down on an element and we think the user might be
@@ -19690,11 +19686,7 @@
 # controls). Maybe it's just fine.
 - name: widget.non-native-theme.use-theme-accent
   type: RelaxedAtomicBool
-#if defined(XP_WIN) && !defined(MOZ_THUNDERBIRD)
-  value: false
-#else
   value: true
-#endif
   mirror: always
 
 # Preference to disable dark scrollbar implementation.
