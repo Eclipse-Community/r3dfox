@@ -232,7 +232,7 @@ newtab-custom-row-selector =
         }
 newtab-custom-stories-toggle =
   .label = Recommended stories
-  .description = Exceptional content curated by the { -brand-product-name } family
+  .description = Exceptional content curated by Mozilla
 newtab-custom-stories-personalized-toggle =
   .label = Stories
 newtab-custom-stories-personalized-checkbox-label = Personalized stories based on your activity
