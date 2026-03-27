@@ -3441,7 +3441,7 @@ var gPrivacyPane = {
     initSettingGroup("securityPrivacyStatus");
     initSettingGroup("securityPrivacyWarnings");
     initSettingGroup("httpsOnly");
-    //initSettingGroup("browsingProtection");
+    initSettingGroup("browsingProtection");
     initSettingGroup("cookiesAndSiteData");
     initSettingGroup("cookiesAndSiteData2");
     initSettingGroup("certificates");
