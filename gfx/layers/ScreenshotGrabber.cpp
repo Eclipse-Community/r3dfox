@@ -154,10 +154,14 @@ void ScreenshotGrabberImpl::GrabScreenshot(Window& aWindow,
     return;
   }
 
+  if (aWindowSize.IsEmpty() || mBufferSize.IsEmpty()) {
+    return;
+  }
+
   Size windowSize(aWindowSize);
   float scale = std::min(mBufferSize.width / windowSize.width,
                          mBufferSize.height / windowSize.height);
-  IntSize scaledSize = IntSize::Round(windowSize * scale);
+  IntSize scaledSize = Max(IntSize::Round(windowSize * scale), IntSize(1, 1));
   RefPtr<RenderSource> scaledTarget = ScaleDownWindowRenderSourceToSize(
       aWindow, scaledSize, windowRenderSource, 0);
 
