@@ -225,7 +225,7 @@
 }
 
 .extra-information-label {
-  margin-top: 5px;
+  margin-top: 18px;
 }
 
 /* Apply display: block to the containers of all the category information, as
@@ -261,8 +261,9 @@
 }
 
 .content-blocking-extra-blocking-desc {
-  margin-top: 1em;
-  margin-bottom: 0.5em;
+  margin-inline-start: 0.5em;
+  position: relative;
+  top: 0.65em;
 }
 
 .content-blocking-label,
