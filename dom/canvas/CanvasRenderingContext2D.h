@@ -1000,7 +1000,9 @@ class CanvasRenderingContext2D : public nsICanvasRenderingContextInternal,
    * last call to UpdateFilter and now.
    */
   const gfx::FilterDescription& EnsureUpdatedFilter() {
-    bool isWriteOnly = mCanvasElement && mCanvasElement->IsWriteOnly();
+    bool isWriteOnly = IsWriteOnly() ||
+                       (mCanvasElement && mCanvasElement->IsWriteOnly()) ||
+                       (mOffscreenCanvas && mOffscreenCanvas->IsWriteOnly());
     if (CurrentState().filterSourceGraphicTainted != isWriteOnly) {
       UpdateFilter(/* aFlushIfNeeded = */ true);
       EnsureTarget();
