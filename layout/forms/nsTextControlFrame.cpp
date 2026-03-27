@@ -783,7 +783,7 @@ void nsTextControlFrame::SetFocus(bool aOn, bool aRepaint) {
     return;
   }
 
-  mozilla::PresShell* presShell = PresShell();
+  RefPtr<mozilla::PresShell> presShell = PresShell();
   RefPtr<nsCaret> caret = presShell->GetCaret();
   if (!caret) {
     return;
@@ -804,6 +804,9 @@ void nsTextControlFrame::SetFocus(bool aOn, bool aRepaint) {
 
   if (!docSel->IsCollapsed()) {
     docSel->RemoveAllRanges(IgnoreErrors());
+  }
+  if (presShell->IsDestroying()) {
+    return;
   }
 
   // If the focus moved to a text control during text selection by pointer
