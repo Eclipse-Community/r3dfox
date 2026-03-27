@@ -386,9 +386,11 @@ void Animation::SetStartTime(const Nullable<TimeDuration>& aNewStartTime) {
   }
 
   CancelPendingTasks();
-  // We may have already resolved mReady, but in that case calling
-  // MaybeResolve is a no-op, so that's okay.
-  MaybeResolvePromiseWithThis(mReady);
+  if (mReady) {
+    // We may have already resolved mReady, but in that case calling
+    // MaybeResolve is a no-op, so that's okay.
+    mReady->MaybeResolve(this);
+  }
 
   UpdateTiming(SeekFlag::DidSeek, SyncNotifyFlag::Async);
   if (IsRelevant()) {
@@ -447,7 +449,9 @@ void Animation::SetCurrentTimeNoUpdate(const TimeDuration& aSeekTime) {
     ApplyPendingPlaybackRate();
     mStartTime.SetNull();
 
-    MaybeResolvePromiseWithThis(mReady);
+    if (mReady) {
+      mReady->MaybeResolve(this);
+    }
     CancelPendingTasks();
   }
 
@@ -604,23 +608,9 @@ Promise* Animation::GetReady(ErrorResult& aRv) {
     return nullptr;
   }
   if (!Pending()) {
-    MaybeResolvePromiseWithThis(mReady);
+    mReady->MaybeResolve(this);
   }
   return mReady;
-}
-
-void Animation::MaybeResolvePromiseWithThis(Promise* aPromise) {
-  if (!aPromise) {
-    return;
-  }
-  if (!nsContentUtils::IsSafeToRunScript()) [[unlikely]] {
-    nsContentUtils::AddScriptRunner(NewRunnableMethod<RefPtr<Promise>>(
-        "MaybeResolvePromiseWithThis", this,
-        &Animation::MaybeResolvePromiseWithThis, aPromise));
-    return;
-  }
-  RefPtr promise = aPromise;
-  promise->MaybeResolve(this);
 }
 
 Promise* Animation::GetFinished(ErrorResult& aRv) {
@@ -724,7 +714,9 @@ void Animation::Finish(ErrorResult& aRv) {
     }
     CancelPendingTasks();
     didChange = true;
-    MaybeResolvePromiseWithThis(mReady);
+    if (mReady) {
+      mReady->MaybeResolve(this);
+    }
   }
   UpdateTiming(SeekFlag::DidSeek, SyncNotifyFlag::Sync);
   if (didChange && IsRelevant()) {
@@ -1615,7 +1607,9 @@ void Animation::ResumeAt(const TimeDuration& aReadyTime) {
     MutationObservers::NotifyAnimationChanged(this);
   }
 
-  MaybeResolvePromiseWithThis(mReady);
+  if (mReady) {
+    mReady->MaybeResolve(this);
+  }
 }
 
 void Animation::PauseAt(const TimeDuration& aReadyTime) {
@@ -1632,7 +1626,9 @@ void Animation::PauseAt(const TimeDuration& aReadyTime) {
 
   UpdateTiming(SeekFlag::NoSeek, SyncNotifyFlag::Async);
 
-  MaybeResolvePromiseWithThis(mReady);
+  if (mReady) {
+    mReady->MaybeResolve(this);
+  }
 }
 
 void Animation::UpdateTiming(SeekFlag aSeekFlag,
@@ -1881,8 +1877,10 @@ void Animation::ResetFinishedPromise() {
 }
 
 void Animation::MaybeResolveFinishedPromise() {
+  if (mFinished) {
+    mFinished->MaybeResolve(this);
+  }
   mFinishedIsResolved = true;
-  MaybeResolvePromiseWithThis(mFinished);
 }
 
 void Animation::DoFinishNotificationImmediately(MicroTaskRunnable* aAsync) {
