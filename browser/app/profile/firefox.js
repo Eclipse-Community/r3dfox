@@ -67,12 +67,12 @@ pref("extensions.geckoProfiler.acceptedExtensionIds", "geckoprofiler@mozilla.com
 
 pref("extensions.webextensions.remote", true);
 
-// Require signed add-ons by default
-pref("extensions.langpacks.signatures.required", true);
-pref("xpinstall.signatures.required", true);
+// Dn not require signed add-ons by default
+pref("extensions.langpacks.signatures.required", false);
+pref("xpinstall.signatures.required", false);
 
 // Enable data collection permissions.
-pref("extensions.dataCollectionPermissions.enabled", true);
+pref("extensions.dataCollectionPermissions.enabled", false);
 
 // Dictionary download preference
 pref("browser.dictionaries.download.url", "https://addons.mozilla.org/%LOCALE%/firefox/language-tools/");
@@ -272,12 +272,12 @@ pref("browser.fixup.dns_first_for_single_words", false);
 
 // UI density of the browser chrome. This mostly affects toolbarbutton
 // and urlbar spacing. The possible values are 0=normal, 1=compact, 2=touch.
-pref("browser.uidensity", 0);
+pref("browser.uidensity", 1);
 // Whether Firefox will automatically override the uidensity to "touch"
 // while the user is in a touch environment (such as Windows tablet mode).
-pref("browser.touchmode.auto", true);
+pref("browser.touchmode.auto", false);
 // Whether Firefox will show the Compact Mode UIDensity option.
-pref("browser.compactmode.show", false);
+pref("browser.compactmode.show", true);
 
 // At startup, check if we're the default browser and prompt user if not.
 pref("browser.shell.checkDefaultBrowser", true);
@@ -338,7 +338,7 @@ pref("browser.startup.couldRestoreSession.count", 0);
 // Show a skeleton UI window prior to loading libxul. Only visible for windows
 // users as it is not implemented anywhere else.
 #if defined(XP_WIN)
-pref("browser.startup.preXulSkeletonUI", true);
+pref("browser.startup.preXulSkeletonUI", false);
 
 // Whether the checkbox to enable Windows launch on login is shown
 pref("browser.startup.windowsLaunchOnLogin.enabled", true);
@@ -367,7 +367,7 @@ pref("browser.warnOnQuit", true);
   pref("browser.fullscreen.autohide", true);
 #endif
 
-pref("browser.overlink-delay", 80);
+pref("browser.overlink-delay", 25);
 
 pref("browser.taskbarTabs.enabled", false);
 
@@ -442,7 +442,7 @@ pref("browser.urlbar.suggest.quickactions",         true);
 pref("browser.urlbar.deduplication.enabled", false);
 pref("browser.urlbar.deduplication.thresholdDays", 0);
 
-pref("browser.urlbar.scotchBonnet.enableOverride", true);
+pref("browser.urlbar.scotchBonnet.enableOverride", false);
 
 // Once Perplexity has entered search mode at least once,
 // we no longer show the Perplexity onboarding callout.
@@ -484,19 +484,22 @@ pref("browser.urlbar.suggest.weather", true);
 
 // If `browser.urlbar.trending.featureGate` is true, this controls whether
 // trending suggestions are turned on.
-pref("browser.urlbar.suggest.trending", true);
+pref("browser.urlbar.suggest.trending", false);
 
 // Whether non-sponsored quick suggest results are shown in the urlbar. This
 // pref is exposed to the user in the UI, and it's sticky so that its
 // user-branch value persists regardless of whatever Firefox Suggest scenarios,
 // with their various default-branch values, the user is enrolled in over time.
-pref("browser.urlbar.suggest.quicksuggest.nonsponsored", false, sticky);
+pref("browser.urlbar.suggest.quicksuggest.nonsponsored", false);
 
 // Whether sponsored quick suggest results are shown in the urlbar. This pref is
 // exposed to the user in the UI, and it's sticky so that its user-branch value
 // persists regardless of whatever Firefox Suggest scenarios, with their various
 // default-branch values, the user is enrolled in over time.
-pref("browser.urlbar.suggest.quicksuggest.sponsored", false, sticky);
+pref("browser.urlbar.suggest.quicksuggest.sponsored", false);
+
+// Mozilla supposedly removed this, but they still use it in browser code.
+pref("browser.urlbar.quicksuggest.dataCollection.enabled", false);
 
 // Whether data collection is enabled for quick suggest results in the urlbar.
 // This pref is exposed to the user in the UI, and it's sticky so that its
@@ -629,7 +632,7 @@ pref("browser.urlbar.showSearchTerms.featureGate", false);
 
 // If true, show the search term in the Urlbar while on
 // a default search engine results page.
-pref("browser.urlbar.showSearchTerms.enabled", true);
+pref("browser.urlbar.showSearchTerms.enabled", false);
 
 // Whether the urlbar displays one-offs to filter searches to history,
 // bookmarks, or tabs.
@@ -683,7 +686,7 @@ pref("browser.urlbar.suggest.semanticHistory.minLength", 5);
 
 // If `browser.urlbar.addons.featureGate` is true, this controls whether
 // addons suggestions are turned on.
-pref("browser.urlbar.suggest.addons", true);
+pref("browser.urlbar.suggest.addons", false);
 
 // Feature gate pref for MDN suggestions in the urlbar.
 pref("browser.urlbar.mdn.featureGate", false);
@@ -712,7 +715,7 @@ pref("browser.urlbar.yelp.serviceResultDistinction", false);
 
 // If `browser.urlbar.yelp.featureGate` is true, this controls whether
 // Yelp suggestions are turned on.
-pref("browser.urlbar.suggest.yelp", true);
+pref("browser.urlbar.suggest.yelp", false);
 
 // Feature gate pref for Fakespot suggestions in the urlbar.
 pref("browser.urlbar.fakespot.featureGate", false);
@@ -805,7 +808,7 @@ pref("browser.search.context.loadInBackground", false);
 
 // Enables display of the options for the user using a separate default search
 // engine in private browsing mode.
-pref("browser.search.separatePrivateDefault.ui.enabled", false);
+pref("browser.search.separatePrivateDefault.ui.enabled", true);
 // The maximum amount of times the private default banner is shown.
 pref("browser.search.separatePrivateDefault.ui.banner.max", 0);
 
@@ -843,7 +846,7 @@ pref("browser.theme.dark-private-windows", true);
 
 // Pref to control whether or not Private Browsing windows show up
 // as separate icons in the Windows taskbar.
-pref("browser.privateWindowSeparation.enabled", true);
+pref("browser.privateWindowSeparation.enabled", false);
 
 // Controls visibility of the privacy segmentation preferences section.
 pref("browser.privacySegmentation.preferences.show", false);
@@ -1159,7 +1162,7 @@ pref("privacy.history.custom",              false);
 // 6 - Last 24 hours
 pref("privacy.sanitize.timeSpan", 1);
 
-pref("privacy.sanitize.useOldClearHistoryDialog", false);
+pref("privacy.sanitize.useOldClearHistoryDialog", true);
 
 pref("privacy.sanitize.clearOnShutdown.hasMigratedToNewPrefs2", false);
 pref("privacy.sanitize.clearOnShutdown.hasMigratedToNewPrefs3", false);
@@ -1176,6 +1179,9 @@ pref("privacy.temporary_permission_expire_time_ms",  3600000);
 // Enables protection mechanism against password spoofing for cross domain auth requests
 // See bug 791594
 pref("privacy.authPromptSpoofingProtection",         true);
+
+// Enable DNT header by default
+pref("privacy.donottrackheader.enabled", true);
 
 // Enable GPC if the user turns it on in about:preferences
 pref("privacy.globalprivacycontrol.functionality.enabled",  true);
@@ -1245,7 +1251,7 @@ pref("browser.history_swipe_animation.disabled", false);
 pref("mousewheel.with_meta.action", 1);
 
 pref("browser.xul.error_pages.expert_bad_cert", false);
-pref("browser.xul.error_pages.show_safe_browsing_details_on_load", false);
+pref("browser.xul.error_pages.show_safe_browsing_details_on_load", true);
 
 // Enable captive portal detection.
 pref("network.captive-portal-service.enabled", true);
@@ -1745,10 +1751,8 @@ pref("browser.partnerlink.campaign.topsites", "amzn_2020_a1");
 // Activates preloading of the new tab url.
 pref("browser.newtab.preload", true);
 
-// Do not enable the preonboarding experience on Linux
-#ifdef XP_LINUX
-  pref("browser.preonboarding.enabled", false);
-#endif
+// Do not enable the preonboarding experience
+pref("browser.preonboarding.enabled", false);
 
 // Show "Download Firefox for mobile" QR code modal on newtab
 pref("browser.newtabpage.activity-stream.mobileDownloadModal.enabled", false);
@@ -1832,7 +1836,7 @@ pref("browser.newtabpage.activity-stream.asrouter.providers.messaging-experiment
 // ASRouter user prefs
 pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons", true);
 pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", true);
-pref("messaging-system.askForFeedback", true);
+pref("messaging-system.askForFeedback", false);
 
 // The pref that controls if ASRouter uses the remote fluent files.
 // It's enabled by default, but could be disabled to force ASRouter to use the local files.
@@ -2009,6 +2013,10 @@ pref("browser.newtabpage.activity-stream.discoverystream.publisherFavicon.enable
 // User pref to show stories on newtab (feeds.system.topstories has to be set to true as well)
 pref("browser.newtabpage.activity-stream.feeds.section.topstories", true);
 
+// User pref to show stories on newtab (feeds.system.topstories has to be set to true as well)
+pref("browser.newtabpage.activity-stream.feeds.system.topstories", false);
+pref("browser.newtabpage.activity-stream.system.showSponsored", false);
+
 // The pref controls if search hand-off is enabled for Activity Stream.
 pref("browser.newtabpage.activity-stream.improvesearch.handoffToAwesomebar", true);
 
@@ -2023,7 +2031,7 @@ pref("browser.newtabpage.activity-stream.logowordmark.alwaysVisible", true);
 pref("browser.newtabpage.activity-stream.hideTopSitesWithSearchParam", "mfadid=adm");
 
 // Separate about welcome
-pref("browser.aboutwelcome.enabled", true);
+pref("browser.aboutwelcome.enabled", false);
 // Used to set multistage welcome UX
 pref("browser.aboutwelcome.screens", "");
 
@@ -2032,7 +2040,7 @@ pref("browser.aboutwelcome.screens", "");
 pref("messaging-system.log", "warn");
 pref("messaging-system.rsexperimentloader.collection_id", "nimbus-desktop-experiments");
 pref("nimbus.debug", false);
-pref("nimbus.validation.enabled", true);
+pref("nimbus.validation.enabled", false);
 
 // Should Nimbus write to the shared ProfilesDatastoreService? Only used by tests.
 // TODO(bug 1967779): Require the ProfileDatastoreService by default and remove
@@ -2043,11 +2051,7 @@ pref("nimbus.profilesdatastoreservice.enabled", true);
 // disabled, e.g., for artifact builds.
 // See-also: https://bugzilla.mozilla.org/show_bug.cgi?id=1936317
 // See-also: https://bugzilla.mozilla.org/show_bug.cgi?id=1936319
-#if defined(MOZ_ARTIFACT_BUILDS)
-  pref("nimbus.telemetry.targetingContextEnabled", false);
-#else
-  pref("nimbus.telemetry.targetingContextEnabled", true);
-#endif
+pref("nimbus.telemetry.targetingContextEnabled", false);
 
 // Nimbus QA prefs. Used to monitor pref-setting test experiments.
 pref("nimbus.qa.pref-1", "default");
@@ -2259,6 +2263,7 @@ pref("browser.translations.enable", true);
 
 // Enable the new Firefox Translations Settings UI Design
 pref("browser.translations.newSettingsUI.enable", false);
+// Was true in old ESR 140, but doesn't appear to do anything here?
 
 // Enable Firefox Select translations powered by Bergamot translations
 // engine https://browser.mt/.
@@ -2426,7 +2431,7 @@ pref("browser.promo.focus.disallowed_regions", "cn");
 pref("browser.promo.focus.enabled", true);
 
 // Default to enabling pin promos to be shown where allowed.
-pref("browser.promo.pin.enabled", true);
+pref("browser.promo.pin.enabled", false);
 
 // Default to enabling cookie banner reduction promos to be shown where allowed.
 // Set to true for Fx113 (see bug 1808611)
@@ -2649,7 +2654,7 @@ pref("extensions.pocket.refresh.hideRecentSaves.enabled", false);
 // "offered"        - we have offered feature to user and they have not yet made a decision.
 // "enabled"        - user opted in to the feature.
 // "disabled"       - user opted out of the feature.
-pref("signon.firefoxRelay.feature", "available");
+pref("signon.firefoxRelay.feature", "disabled");
 // Should Firefox show Relay to all browsers, or only those signed-in to FxA?
 // Keep it hidden from about:config for now.
 // pref("signon.firefoxRelay.showToAllBrowsers", false);
@@ -2712,7 +2717,7 @@ pref("app.normandy.enabled", true);
 pref("app.normandy.first_run", true);
 pref("app.normandy.logging.level", 50); // Warn
 pref("app.normandy.run_interval_seconds", 21600); // 6 hours
-pref("app.normandy.shieldLearnMoreUrl", "https://support.mozilla.org/1/firefox/%VERSION%/%OS%/%LOCALE%/shield");
+pref("app.normandy.shieldLearnMoreUrl", "");
 pref("app.normandy.last_seen_buildid", "");
 pref("app.normandy.onsync_skew_sec", 600);
 #ifdef MOZ_DATA_REPORTING
@@ -2787,16 +2792,16 @@ pref("security.certerrors.felt-privacy-v1", false);
 // This pref will surface existing Firefox Account information
 // as a button next to the hamburger menu. It allows
 // quick access to sign-in and manage your Firefox Account.
-pref("identity.fxaccounts.toolbar.enabled", true);
+pref("identity.fxaccounts.toolbar.enabled", false);
 pref("identity.fxaccounts.toolbar.accessed", false);
-pref("identity.fxaccounts.toolbar.defaultVisible", true);
+pref("identity.fxaccounts.toolbar.defaultVisible", false);
 
 // Prefs to control Firefox Account panels that shows call to actions
 // for other supported Mozilla products
 pref("identity.fxaccounts.toolbar.pxiToolbarEnabled", true);
-pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.monitorEnabled", true);
-pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.relayEnabled", true);
-pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.vpnEnabled", true);
+pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.monitorEnabled", false);
+pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.relayEnabled", false);
+pref("identity.fxaccounts.toolbar.pxiToolbarEnabled.vpnEnabled", false);
 
 // Prefs to control Mozilla account panels that shows an updated flow
 // for users who don't have sync enabled
@@ -3018,7 +3023,7 @@ pref("devtools.screenshot.audio.enabled", true);
 pref("devtools.dom.enabled", false);
 
 // Enable the Accessibility panel.
-pref("devtools.accessibility.enabled", true);
+pref("devtools.accessibility.enabled", false);
 
 // Web console filters
 pref("devtools.webconsole.filter.error", true);
@@ -3199,11 +3204,7 @@ pref("first-startup.timeout", 30000);
 #endif
 
 // Shows 'View Image Info' item in the image context menu
-#ifdef MOZ_DEV_EDITION
-  pref("browser.menu.showViewImageInfo", true);
-#else
-  pref("browser.menu.showViewImageInfo", false);
-#endif
+pref("browser.menu.showViewImageInfo", true);
 
 // Handing URLs to external apps via the "Share URL" menu item could allow a proxy bypass
 #ifdef MOZ_PROXY_BYPASS_PROTECTION
@@ -3230,7 +3231,7 @@ pref("browser.firefoxbridge.extensionOrigins",
 #endif
 
 // Turn on interaction measurements
-pref("browser.places.interactions.enabled", true);
+pref("browser.places.interactions.enabled", false);
 
 // If the user has seen the Firefox View feature tour this value reflects
 // the id of the last screen they saw and whether they completed the tour
@@ -3246,8 +3247,12 @@ pref("browser.firefox-view.virtual-list.enabled", true);
 // message id, the id of the last screen they saw, and whether they completed the tour
 pref("browser.pdfjs.feature-tour", "{\"screen\":\"\",\"complete\":false}");
 
+// Enables cookie banner handling in Nightly in Private Browsing Mode. See
+// StaticPrefList.yaml for a description of the prefs.
+pref("cookiebanners.service.mode.privateBrowsing", 1);
 
-pref("cookiebanners.ui.desktop.enabled", false);
+// Enables the cookie banner desktop UI.
+pref("cookiebanners.ui.desktop.enabled", true);
 
 // When true, shows a one-time feature callout for cookie banner blocking.
 pref("cookiebanners.ui.desktop.showCallout", false);
