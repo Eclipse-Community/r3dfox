@@ -312,12 +312,14 @@ nsDNSRecord::HasMore(bool* result) {
 
   nsTArray<NetAddr>::const_iterator iterCopy = mIter;
   int iterGenCntCopy = mIterGenCnt;
+  RefPtr<AddrInfo> addrInfoCopy = mAddrInfo;
 
   NetAddr addr;
   *result = NS_SUCCEEDED(GetNextAddr(0, &addr));
 
   mIter = iterCopy;
   mIterGenCnt = iterGenCntCopy;
+  mAddrInfo = std::move(addrInfoCopy);
   mDone = false;
 
   return NS_OK;
