@@ -2,58 +2,20 @@
     "__COMMENT__ More Information": "https://github.com/mozilla/policy-templates/blob/master/README.md",
     "policies": {
         "AppUpdateURL": "https://localhost",
-        "DisableAppUpdate": true,
-        "OverrideFirstRunPage": "",
-        "OverridePostUpdatePage": "",
-        "DisableSystemAddonUpdate": true,
-        "DisableProfileImport": false,
         "DisableFirefoxStudies": true,
         "DisableTelemetry": true,
         "DisableFeedbackCommands": true,
         "DisablePocket": true,
-        "DisableSetDesktopBackground": false,
-        "DisableDeveloperTools": false,
-        "NoDefaultBookmarks": true,
-        "WebsiteFilter": {
-            "Block": [
-                "https://localhost/*"
-            ],
-            "Exceptions": [
-                "https://localhost/*"
-            ]
-        },
+        "DisplayMenuBar": true,
         "ExtensionSettings": {
             "uBlock0@raymondhill.net": {
                 "install_url": "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi",
                 "installation_mode": "normal_installed",
                 "private_browsing": true
-            },
-            "google@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "bing@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "amazondotcom@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "ebay@search.mozilla.org": {
-                "installation_mode": "blocked"
-            },
-            "twitter@search.mozilla.org": {
-                "installation_mode": "blocked"
             }
         },
         "SearchEngines": {
             "PreventInstalls": false,
-            "Remove": [
-                "Google",
-                "Bing",
-                "Amazon.com",
-                "eBay",
-                "Twitter",
-                "Perplexity"
-            ],
             "Default": "DuckDuckGo",
             "Add": [
                 {
@@ -104,10 +66,6 @@
                 }
             ]
         },
-        "SkipTermsOfUse": true,
-        "SupportMenu": {
-            "Title": "LibreWolf Issue Tracker",
-            "URL": "https://codeberg.org/librewolf/issues"
-        }
+        "SkipTermsOfUse": true
     }
 }
