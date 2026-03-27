@@ -5,7 +5,14 @@
 include $(topsrcdir)/toolkit/mozapps/installer/package-name.mk
 
 CONFIG_DIR = instgen
-ifeq ($(TARGET_CPU), aarch64)
+
+ifeq ($(MOZ_APP_NAME),r3dfox)
+SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/r3dfox/7zSD.r3dfox.sfx
+else ifeq ($(MOZ_APP_NAME),r3dfox_esr)
+SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/r3dfox/7zSD.r3dfox_esr.sfx
+else ifeq ($(MOZ_APP_NAME),plasmafox)
+SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/r3dfox/7zSD.plasmafox.sfx
+else ifeq ($(TARGET_CPU), aarch64)
 SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/firefox/7zSD.ARM64.sfx
 else
 SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/firefox/7zSD.Win32.sfx
