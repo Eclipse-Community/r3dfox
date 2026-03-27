@@ -171,7 +171,7 @@ search-results-header = Search Results
 search-results-empty-message2 =
         Sorry! There are no results in Settings for “<span data-l10n-name="query"></span>”.
 
-search-results-help-link = Need help? Visit <a data-l10n-name="url">{ -brand-short-name } Support</a>
+search-results-help-link = Need help? Visit <a data-l10n-name="url">Mozilla Support</a>
 
 ## General Section
 
@@ -905,10 +905,10 @@ home-default-browser-title =
     .label = Default browser
 
 is-default-browser-2 =
-    .message = { -brand-short-name } is your default browser. Good choice.
+    .message = { -brand-short-name } is currently your default browser
 
 is-not-default-browser-2 =
-    .message = Psst, { -brand-short-name } isn’t your default.
+    .message = { -brand-short-name } is not your default browser
 
 set-as-my-default-browser-2 =
     .label = Make default
@@ -1025,7 +1025,7 @@ home-prefs-shortcuts-by-option-sponsored =
 
 home-prefs-recommended-by-header-generic =
     .label = Recommended stories
-home-prefs-recommended-by-description-generic = Exceptional content curated by the { -brand-product-name } family
+home-prefs-recommended-by-description-generic = Exceptional content curated by Mozilla
 
 home-prefs-stories-header =
     .label = Stories
@@ -1161,7 +1161,7 @@ addressbar-header-1 =
 # When Firefox Suggest is enabled, this replaces `addressbar-header-1`.
 addressbar-header-firefox-suggest-2 =
     .label = { -firefox-suggest-brand-name }
-    .description = Suggestions from { -brand-short-name } and our partners in your address bar.
+    .description = Suggestions from Mozilla and their partners in your address bar.
 
 addressbar-locbar-history-option =
     .label = Browsing history
@@ -1197,12 +1197,12 @@ addressbar-locbar-showtrendingsuggestions-option-2 =
 
 # Toggles whether suggestions are obtained from Firefox Suggest or not (local or online).
 addressbar-locbar-suggest-all-option-2 =
-    .label = Suggestions from { -brand-short-name }
+    .label = Suggestions from Mozilla
     .description = Get suggestions from the web related to your search.
 
 addressbar-locbar-suggest-sponsored-option-2 =
     .label = Suggestions from sponsors
-    .description = Support { -brand-short-name } with occasional sponsored suggestions.
+    .description = Support Mozilla with occasional sponsored suggestions.
 
 # This string is used for a checkbox in the settings UI that opts the
 # user into "online" Firefox Suggest, allowing them to receive suggestions from
@@ -1215,7 +1215,7 @@ addressbar-firefox-suggest-online =
 
 addressbar-dismissed-suggestions-label-2 =
     .label = Dismissed suggestions
-    .description = Restore dismissed suggestions from sponsors and { -brand-short-name }.
+    .description = Restore dismissed suggestions from sponsors and Mozilla.
 addressbar-restore-dismissed-suggestions-button-2 =
     .label = Restore suggestions
 
@@ -2091,42 +2091,42 @@ permissions-addon-exceptions2 =
 
 # The search keyword isn't shown to users but is used to find relevant settings in about:preferences.
 data-collection =
-    .label = { -brand-short-name } data collection and use
-    .description = We strive to provide you with choices and collect only the minimal data necessary to improve { -brand-product-name } for everyone.
+    .label = Mozilla data collection and use
+    .description = Let Mozilla spy on you.
     .searchkeywords = telemetry
 data-collection-link = View Privacy Notice
 data-collection-preferences-across-profiles =
     .message = These settings apply to every { -brand-product-name } profile on this device.
 data-collection-profiles-link = View all profiles
 data-collection-health-report-telemetry-disabled =
-    .message = You’re no longer allowing { -vendor-short-name } to capture technical and interaction data. All past data will be deleted within 30 days.
+    .message = You’re no longer allowing Mozilla to  spy on you and capture technical and interaction data. All past data will be deleted within 30 days.
 data-collection-health-report =
-    .label = Send technical and interaction data to { -vendor-short-name }
+    .label = Let Mozilla spy on you by sending your browser usage to them
     .accesskey = r
-    .description = This helps us improve { -brand-product-name } features, performance, and stability.
+    .description = This "helps" Mozilla "improve" features, performance, and stability.
 data-collection-health-report-disabled =
-    .label = Send technical and interaction data to { -vendor-short-name }
+    .label = Let Mozilla spy on you by sending your browser usage to them
     .accesskey = r
     .description = Data reporting is disabled for this build configuration.
 data-collection-run-studies =
-    .label = Allow { -brand-short-name } to run feature studies
-    .description = { -brand-short-name } randomly selects users to test features, which helps improve quality for everyone.
+    .label = Allow Mozilla to run experiments on you
+    .description = Mozilla randomly selects users to test features, which helps improve quality for everyone.
 data-collection-studies-link =
-    .label = View { -brand-short-name } studies
+    .label = View Mozilla studies
 data-collection-backlogged-crash-reports =
     .label = Automatically send crash reports
     .description = This helps { -vendor-short-name } diagnose and fix issues with the browser. Reports may include personal or sensitive data.
     .accesskey = c
 data-collection-usage-ping =
-    .label = Send daily usage ping to { -vendor-short-name }
-    .description = This helps { -vendor-short-name } to estimate active users.
+    .label = Let Mozilla spy on you by sending a usage ping
+    .description = This helps Mozilla to estimate active users.
     .accesskey = u
 
 backup-multi-profile-warning-message =
     .message = To make sure this change is included in your backups, open each profile and choose “Backup now” in Settings.
 
 nimbus-rollouts =
-    .label = Allow { -brand-short-name } to improve features, performance, and stability between updates
+    .label = Allow Mozilla to run experiments on you
     .description = Changes will be rolled out remotely.
 addon-recommendations3 =
     .label = Allow personalized extension recommendations
@@ -2137,9 +2137,9 @@ addon-recommendations3 =
 collection-health-report-disabled2 = Data reporting is disabled for this build configuration.
 
 collection-backlogged-crash-reports2 =
-    .label = Automatically send crash reports
+    .label = Automatically send crash reports to Mozilla. Not like they'd care about this fork lol.
     .accesskey = c
-collection-backlogged-crash-reports-description = This helps { -vendor-short-name } diagnose and fix issues with the browser. Reports may include personal or sensitive data.
+collection-backlogged-crash-reports-description = This just gives Mozilla data. Reports may include personal or sensitive data.
 
 # Promotional message displayed in the Settings panes to inform users of the new redesign
 settings-redesign-promo =
@@ -2153,7 +2153,7 @@ privacy-segmentation-section-header = New features that enhance your browsing
 privacy-segmentation-section-description = When we offer features that use your data to give you a more personal experience:
 
 privacy-segmentation-radio-off =
-    .label = Use { -brand-product-name } recommendations
+    .label = Use Mozilla recommendations
 
 privacy-segmentation-radio-on =
     .label = Show detailed information

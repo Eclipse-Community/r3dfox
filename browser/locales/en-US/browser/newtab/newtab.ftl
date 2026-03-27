@@ -249,7 +249,7 @@ newtab-custom-row-selector2 =
 #  (developer note): @nova-cleanup(remove-string): Remove string once Nova lands. We won't be having a description under "Recommended stories" anymore
 newtab-custom-stories-toggle =
   .label = Recommended stories
-  .description = Exceptional content curated by the { -brand-product-name } family
+  .description = Exceptional content curated by Mozilla
 newtab-recommended-stories-toggle =
   .label = Recommended stories
 newtab-custom-stories-personalized-toggle =
