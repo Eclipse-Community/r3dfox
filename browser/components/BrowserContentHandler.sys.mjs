@@ -1310,6 +1310,7 @@ function maybeRecordToHandleTelemetry(uri, isLaunch) {
       ".xhtml",
       ".svg",
       ".webp",
+      ".jxl",
     ]);
     if (registeredExtensions.has(extension)) {
       counter[extension].add(1);
