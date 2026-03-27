@@ -1015,10 +1015,10 @@ home-default-browser-title =
     .label = Default browser
 
 is-default-browser-2 =
-    .message = { -brand-short-name } is your default browser. Good choice.
+    .message = { -brand-short-name } is currently your default browser
 
 is-not-default-browser-2 =
-    .message = Psst, { -brand-short-name } isn’t your default.
+    .message = { -brand-short-name } is not your default browser
 
 set-as-my-default-browser-2 =
     .label = Make default
