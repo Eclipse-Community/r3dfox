@@ -13,6 +13,7 @@ browser.jar:
   content/branding/about-wordmark.svg
   content/branding/document.ico                  (../document.ico)
   content/branding/document_pdf.svg
+  content/branding/favicon.ico                   (../firefox64.ico)
   content/branding/firefox-wordmark.svg
   content/branding/icon16.png                    (../default16.png)
   content/branding/icon32.png                    (../default32.png)

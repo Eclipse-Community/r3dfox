@@ -7,19 +7,19 @@
 browser-main-window-default-title = { -brand-full-name }
 
 # Note: only on macOS do we use a `-` separator between the brand name and the
-# "Private Browsing" suffix.
+# "(Private Browsing)" suffix.
 browser-main-private-window-title = { PLATFORM() ->
-      [macos] { -brand-full-name } — Private Browsing
-     *[other] { -brand-full-name } Private Browsing
+      [macos] { -brand-full-name } — (Private Browsing)
+     *[other] { -brand-full-name } (Private Browsing)
   }
 
 # This is only used on macOS; on other OSes we use the full private window
 # title (so including the brand name) as a suffix
-browser-main-private-suffix-for-content = Private Browsing
+browser-main-private-suffix-for-content = (Private Browsing)
 
 # The non-variable portion of this MUST match the translation of
 # "PRIVATE_BROWSING_SHORTCUT_TITLE" in custom.properties
-private-browsing-shortcut-text-2 = { -brand-shortcut-name } Private Browsing
+private-browsing-shortcut-text-2 = { -brand-shortcut-name } (Private Browsing)
 
 ##
 

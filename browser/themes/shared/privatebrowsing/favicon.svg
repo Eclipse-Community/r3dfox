@@ -1,4 +1,43 @@
-<!-- This Source Code Form is subject to the terms of the Mozilla Public
-   - License, v. 2.0. If a copy of the MPL was not distributed with this
-   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16"><path fill="#000" d="M15.72 9.284c-.758 0-1.145-.556-1.29-1.312-.209-1.095-.573-2.13-1.005-3.163-.222-.531-.628-1.751-1.3-1.89-.762-.16-1.436.256-2.306 2.022-.716 1.457-1.2 2.472-1.2 2.472v.01l-.492-.005H7.88s-.012 0-.012.002l-.492.005v-.01s-.483-1.017-1.2-2.471C5.31 3.175 4.634 2.76 3.87 2.92c-.67.14-1.077 1.362-1.3 1.89-.43 1.033-.795 2.066-1.004 3.163-.145.756-.53 1.31-1.29 1.312-.195 0-.324.205-.257.387.162.439.661.718 1.078.88-.188.05-.746-.064-.771.22-.02.232.564.466.72.541 1.47.716 2.822 2 4.56 1.774.756-.1 1.308-.639 1.926-.973a.99.99 0 0 1 .938 0c.619.334 1.17.873 1.926.973 1.738.227 3.09-1.058 4.56-1.774.157-.077.738-.309.72-.541-.022-.282-.58-.17-.77-.22.416-.162.915-.441 1.077-.88a.287.287 0 0 0-.257-.387zM3.405 9.66c-.022-.236.487-.419.671-.449 1.098-.184 2.552.25 2.906 1.4-1.007.93-3.083.29-3.577-.948zm5.605.95c.355-1.15 1.809-1.583 2.906-1.399.185.03.694.213.671.45-.496 1.237-2.569 1.88-3.577.947z"/><path fill="url(#a)" d="M15.72 9.284c-.758 0-1.145-.556-1.29-1.312-.209-1.095-.573-2.13-1.005-3.163-.222-.531-.628-1.751-1.3-1.89-.762-.16-1.436.256-2.306 2.022-.716 1.457-1.2 2.472-1.2 2.472v.01l-.492-.005H7.88s-.012 0-.012.002l-.492.005v-.01s-.483-1.017-1.2-2.471C5.31 3.175 4.634 2.76 3.87 2.92c-.67.14-1.077 1.362-1.3 1.89-.43 1.033-.795 2.066-1.004 3.163-.145.756-.53 1.31-1.29 1.312-.195 0-.324.205-.257.387.162.439.661.718 1.078.88-.188.05-.746-.064-.771.22-.02.232.564.466.72.541 1.47.716 2.822 2 4.56 1.774.756-.1 1.308-.639 1.926-.973a.99.99 0 0 1 .938 0c.619.334 1.17.873 1.926.973 1.738.227 3.09-1.058 4.56-1.774.157-.077.738-.309.72-.541-.022-.282-.58-.17-.77-.22.416-.162.915-.441 1.077-.88a.287.287 0 0 0-.257-.387zM3.405 9.66c-.022-.236.487-.419.671-.449 1.098-.184 2.552.25 2.906 1.4-1.007.93-3.083.29-3.577-.948zm5.605.95c.355-1.15 1.809-1.583 2.906-1.399.185.03.694.213.671.45-.496 1.237-2.569 1.88-3.577.947z"/><defs><linearGradient id="a" x1="10.822" x2="10.653" y1="18.245" y2="2.332" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#d7bfff"/></linearGradient></defs></svg>
+<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_i_658_2)">
+<circle cx="10" cy="10" r="10" fill="#D9D9D9"/>
+<circle cx="10" cy="10" r="10" fill="url(#paint0_linear_658_2)"/>
+</g>
+<g filter="url(#filter1_di_658_2)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M15.5489 5.43987L14.7794 4.67041L13.2507 6.19915C12.2415 5.77992 11.143 5.5498 9.99398 5.5498C6.80105 5.5498 3.99884 7.32671 2.41602 10.0003C3.2868 11.4712 4.52665 12.6707 5.99757 13.4522L4.67789 14.7719L5.45493 15.549L5.45508 15.5488L5.4475 15.5412L15.5489 5.43987ZM8.26854 14.2743C8.82685 14.3902 9.40374 14.4509 9.99398 14.4509C13.1869 14.4509 15.9891 12.674 17.5719 10.0004C16.9542 8.95689 16.1507 8.05002 15.2108 7.33205L12.5812 9.96163C12.5812 9.96533 12.5812 9.96904 12.5812 9.97274C12.5812 11.4141 11.4127 12.5826 9.97133 12.5826C9.96763 12.5826 9.96392 12.5826 9.96022 12.5826L8.26854 14.2743ZM9.97133 7.36285C10.566 7.36285 11.1143 7.56176 11.5532 7.89667L10.3651 9.08477C10.2706 8.57393 9.82272 8.18703 9.28452 8.18703C8.67761 8.18703 8.18562 8.67902 8.18562 9.28593C8.18562 9.82413 8.57252 10.272 9.08336 10.3665L7.89526 11.5546C7.56035 11.1157 7.36144 10.5674 7.36144 9.97274C7.36144 8.53134 8.52993 7.36285 9.97133 7.36285Z" fill="url(#paint1_linear_658_2)"/>
+</g>
+<defs>
+<filter id="filter0_i_658_2" x="0" y="0" width="20" height="20" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="0.659341"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.4 0"/>
+<feBlend mode="overlay" in2="shape" result="effect1_innerShadow_658_2"/>
+</filter>
+<filter id="filter1_di_658_2" x="1.15777" y="4.40118" width="17.6727" height="13.3949" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="0.989011"/>
+<feGaussianBlur stdDeviation="0.629121"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_658_2"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_658_2" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="0.32967"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.4 0"/>
+<feBlend mode="overlay" in2="shape" result="effect2_innerShadow_658_2"/>
+</filter>
+<linearGradient id="paint0_linear_658_2" x1="10" y1="4.63235" x2="10" y2="20" gradientUnits="userSpaceOnUse">
+<stop stop-color="#E7523F"/>
+<stop offset="1" stop-color="#AD110E"/>
+</linearGradient>
+<linearGradient id="paint1_linear_658_2" x1="9.98941" y1="5.19445" x2="9.98941" y2="15.6466" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FBDECC"/>
+<stop offset="1" stop-color="#F8936D"/>
+</linearGradient>
+</defs>
+</svg>
