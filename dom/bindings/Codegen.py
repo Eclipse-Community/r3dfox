@@ -23350,12 +23350,18 @@ class CGObservableArrayProxyHandler_callback(ClassMethod):
             $*{convertType}
 
             $*{preCallback}
-            JS::Value val = js::GetProxyReservedSlot(aProxy, OBSERVABLE_ARRAY_DOM_INTERFACE_SLOT);
-            auto* interface = static_cast<${ifaceType}*>(val.toPrivate());
-            MOZ_ASSERT(interface);
+            const JS::Value& val = js::GetProxyReservedSlot(aProxy, OBSERVABLE_ARRAY_DOM_INTERFACE_SLOT);
+            if (MOZ_LIKELY(!val.isUndefined())) {
+              auto* interface = static_cast<${ifaceType}*>(val.toPrivate());
+              MOZ_ASSERT(interface);
 
-            ErrorResult rv;
-            MOZ_KnownLive(interface)->${methodName}(${callbackArgs});
+              ErrorResult rv;
+              MOZ_KnownLive(interface)->${methodName}(${callbackArgs});
+              if (rv.MaybeSetPendingException(cx)) {
+                return false;
+              }
+            }
+
             $*{postCallback}
             """,
             preConversion=self.preConversion(),
@@ -23399,7 +23405,7 @@ class CGObservableArrayProxyHandler_OnDeleteItem(
     def postCallback(self):
         return dedent(
             """
-            return !rv.MaybeSetPendingException(cx);
+            return true;
             """
         )
 
@@ -23464,10 +23470,6 @@ class CGObservableArrayProxyHandler_SetIndexedValue(
     def postCallback(self):
         return dedent(
             """
-            if (rv.MaybeSetPendingException(cx)) {
-              return false;
-            }
-
             if (!JS_SetElement(aCx, aBackingList, aIndex, aValue)) {
               return false;
             }
