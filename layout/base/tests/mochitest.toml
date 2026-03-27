@@ -266,8 +266,6 @@ support-files = [
   "file_getBoxQuads_convertPointRectQuad_frame2.html",
 ]
 
-["test_getClientRects_emptytext.html"]
-
 ["test_mozPaintCount.html"]
 skip-if = ["os == 'android'"] # android: Requires plugin support
 
