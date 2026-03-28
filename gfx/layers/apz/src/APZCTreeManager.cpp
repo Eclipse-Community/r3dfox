@@ -216,8 +216,7 @@ APZCTreeManager::CheckerboardFlushObserver::Observe(nsISupports* aSubject,
   }
   if (XRE_IsGPUProcess()) {
     if (gfx::GPUParent* gpu = gfx::GPUParent::GetSingleton()) {
-      nsCString topic("APZ:FlushActiveCheckerboard:Done");
-      Unused << gpu->SendNotifyUiObservers(topic);
+      Unused << gpu->SendFlushActiveCheckerboardReportsDone();
     }
   } else {
     MOZ_ASSERT(XRE_IsParentProcess());

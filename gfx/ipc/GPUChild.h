@@ -79,7 +79,7 @@ class GPUChild final : public ipc::CrashReporterHelper<GPUChild>,
 
   void ActorDestroy(ActorDestroyReason aWhy) override;
   mozilla::ipc::IPCResult RecvGraphicsError(const nsCString& aError);
-  mozilla::ipc::IPCResult RecvNotifyUiObservers(const nsCString& aTopic);
+  mozilla::ipc::IPCResult RecvFlushActiveCheckerboardReportsDone();
   mozilla::ipc::IPCResult RecvNotifyDeviceReset(
       const GPUDeviceData& aData, const DeviceResetReason& aReason,
       const DeviceResetDetectPlace& aPlace);

@@ -95,7 +95,7 @@ class GPUParent final : public PGPUParent {
       const LayerTreeIdMapping& aMapping);
   mozilla::ipc::IPCResult RecvRemoveLayerTreeIdMapping(
       const LayerTreeIdMapping& aMapping);
-  mozilla::ipc::IPCResult RecvNotifyGpuObservers(const nsCString& aTopic);
+  mozilla::ipc::IPCResult RecvFlushActiveCheckerboardReports();
   mozilla::ipc::IPCResult RecvRequestMemoryReport(
       const uint32_t& generation, const bool& anonymize,
       const bool& minimizeMemoryUsage,

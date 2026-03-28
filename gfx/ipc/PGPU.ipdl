@@ -104,9 +104,7 @@ parent:
   // the GPU process. This blocks until one is available (i.e., Init has completed).
   async SimulateDeviceReset();
 
-  // Have a message be broadcasted to the GPU process by the GPU process
-  // observer service.
-  async NotifyGpuObservers(nsCString aTopic);
+  async FlushActiveCheckerboardReports();
 
   async RequestMemoryReport(uint32_t generation,
                             bool anonymize,
@@ -153,9 +151,7 @@ child:
   async CreateVRProcess();
   async ShutdownVRProcess();
 
-  // Have a message be broadcasted to the UI process by the UI process
-  // observer service.
-  async NotifyUiObservers(nsCString aTopic);
+  async FlushActiveCheckerboardReportsDone();
 
   // Messages for reporting telemetry to the UI process.
   async AccumulateChildHistograms(HistogramAccumulation[] accumulations);

@@ -1640,12 +1640,11 @@ void GPUProcessManager::RemoveListener(GPUProcessListener* aListener) {
   mListeners.RemoveElement(aListener);
 }
 
-bool GPUProcessManager::NotifyGpuObservers(const char* aTopic) {
+bool GPUProcessManager::FlushActiveCheckerboardReports() {
   if (NS_FAILED(EnsureGPUReady())) {
     return false;
   }
-  nsCString topic(aTopic);
-  mGPUChild->SendNotifyGpuObservers(topic);
+  mGPUChild->SendFlushActiveCheckerboardReports();
   return true;
 }
 

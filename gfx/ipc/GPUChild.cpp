@@ -200,12 +200,12 @@ mozilla::ipc::IPCResult GPUChild::RecvShutdownVRProcess() {
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult GPUChild::RecvNotifyUiObservers(
-    const nsCString& aTopic) {
+mozilla::ipc::IPCResult GPUChild::RecvFlushActiveCheckerboardReportsDone() {
   nsCOMPtr<nsIObserverService> obsSvc = mozilla::services::GetObserverService();
   MOZ_ASSERT(obsSvc);
   if (obsSvc) {
-    obsSvc->NotifyObservers(nullptr, aTopic.get(), nullptr);
+    obsSvc->NotifyObservers(nullptr, "APZ:FlushActiveCheckerboard:Done",
+                            nullptr);
   }
   return IPC_OK();
 }

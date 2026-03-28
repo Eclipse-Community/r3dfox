@@ -655,12 +655,11 @@ mozilla::ipc::IPCResult GPUParent::RecvRemoveLayerTreeIdMapping(
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult GPUParent::RecvNotifyGpuObservers(
-    const nsCString& aTopic) {
+mozilla::ipc::IPCResult GPUParent::RecvFlushActiveCheckerboardReports() {
   nsCOMPtr<nsIObserverService> obsSvc = mozilla::services::GetObserverService();
   MOZ_ASSERT(obsSvc);
   if (obsSvc) {
-    obsSvc->NotifyObservers(nullptr, aTopic.get(), nullptr);
+    obsSvc->NotifyObservers(nullptr, "APZ:FlushActiveCheckerboard", nullptr);
   }
   return IPC_OK();
 }
