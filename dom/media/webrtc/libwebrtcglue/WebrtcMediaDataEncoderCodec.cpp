@@ -474,8 +474,8 @@ int32_t WebrtcMediaDataEncoder::Encode(
           CheckedInt64 time =
               TimeUnitToFrames(frame->mTime, cricket::kVideoCodecClockrate);
           if (!time.isValid()) {
-            self->mError = MediaResult(NS_ERROR_DOM_MEDIA_FATAL_ERR,
-                                       "invalid timestamp from encoder");
+            mError = MediaResult(NS_ERROR_DOM_MEDIA_FATAL_ERR,
+                                 "invalid timestamp from encoder");
             break;
           }
           image.SetRtpTimestamp(time.value());
@@ -487,11 +487,12 @@ int32_t WebrtcMediaDataEncoder::Encode(
                                   frame->mKeyframe);
 
           LOG_V("Send encoded image");
-          self->mCallback->OnEncodedImage(image, &mCodecSpecific);
-          self->mBitrateAdjuster.Update(image.size());
+          mCallback->OnEncodedImage(image, &mCodecSpecific);
+          mBitrateAdjuster.Update(image.size());
         }
       },
       [self = RefPtr<WebrtcMediaDataEncoder>(this)](const MediaResult& aError) {
+        MutexAutoLock lock(self->mCallbackMutex);
         self->mError = aError;
       });
   return WEBRTC_VIDEO_CODEC_OK;
