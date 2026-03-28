@@ -156,7 +156,7 @@ nr_stun_process_request(nr_stun_message *req, nr_stun_message *res)
                 /* unrecognized attribute */
 
                 /* should never happen, but truncate if it ever were to occur */
-                if (unknown_attributes.num_attributes > NR_STUN_MAX_UNKNOWN_ATTRIBUTES)
+                if (unknown_attributes.num_attributes >= NR_STUN_MAX_UNKNOWN_ATTRIBUTES)
                     break;
 
                 unknown_attributes.attribute[unknown_attributes.num_attributes++] = attr->type;
