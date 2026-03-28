@@ -2,12 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at <http://mozilla.org/MPL/2.0/>. */
 
-import React, {
-  Component,
-  createRef,
-} from "devtools/client/shared/vendor/react";
+import React, { Component } from "devtools/client/shared/vendor/react";
+import { div } from "devtools/client/shared/vendor/react-dom-factories";
 import PropTypes from "devtools/client/shared/vendor/react-prop-types";
 import { connect } from "devtools/client/shared/vendor/react-redux";
+import { basename } from "../utils/path";
 import { createLocation } from "../utils/location";
 
 const fuzzyAldrin = require("resource://devtools/client/shared/vendor/fuzzaldrin-plus.js");
@@ -60,7 +59,6 @@ export class QuickOpenModal extends Component {
   constructor(props) {
     super(props);
     this.state = { results: null, selectedIndex: 0 };
-    this.resultListRef = createRef();
   }
 
   static get propTypes() {
@@ -225,14 +223,20 @@ export class QuickOpenModal extends Component {
 
       if (query == "" && !this.isShortcutQuery()) {
         this.showTopSources();
-      } else if (this.isSymbolSearch()) {
-        await this.searchSymbols(query);
-      } else if (this.isShortcutQuery()) {
-        this.searchShortcuts(query);
-      } else {
-        this.searchSources(query);
+        return;
       }
-      this.highlightQueryMatches(this.props.query);
+
+      if (this.isSymbolSearch()) {
+        await this.searchSymbols(query);
+        return;
+      }
+
+      if (this.isShortcutQuery()) {
+        this.searchShortcuts(query);
+        return;
+      }
+
+      this.searchSources(query);
     } catch (e) {
       // Due to throttling this might get scheduled after the component and the
       // toolbox are destroyed.
@@ -390,31 +394,23 @@ export class QuickOpenModal extends Component {
   isSourcesQuery = () => this.props.searchType === "sources";
   isSourceSearch = () => this.isSourcesQuery() || this.isGotoSourceQuery();
 
-  highlightQueryMatches(query) {
+  /* eslint-disable react/no-danger */
+  renderHighlight(candidateString, query) {
     const options = {
       wrap: {
         tagOpen: '<mark class="highlight">',
         tagClose: "</mark>",
       },
     };
-    if (this.resultListRef.current) {
-      const domEl = this.resultListRef.current.ref.current;
-      for (const titleNode of domEl.querySelectorAll(".title")) {
-        const htmlString = fuzzyAldrin.wrap(
-          titleNode.innerText,
-          query,
-          options
-        );
-        const sanitizer = new Sanitizer({
-          elements: ["mark"],
-          attributes: ["class"],
-        });
-        titleNode.setHTML(htmlString, { sanitizer });
-      }
-    }
+    const html = fuzzyAldrin.wrap(candidateString, query, options);
+    return div({
+      dangerouslySetInnerHTML: {
+        __html: html,
+      },
+    });
   }
 
-  renderResults = (query, results) => {
+  highlightMatching = (query, results) => {
     let newQuery = query;
     if (newQuery === "") {
       return results;
@@ -425,7 +421,11 @@ export class QuickOpenModal extends Component {
       if (typeof result.title == "string") {
         return {
           ...result,
-          title: result.title,
+          title: this.renderHighlight(
+            result.title,
+            basename(newQuery),
+            "title"
+          ),
         };
       }
       return result;
@@ -454,7 +454,7 @@ export class QuickOpenModal extends Component {
     const { query } = this.props;
     const { selectedIndex, results } = this.state;
 
-    const items = this.renderResults(query, results || []);
+    const items = this.highlightMatching(query, results || []);
     const expanded = !!items && !!items.length;
     return React.createElement(
       Modal,
@@ -487,7 +487,7 @@ export class QuickOpenModal extends Component {
           items,
           selected: selectedIndex,
           selectItem: this.selectResultItem,
-          ref: this.resultListRef,
+          ref: "resultList",
           expanded,
           ...(this.isSourceSearch() ? SIZE_BIG : SIZE_DEFAULT),
         })
