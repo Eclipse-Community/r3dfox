@@ -180,9 +180,9 @@ class GPUProcessManager final : public GPUProcessHost::Listener {
   void AddListener(GPUProcessListener* aListener);
   void RemoveListener(GPUProcessListener* aListener);
 
-  // Send a message to the GPU process observer service to broadcast. Returns
-  // true if the message was sent, false if not.
-  bool NotifyGpuObservers(const char* aTopic);
+  // Send a message to the GPU process to flush any active checkerboard reports.
+  // Returns true if the message was sent, false if not.
+  bool FlushActiveCheckerboardReports();
 
   // Kills the GPU process. Used in normal operation to recover from an error,
   // as well as for tests and diagnostics.

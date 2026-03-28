@@ -202,7 +202,7 @@ void CheckerboardReportService::SetRecordingEnabled(bool aEnabled) {
 void CheckerboardReportService::FlushActiveReports() {
   MOZ_ASSERT(XRE_IsParentProcess());
   gfx::GPUProcessManager* gpu = gfx::GPUProcessManager::Get();
-  if (gpu && gpu->NotifyGpuObservers("APZ:FlushActiveCheckerboard")) {
+  if (gpu && gpu->FlushActiveCheckerboardReports()) {
     return;
   }
 
