@@ -238,6 +238,11 @@ void SharedSurfacesParent::Add(const wr::ExternalImageId& aId,
   MOZ_ASSERT(CompositorThreadHolder::IsInCompositorThread());
   MOZ_ASSERT(aPid != base::GetCurrentProcId());
 
+  if (aDesc.format() != SurfaceFormat::B8G8R8X8 &&
+      aDesc.format() != SurfaceFormat::B8G8R8A8) {
+    return;
+  }
+
   RefPtr<SourceSurfaceSharedDataWrapper> surface =
       new SourceSurfaceSharedDataWrapper();
 
