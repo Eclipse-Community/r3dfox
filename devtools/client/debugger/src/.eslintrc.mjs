@@ -47,6 +47,8 @@ export default [
         process: true,
         global: true,
         L10N: true,
+        // TODO: Add this to the main ESlint globals Bug 2025542
+        Sanitizer: true,
       },
     },
     rules: {
