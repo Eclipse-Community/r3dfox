@@ -84,6 +84,13 @@ void GMPVideoEncodedFrameImpl::DoneWithAPI() {
 /* static */
 bool GMPVideoEncodedFrameImpl::CheckFrameData(
     const GMPVideoEncodedFrameData& aFrameData, size_t aBufferSize) {
+  if (aFrameData.mTemporalLayerId() < -1 ||
+      aFrameData.mTemporalLayerId() >= 4) {
+    // Valid temporal layer IDs are -1 which denotes that no layer ID was set,
+    // and 0-3 to denote up to the max number of layers supported for sending by
+    // libwebrtc (4), see webrtc::kMaxTemporalStreams.
+    return false;
+  }
   return aFrameData.mSize() <= aBufferSize;
 }
 

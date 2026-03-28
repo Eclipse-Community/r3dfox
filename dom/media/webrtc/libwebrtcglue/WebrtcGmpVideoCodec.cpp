@@ -672,7 +672,8 @@ void WebrtcGmpVideoEncoder::Encoded(
   }
 
   if (mCodecParams.mTemporalLayerNum > 1) {
-    int temporalIdx = std::max(0, aEncodedFrame->GetTemporalLayerId());
+    int temporalIdx = std::clamp(aEncodedFrame->GetTemporalLayerId(), 0,
+                                 mCodecParams.mTemporalLayerNum - 1);
     unit.SetTemporalIndex(temporalIdx);
     info.codecSpecific.H264.temporal_idx = temporalIdx;
     info.scalability_mode = GmpCodecParamsToScalabilityMode(mCodecParams);
