@@ -118,7 +118,7 @@ already_AddRefed<TextureClient> ImageClient::CreateTextureClientForImage(
         typedImage->GetOriginPos(), typedImage->GetHasAlpha(),
         typedImage->GetForceBT709ColorSpace(),
         typedImage->GetTransformOverride(),
-        aKnowsCompositor->GetTextureForwarder(), TextureFlags::DEFAULT);
+        aKnowsCompositor->GetTextureForwarder().get(), TextureFlags::DEFAULT);
 #endif
   } else {
     RefPtr<gfx::SourceSurface> surface = aImage->GetAsSourceSurface();

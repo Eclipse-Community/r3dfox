@@ -141,8 +141,8 @@ class MOZ_RAII D3D11TextureClientAllocationHelper
     }
     data->mColorSpace = mColorSpace;
     data->SetColorRange(mColorRange);
-    return MakeAndAddRef<TextureClient>(data, mTextureFlags,
-                                        aAllocator->GetTextureForwarder());
+    return MakeAndAddRef<TextureClient>(
+        data, mTextureFlags, aAllocator->GetTextureForwarder().get());
   }
 
  private:

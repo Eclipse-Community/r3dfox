@@ -34,7 +34,7 @@ already_AddRefed<TextureClient> DcompSurfaceTexture::CreateTextureClient(
     KnowsCompositor* aKnowsCompositor) {
   RefPtr<TextureClient> textureClient = MakeAndAddRef<TextureClient>(
       new DcompSurfaceTexture(aHandle, aSize, aFormat), TextureFlags::NO_FLAGS,
-      aKnowsCompositor->GetTextureForwarder());
+      aKnowsCompositor->GetTextureForwarder().get());
   return textureClient.forget();
 }
 

@@ -37,7 +37,7 @@ KnowsCompositorMediaProxy::KnowsCompositorMediaProxy(
 
 KnowsCompositorMediaProxy::~KnowsCompositorMediaProxy() = default;
 
-TextureForwarder* KnowsCompositorMediaProxy::GetTextureForwarder() {
+RefPtr<TextureForwarder> KnowsCompositorMediaProxy::GetTextureForwarder() {
   return mThreadSafeAllocator->GetTextureForwarder();
 }
 

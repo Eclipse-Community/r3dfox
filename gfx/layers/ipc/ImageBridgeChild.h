@@ -115,7 +115,7 @@ class ImageBridgeChild final : public PImageBridgeChild,
  public:
   NS_INLINE_DECL_THREADSAFE_REFCOUNTING(ImageBridgeChild, override);
 
-  TextureForwarder* GetTextureForwarder() override { return this; }
+  RefPtr<TextureForwarder> GetTextureForwarder() override { return this; }
   LayersIPCActor* GetLayersIPCActor() override { return this; }
 
   /**

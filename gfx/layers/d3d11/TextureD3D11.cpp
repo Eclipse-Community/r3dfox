@@ -494,7 +494,8 @@ already_AddRefed<TextureClient> D3D11TextureData::CreateTextureClient(
   data->SetColorRange(aColorRange);
 
   RefPtr<TextureClient> textureClient = MakeAndAddRef<TextureClient>(
-      data, TextureFlags::NO_FLAGS, aKnowsCompositor->GetTextureForwarder());
+      data, TextureFlags::NO_FLAGS,
+      aKnowsCompositor->GetTextureForwarder().get());
   const auto textureId = GpuProcessD3D11TextureMap::GetNextTextureId();
   data->SetGpuProcessTextureId(textureId);
 

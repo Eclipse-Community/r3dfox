@@ -91,7 +91,7 @@ class WebRenderBridgeChild final : public PWebRenderBridgeChild,
   wr::PipelineId GetPipeline() { return mPipelineId; }
 
   // KnowsCompositor
-  TextureForwarder* GetTextureForwarder() override;
+  RefPtr<TextureForwarder> GetTextureForwarder() override;
   LayersIPCActor* GetLayersIPCActor() override;
   void SyncWithCompositor(
       const Maybe<uint64_t>& aWindowID = Nothing()) override;

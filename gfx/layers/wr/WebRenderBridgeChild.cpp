@@ -341,7 +341,7 @@ CompositorBridgeChild* WebRenderBridgeChild::GetCompositorBridgeChild() {
   return static_cast<CompositorBridgeChild*>(Manager());
 }
 
-TextureForwarder* WebRenderBridgeChild::GetTextureForwarder() {
+RefPtr<TextureForwarder> WebRenderBridgeChild::GetTextureForwarder() {
   return static_cast<TextureForwarder*>(GetCompositorBridgeChild());
 }
 

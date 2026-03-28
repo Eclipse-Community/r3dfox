@@ -18,6 +18,10 @@ NS_IMPL_ISUPPORTS(GfxMemoryImageReporter, nsIMemoryReporter)
 
 mozilla::Atomic<ptrdiff_t> GfxMemoryImageReporter::sAmount(0);
 
+RefPtr<TextureForwarder> ISurfaceAllocator::GetTextureForwarder() {
+  return nullptr;
+}
+
 void HostIPCAllocator::SendPendingAsyncMessages() {
   if (mPendingAsyncMessage.empty()) {
     return;

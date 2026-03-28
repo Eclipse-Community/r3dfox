@@ -65,7 +65,7 @@ TextureClient* DMABUFSurfaceImage::GetTextureClient(
     BackendType backend = BackendType::NONE;
     mTextureClient = TextureClient::CreateWithData(
         DMABUFTextureData::Create(mSurface, backend), TextureFlags::DEFAULT,
-        aKnowsCompositor->GetTextureForwarder());
+        aKnowsCompositor->GetTextureForwarder().get());
   }
   return mTextureClient;
 }
