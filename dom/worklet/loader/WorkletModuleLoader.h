@@ -55,9 +55,10 @@ class WorkletModuleLoader : public JS::loader::ModuleLoaderBase {
   void RemoveRequest(nsIURI* aURI);
   JS::loader::ModuleLoadRequest* GetRequest(nsIURI* aURI) const;
 
-  bool HasSetLocalizedStrings() const { return (bool)mLocalizedStrs; }
-  void SetLocalizedStrings(const nsTArray<nsString>* aStrings) {
-    mLocalizedStrs = aStrings;
+  bool HasSetLocalizedStrings() const { return !mLocalizedStrs.IsEmpty(); }
+  void SetLocalizedStrings(nsTArray<nsString>&& aStrings) {
+    MOZ_ASSERT(!aStrings.IsEmpty());
+    mLocalizedStrs = std::move(aStrings);
   }
 
  private:
@@ -94,7 +95,7 @@ class WorkletModuleLoader : public JS::loader::ModuleLoaderBase {
 
   // We get the localized strings on the main thread, and pass it to
   // WorkletModuleLoader.
-  const nsTArray<nsString>* mLocalizedStrs = nullptr;
+  nsTArray<nsString> mLocalizedStrs;
 };
 }  // namespace loader
 

@@ -42,13 +42,13 @@ class StartModuleLoadRunnable final : public Runnable {
       WorkletImpl* aWorkletImpl,
       const nsMainThreadPtrHandle<WorkletFetchHandler>& aHandlerRef,
       nsCOMPtr<nsIURI> aURI, nsIURI* aReferrer,
-      const nsTArray<nsString>& aLocalizedStrs)
+      nsTArray<nsString>&& aLocalizedStrs)
       : Runnable("Worklet::StartModuleLoadRunnable"),
         mWorkletImpl(aWorkletImpl),
         mHandlerRef(aHandlerRef),
         mURI(std::move(aURI)),
         mReferrer(aReferrer),
-        mLocalizedStrs(aLocalizedStrs),
+        mLocalizedStrs(std::move(aLocalizedStrs)),
         mParentRuntime(
             JS_GetParentRuntime(CycleCollectedJSContext::Get()->Context())) {
     MOZ_ASSERT(NS_IsMainThread());
@@ -67,7 +67,7 @@ class StartModuleLoadRunnable final : public Runnable {
   nsMainThreadPtrHandle<WorkletFetchHandler> mHandlerRef;
   nsCOMPtr<nsIURI> mURI;
   nsCOMPtr<nsIURI> mReferrer;
-  const nsTArray<nsString>& mLocalizedStrs;
+  nsTArray<nsString> mLocalizedStrs;
   JSRuntime* mParentRuntime;
   JS::ContextOptions mContextOptions;
 };
@@ -107,7 +107,7 @@ NS_IMETHODIMP StartModuleLoadRunnable::RunOnWorkletThread() {
   MOZ_ASSERT(moduleLoader);
 
   if (!moduleLoader->HasSetLocalizedStrings()) {
-    moduleLoader->SetLocalizedStrings(&mLocalizedStrs);
+    moduleLoader->SetLocalizedStrings(mLocalizedStrs.Clone());
   }
 
   RefPtr<WorkletLoadContext> loadContext = new WorkletLoadContext(mHandlerRef);
@@ -336,7 +336,7 @@ already_AddRefed<Promise> WorkletFetchHandler::AddModule(
   nsIURI* referrer = doc->GetDocumentURIAsReferrer();
   nsCOMPtr<nsIRunnable> runnable = new StartModuleLoadRunnable(
       aWorklet->mImpl, handlerRef, std::move(resolvedURI), referrer,
-      aWorklet->GetLocalizedStrings());
+      aWorklet->GetLocalizedStrings().Clone());
 
   if (NS_FAILED(aWorklet->mImpl->SendControlMessage(runnable.forget()))) {
     return nullptr;
