@@ -52,6 +52,13 @@ nsresult DNSPacket::FillBuffer(
     return mStatus;
   }
 
+  if (static_cast<uint32_t>(response_length) > MAX_SIZE) {
+    LOG(("FillBuffer response len %d > MAX_SIZE %u", response_length, MAX_SIZE));
+    mBodySize = 0;
+    mStatus = NS_ERROR_UNEXPECTED;
+    return mStatus;
+  }
+
   mBodySize = response_length;
   return NS_OK;
 }
