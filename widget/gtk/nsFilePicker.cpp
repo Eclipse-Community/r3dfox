@@ -30,6 +30,7 @@
 #include "WidgetUtilsGtk.h"
 
 #include "gfxPlatform.h"
+#include "GRefPtr.h"
 #include "nsFilePicker.h"
 
 #undef LOG
@@ -615,10 +616,10 @@ bool nsFilePicker::WarnForNonReadableFile(void* file_chooser) {
   }
 
   GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
-  auto* cancel_dialog = gtk_message_dialog_new(
+  RefPtr<GtkWidget> cancel_dialog = gtk_message_dialog_new(
       GTK_WINDOW(file_chooser), flags, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
       "%s", NS_ConvertUTF16toUTF8(errorMessage).get());
-  gtk_dialog_run(GTK_DIALOG(cancel_dialog));
+  gtk_dialog_run(GTK_DIALOG(cancel_dialog.get()));
   gtk_widget_destroy(cancel_dialog);
 
   return true;

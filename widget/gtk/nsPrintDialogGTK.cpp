@@ -10,6 +10,7 @@
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/Services.h"
 
+#include "GRefPtr.h"
 #include "MozContainer.h"
 #include "nsIPrintSettings.h"
 #include "nsIWidget.h"
@@ -69,12 +70,12 @@ static void ShowCustomDialog(GtkComboBox* changed_box, gpointer user_data) {
   nsAutoString intlString;
 
   printBundle->GetStringFromName("headerFooterCustom", intlString);
-  GtkWidget* prompt_dialog = gtk_dialog_new_with_buttons(
+  RefPtr<GtkWidget> prompt_dialog = gtk_dialog_new_with_buttons(
       NS_ConvertUTF16toUTF8(intlString).get(), printDialog,
-      (GtkDialogFlags)(GTK_DIALOG_MODAL), g_dgettext("gtk30", "_Cancel"),
-      GTK_RESPONSE_REJECT, g_dgettext("gtk30", "_OK"), GTK_RESPONSE_ACCEPT,
-      nullptr);
-  gtk_dialog_set_default_response(GTK_DIALOG(prompt_dialog),
+      (GtkDialogFlags)(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
+      g_dgettext("gtk30", "_Cancel"), GTK_RESPONSE_REJECT,
+      g_dgettext("gtk30", "_OK"), GTK_RESPONSE_ACCEPT, nullptr);
+  gtk_dialog_set_default_response(GTK_DIALOG(prompt_dialog.get()),
                                   GTK_RESPONSE_ACCEPT);
 
   printBundle->GetStringFromName("customHeaderFooterPrompt", intlString);
@@ -107,9 +108,9 @@ static void ShowCustomDialog(GtkComboBox* changed_box, gpointer user_data) {
   gtk_widget_show_all(custom_hbox);
 
   gtk_box_pack_start(
-      GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(prompt_dialog))),
+      GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(prompt_dialog.get()))),
       custom_hbox, FALSE, FALSE, 0);
-  gint diag_response = gtk_dialog_run(GTK_DIALOG(prompt_dialog));
+  gint diag_response = gtk_dialog_run(GTK_DIALOG(prompt_dialog.get()));
 
   if (diag_response == GTK_RESPONSE_ACCEPT) {
     const gchar* response_text = gtk_entry_get_text(GTK_ENTRY(custom_entry));
@@ -139,7 +140,7 @@ class nsPrintDialogWidgetGTK {
   nsresult ExportSettings(nsIPrintSettings* aNSSettings);
 
  private:
-  GtkWidget* dialog;
+  RefPtr<GtkWidget> dialog;
   GtkWidget* shrink_to_fit_toggle;
   GtkWidget* print_bg_colors_toggle;
   GtkWidget* print_bg_images_toggle;
@@ -177,9 +178,12 @@ nsPrintDialogWidgetGTK::nsPrintDialogWidgetGTK(nsPIDOMWindowOuter* aParent,
 
   dialog = gtk_print_unix_dialog_new(GetUTF8FromBundle("printTitleGTK").get(),
                                      gtkParent);
+  if (gtkParent) {
+    gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog.get()), TRUE);
+  }
 
   gtk_print_unix_dialog_set_manual_capabilities(
-      GTK_PRINT_UNIX_DIALOG(dialog),
+      GTK_PRINT_UNIX_DIALOG(dialog.get()),
       GtkPrintCapabilities(
           GTK_PRINT_CAPABILITY_COPIES | GTK_PRINT_CAPABILITY_COLLATE |
           GTK_PRINT_CAPABILITY_REVERSE | GTK_PRINT_CAPABILITY_SCALE |
@@ -315,7 +319,7 @@ nsPrintDialogWidgetGTK::nsPrintDialogWidgetGTK(nsPIDOMWindowOuter* aParent,
   gtk_box_pack_start(GTK_BOX(custom_options_tab),
                      header_footer_vertical_squasher, FALSE, FALSE, 0);
 
-  gtk_print_unix_dialog_add_custom_tab(GTK_PRINT_UNIX_DIALOG(dialog),
+  gtk_print_unix_dialog_add_custom_tab(GTK_PRINT_UNIX_DIALOG(dialog.get()),
                                        custom_options_tab, tab_label);
   gtk_widget_show_all(custom_options_tab);
 }
@@ -340,7 +344,7 @@ const char* nsPrintDialogWidgetGTK::OptionWidgetToString(GtkWidget* dropdown) {
 }
 
 gint nsPrintDialogWidgetGTK::Run() {
-  const gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+  const gint response = gtk_dialog_run(GTK_DIALOG(dialog.get()));
   gtk_widget_hide(dialog);
   return response;
 }
@@ -394,8 +398,10 @@ nsresult nsPrintDialogWidgetGTK::ImportSettings(nsIPrintSettings* aNSSettings) {
   aNSSettings->GetNumPagesPerSheet(&pagesPerSide);
   gtk_print_settings_set_number_up(settings, pagesPerSide);
 
-  gtk_print_unix_dialog_set_settings(GTK_PRINT_UNIX_DIALOG(dialog), settings);
-  gtk_print_unix_dialog_set_page_setup(GTK_PRINT_UNIX_DIALOG(dialog), setup);
+  gtk_print_unix_dialog_set_settings(GTK_PRINT_UNIX_DIALOG(dialog.get()),
+                                     settings);
+  gtk_print_unix_dialog_set_page_setup(GTK_PRINT_UNIX_DIALOG(dialog.get()),
+                                       setup);
 
   return NS_OK;
 }
@@ -405,11 +411,11 @@ nsresult nsPrintDialogWidgetGTK::ExportSettings(nsIPrintSettings* aNSSettings) {
   NS_ENSURE_TRUE(aNSSettings, NS_ERROR_FAILURE);
 
   GtkPrintSettings* settings =
-      gtk_print_unix_dialog_get_settings(GTK_PRINT_UNIX_DIALOG(dialog));
+      gtk_print_unix_dialog_get_settings(GTK_PRINT_UNIX_DIALOG(dialog.get()));
   GtkPageSetup* setup =
-      gtk_print_unix_dialog_get_page_setup(GTK_PRINT_UNIX_DIALOG(dialog));
-  GtkPrinter* printer =
-      gtk_print_unix_dialog_get_selected_printer(GTK_PRINT_UNIX_DIALOG(dialog));
+      gtk_print_unix_dialog_get_page_setup(GTK_PRINT_UNIX_DIALOG(dialog.get()));
+  GtkPrinter* printer = gtk_print_unix_dialog_get_selected_printer(
+      GTK_PRINT_UNIX_DIALOG(dialog.get()));
   if (settings && setup && printer) {
     ExportHeaderFooter(aNSSettings);
 
