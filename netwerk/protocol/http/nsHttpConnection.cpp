@@ -616,7 +616,8 @@ nsresult nsHttpConnection::Activate(nsAHttpTransaction* trans, uint32_t caps,
   rv = OnOutputStreamReady(mSocketOut);
 
   if (NS_SUCCEEDED(rv) && mContinueHandshakeDone) {
-    mContinueHandshakeDone();
+    auto continuation = std::move(mContinueHandshakeDone);
+    continuation();
   }
   mContinueHandshakeDone = nullptr;
 
