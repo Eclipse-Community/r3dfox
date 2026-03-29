@@ -8,10 +8,6 @@ MOZ_APP_BASENAME="r3dfox ESR"
 
 MOZ_APP_DISPLAYNAME="r3dfox ESR"
 
-MOZ_APP_UA_NAME=r3dfox
-
-MOZ_APP_VENDOR="Eclipse Community"
-
 MOZ_APP_REMOTINGNAME=r3dfox_esr
 
 MOZ_MACBUNDLE_ID=com.eclipse.r3dfox_esr
