@@ -3721,8 +3721,10 @@ already_AddRefed<nsINode> nsINode::CloneAndAdopt(
         JSAutoRealm ar(cx, wrapper);
         UpdateReflectorGlobal(cx, wrapper, aError);
         if (aError.Failed()) {
+          bool needsRollBack = false;
           if (wasRegistered) {
-            newDoc->UnregisterActivityObserver(aNode->AsElement());
+            needsRollBack =
+                newDoc->UnregisterActivityObserver(aNode->AsElement());
           }
           if (hadProperties) {
             // NOTE: When it fails it removes all properties for the node
@@ -3732,7 +3734,7 @@ already_AddRefed<nsINode> nsINode::CloneAndAdopt(
           }
           aNode->mNodeInfo.swap(newNodeInfo);
           aNode->NodeInfoChanged(newDoc);
-          if (wasRegistered) {
+          if (needsRollBack) {
             oldDoc->RegisterActivityObserver(aNode->AsElement());
           }
           return nullptr;
