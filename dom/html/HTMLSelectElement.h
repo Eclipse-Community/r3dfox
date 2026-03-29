@@ -368,7 +368,6 @@ class HTMLSelectElement final : public nsGenericHTMLFormControlElementWithState,
   /**
    * Called to trigger notifications of frames and fixing selected index
    *
-   * @param aSelectFrame the frame for this content (could be null)
    * @param aIndex the index that was selected or deselected
    * @param aSelected whether the index was selected or deselected
    * @param aChangeOptionState if false, don't do anything to the
@@ -376,8 +375,8 @@ class HTMLSelectElement final : public nsGenericHTMLFormControlElementWithState,
    *                           its selected state to aSelected.
    * @param aNotify whether to notify the style system and such
    */
-  void OnOptionSelected(nsISelectControlFrame* aSelectFrame, int32_t aIndex,
-                        bool aSelected, bool aChangeOptionState, bool aNotify);
+  void OnOptionSelected(int32_t aIndex, bool aSelected, bool aChangeOptionState,
+                        bool aNotify);
   /**
    * Restore state to a particular state string (representing the options)
    * @param aNewSelected the state string to restore to

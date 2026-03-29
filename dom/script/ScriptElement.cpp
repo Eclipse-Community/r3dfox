@@ -85,12 +85,18 @@ ScriptElement::ScriptEvaluated(nsresult aResult, nsIScriptElement* aElement,
 
 void ScriptElement::CharacterDataChanged(nsIContent* aContent,
                                          const CharacterDataChangeInfo&) {
+  if (!nsContentUtils::IsInSameAnonymousTree(GetAsContent(), aContent)) {
+    return;
+  }
   MaybeProcessScript();
 }
 
 void ScriptElement::AttributeChanged(Element* aElement, int32_t aNameSpaceID,
                                      nsAtom* aAttribute, int32_t aModType,
                                      const nsAttrValue* aOldValue) {
+  if (aElement != GetAsContent()) {
+    return;
+  }
   // https://html.spec.whatwg.org/#script-processing-model
   // When a script element el that is not parser-inserted experiences one of the
   // events listed in the following list, the user agent must immediately
@@ -116,10 +122,17 @@ void ScriptElement::AttributeChanged(Element* aElement, int32_t aNameSpaceID,
 }
 
 void ScriptElement::ContentAppended(nsIContent* aFirstNewContent) {
+  if (!nsContentUtils::IsInSameAnonymousTree(GetAsContent(),
+                                             aFirstNewContent)) {
+    return;
+  }
   MaybeProcessScript();
 }
 
 void ScriptElement::ContentInserted(nsIContent* aChild) {
+  if (!nsContentUtils::IsInSameAnonymousTree(GetAsContent(), aChild)) {
+    return;
+  }
   MaybeProcessScript();
 }
 
