@@ -10329,6 +10329,13 @@ bool TransactionBase::VerifyRequestParams(
         if (NS_AUUF_OR_WARN_IF(!file)) {
           return false;
         }
+
+        // Reject actors managed by a different Database
+        if (NS_AUUF_OR_WARN_IF(file->Manager() !=
+                               static_cast<const PBackgroundIDBDatabaseParent*>(
+                                   &GetDatabase()))) {
+          return false;
+        }
         break;
 
       case StructuredCloneFileBase::eMutableFile: {
