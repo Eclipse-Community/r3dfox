@@ -215,6 +215,7 @@ class TErrorResult {
   // informative message and calling the relevant Throw*Error.
   void MOZ_MUST_RETURN_FROM_CALLER_IF_THIS_IS_ARG Throw(nsresult rv) {
     MOZ_ASSERT(NS_FAILED(rv), "Please don't try throwing success");
+    ClearUnionData();
     AssignErrorCode(rv);
   }
 
@@ -431,7 +432,10 @@ class TErrorResult {
   // Backwards-compat to make conversion simpler.  We don't call
   // Throw() here because people can easily pass success codes to
   // this.  This operator is deprecated and ideally shouldn't be used.
-  void operator=(nsresult rv) { AssignErrorCode(rv); }
+  void operator=(nsresult rv) {
+    ClearUnionData();
+    AssignErrorCode(rv);
+  }
 
   bool Failed() const { return NS_FAILED(mResult); }
 
@@ -542,6 +546,7 @@ class TErrorResult {
   }
 
   void AssignErrorCode(nsresult aRv) {
+    MOZ_ASSERT(mUnionState == HasNothing);
     MOZ_ASSERT(aRv != NS_ERROR_INTERNAL_ERRORRESULT_TYPEERROR,
                "Use ThrowTypeError()");
     MOZ_ASSERT(aRv != NS_ERROR_INTERNAL_ERRORRESULT_RANGEERROR,
