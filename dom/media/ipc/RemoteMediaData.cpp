@@ -312,6 +312,14 @@ already_AddRefed<AudioData> ArrayOfRemoteAudioData::ElementAt(
   audioData->mDuration = sample.mBase.duration();
   audioData->mOriginalTime = sample.mOriginalTime;
   audioData->mTrimWindow = sample.mTrimWindow;
+  CheckedInt<size_t> requiredLen =
+      CheckedInt<size_t>(sample.mDataOffset) +
+      CheckedInt<size_t>(sample.mFrames) * CheckedInt<size_t>(sample.mChannels);
+  if (!requiredLen.isValid() ||
+      requiredLen.value() > audioData->mAudioData.Length()) {
+    NS_WARNING("Malformed RemoteAudioData");
+    return nullptr;
+  }
   audioData->mFrames = sample.mFrames;
   audioData->mDataOffset = sample.mDataOffset;
   return audioData.forget();
