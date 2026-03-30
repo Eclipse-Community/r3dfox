@@ -385,46 +385,35 @@ void FontFaceImpl::SetStatus(FontFaceLoadStatus aStatus) {
 }
 
 void FontFaceImpl::UpdateOwnerPromise() {
-  mFontFaceSet->DispatchToOwningThread(
-      "FontFaceImpl::UpdateOwnerPromise",
-      [self = RefPtr{this}] { self->UpdateOwnerPromiseSync(); });
-}
-
-void FontFaceImpl::UpdateOwnerKeepAlive() {
-  AssertIsOnOwningThread();
-  if (!mOwner) {
-    MOZ_DIAGNOSTIC_ASSERT(!mKeepingOwnerAlive);
+  if (!mFontFaceSet->IsOnOwningThread()) {
+    mFontFaceSet->DispatchToOwningThread(
+        "FontFaceImpl::UpdateOwnerPromise",
+        [self = RefPtr{this}] { self->UpdateOwnerPromise(); });
     return;
   }
-  const bool shouldKeepOwnerAlive =
-      mStatus == FontFaceLoadStatus::Loading && !!mOwner->GetParentObject();
-  if (shouldKeepOwnerAlive == mKeepingOwnerAlive) {
-    return;
-  }
-  mKeepingOwnerAlive = shouldKeepOwnerAlive;
-  if (shouldKeepOwnerAlive) {
-    mOwner->AddRef();
-  } else {
-    mOwner->Release();
-  }
-}
 
-void FontFaceImpl::UpdateOwnerPromiseSync() {
   if (NS_WARN_IF(!mOwner)) {
     MOZ_DIAGNOSTIC_ASSERT(!mKeepingOwnerAlive);
     return;
   }
 
-  RefPtr owner = mOwner;
-  UpdateOwnerKeepAlive();
   if (mStatus == FontFaceLoadStatus::Loaded) {
-    owner->MaybeResolve();
+    mOwner->MaybeResolve();
   } else if (mStatus == FontFaceLoadStatus::Error) {
     if (mSourceType == eSourceType_Buffer) {
-      owner->MaybeReject(NS_ERROR_DOM_SYNTAX_ERR);
+      mOwner->MaybeReject(NS_ERROR_DOM_SYNTAX_ERR);
     } else {
-      owner->MaybeReject(NS_ERROR_DOM_NETWORK_ERR);
+      mOwner->MaybeReject(NS_ERROR_DOM_NETWORK_ERR);
     }
+  }
+
+  const bool shouldKeepOwnerAlive = mStatus == FontFaceLoadStatus::Loading;
+  if (shouldKeepOwnerAlive != mKeepingOwnerAlive) {
+    mKeepingOwnerAlive = shouldKeepOwnerAlive;
+    if (shouldKeepOwnerAlive) {
+      mOwner->AddRef();
+    } else {
+      mOwner->Release();
     }
   }
 }
