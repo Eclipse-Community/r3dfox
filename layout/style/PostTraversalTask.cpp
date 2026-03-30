@@ -20,22 +20,9 @@ using namespace dom;
 
 void PostTraversalTask::Run() {
   switch (mType) {
-    case Type::ResolveFontFaceLoadedPromise:
-      static_cast<FontFace*>(mTarget)->MaybeResolve();
-      break;
-
-    case Type::RejectFontFaceLoadedPromise:
-      static_cast<FontFace*>(mTarget)->MaybeReject(mResult);
-      break;
-
     case Type::DispatchLoadingEventAndReplaceReadyPromise:
       static_cast<FontFaceSet*>(mTarget)
           ->DispatchLoadingEventAndReplaceReadyPromise();
-      break;
-
-    case Type::DispatchFontFaceSetCheckLoadingFinishedAfterDelay:
-      static_cast<FontFaceSetImpl*>(mTarget)
-          ->DispatchCheckLoadingFinishedAfterDelay();
       break;
 
     case Type::LoadFontEntry:

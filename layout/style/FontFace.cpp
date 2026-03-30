@@ -254,6 +254,7 @@ Promise* FontFace::Load(ErrorResult& aRv) {
   }
 
   mImpl->Load(aRv);
+  mImpl->UpdateOwnerKeepAlive();
   return mLoaded;
 }
 
@@ -265,40 +266,27 @@ Promise* FontFace::GetLoaded(ErrorResult& aRv) {
     return nullptr;
   }
 
+  if (mImpl) {
+    mImpl->UpdateOwnerKeepAlive();
+  }
+
   return mLoaded;
 }
 
 void FontFace::MaybeResolve() {
   gfxFontUtils::AssertSafeThreadOrServoFontMetricsLocked();
+  MOZ_ASSERT(!NS_IsMainThread() || nsContentUtils::IsSafeToRunScript());
+  MOZ_ASSERT(!gfxFontUtils::CurrentServoStyleSet());
 
-  if (!mLoaded) {
-    return;
+  if (RefPtr loaded = mLoaded) {
+    loaded->MaybeResolve(this);
   }
-
-  if (ServoStyleSet* ss = gfxFontUtils::CurrentServoStyleSet()) {
-    // See comments in Gecko_GetFontMetrics.
-    ss->AppendTask(PostTraversalTask::ResolveFontFaceLoadedPromise(this));
-    return;
-  }
-
-  if (NS_IsMainThread() && !nsContentUtils::IsSafeToRunScript()) {
-    nsContentUtils::AddScriptRunner(NewRunnableMethod(
-        "FontFace::MaybeResolve", this, &FontFace::MaybeResolve));
-    return;
-  }
-
-  mLoaded->MaybeResolve(this);
 }
 
 void FontFace::MaybeReject(nsresult aResult) {
   gfxFontUtils::AssertSafeThreadOrServoFontMetricsLocked();
-
-  if (ServoStyleSet* ss = gfxFontUtils::CurrentServoStyleSet()) {
-    // See comments in Gecko_GetFontMetrics.
-    ss->AppendTask(
-        PostTraversalTask::RejectFontFaceLoadedPromise(this, aResult));
-    return;
-  }
+  MOZ_ASSERT(!NS_IsMainThread() || nsContentUtils::IsSafeToRunScript());
+  MOZ_ASSERT(!gfxFontUtils::CurrentServoStyleSet());
 
   if (mLoaded) {
     mLoaded->MaybeReject(aResult);
