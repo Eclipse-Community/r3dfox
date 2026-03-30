@@ -1367,6 +1367,13 @@ void ExternalEngineStateMachine::UpdateSecondaryVideoContainer() {
 
 RefPtr<SetCDMPromise> ExternalEngineStateMachine::SetCDMProxy(
     CDMProxy* aProxy) {
+  if (!OnTaskQueue()) {
+    return InvokeAsync(OwnerThread(), __func__,
+                       [self = RefPtr{this}, proxy = RefPtr{aProxy}, this]() {
+                         return SetCDMProxy(proxy);
+                       });
+  }
+  AssertOnTaskQueue();
   if (mState.IsShutdownEngine()) {
     return SetCDMPromise::CreateAndReject(NS_ERROR_FAILURE, __func__);
   }
