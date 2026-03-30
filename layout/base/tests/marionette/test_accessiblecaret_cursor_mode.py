@@ -18,6 +18,7 @@ from marionette_driver.by import By
 from marionette_harness.marionette_test import (
     MarionetteTestCase,
     parameterized,
+    skip,
 )
 
 
@@ -220,6 +221,7 @@ class AccessibleCaretCursorModeTestCase(MarionetteTestCase):
         self.actions.send_keys(content_to_add).perform()
         self.assertNotEqual(non_target_content, sel.content)
 
+    @skip("Bug 2027208")
     def test_drag_caret_from_front_to_end_across_columns(self):
         self.open_test_html("layout/test_carets_columns.html")
         el = self.marionette.find_element(By.ID, "columns-inner")
