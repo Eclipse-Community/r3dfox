@@ -764,21 +764,6 @@ void FontFaceSetImpl::OnFontFaceStatusChanged(FontFaceImpl* aFontFace) {
 }
 
 void FontFaceSetImpl::DispatchCheckLoadingFinishedAfterDelay() {
-  gfxFontUtils::AssertSafeThreadOrServoFontMetricsLocked();
-
-  if (ServoStyleSet* set = gfxFontUtils::CurrentServoStyleSet()) {
-    // See comments in Gecko_GetFontMetrics.
-    //
-    // We can't just dispatch the runnable below if we're not on the main
-    // thread, since it needs to take a strong reference to the FontFaceSet,
-    // and being a DOM object, FontFaceSet doesn't support thread-safe
-    // refcounting.
-    set->AppendTask(
-        PostTraversalTask::DispatchFontFaceSetCheckLoadingFinishedAfterDelay(
-            this));
-    return;
-  }
-
   DispatchToOwningThread(
       "FontFaceSetImpl::DispatchCheckLoadingFinishedAfterDelay",
       [self = RefPtr{this}]() { self->CheckLoadingFinishedAfterDelay(); });
