@@ -414,6 +414,7 @@ class CycleCollectedJSRuntime {
   // storage), because we do not want to keep it alive.  nsWrapperCache handles
   // this for us via its "object moved" handling.
   void NurseryWrapperAdded(nsWrapperCache* aCache);
+  void NurseryWrapperRemovedSlow(nsWrapperCache* aCache);
   void JSObjectsTenured(JS::GCContext* aGCContext);
 
   void DeferredFinalize(DeferredFinalizeAppendFunction aAppendFunc,

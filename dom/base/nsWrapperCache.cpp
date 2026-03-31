@@ -47,6 +47,13 @@ void nsWrapperCache::SetWrapperJSObject(JSObject* aNewWrapper) {
   }
 }
 
+void nsWrapperCache::ClearWrapperOnWrapFailure() {
+  if (IsNurseryWrapper(mWrapper)) {
+    CycleCollectedJSRuntime::Get()->NurseryWrapperRemovedSlow(this);
+  }
+  ClearWrapper();
+}
+
 void nsWrapperCache::ReleaseWrapper(void* aScriptObjectHolder) {
   // If the behavior here changes in a substantive way, you may need
   // to update css::Rule::UnlinkDeclarationWrapper as well.
