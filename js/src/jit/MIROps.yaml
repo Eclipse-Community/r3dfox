@@ -1836,7 +1836,7 @@
   guard: true
   movable: true
   congruent_to: if_operands_equal
-  alias_set: none
+  alias_set: custom
 
 - name: GuardGlobalGeneration
   arguments:
@@ -1855,7 +1855,7 @@
   guard: true
   movable: true
   congruent_to: if_operands_equal
-  alias_set: none
+  alias_set: custom
 
 - name: GuardIsNotDOMProxy
   operands:
@@ -1864,7 +1864,7 @@
   guard: true
   movable: true
   congruent_to: if_operands_equal
-  alias_set: none
+  alias_set: custom
 
 - name: GuardIsNotProxy
   operands:
@@ -1874,7 +1874,7 @@
   movable: true
   congruent_to: if_operands_equal
   folds_to: custom
-  alias_set: none
+  alias_set: custom
 
 - name: ProxyGet
   operands:
@@ -2544,7 +2544,7 @@
   result_type: Boolean
   movable: true
   congruent_to: if_operands_equal
-  alias_set: none
+  alias_set: custom
 
 - name: IsCrossRealmArrayConstructor
   operands:

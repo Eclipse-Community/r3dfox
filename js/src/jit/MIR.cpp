@@ -6584,6 +6584,26 @@ MDefinition* MGuardNumberToIntPtrIndex::foldsTo(TempAllocator& alloc) {
   return MConstant::NewIntPtr(alloc, intptr_t(ival));
 }
 
+AliasSet MGuardIsNativeObject::getAliasSet() const {
+  return AliasSet::Load(AliasSet::ObjectFields);
+}
+
+AliasSet MGuardIsProxy::getAliasSet() const {
+  return AliasSet::Load(AliasSet::ObjectFields);
+}
+
+AliasSet MGuardIsNotProxy::getAliasSet() const {
+  return AliasSet::Load(AliasSet::ObjectFields);
+}
+
+AliasSet MGuardIsNotDOMProxy::getAliasSet() const {
+  return AliasSet::Load(AliasSet::ObjectFields);
+}
+
+AliasSet MIsConstructor::getAliasSet() const {
+  return AliasSet::Load(AliasSet::ObjectFields);
+}
+
 MDefinition* MIsObject::foldsTo(TempAllocator& alloc) {
   if (!object()->isBox()) {
     return this;
