@@ -320,6 +320,7 @@ class nsHttpChannel final : public HttpBaseChannel,
   // end server host name.
   // Returns a combination of the above flags.
   uint16_t GetProxyDNSStrategy();
+  bool DispatchRelease();
 
   // We might synchronously or asynchronously call BeginConnect,
   // which includes DNS prefetch and speculative connection, according to
@@ -538,8 +539,9 @@ class nsHttpChannel final : public HttpBaseChannel,
   void SetCachedContentType();
 
  private:
-  // this section is for main-thread-only object
-  // all the references need to be proxy released on main thread.
+  // --- MAIN THREAD ONLY OBJECTS ---
+  // this section is for main-thread-only objects
+  // all the references need to be released on main thread.
   // auth specific data
   nsCOMPtr<nsIHttpChannelAuthProvider> mAuthProvider;
   nsCOMPtr<nsIURI> mRedirectURI;
@@ -554,8 +556,7 @@ class nsHttpChannel final : public HttpBaseChannel,
   // state of whether tracking protection is enabled or not.
   RefPtr<nsChannelClassifier> mChannelClassifier;
 
-  // Proxy release all members above on main thread.
-  void ReleaseMainThreadOnlyReferences();
+  // --- END OF MAIN THREAD ONLY OBJECTS SECTION ---
 
   // Called after the channel is made aware of its tracking status in order
   // to readjust the referrer if needed according to the referrer default
