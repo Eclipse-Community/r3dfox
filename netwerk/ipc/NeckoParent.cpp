@@ -432,6 +432,9 @@ PTCPServerSocketParent* NeckoParent::AllocPTCPServerSocketParent(
 mozilla::ipc::IPCResult NeckoParent::RecvPTCPServerSocketConstructor(
     PTCPServerSocketParent* aActor, const uint16_t& aLocalPort,
     const uint16_t& aBacklog, const bool& aUseArrayBuffers) {
+  if (!StaticPrefs::dom_tcpsocket_in_child_enabled()) {
+    return IPC_FAIL(this, "tcp socket not enabled");
+  }
   static_cast<TCPServerSocketParent*>(aActor)->Init();
   return IPC_OK();
 }
@@ -452,6 +455,9 @@ PUDPSocketParent* NeckoParent::AllocPUDPSocketParent(
 mozilla::ipc::IPCResult NeckoParent::RecvPUDPSocketConstructor(
     PUDPSocketParent* aActor, nsIPrincipal* aPrincipal,
     const nsACString& aFilter) {
+  if (!StaticPrefs::dom_udpsocket_enabled() && aFilter.IsEmpty()) {
+    return IPC_FAIL(this, "udp socket not enabled");
+  }
   if (!static_cast<UDPSocketParent*>(aActor)->Init(aPrincipal, aFilter)) {
     return IPC_FAIL_NO_REASON(this);
   }

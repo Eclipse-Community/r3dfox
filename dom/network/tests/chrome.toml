@@ -1,4 +1,5 @@
 [DEFAULT]
+prefs = ["dom.tcpsocket_in_child.enabled=true"]
 support-files = [
   "tcpsocket_test.sys.mjs",
   "test_tcpsocket_client_and_server_basics.js",
