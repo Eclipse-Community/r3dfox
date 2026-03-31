@@ -429,7 +429,15 @@ bool ChromiumCDMChild::IsOnMessageLoopThread() {
 }
 
 void ChromiumCDMChild::ActorDestroy(ActorDestroyReason aReason) {
+  mInitPromise.RejectIfExists(NS_ERROR_ABORT, __func__);
+
+  if (mCDM) {
+    mCDM->Destroy();
+    mCDM = nullptr;
+  }
+
   mPlugin = nullptr;
+  mDestroyed = true;
 }
 
 void ChromiumCDMChild::PurgeShmems() {
@@ -912,14 +920,6 @@ mozilla::ipc::IPCResult ChromiumCDMChild::RecvDestroy() {
   GMP_LOG_DEBUG("ChromiumCDMChild::RecvDestroy()");
 
   MOZ_ASSERT(!mDecoderInitialized);
-
-  mInitPromise.RejectIfExists(NS_ERROR_ABORT, __func__);
-
-  if (mCDM) {
-    mCDM->Destroy();
-    mCDM = nullptr;
-  }
-  mDestroyed = true;
 
   Unused << Send__delete__(this);
 
