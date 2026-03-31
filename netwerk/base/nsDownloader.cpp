@@ -93,6 +93,7 @@ nsresult nsDownloader::ConsumeData(nsIInputStream* in, void* closure,
 NS_IMETHODIMP
 nsDownloader::OnDataAvailable(nsIRequest* request, nsIInputStream* inStr,
                               uint64_t sourceOffset, uint32_t count) {
+  RefPtr<nsDownloader> self(this);
   uint32_t n;
   return inStr->ReadSegments(ConsumeData, this, count, &n);
 }
