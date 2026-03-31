@@ -71,6 +71,10 @@ class ChromiumCDMChild final : public PChromiumCDMChild,
  protected:
   ~ChromiumCDMChild();
 
+  cdm::Exception ClampException(cdm::Exception aValue) const;
+  cdm::Status ClampStatus(cdm::Status aValue, cdm::Status aFallback) const;
+  cdm::KeyStatus ClampKeyStatus(cdm::KeyStatus aValue) const;
+
   bool OnResolveNewSessionPromiseInternal(uint32_t aPromiseId,
                                           const nsACString& aSessionId);
 

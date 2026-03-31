@@ -12,7 +12,7 @@
 
 namespace mozilla {
 
-class ChromiumCDMCallbackProxy : public ChromiumCDMCallback {
+class ChromiumCDMCallbackProxy final : public ChromiumCDMCallback {
  public:
   ChromiumCDMCallbackProxy(ChromiumCDMProxy* aProxy,
                            nsIEventTarget* aMainThread)
@@ -24,14 +24,15 @@ class ChromiumCDMCallbackProxy : public ChromiumCDMCallback {
                                  bool aSuccessful) override;
 
   void ResolvePromiseWithKeyStatus(uint32_t aPromiseId,
-                                   uint32_t aKeyStatus) override;
+                                   cdm::KeyStatus aKeyStatus) override;
 
   void ResolvePromise(uint32_t aPromiseId) override;
 
   void RejectPromise(uint32_t aPromiseId, ErrorResult&& aException,
                      const nsCString& aErrorMessage) override;
 
-  void SessionMessage(const nsACString& aSessionId, uint32_t aMessageType,
+  void SessionMessage(const nsACString& aSessionId,
+                      cdm::MessageType aMessageType,
                       nsTArray<uint8_t>&& aMessage) override;
 
   void SessionKeysChange(

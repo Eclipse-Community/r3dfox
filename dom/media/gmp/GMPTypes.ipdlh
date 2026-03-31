@@ -6,6 +6,7 @@
 include "GMPMessageUtils.h";
 
 using cdm::EncryptionScheme from "GMPSanitizedExports.h";
+using cdm::KeyStatus from "GMPSanitizedExports.h";
 using GMPBufferType from "gmp-video-codec.h";
 
 namespace mozilla {
@@ -92,7 +93,7 @@ struct CDMVideoDecoderConfig {
 
 struct CDMKeyInformation {
   uint8_t[] mKeyId;
-  uint32_t mStatus;
+  KeyStatus mStatus;
   uint32_t mSystemCode;
 };
 
