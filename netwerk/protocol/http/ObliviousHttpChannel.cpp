@@ -525,6 +525,9 @@ NS_IMETHODIMP
 ObliviousHttpChannel::AsyncOpen(nsIStreamListener* aListener) {
   LOG(("ObliviousHttpChannel::AsyncOpen [this=%p, listener=%p]", this,
        aListener));
+  if (mStreamListener) {
+    return NS_ERROR_ALREADY_OPENED;
+  }
   mStreamListener = aListener;
   nsresult rv = mInnerChannel->SetRequestMethod("POST"_ns);
   if (NS_FAILED(rv)) {
@@ -728,7 +731,8 @@ nsresult ObliviousHttpChannel::ProcessOnStopRequest() {
                                getter_AddRefs(mBinaryHttpResponse));
 }
 
-void ObliviousHttpChannel::EmitOnDataAvailable() {
+void ObliviousHttpChannel::EmitOnDataAvailable(
+    nsIStreamListener* aStreamListener) {
   if (!mBinaryHttpResponse) {
     return;
   }
@@ -749,7 +753,7 @@ void ObliviousHttpChannel::EmitOnDataAvailable() {
   if (NS_FAILED(rv)) {
     return;
   }
-  rv = mStreamListener->OnDataAvailable(this, contentStream, 0, contentLength);
+  rv = aStreamListener->OnDataAvailable(this, contentStream, 0, contentLength);
   Unused << rv;
 }
 
@@ -759,8 +763,7 @@ ObliviousHttpChannel::OnStopRequest(nsIRequest* aRequest,
   LOG(("ObliviousHttpChannel::OnStopRequest [this=%p, request=%p, status=%u]",
        this, aRequest, (uint32_t)aStatusCode));
 
-  auto releaseStreamListener = MakeScopeExit(
-      [self = RefPtr{this}]() mutable { self->mStreamListener = nullptr; });
+  nsCOMPtr<nsIStreamListener> listener = std::move(mStreamListener);
 
   if (NS_SUCCEEDED(aStatusCode)) {
     bool requestSucceeded;
@@ -769,11 +772,11 @@ ObliviousHttpChannel::OnStopRequest(nsIRequest* aRequest,
       aStatusCode = ProcessOnStopRequest();
     }
   }
-  Unused << mStreamListener->OnStartRequest(this);
+  Unused << listener->OnStartRequest(this);
   if (NS_SUCCEEDED(aStatusCode)) {
-    EmitOnDataAvailable();
+    EmitOnDataAvailable(listener);
   }
-  Unused << mStreamListener->OnStopRequest(this, aStatusCode);
+  Unused << listener->OnStopRequest(this, aStatusCode);
 
   return NS_OK;
 }

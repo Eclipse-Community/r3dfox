@@ -47,7 +47,7 @@ class ObliviousHttpChannel final : public nsIObliviousHttpChannel,
   ~ObliviousHttpChannel();
 
   nsresult ProcessOnStopRequest();
-  void EmitOnDataAvailable();
+  void EmitOnDataAvailable(nsIStreamListener*);
 
   nsCOMPtr<nsIURI> mTargetURI;
   nsTArray<uint8_t> mEncodedConfig;
