@@ -551,11 +551,8 @@ async function getAutofillRecords(data) {
     // JSActors, but that would import a lot of code for a targeting attribute.
     return 0;
   }
-  let records = await actor?.receiveMessage({
-    name: "FormAutofill:GetRecords",
-    data,
-  });
-  return records?.records?.length ?? 0;
+  let records = await actor?.getRecords(data);
+  return records?.length ?? 0;
 }
 
 // Attribution data can be encoded multiple times so we need this function to

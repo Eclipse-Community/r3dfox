@@ -52,7 +52,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
   LoginHelper: "resource://gre/modules/LoginHelper.sys.mjs",
   MLAutofill: "resource://autofill/MLAutofill.sys.mjs",
   NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
-  OSKeyStore: "resource://gre/modules/OSKeyStore.sys.mjs",
 });
 
 ChromeUtils.defineLazyGetter(lazy, "log", () =>
@@ -66,6 +65,16 @@ const { ADDRESSES_COLLECTION_NAME, CREDITCARDS_COLLECTION_NAME, FIELD_STATES } =
   FormAutofillUtils;
 
 let gMessageObservers = new Set();
+
+const FORM_AUTOFILL_MESSAGES = new Set([
+  "FormAutofill:InitStorage",
+  "FormAutofill:OnFormSubmit",
+  "FormAutofill:FieldsIdentified",
+  "FormAutofill:OnFieldsDetected",
+  "FormAutofill:OnFieldsUpdated",
+  "FormAutofill:FieldFilledModified",
+  "FormAutofill:FieldsUpdatedDuringAutofill",
+]);
 
 export let FormAutofillStatus = {
   _initialized: false,
@@ -306,6 +315,10 @@ export class FormAutofillParent extends JSWindowActorParent {
       return undefined;
     }
 
+    if (!FORM_AUTOFILL_MESSAGES.has(name) && !Cu.isInAutomation) {
+      return undefined;
+    }
+
     switch (name) {
       case "FormAutofill:InitStorage": {
         await lazy.gFormAutofillStorage.initialize();
@@ -364,12 +377,6 @@ export class FormAutofillParent extends JSWindowActorParent {
         break;
       }
       case "FormAutofill:SaveCreditCard": {
-        // Setting the first parameter of OSKeyStore.ensurLoggedIn as false
-        // since this case only called in tests. Also the reason why we're not calling FormAutofill.verifyUserOSAuth.
-        if (!(await lazy.OSKeyStore.ensureLoggedIn(false)).authenticated) {
-          lazy.log.warn("User canceled encryption login");
-          return undefined;
-        }
         await lazy.gFormAutofillStorage.creditCards.add(data.creditcard);
         break;
       }

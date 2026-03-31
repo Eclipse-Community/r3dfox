@@ -1418,15 +1418,10 @@ add_task(async function test_creditCardsSaved() {
         gBrowser.selectedBrowser.browsingContext.currentWindowGlobal.getActor(
           "FormAutofill"
         ),
-        "receiveMessage"
+        "getRecords"
       )
-      .withArgs(
-        sandbox.match({
-          name: "FormAutofill:GetRecords",
-          data: { collectionName: "creditCards" },
-        })
-      )
-      .resolves({ records: [creditcard] })
+      .withArgs(sandbox.match({ collectionName: "creditCards" }))
+      .resolves([creditcard])
       .callThrough();
 
     is(
@@ -1435,8 +1430,8 @@ add_task(async function test_creditCardsSaved() {
       "Should return 1 when 1 credit card is saved"
     );
     ok(
-      stub.calledWithMatch({ name: "FormAutofill:GetRecords" }),
-      "Targeting called FormAutofill:GetRecords"
+      stub.calledWithMatch({ collectionName: "creditCards" }),
+      "Targeting called getRecords"
     );
 
     sandbox.restore();
