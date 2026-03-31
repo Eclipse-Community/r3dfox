@@ -29,20 +29,20 @@ NS_IMPL_ADDREF(WebSocketChannelChild)
 
 NS_IMETHODIMP_(MozExternalRefCountType) WebSocketChannelChild::Release() {
   MOZ_ASSERT(0 != mRefCnt, "dup release");
-  --mRefCnt;
+  nsrefcnt count = --mRefCnt;
   NS_LOG_RELEASE(this, mRefCnt, "WebSocketChannelChild");
 
-  if (mRefCnt == 1) {
+  if (count == 1) {
     MaybeReleaseIPCObject();
     return mRefCnt;
   }
 
-  if (mRefCnt == 0) {
+  if (count == 0) {
     mRefCnt = 1; /* stabilize */
     delete this;
     return 0;
   }
-  return mRefCnt;
+  return count;
 }
 
 NS_INTERFACE_MAP_BEGIN(WebSocketChannelChild)
@@ -95,15 +95,6 @@ void WebSocketChannelChild::ReleaseIPDLReference() {
 }
 
 void WebSocketChannelChild::MaybeReleaseIPCObject() {
-  {
-    MutexAutoLock lock(mMutex);
-    if (mIPCState != Opened) {
-      return;
-    }
-
-    mIPCState = Closing;
-  }
-
   if (!NS_IsMainThread()) {
     nsCOMPtr<nsIEventTarget> target = GetNeckoTarget();
     MOZ_ALWAYS_SUCCEEDS(target->Dispatch(
@@ -111,6 +102,15 @@ void WebSocketChannelChild::MaybeReleaseIPCObject() {
                           &WebSocketChannelChild::MaybeReleaseIPCObject),
         NS_DISPATCH_NORMAL));
     return;
+  }
+
+  {
+    MutexAutoLock lock(mMutex);
+    if (mIPCState != Opened) {
+      return;
+    }
+
+    mIPCState = Closing;
   }
 
   SendDeleteSelf();
