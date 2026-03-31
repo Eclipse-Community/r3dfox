@@ -105,6 +105,9 @@ nsSyncStreamListener::Close() {
 
 NS_IMETHODIMP
 nsSyncStreamListener::Available(uint64_t* result) {
+  // Nested event loop can run code that drops the last external reference.
+  RefPtr<nsSyncStreamListener> self(this);
+
   if (NS_FAILED(mStatus)) return mStatus;
 
   mStatus = mPipeIn->Available(result);
