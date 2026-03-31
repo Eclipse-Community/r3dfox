@@ -1448,14 +1448,15 @@ static void ReadableByteStreamControllerRespondInReadableState(
       return;
     }
 
+    RefPtr<ReadableStream> stream(aController->Stream());
+
     // Step 3.3. For each filledPullInto of filledPullIntos,
     for (auto& filledPullInto : filledPullIntos) {
       // Step 3.3.1. Perform !
       // ReadableByteStreamControllerCommitPullIntoDescriptor(controller.[[stream]],
       // filledPullInto).
       ReadableByteStreamControllerCommitPullIntoDescriptor(
-          aCx, MOZ_KnownLive(aController->Stream()),
-          MOZ_KnownLive(filledPullInto), aRv);
+          aCx, stream, MOZ_KnownLive(filledPullInto), aRv);
       if (aRv.Failed()) {
         return;
       }
