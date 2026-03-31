@@ -1333,10 +1333,14 @@ bool nsCSPDirective::permits(CSPDirective aDirective, nsILoadInfo* aLoadInfo,
 
       // Step 1.4. If directive’s value contains a source expression that is an
       // ASCII case-insensitive match for the "'strict-dynamic'" keyword-source:
+      if (hasStrictDynamicKeyword) {
+        // GetParserCreatedScript() isn't set for XSLT.
+        if (aLoadInfo->InternalContentPolicyType() ==
+            nsIContentPolicy::TYPE_XSLT) {
+          CSPUTILSLOG(("  Blocked XSLT by default with 'strict-dynamic'"));
+          return false;
+        }
 
-      // XXX I don't think we should apply strict-dynamic to XSLT.
-      if (hasStrictDynamicKeyword && aLoadInfo->InternalContentPolicyType() !=
-                                         nsIContentPolicy::TYPE_XSLT) {
         // Step 1.4.1  If the request’s parser metadata is "parser-inserted",
         // return "Blocked". Otherwise, return "Allowed".
         if (aLoadInfo->GetParserCreatedScript()) {
