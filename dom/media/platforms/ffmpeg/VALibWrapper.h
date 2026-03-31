@@ -6,6 +6,7 @@
 #define DOM_MEDIA_PLATFORMS_FFMPEG_VALIBWRAPPER_H_
 
 #include "mozilla/Attributes.h"
+#include "mozilla/ThreadSafeWeakPtr.h"
 #include "mozilla/Types.h"
 #include "mozilla/UniquePtrExtensions.h"
 #include "nsISupportsImpl.h"
@@ -55,14 +56,15 @@ class MOZ_ONLY_USED_TO_AVOID_STATIC_CONSTRUCTORS VALibWrapper {
   PRLibrary* mVALibDrm;
 };
 
-class VADisplayHolder {
+class VADisplayHolder final
+    : public SupportsThreadSafeWeakPtr<VADisplayHolder> {
  public:
-  NS_INLINE_DECL_THREADSAFE_REFCOUNTING_WITH_DESTROY(VADisplayHolder,
-                                                     MaybeDestroy())
+  MOZ_DECLARE_REFCOUNTED_TYPENAME(VADisplayHolder)
 
   static RefPtr<VADisplayHolder> GetSingleton();
 
   VADisplay Display() const { return mDisplay.get(); }
+  ~VADisplayHolder();
 
  private:
   struct VADisplayDeleter {
@@ -72,9 +74,6 @@ class VADisplayHolder {
   using UniqueVADisplay = std::unique_ptr<VADisplay, VADisplayDeleter>;
 
   VADisplayHolder(UniqueVADisplay aDisplay, UniqueFileHandle aDRMFd);
-  ~VADisplayHolder();
-
-  void MaybeDestroy();
 
   // mDRMFd is declared before mDisplay, so that mDRMFd is closed after
   // mDisplay is terminated.

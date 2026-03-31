@@ -7,6 +7,7 @@
 #include "FFmpegLog.h"
 #include "PlatformDecoderModule.h"
 #include "prlink.h"
+#include "mozilla/DataMutex.h"
 #include "mozilla/gfx/gfxVars.h"
 #include "mozilla/widget/DMABufDevice.h"
 
@@ -17,8 +18,8 @@ static int (*vaInitialize)(void* dpy, int* major_version, int* minor_version);
 static int (*vaTerminate)(void* dpy);
 static void* (*vaGetDisplayDRM)(int fd);
 
-static VADisplayHolder* sDisplayHolder;
-static StaticMutex sDisplayHolderMutex;
+MOZ_RELEASE_CONSTINIT static StaticDataMutex<ThreadSafeWeakPtr<VADisplayHolder>>
+    sDisplayHolder("VADisplayHolder::sDisplayHolder");
 
 void VALibWrapper::Link() {
 #define VA_FUNC_OPTION_SILENT(func)                               \
@@ -102,10 +103,11 @@ VADisplayHolder::~VADisplayHolder() = default;
 
 /* static */
 RefPtr<VADisplayHolder> VADisplayHolder::GetSingleton() {
-  StaticMutexAutoLock lock(sDisplayHolderMutex);
+  auto weakInstance = sDisplayHolder.Lock();
 
-  if (sDisplayHolder) {
-    return RefPtr{sDisplayHolder};
+  RefPtr<VADisplayHolder> instance(*weakInstance);
+  if (instance) {
+    return instance;
   }
 
   UniqueFileHandle drmFd{widget::GetDMABufDevice()->OpenDRMFd()};
@@ -125,21 +127,9 @@ RefPtr<VADisplayHolder> VADisplayHolder::GetSingleton() {
     return nullptr;
   }
 
-  RefPtr displayHolder =
-      new VADisplayHolder(std::move(display), std::move(drmFd));
-  sDisplayHolder = displayHolder;
-
-  return displayHolder;
-}
-
-void VADisplayHolder::MaybeDestroy() {
-  StaticMutexAutoLock lock(sDisplayHolderMutex);
-  MOZ_ASSERT(int32_t(mRefCnt) >= 0, "dup release");
-  if (mRefCnt == 0) {
-    // No new reference added before the lock was taken.
-    sDisplayHolder = nullptr;
-    delete this;
-  }
+  instance = new VADisplayHolder(std::move(display), std::move(drmFd));
+  *weakInstance = instance;
+  return instance;
 }
 
 void VADisplayHolder::VADisplayDeleter::operator()(VADisplay aDisplay) {
