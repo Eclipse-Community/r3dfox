@@ -51,6 +51,9 @@ skip-if = [
 
 ["browser_fullscreen_permissions_prompt.js"]
 
+["browser_fullscreen_toplevel_warning.js"]
+support-files = ["fullscreen.html"]
+
 ["browser_fullscreen_warning.js"]
 support-files = ["fullscreen.html"]
 skip-if = ["os == 'mac'"] # Bug 1848423
