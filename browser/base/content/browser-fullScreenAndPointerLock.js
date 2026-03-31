@@ -49,10 +49,16 @@ var PointerlockFsWarning = {
     }
   },
 
-  showFullScreen(aOrigin) {
+  // Show info that top level has entered fullscreen. Ultimately, it is always
+  // ancestors who are in control and can with various means make the user believe
+  // a site has entered fullscreen while displaying it's own content.
+  // We try to make it clear to the user that it's the top level that is actually in fullscreen
+  showFullScreen(browsingContext) {
+    const origin =
+      browsingContext.top.currentWindowGlobal.documentPrincipal.originNoSuffix;
     let timeout = Services.prefs.getIntPref("full-screen-api.warning.timeout");
     let delay = Services.prefs.getIntPref("full-screen-api.warning.delay");
-    this.show(aOrigin, "fullscreen-warning", timeout, delay);
+    this.show(origin, "fullscreen-warning", timeout, delay);
   },
 
   // Shows a warning that the site has entered fullscreen or

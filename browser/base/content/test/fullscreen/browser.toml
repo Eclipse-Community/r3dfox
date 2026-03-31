@@ -60,6 +60,9 @@ skip-if = [
   "os == 'linux' && os_version == '18.04' && processor == 'x86_64' && swgl", # Bug 1949995
 ]
 
+["browser_fullscreen_toplevel_warning.js"]
+support-files = ["fullscreen.html"]
+
 ["browser_fullscreen_warning.js"]
 support-files = ["fullscreen.html"]
 skip-if = [

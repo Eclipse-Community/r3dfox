@@ -142,9 +142,7 @@ export class DOMFullscreenParent extends JSWindowActorParent {
       case "DOMFullscreen:NewOrigin": {
         // Don't show the warning if we've already exited fullscreen.
         if (window.document.fullscreen) {
-          window.PointerlockFsWarning.showFullScreen(
-            aMessage.data.originNoSuffix
-          );
+          window.PointerlockFsWarning.showFullScreen(topBrowsingContext);
         }
         this.updateFullscreenWindowReference(window);
         break;
@@ -222,7 +220,7 @@ export class DOMFullscreenParent extends JSWindowActorParent {
 
         if (!this.hasBeenDestroyed() && this.requestOrigin) {
           window.PointerlockFsWarning.showFullScreen(
-            this.requestOrigin.manager.documentPrincipal.originNoSuffix
+            this.requestOrigin.browsingContext
           );
         }
         break;
