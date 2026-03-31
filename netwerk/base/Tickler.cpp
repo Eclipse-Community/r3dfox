@@ -18,8 +18,6 @@
 namespace mozilla {
 namespace net {
 
-NS_IMPL_ISUPPORTS(Tickler, nsISupportsWeakReference, Tickler)
-
 Tickler::Tickler()
     : mLock("Tickler::mLock"),
       mActive(false),
@@ -177,9 +175,7 @@ class TicklerTimer final : public nsITimerCallback, public nsINamed {
   NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSITIMERCALLBACK
 
-  explicit TicklerTimer(Tickler* aTickler) {
-    mTickler = do_GetWeakReference(aTickler);
-  }
+  explicit TicklerTimer(Tickler* t) : mTickler(t) {}
 
   // nsINamed
   NS_IMETHOD GetName(nsACString& aName) override {
@@ -190,7 +186,7 @@ class TicklerTimer final : public nsITimerCallback, public nsINamed {
  private:
   ~TicklerTimer() {}
 
-  nsWeakPtr mTickler;
+  ThreadSafeWeakPtr<Tickler> mTickler;
 };
 
 void Tickler::StartTickler() {
@@ -214,7 +210,7 @@ void Tickler::SetIPV4Port(uint16_t port) { mAddr.inet.port = port; }
 NS_IMPL_ISUPPORTS(TicklerTimer, nsITimerCallback, nsINamed)
 
 NS_IMETHODIMP TicklerTimer::Notify(nsITimer* timer) {
-  RefPtr<Tickler> tickler = do_QueryReferent(mTickler);
+  RefPtr<Tickler> tickler(mTickler);
   if (!tickler) return NS_ERROR_FAILURE;
   MutexAutoLock lock(tickler->mLock);
 
