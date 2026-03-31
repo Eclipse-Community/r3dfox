@@ -118,6 +118,11 @@ mozilla::ipc::IPCResult DocAccessibleParent::ProcessShowEvent(
       return IPC_OK();
 #endif
     }
+
+    if (parent->IsOuterDoc()) {
+      return IPC_FAIL(this, "Cannot attach non-doc to OuterDoc");
+    }
+
     lastParent = parent;
     lastParentID = accData.ParentID();
 
