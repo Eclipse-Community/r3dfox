@@ -2483,6 +2483,18 @@ void UpdateReflectorGlobal(JSContext* aCx, JS::Handle<JSObject*> aObjArg,
   JS::SetReservedSlot(newobj, DOM_OBJECT_SLOT,
                       JS::GetReservedSlot(aObj, DOM_OBJECT_SLOT));
   JS::SetReservedSlot(aObj, DOM_OBJECT_SLOT, JS::PrivateValue(nullptr));
+  size_t nslots = JSCLASS_RESERVED_SLOTS(JS::GetClass(aObj));
+  for (size_t slot = DOM_INSTANCE_RESERVED_SLOTS; slot < nslots; ++slot) {
+    const JS::Value& slotValue = JS::GetReservedSlot(aObj, slot);
+    if (slotValue.isObject()) {
+      JSObject* slotObj = &slotValue.toObject();
+      if (IsObservableArrayProxy(slotObj)) {
+        JS::SetReservedSlot(newobj, slot, slotValue);
+        JS::SetReservedSlot(aObj, slot, JS::UndefinedValue());
+      }
+    }
+  }
+
   nsWrapperCache* cache = nullptr;
   CallQueryInterface(native, &cache);
   cache->UpdateWrapperForNewGlobal(native, newobj);
