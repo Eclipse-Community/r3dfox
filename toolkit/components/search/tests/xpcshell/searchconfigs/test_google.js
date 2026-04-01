@@ -47,7 +47,7 @@ const test = new SearchConfigTest({
           : "firefox-b-1-d",
     },
     {
-      excluded: [{ regions: ["us", "by", "kz", "ru", "tr"] }],
+      excluded: [{ regions: ["us", "by", "ru"] }],
       included: [{}],
       domain: "google.com",
       telemetryId:
@@ -62,7 +62,7 @@ const test = new SearchConfigTest({
           : "firefox-b-d",
     },
     {
-      included: [{ regions: ["by", "kz", "ru", "tr"] }],
+      included: [{ regions: ["by", "ru"] }],
       domain: "google.com",
       telemetryId: "google-com-nocodes",
       partnerCode: "",

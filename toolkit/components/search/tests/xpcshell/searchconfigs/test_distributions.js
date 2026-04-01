@@ -310,7 +310,7 @@ tests.push({
 });
 
 tests.push({
-  region: "CA", // Testing for "rest of world" (excluding US, RU, TR, BY, KZ)
+  region: "CA", // Testing for "rest of world" (excluding US, RU, BY)
   distribution: "dt-002",
   application: "firefox-android",
   test: engines =>
@@ -332,7 +332,7 @@ tests.push({
 });
 
 tests.push({
-  region: "CA", // Testing for "rest of world" (excluding US, RU, TR, BY, KZ)
+  region: "CA", // Testing for "rest of world" (excluding US, RU, BY)
   distribution: "dt-003",
   application: "firefox-android",
   test: engines =>
