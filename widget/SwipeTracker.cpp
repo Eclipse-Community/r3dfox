@@ -48,7 +48,10 @@ SwipeTracker::SwipeTracker(nsIWidget& aWidget,
           PixelCastJustification::LayoutDeviceIsScreenForUntransformedEvent))),
       mLastEventTimeStamp(aSwipeStartEvent.mTimeStamp),
       mAllowedDirections(aAllowedDirections),
-      mSwipeDirection(aSwipeDirection) {
+      mSwipeDirection(aSwipeDirection) {}
+
+void SwipeTracker::StartTracking(
+    const PanGestureInput& aSwipeStartEvent) {
   SendSwipeEvent(eSwipeGestureStart, 0, 0.0, aSwipeStartEvent.mTimeStamp);
   ProcessEvent(aSwipeStartEvent, /* aProcessingFirstEvent = */ true);
 }
@@ -96,6 +99,8 @@ bool SwipeTracker::ComputeSwipeSuccess() const {
 
 nsEventStatus SwipeTracker::ProcessEvent(
     const PanGestureInput& aEvent, bool aProcessingFirstEvent /* = false */) {
+  RefPtr<SwipeTracker> selfPin(this);
+
   // If the fingers have already been lifted or the swipe direction is where
   // navigation is impossible, don't process this event for swiping.
   if (!mEventsAreControllingSwipe || !SwipingInAllowedDirection()) {
@@ -185,6 +190,8 @@ void SwipeTracker::StartAnimating(double aStartValue, double aTargetValue) {
 }
 
 void SwipeTracker::WillRefresh(TimeStamp aTime) {
+  RefPtr<SwipeTracker> selfPin(this);
+
   // FIXME(emilio): shouldn't we be using `aTime`?
   TimeStamp now = TimeStamp::Now();
   mAxis.Simulate(now - mLastAnimationFrameTime);

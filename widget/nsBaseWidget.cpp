@@ -2371,6 +2371,7 @@ void nsBaseWidget::TrackScrollEventAsSwipe(
 
   mSwipeTracker =
       new SwipeTracker(*this, aSwipeStartEvent, aAllowedDirections, direction);
+  mSwipeTracker->StartTracking(aSwipeStartEvent);
 
   if (!mAPZC) {
     mCurrentPanGestureBelongsToSwipe = true;
