@@ -14,7 +14,6 @@
 namespace mozilla {
 class ServoStyleSet;
 namespace dom {
-class FontFace;
 class FontFaceSet;
 class FontFaceSetImpl;
 }  // namespace dom
@@ -36,33 +35,10 @@ namespace mozilla {
  */
 class PostTraversalTask {
  public:
-  static PostTraversalTask ResolveFontFaceLoadedPromise(
-      dom::FontFace* aFontFace) {
-    auto task = PostTraversalTask(Type::ResolveFontFaceLoadedPromise);
-    task.mTarget = aFontFace;
-    return task;
-  }
-
-  static PostTraversalTask RejectFontFaceLoadedPromise(dom::FontFace* aFontFace,
-                                                       nsresult aResult) {
-    auto task = PostTraversalTask(Type::ResolveFontFaceLoadedPromise);
-    task.mTarget = aFontFace;
-    task.mResult = aResult;
-    return task;
-  }
-
   static PostTraversalTask DispatchLoadingEventAndReplaceReadyPromise(
       dom::FontFaceSet* aFontFaceSet) {
     auto task =
         PostTraversalTask(Type::DispatchLoadingEventAndReplaceReadyPromise);
-    task.mTarget = aFontFaceSet;
-    return task;
-  }
-
-  static PostTraversalTask DispatchFontFaceSetCheckLoadingFinishedAfterDelay(
-      dom::FontFaceSetImpl* aFontFaceSet) {
-    auto task = PostTraversalTask(
-        Type::DispatchFontFaceSetCheckLoadingFinishedAfterDelay);
     task.mTarget = aFontFaceSet;
     return task;
   }
@@ -92,18 +68,8 @@ class PostTraversalTask {
   // please add an assertion that class' destructor that we are not in a Servo
   // traversal, to protect against the possibility of having dangling pointers.
   enum class Type {
-    // mTarget (FontFace*)
-    ResolveFontFaceLoadedPromise,
-
-    // mTarget (FontFace*)
-    // mResult
-    RejectFontFaceLoadedPromise,
-
     // mTarget (FontFaceSet*)
     DispatchLoadingEventAndReplaceReadyPromise,
-
-    // mTarget (FontFaceSetImpl*)
-    DispatchFontFaceSetCheckLoadingFinishedAfterDelay,
 
     // mTarget (gfxUserFontEntry*)
     LoadFontEntry,
@@ -116,11 +82,10 @@ class PostTraversalTask {
   };
 
   explicit PostTraversalTask(Type aType)
-      : mType(aType), mTarget(nullptr), mResult(NS_OK) {}
+      : mType(aType), mTarget(nullptr) {}
 
-  Type mType;
-  void* mTarget;
-  nsresult mResult;
+  const Type mType;
+  void* mTarget = nullptr;
 };
 
 }  // namespace mozilla

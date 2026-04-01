@@ -49,12 +49,10 @@ static void GetDataFrom(const T& aObject, uint8_t*& aBuffer,
 NS_IMPL_CYCLE_COLLECTION_CLASS(FontFace)
 
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(FontFace)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mParent)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mLoaded)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(FontFace)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK(mParent)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mLoaded)
   tmp->Destroy();
   NS_IMPL_CYCLE_COLLECTION_UNLINK_PRESERVED_WRAPPER
@@ -72,8 +70,9 @@ NS_INTERFACE_MAP_END
 NS_IMPL_CYCLE_COLLECTING_ADDREF(FontFace)
 NS_IMPL_CYCLE_COLLECTING_RELEASE(FontFace)
 
-FontFace::FontFace(nsIGlobalObject* aParent)
-    : mParent(aParent), mLoadedRejection(NS_OK) {}
+FontFace::FontFace(nsIGlobalObject* aParent) : mLoadedRejection(NS_OK) {
+  BindToOwner(aParent);
+}
 
 FontFace::~FontFace() {
   // Assert that we don't drop any FontFace objects during a Servo traversal,
@@ -83,6 +82,13 @@ FontFace::~FontFace() {
 }
 
 void FontFace::Destroy() { mImpl->Destroy(); }
+
+void FontFace::DisconnectFromOwner() {
+  GlobalTeardownObserver::DisconnectFromOwner();
+  if (mImpl) {
+    mImpl->StopKeepingOwnerAlive();
+  }
+}
 
 JSObject* FontFace::WrapObject(JSContext* aCx,
                                JS::Handle<JSObject*> aGivenProto) {
@@ -248,6 +254,7 @@ Promise* FontFace::Load(ErrorResult& aRv) {
   }
 
   mImpl->Load(aRv);
+  mImpl->UpdateOwnerKeepAlive();
   return mLoaded;
 }
 
@@ -259,40 +266,27 @@ Promise* FontFace::GetLoaded(ErrorResult& aRv) {
     return nullptr;
   }
 
+  if (mImpl) {
+    mImpl->UpdateOwnerKeepAlive();
+  }
+
   return mLoaded;
 }
 
 void FontFace::MaybeResolve() {
   gfxFontUtils::AssertSafeThreadOrServoFontMetricsLocked();
+  MOZ_ASSERT(!NS_IsMainThread() || nsContentUtils::IsSafeToRunScript());
+  MOZ_ASSERT(!gfxFontUtils::CurrentServoStyleSet());
 
-  if (!mLoaded) {
-    return;
+  if (RefPtr loaded = mLoaded) {
+    loaded->MaybeResolve(this);
   }
-
-  if (ServoStyleSet* ss = gfxFontUtils::CurrentServoStyleSet()) {
-    // See comments in Gecko_GetFontMetrics.
-    ss->AppendTask(PostTraversalTask::ResolveFontFaceLoadedPromise(this));
-    return;
-  }
-
-  if (NS_IsMainThread() && !nsContentUtils::IsSafeToRunScript()) {
-    nsContentUtils::AddScriptRunner(NewRunnableMethod(
-        "FontFace::MaybeResolve", this, &FontFace::MaybeResolve));
-    return;
-  }
-
-  mLoaded->MaybeResolve(this);
 }
 
 void FontFace::MaybeReject(nsresult aResult) {
   gfxFontUtils::AssertSafeThreadOrServoFontMetricsLocked();
-
-  if (ServoStyleSet* ss = gfxFontUtils::CurrentServoStyleSet()) {
-    // See comments in Gecko_GetFontMetrics.
-    ss->AppendTask(
-        PostTraversalTask::RejectFontFaceLoadedPromise(this, aResult));
-    return;
-  }
+  MOZ_ASSERT(!NS_IsMainThread() || nsContentUtils::IsSafeToRunScript());
+  MOZ_ASSERT(!gfxFontUtils::CurrentServoStyleSet());
 
   if (mLoaded) {
     mLoaded->MaybeReject(aResult);
@@ -302,12 +296,12 @@ void FontFace::MaybeReject(nsresult aResult) {
 }
 
 void FontFace::EnsurePromise() {
-  if (mLoaded || !mImpl || !mParent) {
+  if (mLoaded || !mImpl || !GetOwnerGlobal()) {
     return;
   }
 
   ErrorResult rv;
-  mLoaded = Promise::Create(mParent, rv);
+  mLoaded = Promise::Create(GetOwnerGlobal(), rv);
 
   if (mImpl->Status() == FontFaceLoadStatus::Loaded) {
     mLoaded->MaybeResolve(this);

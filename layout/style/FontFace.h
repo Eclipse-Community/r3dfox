@@ -10,6 +10,7 @@
 #include "mozilla/dom/FontFaceBinding.h"
 #include "mozilla/FontPropertyTypes.h"
 #include "mozilla/Maybe.h"
+#include "mozilla/GlobalTeardownObserver.h"
 #include "mozilla/ServoStyleConsts.h"
 #include "gfxUserFontSet.h"
 #include "nsCSSPropertyID.h"
@@ -38,14 +39,16 @@ class UTF8StringOrArrayBufferOrArrayBufferView;
 
 namespace mozilla::dom {
 
-class FontFace final : public nsISupports, public nsWrapperCache {
+class FontFace final : public GlobalTeardownObserver, public nsWrapperCache {
   friend class mozilla::PostTraversalTask;
 
  public:
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
   NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS(FontFace)
 
-  nsIGlobalObject* GetParentObject() const { return mParent; }
+  void DisconnectFromOwner() final;
+
+  nsIGlobalObject* GetParentObject() const { return GetOwnerGlobal(); }
   JSObject* WrapObject(JSContext*, JS::Handle<JSObject*> aGivenProto) override;
 
   static already_AddRefed<FontFace> CreateForRule(
@@ -107,8 +110,6 @@ class FontFace final : public nsISupports, public nsWrapperCache {
   // Creates mLoaded if it doesn't already exist. It may immediately resolve or
   // reject mLoaded based on mStatus and mLoadedRejection.
   void EnsurePromise();
-
-  nsCOMPtr<nsIGlobalObject> mParent;
 
   RefPtr<FontFaceImpl> mImpl;
 
