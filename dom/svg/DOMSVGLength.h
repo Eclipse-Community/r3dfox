@@ -133,7 +133,10 @@ class DOMSVGLength final : public nsWrapperCache {
   }
 
   /// This method is called to notify this object that its list index changed.
-  void UpdateListIndex(uint32_t aListIndex) { mListIndex = aListIndex; }
+  void UpdateListIndex(uint32_t aListIndex) {
+    MOZ_RELEASE_ASSERT(aListIndex <= MaxListIndex());
+    mListIndex = aListIndex;
+  }
 
   /**
    * This method is called to notify this DOM object that it is about to be
