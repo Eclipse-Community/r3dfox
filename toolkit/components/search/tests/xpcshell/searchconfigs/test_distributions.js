@@ -344,6 +344,28 @@ tests.push({
 
 tests.push({
   region: "US",
+  distribution: "xiaomi-001",
+  application: "firefox-android",
+  test: engines =>
+    hasParams(engines, "Google", "client=firefox-b-1-dt") &&
+    hasDefault(engines, "Google") &&
+    hasEnginesFirst(engines, ["Google"]) &&
+    hasTelemetryId(engines, "Google", "google-b-1-dt"),
+});
+
+tests.push({
+  region: "CA", // Testing for "rest of world" (excluding US, RU, BY)
+  distribution: "xiaomi-001",
+  application: "firefox-android",
+  test: engines =>
+    hasParams(engines, "Google", "client=firefox-b-dt") &&
+    hasDefault(engines, "Google") &&
+    hasEnginesFirst(engines, ["Google"]) &&
+    hasTelemetryId(engines, "Google", "google-b-dt"),
+});
+
+tests.push({
+  region: "US",
   distribution: "aura-001",
   application: "firefox-android",
   test: engines =>
