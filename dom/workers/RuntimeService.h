@@ -54,7 +54,7 @@ class RuntimeService final : public nsIObserver {
     }
   };
 
-  mozilla::Mutex mMutex;
+  mutable mozilla::Mutex mMutex;
 
   // Protected by mMutex.
   nsClassHashtable<nsCStringHashKey, WorkerDomainInfo> mDomainMap
@@ -77,7 +77,7 @@ class RuntimeService final : public nsIObserver {
   };
 
  private:
-  NavigatorProperties mNavigatorProperties;
+  NavigatorProperties mNavigatorProperties MOZ_GUARDED_BY(mMutex);
 
   // True when the observer service holds a reference to this object.
   bool mObserved;
@@ -112,7 +112,8 @@ class RuntimeService final : public nsIObserver {
   void PropagateStorageAccessPermissionGranted(
       const nsPIDOMWindowInner& aWindow);
 
-  const NavigatorProperties& GetNavigatorProperties() const {
+  NavigatorProperties GetNavigatorProperties() const {
+    MutexAutoLock lock(mMutex);
     return mNavigatorProperties;
   }
 
