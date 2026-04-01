@@ -87,6 +87,8 @@ class gfxFontconfigFontEntry final : public gfxFT2FontEntryBase {
 
   gfxFontEntry* Clone() const override;
 
+  AutoHBFace GetHBFace() override;
+
   FcPattern* GetPattern() { return mFontPattern; }
 
   nsresult ReadCMAP(FontInfoData* aFontInfoData = nullptr) override;
@@ -124,6 +126,14 @@ class gfxFontconfigFontEntry final : public gfxFT2FontEntryBase {
   // a RefPtr because we need it to be an atomic.
   mozilla::Atomic<mozilla::gfx::SharedFTFace*> mFTFace;
   mozilla::Atomic<bool> mFTFaceInitialized;
+
+  // HarfBuzz face, if the entry is backed by a disk file. Initialized on first
+  // use.
+  mozilla::Atomic<hb_face_t*> mHBFace;
+
+  // Whether font table access will use the gfxFontEntry table cache (bypassed
+  // if we were able to create an hb_face_t that wraps the complete font data).
+  bool mUseTableCache = false;
 
   // Whether TestCharacterMap should check the actual cmap rather than asking
   // fontconfig about character coverage.
