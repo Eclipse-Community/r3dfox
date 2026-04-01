@@ -103,6 +103,7 @@ class FetchParent final : public PFetchParent {
 
   Atomic<bool> mIsDone{false};
   Atomic<bool> mActorDestroyed{false};
+  Atomic<bool> mReceivedFetchOp{false};
 
   nsCOMPtr<nsISerialEventTarget> mBackgroundEventTarget;
 };
