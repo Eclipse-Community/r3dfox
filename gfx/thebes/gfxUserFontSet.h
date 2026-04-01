@@ -767,6 +767,8 @@ class gfxUserFontEntry : public gfxFontEntry {
   // user font entry.
   virtual void GetUserFontSets(nsTArray<RefPtr<gfxUserFontSet>>& aResult);
 
+  FontTableCache* GetFontTableCache(bool aCreate) override { return nullptr; }
+
   // general load state
   UserFontLoadState mUserFontLoadState;
 

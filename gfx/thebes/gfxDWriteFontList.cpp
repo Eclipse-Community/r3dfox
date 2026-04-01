@@ -384,7 +384,10 @@ gfxFontEntry* gfxDWriteFontEntry::Clone() const {
   return fe;
 }
 
-gfxDWriteFontEntry::~gfxDWriteFontEntry() {}
+gfxDWriteFontEntry::~gfxDWriteFontEntry() {
+  auto* cache = mFontTableCache.exchange(nullptr);
+  delete cache;
+}
 
 static bool UsingArabicOrHebrewScriptSystemLocale() {
   LANGID langid = PRIMARYLANGID(::GetSystemDefaultLangID());
@@ -510,6 +513,18 @@ hb_blob_t* gfxDWriteFontEntry::GetFontTable(uint32_t aTag) {
   }
 
   return nullptr;
+}
+
+gfxFontEntry::FontTableCache* gfxDWriteFontEntry::GetFontTableCache(
+    bool aCreate) {
+  // Create the cache if it does not yet exist.
+  if (!mFontTableCache && aCreate) {
+    auto* cache = new FontTableCache();
+    if (!mFontTableCache.compareExchange(nullptr, cache)) {
+      delete cache;
+    }
+  }
+  return mFontTableCache;
 }
 
 nsresult gfxDWriteFontEntry::ReadCMAP(FontInfoData* aFontInfoData) {

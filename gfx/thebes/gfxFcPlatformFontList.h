@@ -107,6 +107,9 @@ class gfxFontconfigFontEntry final : public gfxFT2FontEntryBase {
   bool HasFontTable(uint32_t aTableTag) override;
   nsresult CopyFontTable(uint32_t aTableTag, nsTArray<uint8_t>&) override;
   hb_blob_t* GetFontTable(uint32_t aTableTag) override;
+  FontTableCache* GetFontTableCache(bool aCreate) override {
+    return mFontTableCache;
+  };
 
   double GetAspect(uint8_t aSizeAdjustBasis);
 
@@ -131,9 +134,9 @@ class gfxFontconfigFontEntry final : public gfxFT2FontEntryBase {
   // use.
   mozilla::Atomic<hb_face_t*> mHBFace;
 
-  // Whether font table access will use the gfxFontEntry table cache (bypassed
-  // if we were able to create an hb_face_t that wraps the complete font data).
-  bool mUseTableCache = false;
+  // Font table cache, created only if we fail to create a hb_face_t that wraps
+  // the complete font data.
+  mozilla::Atomic<FontTableCache*> mFontTableCache;
 
   // Whether TestCharacterMap should check the actual cmap rather than asking
   // fontconfig about character coverage.
