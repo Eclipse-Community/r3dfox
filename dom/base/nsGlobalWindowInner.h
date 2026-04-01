@@ -1286,6 +1286,10 @@ class nsGlobalWindowInner final : public mozilla::dom::EventTarget,
   void SetCurrentPasteDataTransfer(mozilla::dom::DataTransfer* aDataTransfer);
   mozilla::dom::DataTransfer* GetCurrentPasteDataTransfer() const;
 
+  mozilla::dom::ClientSource* GetClientSource() const {
+    return mClientSource.get();
+  }
+
  private:
   RefPtr<mozilla::dom::ContentMediaController> mContentMediaController;
 
