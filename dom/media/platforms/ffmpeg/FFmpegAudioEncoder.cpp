@@ -300,10 +300,9 @@ FFmpegAudioEncoder<LIBAV_VER>::EncodeOnePacket(Span<float> aSamples,
             aSamples.Length());
   } else {
     MOZ_ASSERT(mCodecContext->sample_fmt == AV_SAMPLE_FMT_FLTP);
-    for (uint32_t i = 0; i < mConfig.mNumberOfChannels; i++) {
-      DeinterleaveAndConvertBuffer(aSamples.data(), mFrame->nb_samples,
-                                   mConfig.mNumberOfChannels, mFrame->data);
-    }
+    DeinterleaveAndConvertBuffer(aSamples.data(), mFrame->nb_samples,
+                                 mConfig.mNumberOfChannels,
+                                 mFrame->extended_data);
   }
 
   // Now send the AVFrame to ffmpeg for encoding, same code for audio and video.
