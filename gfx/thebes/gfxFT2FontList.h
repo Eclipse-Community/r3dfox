@@ -86,9 +86,11 @@ class FT2FontEntry final : public gfxFT2FontEntryBase {
 
   // Get a harfbuzz face for this font, if possible. The caller is responsible
   // to destroy the face when no longer needed.
+  // Note that a face may be cached by the font entry, and a new reference
+  // returned to the caller.
   // This may be a bit expensive, so avoid calling multiple times if the same
   // face can be re-used for several purposes instead.
-  hb_face_t* CreateHBFace() const;
+  hb_face_t* CreateHBFace();
 
   /**
    * Append this face's metadata to aFaceList for storage in the FontNameCache
@@ -113,6 +115,8 @@ class FT2FontEntry final : public gfxFT2FontEntryBase {
   FontTableCache* GetFontTableCache(bool aCreate) override;
 
   mozilla::Atomic<FontTableCache*> mFontTableCache;
+
+  mozilla::Atomic<hb_face_t*> mHBFace;
 
   // Strong reference (addref'd), but held in an atomic ptr rather than a
   // normal RefPtr.
