@@ -551,6 +551,8 @@ void CookieStorage::RemoveOlderCookiesUntilUnderLimit(
     CookieEntry* aEntry, Cookie* aCookie, const nsACString& aBaseDomain,
     nsCOMPtr<nsIArray>& aPurgedList) {
   MOZ_ASSERT(aEntry);
+  CookieKey key(aEntry->mBaseDomain, aEntry->mOriginAttributes);
+
   // remove insecure older cookies until we are within the byte limit
   // so CHIPS-partitioned cookies will not be detected here since they must be
   // secure
@@ -570,11 +572,17 @@ void CookieStorage::RemoveOlderCookiesUntilUnderLimit(
 
   // remove secure older cookies until we are within the byte limit
   if (!underLimit) {
+    // Re-lookup: aEntry may have been freed if pass 1 emptied it.
+    CookieEntry* entry = mHostTable.GetEntry(key);
+    if (!entry) {
+      return;
+    }
     MOZ_LOG(gCookieLog, LogLevel::Debug,
             ("Still too many cookies for partition, purging secure\n"));
-    MaybePurgeList maybePurgeList(aEntry->GetCookies().Length());
-    for (CookieEntry::IndexType i = 0; i < cookies.Length(); ++i) {
-      CookieListIter iter(aEntry, i);
+    const CookieEntry::ArrayType& secureCookies = entry->GetCookies();
+    MaybePurgeList maybePurgeList(secureCookies.Length());
+    for (CookieEntry::IndexType i = 0; i < secureCookies.Length(); ++i) {
+      CookieListIter iter(entry, i);
       maybePurgeList.AppendElement(iter);
     }
     maybePurgeList.Sort(CompareCookiesByAge());
