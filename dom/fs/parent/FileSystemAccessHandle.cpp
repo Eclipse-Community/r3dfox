@@ -124,6 +124,9 @@ void FileSystemAccessHandle::UnregisterControlActor(
 bool FileSystemAccessHandle::IsOpen() const { return !mClosed; }
 
 RefPtr<BoolPromise> FileSystemAccessHandle::BeginClose() {
+  if (mClosed) {
+    return BoolPromise::CreateAndResolve(true, __func__);
+  }
   MOZ_ASSERT(IsOpen());
 
   LOG(("Closing AccessHandle"));
