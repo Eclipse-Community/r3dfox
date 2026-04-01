@@ -21,7 +21,6 @@
 #include "mozilla/gfx/Swizzle.h"
 #include "mozilla/layers/ImageDataSerializer.h"
 #include "mozilla/layers/RemoteTextureMap.h"
-#include "mozilla/widget/ScreenManager.h"
 #include "skia/include/core/SkPixmap.h"
 #include "nsContentUtils.h"
 #include "nsIMemoryReporter.h"
@@ -905,29 +904,12 @@ bool DrawTargetWebgl::CanCreate(const IntSize& aSize, SurfaceFormat aFormat) {
     return false;
   }
 
-  // Maximum pref allows 3 different options:
-  //  0 means unlimited size,
+  // Maximum pref allows 2 different options:
+  //  <= 0 means unlimited size,
   //  > 0 means use value as an absolute threshold,
-  //  < 0 means use the number of screen pixels as a threshold.
   int32_t maxSize = StaticPrefs::gfx_canvas_accelerated_max_size();
-  if (maxSize > 0) {
-    if (std::max(aSize.width, aSize.height) > maxSize) {
-      return false;
-    }
-  } else if (maxSize < 0) {
-    // Default to historical mobile screen size of 980x480, like FishIEtank.
-    // In addition, allow acceleration up to this size even if the screen is
-    // smaller. A lot content expects this size to work well. See Bug 999841
-    static const int32_t kScreenPixels = 980 * 480;
-
-    if (RefPtr<widget::Screen> screen =
-            widget::ScreenManager::GetSingleton().GetPrimaryScreen()) {
-      LayoutDeviceIntSize screenSize = screen->GetRect().Size();
-      if (aSize.width * aSize.height >
-          std::max(screenSize.width * screenSize.height, kScreenPixels)) {
-        return false;
-      }
-    }
+  if (maxSize > 0 && std::max(aSize.width, aSize.height) > maxSize) {
+    return false;
   }
 
   return true;
