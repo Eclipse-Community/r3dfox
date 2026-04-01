@@ -386,6 +386,16 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign(
     return IPC_OK();
   }
 
+  for (const WebAuthnExtension& ext : aTransactionInfo.Extensions()) {
+    if (ext.type() == WebAuthnExtension::TWebAuthnExtensionPrf) {
+      if (ext.get_WebAuthnExtensionPrf().evalByCredential().Length() >
+          kWebAuthnMaxAllowedCredentials) {
+        aResolver(NS_ERROR_DOM_NOT_ALLOWED_ERR);
+        return IPC_OK();
+      }
+    }
+  }
+
   nsCString clientDataJSON;
   rv = AssembleClientData(manager, "webauthn.get"_ns,
                           aTransactionInfo.Challenge(), clientDataJSON);

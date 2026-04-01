@@ -430,8 +430,6 @@ already_AddRefed<Promise> WebAuthnHandler::MakeCredential(
   return promise.forget();
 }
 
-const size_t MAX_ALLOWED_CREDENTIALS = 20;
-
 already_AddRefed<Promise> WebAuthnHandler::GetAssertion(
     const PublicKeyCredentialRequestOptions& aOptions,
     const bool aConditionallyMediated,
@@ -494,7 +492,7 @@ already_AddRefed<Promise> WebAuthnHandler::GetAssertion(
   }
 
   // Abort the request if the allowCredentials set is too large
-  if (aOptions.mAllowCredentials.Length() > MAX_ALLOWED_CREDENTIALS) {
+  if (aOptions.mAllowCredentials.Length() > kWebAuthnMaxAllowedCredentials) {
     promise->MaybeReject(NS_ERROR_DOM_SECURITY_ERR);
     return promise.forget();
   }

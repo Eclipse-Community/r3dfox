@@ -319,8 +319,9 @@ NSDictionary<NSData*, ASAuthorizationPublicKeyCredentialPRFAssertionInputValues*
   }
 
   uint32_t count = prfEvalByCredIds.Length();
-  NSData* keys[count];
-  ASAuthorizationPublicKeyCredentialPRFAssertionInputValues* objects[count];
+  NSMutableArray<NSData*>* keys = [NSMutableArray arrayWithCapacity:count];
+  NSMutableArray<ASAuthorizationPublicKeyCredentialPRFAssertionInputValues*>*
+      objects = [NSMutableArray arrayWithCapacity:count];
   for (size_t i = 0; i < count; i++) {
     NSData* saltInput1 = [NSData dataWithBytes:prfEvalByCredFirsts[i].Elements()
                                         length:prfEvalByCredFirsts[i].Length()];
@@ -329,15 +330,15 @@ NSDictionary<NSData*, ASAuthorizationPublicKeyCredentialPRFAssertionInputValues*
       saltInput2 = [NSData dataWithBytes:prfEvalByCredSeconds[i].Elements()
                                   length:prfEvalByCredSeconds[i].Length()];
     }
-    keys[i] = [NSData dataWithBytes:prfEvalByCredIds[i].Elements()
-                             length:prfEvalByCredIds[i].Length()];
-    objects[i] =
-        [[ASAuthorizationPublicKeyCredentialPRFAssertionInputValues alloc]
-            initWithSaltInput1:saltInput1
-                    saltInput2:saltInput2];
+    [keys addObject:[NSData dataWithBytes:prfEvalByCredIds[i].Elements()
+                                   length:prfEvalByCredIds[i].Length()]];
+    [objects
+        addObject:[[ASAuthorizationPublicKeyCredentialPRFAssertionInputValues
+                      alloc] initWithSaltInput1:saltInput1
+                                     saltInput2:saltInput2]];
   }
 
-  return [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
+  return [NSDictionary dictionaryWithObjects:objects forKeys:keys];
 }
 
 @implementation MacOSAuthenticatorRequestDelegate {
