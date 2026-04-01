@@ -21,26 +21,26 @@ JSObject* SVGFEBlendElement::WrapNode(JSContext* aCx,
 }
 
 SVGEnumMapping SVGFEBlendElement::sModeMap[] = {
-    {nsGkAtoms::normal, SVG_FEBLEND_MODE_NORMAL},
-    {nsGkAtoms::multiply, SVG_FEBLEND_MODE_MULTIPLY},
-    {nsGkAtoms::screen, SVG_FEBLEND_MODE_SCREEN},
-    {nsGkAtoms::darken, SVG_FEBLEND_MODE_DARKEN},
-    {nsGkAtoms::lighten, SVG_FEBLEND_MODE_LIGHTEN},
-    {nsGkAtoms::overlay, SVG_FEBLEND_MODE_OVERLAY},
-    {nsGkAtoms::colorDodge, SVG_FEBLEND_MODE_COLOR_DODGE},
-    {nsGkAtoms::colorBurn, SVG_FEBLEND_MODE_COLOR_BURN},
-    {nsGkAtoms::hardLight, SVG_FEBLEND_MODE_HARD_LIGHT},
-    {nsGkAtoms::softLight, SVG_FEBLEND_MODE_SOFT_LIGHT},
-    {nsGkAtoms::difference, SVG_FEBLEND_MODE_DIFFERENCE},
-    {nsGkAtoms::exclusion, SVG_FEBLEND_MODE_EXCLUSION},
-    {nsGkAtoms::hue, SVG_FEBLEND_MODE_HUE},
-    {nsGkAtoms::saturation, SVG_FEBLEND_MODE_SATURATION},
-    {nsGkAtoms::color, SVG_FEBLEND_MODE_COLOR},
-    {nsGkAtoms::luminosity, SVG_FEBLEND_MODE_LUMINOSITY},
+    {nsGkAtoms::normal, uint8_t(SVGFEBlendMode::Normal)},
+    {nsGkAtoms::multiply, uint8_t(SVGFEBlendMode::Multiply)},
+    {nsGkAtoms::screen, uint8_t(SVGFEBlendMode::Screen)},
+    {nsGkAtoms::darken, uint8_t(SVGFEBlendMode::Darken)},
+    {nsGkAtoms::lighten, uint8_t(SVGFEBlendMode::Lighten)},
+    {nsGkAtoms::overlay, uint8_t(SVGFEBlendMode::Overlay)},
+    {nsGkAtoms::colorDodge, uint8_t(SVGFEBlendMode::ColorDodge)},
+    {nsGkAtoms::colorBurn, uint8_t(SVGFEBlendMode::ColorBurn)},
+    {nsGkAtoms::hardLight, uint8_t(SVGFEBlendMode::HardLight)},
+    {nsGkAtoms::softLight, uint8_t(SVGFEBlendMode::SoftLight)},
+    {nsGkAtoms::difference, uint8_t(SVGFEBlendMode::Difference)},
+    {nsGkAtoms::exclusion, uint8_t(SVGFEBlendMode::Exclusion)},
+    {nsGkAtoms::hue, uint8_t(SVGFEBlendMode::Hue)},
+    {nsGkAtoms::saturation, uint8_t(SVGFEBlendMode::Saturation)},
+    {nsGkAtoms::color, uint8_t(SVGFEBlendMode::Color)},
+    {nsGkAtoms::luminosity, uint8_t(SVGFEBlendMode::Luminosity)},
     {nullptr, 0}};
 
 SVGElement::EnumInfo SVGFEBlendElement::sEnumInfo[1] = {
-    {nsGkAtoms::mode, sModeMap, SVG_FEBLEND_MODE_NORMAL}};
+    {nsGkAtoms::mode, sModeMap, uint8_t(SVGFEBlendMode::Normal)}};
 
 SVGElement::StringInfo SVGFEBlendElement::sStringInfo[3] = {
     {nsGkAtoms::result, kNameSpaceID_None, true},
@@ -71,9 +71,8 @@ FilterPrimitiveDescription SVGFEBlendElement::GetPrimitiveDescription(
     SVGFilterInstance* aInstance, const IntRect& aFilterSubregion,
     const nsTArray<bool>& aInputsAreTainted,
     nsTArray<RefPtr<SourceSurface>>& aInputImages) {
-  uint32_t mode = mEnumAttributes[MODE].GetAnimValue();
   BlendAttributes attributes;
-  attributes.mBlendMode = mode;
+  attributes.mBlendMode = SVGFEBlendMode(mEnumAttributes[MODE].GetAnimValue());
   return FilterPrimitiveDescription(AsVariant(std::move(attributes)));
 }
 

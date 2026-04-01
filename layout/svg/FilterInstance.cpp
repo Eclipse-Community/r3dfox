@@ -114,18 +114,19 @@ void FilterInstance::PaintFilteredFrame(
   }
 }
 
-static mozilla::wr::ComponentTransferFuncType FuncTypeToWr(uint8_t aFuncType) {
-  MOZ_ASSERT(aFuncType != SVG_FECOMPONENTTRANSFER_SAME_AS_R);
+static mozilla::wr::ComponentTransferFuncType FuncTypeToWr(
+    SVGFEComponentTransferType aFuncType) {
+  MOZ_ASSERT(aFuncType != SVGFEComponentTransferType::SameAsR);
   switch (aFuncType) {
-    case SVG_FECOMPONENTTRANSFER_TYPE_TABLE:
+    case SVGFEComponentTransferType::Table:
       return mozilla::wr::ComponentTransferFuncType::Table;
-    case SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE:
+    case SVGFEComponentTransferType::Discrete:
       return mozilla::wr::ComponentTransferFuncType::Discrete;
-    case SVG_FECOMPONENTTRANSFER_TYPE_LINEAR:
+    case SVGFEComponentTransferType::Linear:
       return mozilla::wr::ComponentTransferFuncType::Linear;
-    case SVG_FECOMPONENTTRANSFER_TYPE_GAMMA:
+    case SVGFEComponentTransferType::Gamma:
       return mozilla::wr::ComponentTransferFuncType::Gamma;
-    case SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY:
+    case SVGFEComponentTransferType::Identity:
     default:
       return mozilla::wr::ComponentTransferFuncType::Identity;
   }
@@ -333,14 +334,14 @@ WrFiltersStatus FilterInstance::BuildWebRenderFiltersImpl(
       filterData.R_values_count = attributes.mValues[0].Length();
 
       size_t indexToUse =
-          attributes.mTypes[1] == SVG_FECOMPONENTTRANSFER_SAME_AS_R ? 0 : 1;
+          attributes.mTypes[1] == SVGFEComponentTransferType::SameAsR ? 0 : 1;
       filterData.funcG_type = FuncTypeToWr(attributes.mTypes[indexToUse]);
       size_t G_startindex = values->Length();
       values->AppendElements(attributes.mValues[indexToUse]);
       filterData.G_values_count = attributes.mValues[indexToUse].Length();
 
       indexToUse =
-          attributes.mTypes[2] == SVG_FECOMPONENTTRANSFER_SAME_AS_R ? 0 : 2;
+          attributes.mTypes[2] == SVGFEComponentTransferType::SameAsR ? 0 : 2;
       filterData.funcB_type = FuncTypeToWr(attributes.mTypes[indexToUse]);
       size_t B_startindex = values->Length();
       values->AppendElements(attributes.mValues[indexToUse]);
@@ -487,66 +488,66 @@ static WrFiltersStatus WrFilterOpSVGFEBlend(
     return WrFiltersStatus::BLOB_FALLBACK;
   }
   switch (aAttributes.mBlendMode) {
-    case SVG_FEBLEND_MODE_COLOR:
+    case SVGFEBlendMode::Color:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendColor(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_COLOR_BURN:
+    case SVGFEBlendMode::ColorBurn:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendColorBurn(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_COLOR_DODGE:
+    case SVGFEBlendMode::ColorDodge:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendColorDodge(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_DARKEN:
+    case SVGFEBlendMode::Darken:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendDarken(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_DIFFERENCE:
+    case SVGFEBlendMode::Difference:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendDifference(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_EXCLUSION:
+    case SVGFEBlendMode::Exclusion:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendExclusion(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_HARD_LIGHT:
+    case SVGFEBlendMode::HardLight:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendHardLight(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_HUE:
+    case SVGFEBlendMode::Hue:
       aWrFilters.filters.AppendElement(wr::FilterOp::SVGFEBlendHue(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_LIGHTEN:
+    case SVGFEBlendMode::Lighten:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendLighten(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_LUMINOSITY:
+    case SVGFEBlendMode::Luminosity:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendLuminosity(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_MULTIPLY:
+    case SVGFEBlendMode::Multiply:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendMultiply(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_NORMAL:
+    case SVGFEBlendMode::Normal:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendNormal(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_OVERLAY:
+    case SVGFEBlendMode::Overlay:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendOverlay(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_SATURATION:
+    case SVGFEBlendMode::Saturation:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendSaturation(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_SCREEN:
+    case SVGFEBlendMode::Screen:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendScreen(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FEBLEND_MODE_SOFT_LIGHT:
+    case SVGFEBlendMode::SoftLight:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEBlendSoftLight(aGraphNode));
       return WrFiltersStatus::SVGFE;
@@ -566,33 +567,33 @@ static WrFiltersStatus WrFilterOpSVGFEComposite(
     return WrFiltersStatus::BLOB_FALLBACK;
   }
   switch (aAttributes.mOperator) {
-    case SVG_FECOMPOSITE_OPERATOR_ARITHMETIC:
+    case SVGFECompositeOperator::Arithmetic:
       aWrFilters.filters.AppendElement(wr::FilterOp::SVGFECompositeArithmetic(
           aGraphNode, aAttributes.mCoefficients[0],
           aAttributes.mCoefficients[1], aAttributes.mCoefficients[2],
           aAttributes.mCoefficients[3]));
       return WrFiltersStatus::SVGFE;
-    case SVG_FECOMPOSITE_OPERATOR_ATOP:
+    case SVGFECompositeOperator::Atop:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFECompositeATop(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FECOMPOSITE_OPERATOR_IN:
+    case SVGFECompositeOperator::In:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFECompositeIn(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FECOMPOSITE_OPERATOR_LIGHTER:
+    case SVGFECompositeOperator::Lighter:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFECompositeLighter(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FECOMPOSITE_OPERATOR_OUT:
+    case SVGFECompositeOperator::Out:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFECompositeOut(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FECOMPOSITE_OPERATOR_OVER:
+    case SVGFECompositeOperator::Over:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFECompositeOver(aGraphNode));
       return WrFiltersStatus::SVGFE;
-    case SVG_FECOMPOSITE_OPERATOR_XOR:
+    case SVGFECompositeOperator::Xor:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFECompositeXOR(aGraphNode));
       return WrFiltersStatus::SVGFE;
@@ -653,19 +654,19 @@ static WrFiltersStatus WrFilterOpSVGFEComponentTransfer(
   // The only type that doesn't use interpolation is discrete.
   wr::WrFilterData filterData{};
   filterData.funcR_type =
-      aAttributes.mTypes[0] != SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE
+      aAttributes.mTypes[0] != SVGFEComponentTransferType::Discrete
           ? mozilla::wr::ComponentTransferFuncType::Table
           : mozilla::wr::ComponentTransferFuncType::Discrete;
   filterData.funcG_type =
-      aAttributes.mTypes[1] != SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE
+      aAttributes.mTypes[1] != SVGFEComponentTransferType::Discrete
           ? mozilla::wr::ComponentTransferFuncType::Table
           : mozilla::wr::ComponentTransferFuncType::Discrete;
   filterData.funcB_type =
-      aAttributes.mTypes[2] != SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE
+      aAttributes.mTypes[2] != SVGFEComponentTransferType::Discrete
           ? mozilla::wr::ComponentTransferFuncType::Table
           : mozilla::wr::ComponentTransferFuncType::Discrete;
   filterData.funcA_type =
-      aAttributes.mTypes[3] != SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE
+      aAttributes.mTypes[3] != SVGFEComponentTransferType::Discrete
           ? mozilla::wr::ComponentTransferFuncType::Table
           : mozilla::wr::ComponentTransferFuncType::Discrete;
 
@@ -691,15 +692,15 @@ static WrFiltersStatus WrFilterOpSVGFEComponentTransfer(
     auto f = aAttributes.mTypes[c];
     // Check if there's no data (we have crashtests for this).
     if (aAttributes.mValues[c].Length() < 1 &&
-        f != SVG_FECOMPONENTTRANSFER_SAME_AS_R) {
-      f = SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY;
+        f != SVGFEComponentTransferType::SameAsR) {
+      f = SVGFEComponentTransferType::Identity;
     }
-    // Check for misuse of SVG_FECOMPONENTTRANSFER_SAME_AS_R.
-    if (c == 0 && f == SVG_FECOMPONENTTRANSFER_SAME_AS_R) {
-      f = SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY;
+    // Check for misuse of SVGFEComponentTransferType::SameAsR.
+    if (c == 0 && f == SVGFEComponentTransferType::SameAsR) {
+      f = SVGFEComponentTransferType::Identity;
     }
     switch (f) {
-      case SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE: {
+      case SVGFEComponentTransferType::Discrete: {
         size_t length = (size_t)aAttributes.mValues[c].Length();
         size_t length1 = length - 1;
         float step = (float)length / (float)stops;
@@ -716,7 +717,7 @@ static WrFiltersStatus WrFilterOpSVGFEComponentTransfer(
         }
         break;
       }
-      case SVG_FECOMPONENTTRANSFER_TYPE_GAMMA: {
+      case SVGFEComponentTransferType::Gamma: {
         float step = 1.0f / (float)(stops - 1);
         float amplitude = aAttributes.mValues[c][0];
         float exponent = aAttributes.mValues[c][1];
@@ -728,7 +729,7 @@ static WrFiltersStatus WrFilterOpSVGFEComponentTransfer(
         }
         break;
       }
-      case SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY: {
+      case SVGFEComponentTransferType::Identity: {
         float step = 1.0f / (float)(stops - 1);
         for (size_t i = 0; i < stops; i++) {
           float v = (float)i * step;
@@ -737,7 +738,7 @@ static WrFiltersStatus WrFilterOpSVGFEComponentTransfer(
         }
         break;
       }
-      case SVG_FECOMPONENTTRANSFER_TYPE_LINEAR: {
+      case SVGFEComponentTransferType::Linear: {
         float step = aAttributes.mValues[c][0] / (float)(stops - 1);
         float intercept = aAttributes.mValues[c][1];
         for (size_t i = 0; i < stops; i++) {
@@ -747,7 +748,7 @@ static WrFiltersStatus WrFilterOpSVGFEComponentTransfer(
         }
         break;
       }
-      case SVG_FECOMPONENTTRANSFER_TYPE_TABLE: {
+      case SVGFEComponentTransferType::Table: {
         size_t length1 = (size_t)aAttributes.mValues[c].Length() - 1;
         float step = (float)length1 / (float)(stops - 1);
         for (size_t i = 0; i < stops; i++) {
@@ -763,7 +764,7 @@ static WrFiltersStatus WrFilterOpSVGFEComponentTransfer(
         }
         break;
       }
-      case SVG_FECOMPONENTTRANSFER_SAME_AS_R: {
+      case SVGFEComponentTransferType::SameAsR: {
         // We already checked c > 0 above.
         for (size_t i = 0; i < stops; i++) {
           values[i * 4 + c] = values[i * 4];
@@ -824,8 +825,8 @@ static WrFiltersStatus WrFilterOpSVGFEConvolveMatrix(
     }
   }
   switch (aAttributes.mEdgeMode) {
-    case SVG_EDGEMODE_UNKNOWN:
-    case SVG_EDGEMODE_DUPLICATE:
+    case SVGEdgeMode::Unknown:
+    case SVGEdgeMode::Duplicate:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEConvolveMatrixEdgeModeDuplicate(
               aGraphNode, aAttributes.mKernelSize.Width(),
@@ -836,7 +837,7 @@ static WrFiltersStatus WrFilterOpSVGFEConvolveMatrix(
               aAttributes.mKernelUnitLength.Height(),
               aAttributes.mPreserveAlpha));
       return WrFiltersStatus::SVGFE;
-    case SVG_EDGEMODE_NONE:
+    case SVGEdgeMode::None:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEConvolveMatrixEdgeModeNone(
               aGraphNode, aAttributes.mKernelSize.Width(),
@@ -847,7 +848,7 @@ static WrFiltersStatus WrFilterOpSVGFEConvolveMatrix(
               aAttributes.mKernelUnitLength.Height(),
               aAttributes.mPreserveAlpha));
       return WrFiltersStatus::SVGFE;
-    case SVG_EDGEMODE_WRAP:
+    case SVGEdgeMode::Wrap:
       aWrFilters.filters.AppendElement(
           wr::FilterOp::SVGFEConvolveMatrixEdgeModeWrap(
               aGraphNode, aAttributes.mKernelSize.Width(),
@@ -924,8 +925,9 @@ static WrFiltersStatus WrFilterOpSVGFEDisplacementMap(
     return WrFiltersStatus::BLOB_FALLBACK;
   }
   aWrFilters.filters.AppendElement(wr::FilterOp::SVGFEDisplacementMap(
-      aGraphNode, aAttributes.mScale, aAttributes.mXChannel,
-      aAttributes.mYChannel));
+      aGraphNode, aAttributes.mScale,
+      static_cast<uint32_t>(aAttributes.mXChannel),
+      static_cast<uint32_t>(aAttributes.mYChannel)));
   return WrFiltersStatus::SVGFE;
 }
 
@@ -1065,11 +1067,11 @@ static WrFiltersStatus WrFilterOpSVGFEMorphology(
     return WrFiltersStatus::BLOB_FALLBACK;
   }
   switch (aAttributes.mOperator) {
-    case SVG_OPERATOR_DILATE:
+    case SVGMorphologyOperator::Dilate:
       aWrFilters.filters.AppendElement(wr::FilterOp::SVGFEMorphologyDilate(
           aGraphNode, aAttributes.mRadii.width, aAttributes.mRadii.height));
       return WrFiltersStatus::SVGFE;
-    case SVG_OPERATOR_ERODE:
+    case SVGMorphologyOperator::Erode:
       aWrFilters.filters.AppendElement(wr::FilterOp::SVGFEMorphologyErode(
           aGraphNode, aAttributes.mRadii.width, aAttributes.mRadii.height));
       return WrFiltersStatus::SVGFE;
@@ -1177,7 +1179,7 @@ static WrFiltersStatus WrFilterOpSVGFETurbulence(
     seed = m1;
   }
   switch (aAttributes.mType) {
-    case SVG_TURBULENCE_TYPE_FRACTALNOISE:
+    case SVGTurbulenceType::FractalNoise:
       if (aAttributes.mStitchable) {
         aWrFilters.filters.AppendElement(
             wr::FilterOp::SVGFETurbulenceWithFractalNoiseWithStitching(
@@ -1190,7 +1192,7 @@ static WrFiltersStatus WrFilterOpSVGFETurbulence(
                 aAttributes.mBaseFrequency.height, aAttributes.mOctaves, seed));
       }
       return WrFiltersStatus::SVGFE;
-    case SVG_TURBULENCE_TYPE_TURBULENCE:
+    case SVGTurbulenceType::Turbulence:
       if (aAttributes.mStitchable) {
         aWrFilters.filters.AppendElement(
             wr::FilterOp::SVGFETurbulenceWithTurbulenceNoiseWithStitching(

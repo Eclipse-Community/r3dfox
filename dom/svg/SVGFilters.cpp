@@ -146,15 +146,15 @@ SVGElement::NumberInfo SVGComponentTransferFunctionElement::sNumberInfo[5] = {
     {nsGkAtoms::offset, 0}};
 
 SVGEnumMapping SVGComponentTransferFunctionElement::sTypeMap[] = {
-    {nsGkAtoms::identity, SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY},
-    {nsGkAtoms::table, SVG_FECOMPONENTTRANSFER_TYPE_TABLE},
-    {nsGkAtoms::discrete, SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE},
-    {nsGkAtoms::linear, SVG_FECOMPONENTTRANSFER_TYPE_LINEAR},
-    {nsGkAtoms::gamma, SVG_FECOMPONENTTRANSFER_TYPE_GAMMA},
+    {nsGkAtoms::identity, uint8_t(SVGFEComponentTransferType::Identity)},
+    {nsGkAtoms::table, uint8_t(SVGFEComponentTransferType::Table)},
+    {nsGkAtoms::discrete, uint8_t(SVGFEComponentTransferType::Discrete)},
+    {nsGkAtoms::linear, uint8_t(SVGFEComponentTransferType::Linear)},
+    {nsGkAtoms::gamma, uint8_t(SVGFEComponentTransferType::Gamma)},
     {nullptr, 0}};
 
 SVGElement::EnumInfo SVGComponentTransferFunctionElement::sEnumInfo[1] = {
-    {nsGkAtoms::type, sTypeMap, SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY}};
+    {nsGkAtoms::type, sTypeMap, uint8_t(SVGFEComponentTransferType::Identity)}};
 
 //----------------------------------------------------------------------
 // nsSVGFilterPrimitiveChildElement methods
@@ -210,7 +210,8 @@ SVGComponentTransferFunctionElement::Offset() {
 
 void SVGComponentTransferFunctionElement::ComputeAttributes(
     int32_t aChannel, ComponentTransferAttributes& aAttributes) {
-  uint32_t type = mEnumAttributes[TYPE].GetAnimValue();
+  SVGFEComponentTransferType type =
+      SVGFEComponentTransferType(mEnumAttributes[TYPE].GetAnimValue());
 
   float slope, intercept, amplitude, exponent, offset;
   GetAnimatedNumberValues(&slope, &intercept, &amplitude, &exponent, &offset,
@@ -219,16 +220,16 @@ void SVGComponentTransferFunctionElement::ComputeAttributes(
   const SVGNumberList& tableValues =
       mNumberListAttributes[TABLEVALUES].GetAnimValue();
 
-  aAttributes.mTypes[aChannel] = (uint8_t)type;
+  aAttributes.mTypes[aChannel] = type;
   switch (type) {
-    case SVG_FECOMPONENTTRANSFER_TYPE_LINEAR: {
+    case SVGFEComponentTransferType::Linear: {
       aAttributes.mValues[aChannel].SetLength(2);
       aAttributes.mValues[aChannel][kComponentTransferSlopeIndex] = slope;
       aAttributes.mValues[aChannel][kComponentTransferInterceptIndex] =
           intercept;
       break;
     }
-    case SVG_FECOMPONENTTRANSFER_TYPE_GAMMA: {
+    case SVGFEComponentTransferType::Gamma: {
       aAttributes.mValues[aChannel].SetLength(3);
       aAttributes.mValues[aChannel][kComponentTransferAmplitudeIndex] =
           amplitude;
@@ -236,14 +237,16 @@ void SVGComponentTransferFunctionElement::ComputeAttributes(
       aAttributes.mValues[aChannel][kComponentTransferOffsetIndex] = offset;
       break;
     }
-    case SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE:
-    case SVG_FECOMPONENTTRANSFER_TYPE_TABLE: {
+    case SVGFEComponentTransferType::Discrete:
+    case SVGFEComponentTransferType::Table: {
       if (!tableValues.IsEmpty()) {
         aAttributes.mValues[aChannel].AppendElements(&tableValues[0],
                                                      tableValues.Length());
       }
       break;
     }
+    default:
+      break;
   }
 }
 

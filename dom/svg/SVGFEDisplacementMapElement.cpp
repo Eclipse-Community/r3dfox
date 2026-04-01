@@ -26,15 +26,15 @@ SVGElement::NumberInfo SVGFEDisplacementMapElement::sNumberInfo[1] = {
 };
 
 SVGEnumMapping SVGFEDisplacementMapElement::sChannelMap[] = {
-    {nsGkAtoms::R, SVG_CHANNEL_R},
-    {nsGkAtoms::G, SVG_CHANNEL_G},
-    {nsGkAtoms::B, SVG_CHANNEL_B},
-    {nsGkAtoms::A, SVG_CHANNEL_A},
+    {nsGkAtoms::R, uint8_t(SVGChannel::R)},
+    {nsGkAtoms::G, uint8_t(SVGChannel::G)},
+    {nsGkAtoms::B, uint8_t(SVGChannel::B)},
+    {nsGkAtoms::A, uint8_t(SVGChannel::A)},
     {nullptr, 0}};
 
 SVGElement::EnumInfo SVGFEDisplacementMapElement::sEnumInfo[2] = {
-    {nsGkAtoms::xChannelSelector, sChannelMap, SVG_CHANNEL_A},
-    {nsGkAtoms::yChannelSelector, sChannelMap, SVG_CHANNEL_A}};
+    {nsGkAtoms::xChannelSelector, sChannelMap, uint8_t(SVGChannel::A)},
+    {nsGkAtoms::yChannelSelector, sChannelMap, uint8_t(SVGChannel::A)}};
 
 SVGElement::StringInfo SVGFEDisplacementMapElement::sStringInfo[3] = {
     {nsGkAtoms::result, kNameSpaceID_None, true},
@@ -84,12 +84,10 @@ FilterPrimitiveDescription SVGFEDisplacementMapElement::GetPrimitiveDescription(
 
   float scale = aInstance->GetPrimitiveNumber(SVGContentUtils::XY,
                                               &mNumberAttributes[SCALE]);
-  uint32_t xChannel = mEnumAttributes[CHANNEL_X].GetAnimValue();
-  uint32_t yChannel = mEnumAttributes[CHANNEL_Y].GetAnimValue();
   DisplacementMapAttributes atts;
   atts.mScale = scale;
-  atts.mXChannel = xChannel;
-  atts.mYChannel = yChannel;
+  atts.mXChannel = SVGChannel(mEnumAttributes[CHANNEL_X].GetAnimValue());
+  atts.mYChannel = SVGChannel(mEnumAttributes[CHANNEL_Y].GetAnimValue());
   return FilterPrimitiveDescription(AsVariant(std::move(atts)));
 }
 

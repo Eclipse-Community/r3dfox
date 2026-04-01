@@ -37,8 +37,8 @@ SVGElement::IntegerInfo SVGFETurbulenceElement::sIntegerInfo[1] = {
     {nsGkAtoms::numOctaves, 1}};
 
 SVGEnumMapping SVGFETurbulenceElement::sTypeMap[] = {
-    {nsGkAtoms::fractalNoise, SVG_TURBULENCE_TYPE_FRACTALNOISE},
-    {nsGkAtoms::turbulence, SVG_TURBULENCE_TYPE_TURBULENCE},
+    {nsGkAtoms::fractalNoise, uint8_t(SVGTurbulenceType::FractalNoise)},
+    {nsGkAtoms::turbulence, uint8_t(SVGTurbulenceType::Turbulence)},
     {nullptr, 0}};
 
 SVGEnumMapping SVGFETurbulenceElement::sStitchTilesMap[] = {
@@ -47,7 +47,7 @@ SVGEnumMapping SVGFETurbulenceElement::sStitchTilesMap[] = {
     {nullptr, 0}};
 
 SVGElement::EnumInfo SVGFETurbulenceElement::sEnumInfo[2] = {
-    {nsGkAtoms::type, sTypeMap, SVG_TURBULENCE_TYPE_TURBULENCE},
+    {nsGkAtoms::type, sTypeMap, uint8_t(SVGTurbulenceType::Turbulence)},
     {nsGkAtoms::stitchTiles, sStitchTilesMap, SVG_STITCHTYPE_NOSTITCH}};
 
 SVGElement::StringInfo SVGFETurbulenceElement::sStringInfo[1] = {
@@ -100,13 +100,14 @@ FilterPrimitiveDescription SVGFETurbulenceElement::GetPrimitiveDescription(
   float seed = mNumberAttributes[OCTAVES].GetAnimValue();
   uint32_t octaves =
       std::clamp(mIntegerAttributes[OCTAVES].GetAnimValue(), 0, MAX_OCTAVES);
-  uint32_t type = mEnumAttributes[TYPE].GetAnimValue();
+  SVGTurbulenceType type =
+      SVGTurbulenceType(mEnumAttributes[TYPE].GetAnimValue());
   uint16_t stitch = mEnumAttributes[STITCHTILES].GetAnimValue();
 
   if (fX == 0 && fY == 0) {
     // A base frequency of zero results in transparent black for
     // type="turbulence" and in 50% alpha 50% gray for type="fractalNoise".
-    if (type == SVG_TURBULENCE_TYPE_TURBULENCE) {
+    if (type == SVGTurbulenceType::Turbulence) {
       return FilterPrimitiveDescription();
     }
     FloodAttributes atts;

@@ -25,14 +25,15 @@ JSObject* SVGFEColorMatrixElement::WrapNode(JSContext* aCx,
 }
 
 SVGEnumMapping SVGFEColorMatrixElement::sTypeMap[] = {
-    {nsGkAtoms::matrix, SVG_FECOLORMATRIX_TYPE_MATRIX},
-    {nsGkAtoms::saturate, SVG_FECOLORMATRIX_TYPE_SATURATE},
-    {nsGkAtoms::hueRotate, SVG_FECOLORMATRIX_TYPE_HUE_ROTATE},
-    {nsGkAtoms::luminanceToAlpha, SVG_FECOLORMATRIX_TYPE_LUMINANCE_TO_ALPHA},
+    {nsGkAtoms::matrix, uint8_t(SVGFEColorMatrixType::Matrix)},
+    {nsGkAtoms::saturate, uint8_t(SVGFEColorMatrixType::Saturate)},
+    {nsGkAtoms::hueRotate, uint8_t(SVGFEColorMatrixType::HueRotate)},
+    {nsGkAtoms::luminanceToAlpha,
+     uint8_t(SVGFEColorMatrixType::LuminanceToAlpha)},
     {nullptr, 0}};
 
 SVGElement::EnumInfo SVGFEColorMatrixElement::sEnumInfo[1] = {
-    {nsGkAtoms::type, sTypeMap, SVG_FECOLORMATRIX_TYPE_MATRIX}};
+    {nsGkAtoms::type, sTypeMap, uint8_t(SVGFEColorMatrixType::Matrix)}};
 
 SVGElement::StringInfo SVGFEColorMatrixElement::sStringInfo[2] = {
     {nsGkAtoms::result, kNameSpaceID_None, true},
@@ -70,15 +71,16 @@ FilterPrimitiveDescription SVGFEColorMatrixElement::GetPrimitiveDescription(
     SVGFilterInstance* aInstance, const IntRect& aFilterSubregion,
     const nsTArray<bool>& aInputsAreTainted,
     nsTArray<RefPtr<SourceSurface>>& aInputImages) {
-  uint32_t type = mEnumAttributes[TYPE].GetAnimValue();
+  SVGFEColorMatrixType type =
+      SVGFEColorMatrixType(mEnumAttributes[TYPE].GetAnimValue());
   const SVGNumberList& values = mNumberListAttributes[VALUES].GetAnimValue();
 
   ColorMatrixAttributes atts;
   if (!mNumberListAttributes[VALUES].IsExplicitlySet() &&
-      (type == SVG_FECOLORMATRIX_TYPE_MATRIX ||
-       type == SVG_FECOLORMATRIX_TYPE_SATURATE ||
-       type == SVG_FECOLORMATRIX_TYPE_HUE_ROTATE)) {
-    atts.mType = (uint32_t)SVG_FECOLORMATRIX_TYPE_MATRIX;
+      (type == SVGFEColorMatrixType::Matrix ||
+       type == SVGFEColorMatrixType::Saturate ||
+       type == SVGFEColorMatrixType::HueRotate)) {
+    atts.mType = SVGFEColorMatrixType::Matrix;
     static const auto identityMatrix = std::array{
         // clang-format off
         1, 0, 0, 0, 0,

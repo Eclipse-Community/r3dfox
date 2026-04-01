@@ -417,7 +417,7 @@ bool ComputeColorMatrix(const ColorMatrixAttributes& aMatrixAttributes,
   static const float hueRotateB = 0.283f;
 
   switch (aMatrixAttributes.mType) {
-    case SVG_FECOLORMATRIX_TYPE_MATRIX: {
+    case SVGFEColorMatrixType::Matrix: {
       if (aMatrixAttributes.mValues.Length() != 20) {
         return false;
       }
@@ -426,7 +426,7 @@ bool ComputeColorMatrix(const ColorMatrixAttributes& aMatrixAttributes,
       break;
     }
 
-    case SVG_FECOLORMATRIX_TYPE_SATURATE: {
+    case SVGFEColorMatrixType::Saturate: {
       if (aMatrixAttributes.mValues.Length() != 1) {
         return false;
       }
@@ -441,7 +441,7 @@ bool ComputeColorMatrix(const ColorMatrixAttributes& aMatrixAttributes,
       break;
     }
 
-    case SVG_FECOLORMATRIX_TYPE_HUE_ROTATE: {
+    case SVGFEColorMatrixType::HueRotate: {
       if (aMatrixAttributes.mValues.Length() != 1) {
         return false;
       }
@@ -468,12 +468,12 @@ bool ComputeColorMatrix(const ColorMatrixAttributes& aMatrixAttributes,
       break;
     }
 
-    case SVG_FECOLORMATRIX_TYPE_LUMINANCE_TO_ALPHA: {
+    case SVGFEColorMatrixType::LuminanceToAlpha: {
       PodCopy(aOutMatrix, luminanceToAlphaMatrix, 20);
       break;
     }
 
-    case SVG_FECOLORMATRIX_TYPE_SEPIA: {
+    case SVGFEColorMatrixType::Sepia: {
       if (aMatrixAttributes.mValues.Length() != 1) {
         return false;
       }
@@ -532,10 +532,10 @@ static void ConvertComponentTransferFunctionToFilter(
 
   RefPtr<FilterNode> filter;
 
-  uint32_t type = aFunctionAttributes.mTypes[aInChannel];
+  SVGFEComponentTransferType type = aFunctionAttributes.mTypes[aInChannel];
 
   switch (type) {
-    case SVG_FECOMPONENTTRANSFER_TYPE_TABLE: {
+    case SVGFEComponentTransferType::Table: {
       const nsTArray<float>& tableValues =
           aFunctionAttributes.mValues[aInChannel];
       if (tableValues.Length() < 2) return;
@@ -557,7 +557,7 @@ static void ConvertComponentTransferFunctionToFilter(
       break;
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE: {
+    case SVGFEComponentTransferType::Discrete: {
       const nsTArray<float>& tableValues =
           aFunctionAttributes.mValues[aInChannel];
       if (tableValues.Length() < 1) return;
@@ -580,7 +580,7 @@ static void ConvertComponentTransferFunctionToFilter(
       break;
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_LINEAR: {
+    case SVGFEComponentTransferType::Linear: {
       static const LinearTransferAtts slopeAtt[4] = {
           ATT_LINEAR_TRANSFER_SLOPE_R, ATT_LINEAR_TRANSFER_SLOPE_G,
           ATT_LINEAR_TRANSFER_SLOPE_B, ATT_LINEAR_TRANSFER_SLOPE_A};
@@ -605,7 +605,7 @@ static void ConvertComponentTransferFunctionToFilter(
       break;
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_GAMMA: {
+    case SVGFEComponentTransferType::Gamma: {
       static const GammaTransferAtts amplitudeAtt[4] = {
           ATT_GAMMA_TRANSFER_AMPLITUDE_R, ATT_GAMMA_TRANSFER_AMPLITUDE_G,
           ATT_GAMMA_TRANSFER_AMPLITUDE_B, ATT_GAMMA_TRANSFER_AMPLITUDE_A};
@@ -635,7 +635,7 @@ static void ConvertComponentTransferFunctionToFilter(
       break;
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY:
+    case SVGFEComponentTransferType::Identity:
     default:
       break;
   }
@@ -678,12 +678,12 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
     }
 
     already_AddRefed<FilterNode> operator()(const BlendAttributes& aBlend) {
-      uint32_t mode = aBlend.mBlendMode;
+      SVGFEBlendMode mode = aBlend.mBlendMode;
       RefPtr<FilterNode> filter;
-      if (mode == SVG_FEBLEND_MODE_UNKNOWN) {
+      if (mode == SVGFEBlendMode::Unknown) {
         return nullptr;
       }
-      if (mode == SVG_FEBLEND_MODE_NORMAL) {
+      if (mode == SVGFEBlendMode::Normal) {
         filter = mDT->CreateFilter(FilterType::COMPOSITE);
         if (!filter) {
           return nullptr;
@@ -695,25 +695,27 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
         if (!filter) {
           return nullptr;
         }
-        static const uint8_t blendModes[SVG_FEBLEND_MODE_LUMINOSITY + 1] = {
-            0,
-            0,
-            BLEND_MODE_MULTIPLY,
-            BLEND_MODE_SCREEN,
-            BLEND_MODE_DARKEN,
-            BLEND_MODE_LIGHTEN,
-            BLEND_MODE_OVERLAY,
-            BLEND_MODE_COLOR_DODGE,
-            BLEND_MODE_COLOR_BURN,
-            BLEND_MODE_HARD_LIGHT,
-            BLEND_MODE_SOFT_LIGHT,
-            BLEND_MODE_DIFFERENCE,
-            BLEND_MODE_EXCLUSION,
-            BLEND_MODE_HUE,
-            BLEND_MODE_SATURATION,
-            BLEND_MODE_COLOR,
-            BLEND_MODE_LUMINOSITY};
-        filter->SetAttribute(ATT_BLEND_BLENDMODE, (uint32_t)blendModes[mode]);
+        static const uint8_t blendModes[] = {0,
+                                             0,
+                                             BLEND_MODE_MULTIPLY,
+                                             BLEND_MODE_SCREEN,
+                                             BLEND_MODE_DARKEN,
+                                             BLEND_MODE_LIGHTEN,
+                                             BLEND_MODE_OVERLAY,
+                                             BLEND_MODE_COLOR_DODGE,
+                                             BLEND_MODE_COLOR_BURN,
+                                             BLEND_MODE_HARD_LIGHT,
+                                             BLEND_MODE_SOFT_LIGHT,
+                                             BLEND_MODE_DIFFERENCE,
+                                             BLEND_MODE_EXCLUSION,
+                                             BLEND_MODE_HUE,
+                                             BLEND_MODE_SATURATION,
+                                             BLEND_MODE_COLOR,
+                                             BLEND_MODE_LUMINOSITY};
+        static_assert(std::size(blendModes) ==
+                      ContiguousEnumSize<SVGFEBlendMode>::value);
+        filter->SetAttribute(ATT_BLEND_BLENDMODE,
+                             (uint32_t)blendModes[static_cast<uint8_t>(mode)]);
         // The correct input order for both software and D2D filters is flipped
         // from our source order, so flip here.
         filter->SetInput(IN_BLEND_IN, mSources[1]);
@@ -764,9 +766,10 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
       rx = std::min(rx, kMorphologyMaxRadius);
       ry = std::min(ry, kMorphologyMaxRadius);
 
-      MorphologyOperator op = aMorphology.mOperator == SVG_OPERATOR_ERODE
-                                  ? MORPHOLOGY_OPERATOR_ERODE
-                                  : MORPHOLOGY_OPERATOR_DILATE;
+      MorphologyOperator op =
+          aMorphology.mOperator == SVGMorphologyOperator::Erode
+              ? MORPHOLOGY_OPERATOR_ERODE
+              : MORPHOLOGY_OPERATOR_DILATE;
 
       RefPtr<FilterNode> filter = mDT->CreateFilter(FilterType::MORPHOLOGY);
       if (!filter) {
@@ -801,14 +804,14 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
     already_AddRefed<FilterNode> operator()(
         const ComponentTransferAttributes& aComponentTransfer) {
       MOZ_ASSERT(aComponentTransfer.mTypes[0] !=
-                 SVG_FECOMPONENTTRANSFER_SAME_AS_R);
+                 SVGFEComponentTransferType::SameAsR);
       MOZ_ASSERT(aComponentTransfer.mTypes[3] !=
-                 SVG_FECOMPONENTTRANSFER_SAME_AS_R);
+                 SVGFEComponentTransferType::SameAsR);
 
       RefPtr<FilterNode> filters[4];  // one for each FILTER_*_TRANSFER type
       for (int32_t i = 0; i < 4; i++) {
         int32_t inputIndex = (aComponentTransfer.mTypes[i] ==
-                              SVG_FECOMPONENTTRANSFER_SAME_AS_R) &&
+                              SVGFEComponentTransferType::SameAsR) &&
                                      (i < 3)
                                  ? 0
                                  : i;
@@ -856,15 +859,17 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
       filter->SetAttribute(ATT_CONVOLVE_MATRIX_BIAS, aConvolveMatrix.mBias);
       filter->SetAttribute(ATT_CONVOLVE_MATRIX_TARGET, aConvolveMatrix.mTarget);
       filter->SetAttribute(ATT_CONVOLVE_MATRIX_SOURCE_RECT, mSourceRegions[0]);
-      uint32_t edgeMode = aConvolveMatrix.mEdgeMode;
-      static const uint8_t edgeModes[SVG_EDGEMODE_NONE + 1] = {
-          EDGE_MODE_NONE,       // SVG_EDGEMODE_UNKNOWN
-          EDGE_MODE_DUPLICATE,  // SVG_EDGEMODE_DUPLICATE
-          EDGE_MODE_WRAP,       // SVG_EDGEMODE_WRAP
-          EDGE_MODE_NONE        // SVG_EDGEMODE_NONE
+      static const uint8_t edgeModes[] = {
+          EDGE_MODE_NONE,       // SVGEdgeMode::Unknown
+          EDGE_MODE_DUPLICATE,  // SVGEdgeMode::Duplicate
+          EDGE_MODE_WRAP,       // SVGEdgeMode::Wrap
+          EDGE_MODE_NONE        // SVGEdgeMode::None
       };
-      filter->SetAttribute(ATT_CONVOLVE_MATRIX_EDGE_MODE,
-                           (uint32_t)edgeModes[edgeMode]);
+      static_assert(std::size(edgeModes) ==
+                    ContiguousEnumSize<SVGEdgeMode>::value);
+      filter->SetAttribute(
+          ATT_CONVOLVE_MATRIX_EDGE_MODE,
+          (uint32_t)edgeModes[static_cast<uint8_t>(aConvolveMatrix.mEdgeMode)]);
       filter->SetAttribute(ATT_CONVOLVE_MATRIX_KERNEL_UNIT_LENGTH,
                            aConvolveMatrix.mKernelUnitLength);
       filter->SetAttribute(ATT_CONVOLVE_MATRIX_PRESERVE_ALPHA,
@@ -885,17 +890,21 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
         return nullptr;
       }
       filter->SetAttribute(ATT_DISPLACEMENT_MAP_SCALE, aDisplacementMap.mScale);
-      static const uint8_t channel[SVG_CHANNEL_A + 1] = {
-          COLOR_CHANNEL_R,  // SVG_CHANNEL_UNKNOWN
-          COLOR_CHANNEL_R,  // SVG_CHANNEL_R
-          COLOR_CHANNEL_G,  // SVG_CHANNEL_G
-          COLOR_CHANNEL_B,  // SVG_CHANNEL_B
-          COLOR_CHANNEL_A   // SVG_CHANNEL_A
+      static const uint8_t channel[] = {
+          COLOR_CHANNEL_R,  // SVGChannel::Unknown
+          COLOR_CHANNEL_R,  // SVGChannel::R
+          COLOR_CHANNEL_G,  // SVGChannel::G
+          COLOR_CHANNEL_B,  // SVGChannel::B
+          COLOR_CHANNEL_A   // SVGChannel::A
       };
-      filter->SetAttribute(ATT_DISPLACEMENT_MAP_X_CHANNEL,
-                           (uint32_t)channel[aDisplacementMap.mXChannel]);
-      filter->SetAttribute(ATT_DISPLACEMENT_MAP_Y_CHANNEL,
-                           (uint32_t)channel[aDisplacementMap.mYChannel]);
+      static_assert(std::size(channel) ==
+                    ContiguousEnumSize<SVGChannel>::value);
+      filter->SetAttribute(
+          ATT_DISPLACEMENT_MAP_X_CHANNEL,
+          (uint32_t)channel[static_cast<uint8_t>(aDisplacementMap.mXChannel)]);
+      filter->SetAttribute(
+          ATT_DISPLACEMENT_MAP_Y_CHANNEL,
+          (uint32_t)channel[static_cast<uint8_t>(aDisplacementMap.mYChannel)]);
       filter->SetInput(IN_DISPLACEMENT_MAP_IN, mSources[0]);
       filter->SetInput(IN_DISPLACEMENT_MAP_IN2, mSources[1]);
       return filter.forget();
@@ -912,13 +921,16 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
       filter->SetAttribute(ATT_TURBULENCE_NUM_OCTAVES, aTurbulence.mOctaves);
       filter->SetAttribute(ATT_TURBULENCE_STITCHABLE, aTurbulence.mStitchable);
       filter->SetAttribute(ATT_TURBULENCE_SEED, (uint32_t)aTurbulence.mSeed);
-      static const uint8_t type[SVG_TURBULENCE_TYPE_TURBULENCE + 1] = {
-          TURBULENCE_TYPE_FRACTAL_NOISE,  // SVG_TURBULENCE_TYPE_UNKNOWN
-          TURBULENCE_TYPE_FRACTAL_NOISE,  // SVG_TURBULENCE_TYPE_FRACTALNOISE
-          TURBULENCE_TYPE_TURBULENCE      // SVG_TURBULENCE_TYPE_TURBULENCE
+      static const uint8_t type[] = {
+          TURBULENCE_TYPE_FRACTAL_NOISE,  // SVGTurbulenceType::Unknown
+          TURBULENCE_TYPE_FRACTAL_NOISE,  // SVGTurbulenceType::FractalNoise
+          TURBULENCE_TYPE_TURBULENCE      // SVGTurbulenceType::Turbulence
       };
-      filter->SetAttribute(ATT_TURBULENCE_TYPE,
-                           (uint32_t)type[aTurbulence.mType]);
+      static_assert(std::size(type) ==
+                    ContiguousEnumSize<SVGTurbulenceType>::value);
+      filter->SetAttribute(
+          ATT_TURBULENCE_TYPE,
+          (uint32_t)type[static_cast<uint8_t>(aTurbulence.mType)]);
       filter->SetAttribute(
           ATT_TURBULENCE_RECT,
           mDescription.PrimitiveSubregion() - aTurbulence.mOffset);
@@ -928,8 +940,8 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
     already_AddRefed<FilterNode> operator()(
         const CompositeAttributes& aComposite) {
       RefPtr<FilterNode> filter;
-      uint32_t op = aComposite.mOperator;
-      if (op == SVG_FECOMPOSITE_OPERATOR_ARITHMETIC) {
+      SVGFECompositeOperator op = aComposite.mOperator;
+      if (op == SVGFECompositeOperator::Arithmetic) {
         const nsTArray<float>& coefficients = aComposite.mCoefficients;
         static const float allZero[4] = {0, 0, 0, 0};
         filter = mDT->CreateFilter(FilterType::ARITHMETIC_COMBINE);
@@ -948,17 +960,20 @@ static already_AddRefed<FilterNode> FilterNodeFromPrimitiveDescription(
         if (!filter) {
           return nullptr;
         }
-        static const uint8_t operators[SVG_FECOMPOSITE_OPERATOR_LIGHTER + 1] = {
-            COMPOSITE_OPERATOR_OVER,    // SVG_FECOMPOSITE_OPERATOR_UNKNOWN
-            COMPOSITE_OPERATOR_OVER,    // SVG_FECOMPOSITE_OPERATOR_OVER
-            COMPOSITE_OPERATOR_IN,      // SVG_FECOMPOSITE_OPERATOR_IN
-            COMPOSITE_OPERATOR_OUT,     // SVG_FECOMPOSITE_OPERATOR_OUT
-            COMPOSITE_OPERATOR_ATOP,    // SVG_FECOMPOSITE_OPERATOR_ATOP
-            COMPOSITE_OPERATOR_XOR,     // SVG_FECOMPOSITE_OPERATOR_XOR
+        static const uint8_t operators[] = {
+            COMPOSITE_OPERATOR_OVER,    // SVGFECompositeOperator::Unknown
+            COMPOSITE_OPERATOR_OVER,    // SVGFECompositeOperator::Over
+            COMPOSITE_OPERATOR_IN,      // SVGFECompositeOperator::In
+            COMPOSITE_OPERATOR_OUT,     // SVGFECompositeOperator::Out
+            COMPOSITE_OPERATOR_ATOP,    // SVGFECompositeOperator::Atop
+            COMPOSITE_OPERATOR_XOR,     // SVGFECompositeOperator::Xor
             COMPOSITE_OPERATOR_OVER,    // Unused, arithmetic is handled above
-            COMPOSITE_OPERATOR_LIGHTER  // SVG_FECOMPOSITE_OPERATOR_LIGHTER
+            COMPOSITE_OPERATOR_LIGHTER  // SVGFECompositeOperator::Lighter
         };
-        filter->SetAttribute(ATT_COMPOSITE_OPERATOR, (uint32_t)operators[op]);
+        static_assert(std::size(operators) ==
+                      ContiguousEnumSize<SVGFECompositeOperator>::value);
+        filter->SetAttribute(ATT_COMPOSITE_OPERATOR,
+                             (uint32_t)operators[static_cast<uint8_t>(op)]);
         filter->SetInput(IN_COMPOSITE_IN_START, mSources[1]);
         filter->SetInput(IN_COMPOSITE_IN_START + 1, mSources[0]);
       }
@@ -1416,7 +1431,7 @@ static nsIntRegion ResultChangeRegionForPrimitive(
     }
 
     nsIntRegion operator()(const ConvolveMatrixAttributes& aConvolveMatrix) {
-      if (aConvolveMatrix.mEdgeMode != EDGE_MODE_NONE) {
+      if (aConvolveMatrix.mEdgeMode != SVGEdgeMode::None) {
         return mDescription.PrimitiveSubregion();
       }
       Size kernelUnitLength = aConvolveMatrix.mKernelUnitLength;
@@ -1535,7 +1550,7 @@ nsIntRegion FilterSupport::ComputeResultChangeRegion(
 static float ResultOfZeroUnderTransferFunction(
     const ComponentTransferAttributes& aFunctionAttributes, int32_t channel) {
   switch (aFunctionAttributes.mTypes[channel]) {
-    case SVG_FECOMPONENTTRANSFER_TYPE_TABLE: {
+    case SVGFEComponentTransferType::Table: {
       const nsTArray<float>& tableValues = aFunctionAttributes.mValues[channel];
       if (tableValues.Length() < 2) {
         return 0.0f;
@@ -1543,7 +1558,7 @@ static float ResultOfZeroUnderTransferFunction(
       return tableValues[0];
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE: {
+    case SVGFEComponentTransferType::Discrete: {
       const nsTArray<float>& tableValues = aFunctionAttributes.mValues[channel];
       if (tableValues.Length() < 1) {
         return 0.0f;
@@ -1551,17 +1566,17 @@ static float ResultOfZeroUnderTransferFunction(
       return tableValues[0];
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_LINEAR: {
+    case SVGFEComponentTransferType::Linear: {
       const nsTArray<float>& values = aFunctionAttributes.mValues[channel];
       return values[kComponentTransferInterceptIndex];
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_GAMMA: {
+    case SVGFEComponentTransferType::Gamma: {
       const nsTArray<float>& values = aFunctionAttributes.mValues[channel];
       return values[kComponentTransferOffsetIndex];
     }
 
-    case SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY:
+    case SVGFEComponentTransferType::Identity:
     default:
       return 0.0f;
   }
@@ -1587,7 +1602,7 @@ nsIntRegion FilterSupport::PostFilterExtentsForPrimitive(
     }
 
     nsIntRegion operator()(const ColorMatrixAttributes& aColorMatrix) {
-      if (aColorMatrix.mType == (uint32_t)SVG_FECOLORMATRIX_TYPE_MATRIX) {
+      if (aColorMatrix.mType == SVGFEColorMatrixType::Matrix) {
         const nsTArray<float>& values = aColorMatrix.mValues;
         if (values.Length() == 20 && values[19] > 0.0f) {
           return mDescription.PrimitiveSubregion();
@@ -1597,8 +1612,8 @@ nsIntRegion FilterSupport::PostFilterExtentsForPrimitive(
     }
 
     nsIntRegion operator()(const MorphologyAttributes& aMorphology) {
-      uint32_t op = aMorphology.mOperator;
-      if (op == SVG_OPERATOR_ERODE) {
+      SVGMorphologyOperator op = aMorphology.mOperator;
+      if (op == SVGMorphologyOperator::Erode) {
         return mInputExtents[0];
       }
       Size radii = aMorphology.mRadii;
@@ -1650,8 +1665,8 @@ nsIntRegion FilterSupport::PostFilterExtentsForPrimitive(
     }
 
     nsIntRegion operator()(const CompositeAttributes& aComposite) {
-      uint32_t op = aComposite.mOperator;
-      if (op == SVG_FECOMPOSITE_OPERATOR_ARITHMETIC) {
+      SVGFECompositeOperator op = aComposite.mOperator;
+      if (op == SVGFECompositeOperator::Arithmetic) {
         // The arithmetic composite primitive can draw outside the bounding
         // box of its source images.
         const nsTArray<float>& coefficients = aComposite.mCoefficients;
@@ -1674,7 +1689,7 @@ nsIntRegion FilterSupport::PostFilterExtentsForPrimitive(
         }
         return region;
       }
-      if (op == SVG_FECOMPOSITE_OPERATOR_IN) {
+      if (op == SVGFECompositeOperator::In) {
         return mInputExtents[0].Intersect(mInputExtents[1]);
       }
       return ResultChangeRegionForPrimitive(mDescription, mInputExtents);

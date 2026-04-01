@@ -7,6 +7,7 @@
 #ifndef __FilterSupport_h
 #define __FilterSupport_h
 
+#include "mozilla/EnumTypeTraits.h"
 #include "mozilla/gfx/2D.h"
 #include "mozilla/gfx/Matrix.h"
 #include "mozilla/gfx/Point.h"
@@ -32,75 +33,120 @@ extern already_AddRefed<FilterNode> ForSurface(
     DrawTarget* aDT, SourceSurface* aSurface, const IntPoint& aSurfacePosition);
 }  // namespace FilterWrappers
 
-// Morphology Operators
-const unsigned short SVG_OPERATOR_UNKNOWN = 0;
-const unsigned short SVG_OPERATOR_ERODE = 1;
-const unsigned short SVG_OPERATOR_DILATE = 2;
+enum class SVGMorphologyOperator : uint8_t {
+  Unknown = 0,
+  Erode = 1,
+  Dilate = 2,
+};
 
-// ColorMatrix types
-const unsigned short SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
-const unsigned short SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
-const unsigned short SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
-const unsigned short SVG_FECOLORMATRIX_TYPE_HUE_ROTATE = 3;
-const unsigned short SVG_FECOLORMATRIX_TYPE_LUMINANCE_TO_ALPHA = 4;
-// ColorMatrix types for CSS filters
-const unsigned short SVG_FECOLORMATRIX_TYPE_SEPIA = 5;
+enum class SVGFEColorMatrixType : uint8_t {
+  Unknown = 0,
+  Matrix = 1,
+  Saturate = 2,
+  HueRotate = 3,
+  LuminanceToAlpha = 4,
+  // ColorMatrix types for CSS filters
+  Sepia = 5,
+};
 
-// ComponentTransfer types
-const unsigned short SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
-const unsigned short SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
-const unsigned short SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
-const unsigned short SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
-const unsigned short SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
-const unsigned short SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
-const unsigned short SVG_FECOMPONENTTRANSFER_SAME_AS_R = 6;
+enum class SVGFEComponentTransferType : uint8_t {
+  Unknown = 0,
+  Identity = 1,
+  Table = 2,
+  Discrete = 3,
+  Linear = 4,
+  Gamma = 5,
+  SameAsR = 6,
+};
 
-// Blend Mode Values
-const unsigned short SVG_FEBLEND_MODE_UNKNOWN = 0;
-const unsigned short SVG_FEBLEND_MODE_NORMAL = 1;
-const unsigned short SVG_FEBLEND_MODE_MULTIPLY = 2;
-const unsigned short SVG_FEBLEND_MODE_SCREEN = 3;
-const unsigned short SVG_FEBLEND_MODE_DARKEN = 4;
-const unsigned short SVG_FEBLEND_MODE_LIGHTEN = 5;
-const unsigned short SVG_FEBLEND_MODE_OVERLAY = 6;
-const unsigned short SVG_FEBLEND_MODE_COLOR_DODGE = 7;
-const unsigned short SVG_FEBLEND_MODE_COLOR_BURN = 8;
-const unsigned short SVG_FEBLEND_MODE_HARD_LIGHT = 9;
-const unsigned short SVG_FEBLEND_MODE_SOFT_LIGHT = 10;
-const unsigned short SVG_FEBLEND_MODE_DIFFERENCE = 11;
-const unsigned short SVG_FEBLEND_MODE_EXCLUSION = 12;
-const unsigned short SVG_FEBLEND_MODE_HUE = 13;
-const unsigned short SVG_FEBLEND_MODE_SATURATION = 14;
-const unsigned short SVG_FEBLEND_MODE_COLOR = 15;
-const unsigned short SVG_FEBLEND_MODE_LUMINOSITY = 16;
+enum class SVGFEBlendMode : uint8_t {
+  Unknown = 0,
+  Normal = 1,
+  Multiply = 2,
+  Screen = 3,
+  Darken = 4,
+  Lighten = 5,
+  Overlay = 6,
+  ColorDodge = 7,
+  ColorBurn = 8,
+  HardLight = 9,
+  SoftLight = 10,
+  Difference = 11,
+  Exclusion = 12,
+  Hue = 13,
+  Saturation = 14,
+  Color = 15,
+  Luminosity = 16,
+};
 
-// Edge Mode Values
-const unsigned short SVG_EDGEMODE_UNKNOWN = 0;
-const unsigned short SVG_EDGEMODE_DUPLICATE = 1;
-const unsigned short SVG_EDGEMODE_WRAP = 2;
-const unsigned short SVG_EDGEMODE_NONE = 3;
+enum class SVGEdgeMode : uint8_t {
+  Unknown = 0,
+  Duplicate = 1,
+  Wrap = 2,
+  None = 3,
+};
 
-// Channel Selectors
-const unsigned short SVG_CHANNEL_UNKNOWN = 0;
-const unsigned short SVG_CHANNEL_R = 1;
-const unsigned short SVG_CHANNEL_G = 2;
-const unsigned short SVG_CHANNEL_B = 3;
-const unsigned short SVG_CHANNEL_A = 4;
+enum class SVGChannel : uint8_t {
+  Unknown = 0,
+  R = 1,
+  G = 2,
+  B = 3,
+  A = 4,
+};
 
-// Turbulence Types
-const unsigned short SVG_TURBULENCE_TYPE_UNKNOWN = 0;
-const unsigned short SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
-const unsigned short SVG_TURBULENCE_TYPE_TURBULENCE = 2;
+enum class SVGTurbulenceType : uint8_t {
+  Unknown = 0,
+  FractalNoise = 1,
+  Turbulence = 2,
+};
 
-// Composite Operators
-const unsigned short SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
-const unsigned short SVG_FECOMPOSITE_OPERATOR_OVER = 1;
-const unsigned short SVG_FECOMPOSITE_OPERATOR_IN = 2;
-const unsigned short SVG_FECOMPOSITE_OPERATOR_OUT = 3;
-const unsigned short SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
-const unsigned short SVG_FECOMPOSITE_OPERATOR_XOR = 5;
-const unsigned short SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
-const unsigned short SVG_FECOMPOSITE_OPERATOR_LIGHTER = 7;
+enum class SVGFECompositeOperator : uint8_t {
+  Unknown = 0,
+  Over = 1,
+  In = 2,
+  Out = 3,
+  Atop = 4,
+  Xor = 5,
+  Arithmetic = 6,
+  Lighter = 7,
+};
+
+}  // namespace gfx
+
+template <>
+struct MaxContiguousEnumValue<gfx::SVGMorphologyOperator> {
+  static constexpr auto value = gfx::SVGMorphologyOperator::Dilate;
+};
+template <>
+struct MaxContiguousEnumValue<gfx::SVGFEColorMatrixType> {
+  static constexpr auto value = gfx::SVGFEColorMatrixType::Sepia;
+};
+template <>
+struct MaxContiguousEnumValue<gfx::SVGFEComponentTransferType> {
+  static constexpr auto value = gfx::SVGFEComponentTransferType::SameAsR;
+};
+template <>
+struct MaxContiguousEnumValue<gfx::SVGFEBlendMode> {
+  static constexpr auto value = gfx::SVGFEBlendMode::Luminosity;
+};
+template <>
+struct MaxContiguousEnumValue<gfx::SVGEdgeMode> {
+  static constexpr auto value = gfx::SVGEdgeMode::None;
+};
+template <>
+struct MaxContiguousEnumValue<gfx::SVGChannel> {
+  static constexpr auto value = gfx::SVGChannel::A;
+};
+template <>
+struct MaxContiguousEnumValue<gfx::SVGTurbulenceType> {
+  static constexpr auto value = gfx::SVGTurbulenceType::Turbulence;
+};
+template <>
+struct MaxContiguousEnumValue<gfx::SVGFECompositeOperator> {
+  static constexpr auto value = gfx::SVGFECompositeOperator::Lighter;
+};
+
+namespace gfx {
 
 struct FilterAttribute;
 
@@ -114,7 +160,7 @@ struct EmptyAttributes {
 };
 
 struct BlendAttributes {
-  uint32_t mBlendMode;
+  SVGFEBlendMode mBlendMode;
 
   bool operator==(const BlendAttributes& aOther) const {
     return mBlendMode == aOther.mBlendMode;
@@ -122,7 +168,7 @@ struct BlendAttributes {
 };
 
 struct MorphologyAttributes {
-  uint32_t mOperator;
+  SVGMorphologyOperator mOperator;
   Size mRadii;
 
   bool operator==(const MorphologyAttributes& aOther) const {
@@ -160,8 +206,8 @@ struct OffsetAttributes {
 
 struct DisplacementMapAttributes {
   float mScale;
-  uint32_t mXChannel;
-  uint32_t mYChannel;
+  SVGChannel mXChannel;
+  SVGChannel mYChannel;
 
   bool operator==(const DisplacementMapAttributes& aOther) const {
     return mScale == aOther.mScale && mXChannel == aOther.mXChannel &&
@@ -175,7 +221,7 @@ struct TurbulenceAttributes {
   float mSeed;
   uint32_t mOctaves;
   bool mStitchable;
-  uint32_t mType;
+  SVGTurbulenceType mType;
 
   bool operator==(const TurbulenceAttributes& aOther) const {
     return mOffset == aOther.mOffset &&
@@ -242,7 +288,7 @@ class ImplicitlyCopyableFloatArray : public CopyableTArray<float> {
 };
 
 struct ColorMatrixAttributes {
-  uint32_t mType;
+  SVGFEColorMatrixType mType;
   ImplicitlyCopyableFloatArray mValues;
 
   bool operator==(const ColorMatrixAttributes& aOther) const {
@@ -250,7 +296,7 @@ struct ColorMatrixAttributes {
   }
 };
 
-// If the types for G and B are SVG_FECOMPONENTTRANSFER_SAME_AS_R,
+// If the types for G and B are SVGFEComponentTransferType::SameAsR,
 // use the R channel values - this lets us avoid copies.
 const uint32_t kChannelROrRGB = 0;
 const uint32_t kChannelG = 1;
@@ -265,7 +311,7 @@ const uint32_t kComponentTransferExponentIndex = 1;
 const uint32_t kComponentTransferOffsetIndex = 2;
 
 struct ComponentTransferAttributes {
-  uint8_t mTypes[4];
+  SVGFEComponentTransferType mTypes[4];
   ImplicitlyCopyableFloatArray mValues[4];
 
   bool operator==(const ComponentTransferAttributes& aOther) const {
@@ -282,7 +328,7 @@ struct ConvolveMatrixAttributes {
   float mDivisor;
   float mBias;
   IntPoint mTarget;
-  uint32_t mEdgeMode;
+  SVGEdgeMode mEdgeMode;
   Size mKernelUnitLength;
   bool mPreserveAlpha;
 
@@ -297,7 +343,7 @@ struct ConvolveMatrixAttributes {
 };
 
 struct CompositeAttributes {
-  uint32_t mOperator;
+  SVGFECompositeOperator mOperator;
   ImplicitlyCopyableFloatArray mCoefficients;
 
   bool operator==(const CompositeAttributes& aOther) const {

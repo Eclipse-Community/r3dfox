@@ -68,7 +68,7 @@ SVGFEComponentTransferElement::GetPrimitiveDescription(
     if (childForChannel[i]) {
       childForChannel[i]->ComputeAttributes(i, atts);
     } else {
-      atts.mTypes[i] = (uint8_t)SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY;
+      atts.mTypes[i] = SVGFEComponentTransferType::Identity;
     }
   }
   return FilterPrimitiveDescription(AsVariant(std::move(atts)));

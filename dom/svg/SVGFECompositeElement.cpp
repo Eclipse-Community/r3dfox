@@ -27,17 +27,18 @@ SVGElement::NumberInfo SVGFECompositeElement::sNumberInfo[4] = {
     {nsGkAtoms::k4, 0}};
 
 SVGEnumMapping SVGFECompositeElement::sOperatorMap[] = {
-    {nsGkAtoms::over, SVG_FECOMPOSITE_OPERATOR_OVER},
-    {nsGkAtoms::in, SVG_FECOMPOSITE_OPERATOR_IN},
-    {nsGkAtoms::out, SVG_FECOMPOSITE_OPERATOR_OUT},
-    {nsGkAtoms::atop, SVG_FECOMPOSITE_OPERATOR_ATOP},
-    {nsGkAtoms::xor_, SVG_FECOMPOSITE_OPERATOR_XOR},
-    {nsGkAtoms::arithmetic, SVG_FECOMPOSITE_OPERATOR_ARITHMETIC},
-    {nsGkAtoms::lighter, SVG_FECOMPOSITE_OPERATOR_LIGHTER},
+    {nsGkAtoms::over, uint8_t(SVGFECompositeOperator::Over)},
+    {nsGkAtoms::in, uint8_t(SVGFECompositeOperator::In)},
+    {nsGkAtoms::out, uint8_t(SVGFECompositeOperator::Out)},
+    {nsGkAtoms::atop, uint8_t(SVGFECompositeOperator::Atop)},
+    {nsGkAtoms::xor_, uint8_t(SVGFECompositeOperator::Xor)},
+    {nsGkAtoms::arithmetic, uint8_t(SVGFECompositeOperator::Arithmetic)},
+    {nsGkAtoms::lighter, uint8_t(SVGFECompositeOperator::Lighter)},
     {nullptr, 0}};
 
 SVGElement::EnumInfo SVGFECompositeElement::sEnumInfo[1] = {
-    {nsGkAtoms::_operator, sOperatorMap, SVG_FECOMPOSITE_OPERATOR_OVER}};
+    {nsGkAtoms::_operator, sOperatorMap,
+     uint8_t(SVGFECompositeOperator::Over)}};
 
 SVGElement::StringInfo SVGFECompositeElement::sStringInfo[3] = {
     {nsGkAtoms::result, kNameSpaceID_None, true},
@@ -89,10 +90,10 @@ FilterPrimitiveDescription SVGFECompositeElement::GetPrimitiveDescription(
     const nsTArray<bool>& aInputsAreTainted,
     nsTArray<RefPtr<SourceSurface>>& aInputImages) {
   CompositeAttributes atts;
-  uint32_t op = mEnumAttributes[OPERATOR].GetAnimValue();
-  atts.mOperator = op;
+  atts.mOperator =
+      SVGFECompositeOperator(mEnumAttributes[OPERATOR].GetAnimValue());
 
-  if (op == SVG_FECOMPOSITE_OPERATOR_ARITHMETIC) {
+  if (atts.mOperator == SVGFECompositeOperator::Arithmetic) {
     std::array<float, 4> k;
     GetAnimatedNumberValues(&k[0], &k[1], &k[2], &k[3], nullptr);
     atts.mCoefficients.AppendElements(Span(k));
