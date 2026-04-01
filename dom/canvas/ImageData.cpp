@@ -146,10 +146,29 @@ already_AddRefed<ImageData> ImageData::ReadStructuredClone(
       !JS_ReadTypedArray(aReader, &dataArray)) {
     return nullptr;
   }
-  MOZ_ASSERT(dataArray.isObject());
 
-  JS::Rooted<JSObject*> arrayObj(aCx, &dataArray.toObject());
-  RefPtr<ImageData> imageData = new ImageData(aGlobal, width, height, arrayObj);
+  JS::Rooted<JSObject*> dataObj(aCx, &dataArray.toObject());
+  RootedSpiderMonkeyInterface<Uint8ClampedArray> data(aCx);
+  if (!data.Init(dataObj)) {
+    return nullptr;
+  }
+
+  Maybe<size_t> maybeLength = data.ProcessData(
+      [&](const Span<uint8_t>& aData, JS::AutoCheckCannotGC&& nogc) {
+        return Some(aData.Length());
+      });
+  if (maybeLength.isNothing()) {
+    return nullptr;
+  }
+
+  CheckedInt<uint32_t> calculatedLength =
+      CheckedInt<uint32_t>(width) * height * 4;
+  if (!calculatedLength.isValid() ||
+      size_t(calculatedLength.value()) != maybeLength.value()) {
+    return nullptr;
+  }
+
+  RefPtr<ImageData> imageData = new ImageData(aGlobal, width, height, dataObj);
   return imageData.forget();
 }
 
