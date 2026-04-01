@@ -33,6 +33,7 @@ nsHttpActivityDistributor::ObserveActivity(nsISupports* aHttpChannel,
                                            uint64_t aExtraSizeData,
                                            const nsACString& aExtraStringData) {
   MOZ_ASSERT(XRE_IsParentProcess() && NS_IsMainThread());
+  RefPtr<nsHttpActivityDistributor> self(this);
 
   for (size_t i = 0; i < mObservers.Length(); i++) {
     Unused << mObservers[i]->ObserveActivity(aHttpChannel, aActivityType,
@@ -48,6 +49,7 @@ nsHttpActivityDistributor::ObserveConnectionActivity(
     bool aIsHttp3, uint32_t aActivityType, uint32_t aActivitySubtype,
     PRTime aTimestamp, const nsACString& aExtraStringData) {
   MOZ_ASSERT(XRE_IsParentProcess() && NS_IsMainThread());
+  RefPtr<nsHttpActivityDistributor> self(this);
 
   for (size_t i = 0; i < mObservers.Length(); i++) {
     Unused << mObservers[i]->ObserveConnectionActivity(
