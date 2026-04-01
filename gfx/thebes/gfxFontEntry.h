@@ -8,9 +8,7 @@
 
 #include <limits>
 #include <math.h>
-#include <new>
 #include <utility>
-#include "COLRFonts.h"
 #include "ThebesRLBoxTypes.h"
 #include "gfxFontUtils.h"
 #include "gfxFontVariations.h"
@@ -28,7 +26,6 @@
 #include "mozilla/TypedEnumBits.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/intl/UnicodeScriptCodes.h"
-#include "nsTHashMap.h"
 #include "nsDebug.h"
 #include "nsHashKeys.h"
 #include "nsISupports.h"
