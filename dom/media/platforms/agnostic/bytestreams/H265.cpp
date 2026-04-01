@@ -630,6 +630,8 @@ Result<Ok, nsresult> H265::ParseStRefPicSet(BitReader& aReader,
   if (aStRpsIdx != 0) {
     inter_ref_pic_set_prediction_flag = aReader.ReadBit();
   }
+  const uint32_t spsMaxDecPicBufferingMinus1 =
+      aSPS.sps_max_dec_pic_buffering_minus1[aSPS.sps_max_sub_layers_minus1];
   if (inter_ref_pic_set_prediction_flag) {
     int delta_idx_minus1 = 0;
     if (aStRpsIdx == aSPS.num_short_term_ref_pic_sets) {
@@ -707,11 +709,20 @@ Result<Ok, nsresult> H265::ParseStRefPicSet(BitReader& aReader,
       }
     }
     curStRefPicSet.num_positive_pics = i;
+    // 7.4.8 - num_negative_pics shall be in the range of 0 to
+    // sps_max_dec_pic_buffering_minus1[sps_max_sub_layers_minus1], inclusive.
+    // num_positive_pics shall be in the range of 0 to
+    // sps_max_dec_pic_buffering_minus1[sps_max_sub_layers_minus1] -
+    // num_negative_pics, inclusive.
+    IN_RANGE_OR_RETURN(curStRefPicSet.num_negative_pics, 0,
+                       spsMaxDecPicBufferingMinus1);
+    CheckedUint32 maxPositivePics{spsMaxDecPicBufferingMinus1};
+    maxPositivePics -= curStRefPicSet.num_negative_pics;
+    IN_RANGE_OR_RETURN(curStRefPicSet.num_positive_pics, 0,
+                       maxPositivePics.value());
   } else {
     curStRefPicSet.num_negative_pics = aReader.ReadUE();
     curStRefPicSet.num_positive_pics = aReader.ReadUE();
-    const uint32_t spsMaxDecPicBufferingMinus1 =
-        aSPS.sps_max_dec_pic_buffering_minus1[aSPS.sps_max_sub_layers_minus1];
     IN_RANGE_OR_RETURN(curStRefPicSet.num_negative_pics, 0,
                        spsMaxDecPicBufferingMinus1);
     CheckedUint32 maxPositivePics{spsMaxDecPicBufferingMinus1};
@@ -748,6 +759,9 @@ Result<Ok, nsresult> H265::ParseStRefPicSet(BitReader& aReader,
   // (7-71)
   curStRefPicSet.numDeltaPocs =
       curStRefPicSet.num_negative_pics + curStRefPicSet.num_positive_pics;
+  // 7.4.8 - NumDeltaPocs = num_negative_pics + num_positive_pics counts DPB
+  // entries, bounded by sps_max_dec_pic_buffering_minus1.
+  IN_RANGE_OR_RETURN(curStRefPicSet.numDeltaPocs, 0, spsMaxDecPicBufferingMinus1);
   return Ok();
 }
 
