@@ -1133,6 +1133,18 @@ webgl::ReadPixelsResult WebGLContext::ReadPixelsImpl(
 
   //////
 
+  // Reject invalid pack alignment.
+  switch (desc.packState.alignmentInTypeElems) {
+    case 1:
+    case 2:
+    case 4:
+    case 8:
+      break;  // all good
+    default:
+      ErrorInvalidValue("pack alignment must be 1, 2, 4, or 8.");
+      return {};
+  }
+
   const auto& srcOffset = desc.srcOffset;
   const auto& size = desc.size;
 
