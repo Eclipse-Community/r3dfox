@@ -4,13 +4,13 @@
 
 MOZ_APP_NAME=r3dfox_esr
 
-MOZ_APP_BASENAME=r3dfox ESR
+MOZ_APP_BASENAME="r3dfox ESR"
 
-MOZ_APP_DISPLAYNAME=r3dfox ESR
+MOZ_APP_DISPLAYNAME="r3dfox ESR"
 
-MOZ_APP_REMOTINGNAME=com.eclipse.r3dfox
+MOZ_APP_REMOTINGNAME=com.eclipse.r3dfox_esr
 
-MOZ_MACBUNDLE_ID=com.eclipse.r3dfox
+MOZ_MACBUNDLE_ID=com.eclipse.r3dfox_esr
 
 MOZ_DISTRIBUTION_ID=com.eclipse
 
