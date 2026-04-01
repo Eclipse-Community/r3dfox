@@ -1868,7 +1868,11 @@ PeerConnectionImpl::SetPeerIdentity(const nsAString& aPeerIdentity) {
 }
 
 nsresult PeerConnectionImpl::OnAlpnNegotiated(bool aPrivacyRequested) {
-  PC_AUTO_ENTER_API_CALL(false);
+  MOZ_ASSERT(NS_IsMainThread(), "Wrong thread");
+  RefPtr<PeerConnectionImpl> kungFuDeathGrip(this);
+  if (IsClosed()) {
+    return NS_OK; // Nod and smile
+  }
   MOZ_DIAGNOSTIC_ASSERT(!mRequestedPrivacy ||
                         (*mRequestedPrivacy == PrincipalPrivacy::Private) ==
                             aPrivacyRequested);
@@ -1885,6 +1889,12 @@ nsresult PeerConnectionImpl::OnAlpnNegotiated(bool aPrivacyRequested) {
 
 void PeerConnectionImpl::OnDtlsStateChange(const std::string& aTransportId,
                                            TransportLayer::State aState) {
+  MOZ_ASSERT(NS_IsMainThread(), "Wrong thread");
+  RefPtr<PeerConnectionImpl> kungFuDeathGrip(this);
+  if (IsClosed()) {
+    return;
+  }
+
   nsCString key(aTransportId.data(), aTransportId.size());
   RefPtr<RTCDtlsTransport> dtlsTransport =
       mTransportIdToRTCDtlsTransport.Get(key);
@@ -3314,8 +3324,16 @@ void PeerConnectionImpl::SendLocalIceCandidateToContent(
 
 void PeerConnectionImpl::IceConnectionStateChange(
     const std::string& aTransportId, dom::RTCIceTransportState domState) {
+  MOZ_ASSERT(NS_IsMainThread(), "Wrong thread");
+
+  // Let connection be the RTCPeerConnection object associated with this ICE
+  // Agent.
+  RefPtr<PeerConnectionImpl> connection(this);
+
   // If connection.[[IsClosed]] is true, abort these steps.
-  PC_AUTO_ENTER_API_CALL_VOID_RETURN(false);
+  if (IsClosed()) {
+    return;
+  }
 
   CSFLogDebug(LOGTAG, "IceConnectionStateChange: %s %d (%p)",
               aTransportId.c_str(), static_cast<int>(domState), this);
@@ -3475,6 +3493,9 @@ bool PeerConnectionImpl::UpdateIceConnectionState() {
 
 void PeerConnectionImpl::OnCandidateFound(const std::string& aTransportId,
                                           const CandidateInfo& aCandidateInfo) {
+  MOZ_ASSERT(NS_IsMainThread(), "Wrong thread");
+  RefPtr<PeerConnectionImpl> kungFuDeathGrip(this);
+
   if (mStunAddrsRequest && !aCandidateInfo.mMDNSAddress.empty()) {
     MOZ_ASSERT(!aCandidateInfo.mActualAddress.empty());
 
@@ -3507,8 +3528,13 @@ void PeerConnectionImpl::OnCandidateFound(const std::string& aTransportId,
 
 void PeerConnectionImpl::IceGatheringStateChange(
     const std::string& aTransportId, dom::RTCIceGathererState state) {
+  MOZ_ASSERT(NS_IsMainThread(), "Wrong thread");
+  RefPtr<PeerConnectionImpl> kungFuDeathGrip(this);
+
   // If connection.[[IsClosed]] is true, abort these steps.
-  PC_AUTO_ENTER_API_CALL_VOID_RETURN(false);
+  if (IsClosed()) {
+    return;
+  }
 
   CSFLogWarn(LOGTAG, "IceGatheringStateChange: %s %d (%p)",
              aTransportId.c_str(), static_cast<int>(state), this);
