@@ -53,12 +53,18 @@ ReplacedHttpResponse::SetResponseBody(const nsACString& aResponseBody) {
 NS_IMETHODIMP
 ReplacedHttpResponse::SetResponseHeader(const nsACString& header,
                                         const nsACString& value, bool merge) {
+  if (mInVisitHeaders) {
+    return NS_ERROR_FAILURE;
+  }
   return mResponseHeaders.SetHeader(header, value, merge,
                                     nsHttpHeaderArray::eVarietyResponse);
 }
 
 NS_IMETHODIMP
 ReplacedHttpResponse::VisitResponseHeaders(nsIHttpHeaderVisitor* visitor) {
-  return mResponseHeaders.VisitHeaders(visitor);
+  mInVisitHeaders = true;
+  nsresult rv = mResponseHeaders.VisitHeaders(visitor);
+  mInVisitHeaders = false;
+  return rv;
 }
 }  // namespace mozilla::net

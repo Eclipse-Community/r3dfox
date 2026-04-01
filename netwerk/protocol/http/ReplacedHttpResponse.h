@@ -7,6 +7,7 @@
 #include "nsString.h"
 #include "nsHttpHeaderArray.h"
 #include "nsIReplacedHttpResponse.h"
+#include "mozilla/Atomics.h"
 
 namespace mozilla::net {
 
@@ -24,6 +25,7 @@ class ReplacedHttpResponse : nsIReplacedHttpResponse {
   nsCString mResponseStatusText;
   nsCString mResponseBody;
   nsHttpHeaderArray mResponseHeaders;
+  Atomic<bool> mInVisitHeaders{false};
 };
 
 }  // namespace mozilla::net
