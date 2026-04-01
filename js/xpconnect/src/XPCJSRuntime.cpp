@@ -956,6 +956,8 @@ void XPCJSRuntime::WeakPointerZonesCallback(JSTracer* trc, void* data) {
 
   self->mWrappedJSMap->UpdateWeakPointersAfterGC(trc);
   self->mUAWidgetScopeMap.traceWeak(trc);
+
+  BrowsingContext::SweepWindowProxies(trc);
 }
 
 /* static */
