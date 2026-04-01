@@ -1845,7 +1845,9 @@ int32_t nsCellMap::GetEffectiveColSpan(const nsTableCellMap& aMap,
       break;
     }
   }
-  return colSpan;
+
+  // Enforce that the effective colSpan is between 1 and MAX_COLSPAN:
+  return std::clamp(colSpan, 1, MAX_COLSPAN);
 }
 
 int32_t nsCellMap::GetRowSpanForNewCell(nsTableCellFrame* aCellFrameToAdd,
@@ -1856,7 +1858,7 @@ int32_t nsCellMap::GetRowSpanForNewCell(nsTableCellFrame* aCellFrameToAdd,
   if (0 == rowSpan) {
     // Use a min value of 2 for a zero rowspan to make computations easier
     // elsewhere. Zero rowspans are only content dependent!
-    rowSpan = std::max(2, mContentRowCount - aRowIndex);
+    rowSpan = std::clamp(mContentRowCount - aRowIndex, 2, MAX_ROWSPAN);
     aIsZeroRowSpan = true;
   }
   return rowSpan;
@@ -1910,7 +1912,9 @@ int32_t nsCellMap::GetRowSpan(int32_t aRowIndex, int32_t aColIndex,
       break;
     }
   }
-  return rowSpan;
+
+  // Enforce that the effective rowSpan is between 1 and MAX_ROWSPAN:
+  return std::clamp(rowSpan, 1, MAX_ROWSPAN);
 }
 
 void nsCellMap::ShrinkWithoutCell(nsTableCellMap& aMap,
