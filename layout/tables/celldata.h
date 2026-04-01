@@ -10,6 +10,7 @@
 #include "nsCoord.h"
 #include "mozilla/gfx/Types.h"
 #include "mozilla/WritingModes.h"
+#include <algorithm>
 #include <stdint.h>
 
 class nsTableCellFrame;
@@ -292,6 +293,10 @@ inline uint32_t CellData::GetRowSpanOffset() const {
 }
 
 inline void CellData::SetRowSpanOffset(uint32_t aSpan) {
+  MOZ_ASSERT(aSpan > 0, "a zero-sized span is nonsensical");
+  MOZ_ASSERT(aSpan <= MAX_ROWSPAN, "span shouldn't exceed what we can handle");
+  aSpan = std::min(aSpan, static_cast<uint32_t>(MAX_ROWSPAN));
+
   mBits &= ~ROW_SPAN_OFFSET;
   mBits |= (aSpan << ROW_SPAN_SHIFT);
   mBits |= SPAN;
@@ -310,6 +315,10 @@ inline uint32_t CellData::GetColSpanOffset() const {
 }
 
 inline void CellData::SetColSpanOffset(uint32_t aSpan) {
+  MOZ_ASSERT(aSpan > 0, "a zero-sized span is nonsensical");
+  MOZ_ASSERT(aSpan <= MAX_COLSPAN, "span shouldn't exceed what we can handle");
+  aSpan = std::min(aSpan, static_cast<uint32_t>(MAX_COLSPAN));
+
   mBits &= ~COL_SPAN_OFFSET;
   mBits |= (aSpan << COL_SPAN_SHIFT);
 
