@@ -238,7 +238,8 @@ nsBMPDecoder::nsBMPDecoder(RasterImage* aImage, uint32_t aDataOffset)
 nsBMPDecoder::~nsBMPDecoder() {}
 
 // Obtains the size of the compressed image resource.
-int32_t nsBMPDecoder::GetCompressedImageSize() const {
+uint32_t nsBMPDecoder::GetCompressedImageSize() const {
+  // Keep this in sync with the overflow check in ReadInfoHeaderRest.
   // In the RGB case mImageSize might not be set, so compute it manually.
   MOZ_ASSERT(mPixelRowSize != 0);
   return mH.mCompression == Compression::RGB ? mPixelRowSize * AbsoluteHeight()
@@ -635,6 +636,16 @@ LexerTransition<nsBMPDecoder::State> nsBMPDecoder::ReadInfoHeaderRest(
   uint32_t surplus = mPixelRowSize % 4;
   if (surplus != 0) {
     mPixelRowSize += 4 - surplus;
+  }
+
+  if (mIsWithinICO && mH.mCompression == Compression::RGB) {
+    // The ICO decoders calls GetCompressedImageSize so we need to make sure the
+    // computation it does cannot overflow. Keep this in sync with that
+    // function.
+    auto product = CheckedInt<uint32_t>(mPixelRowSize) * AbsoluteHeight();
+    if (!product.isValid()) {
+      return Transition::TerminateFailure();
+    }
   }
 
   size_t bitFieldsLengthStillToRead = 0;

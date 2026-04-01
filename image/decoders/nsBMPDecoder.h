@@ -159,7 +159,7 @@ class nsBMPDecoder : public Decoder {
   size_t GetImageDataLength() const { return mImageDataLength; }
 
   /// Obtains the size of the compressed image resource.
-  int32_t GetCompressedImageSize() const;
+  uint32_t GetCompressedImageSize() const;
 
   /// Mark this BMP as being within an ICO file. Only used for testing purposes
   /// because the ICO-specific constructor does this marking automatically.
@@ -205,7 +205,7 @@ class nsBMPDecoder : public Decoder {
   nsBMPDecoder(RasterImage* aImage, State aState, size_t aLength,
                bool aForClipboard);
 
-  int32_t AbsoluteHeight() const { return abs(mH.mHeight); }
+  uint32_t AbsoluteHeight() const { return abs(mH.mHeight); }
 
   uint32_t* RowBuffer();
   void ClearRowBufferRemainder();

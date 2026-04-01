@@ -136,7 +136,7 @@ size_t nsICODecoder::FirstResourceOffset() const {
 
   // The first resource starts right after the directory, which starts right
   // after the ICO header.
-  return ICOHEADERSIZE + mNumIcons * ICODIRENTRYSIZE;
+  return ICOHEADERSIZE + static_cast<size_t>(mNumIcons) * ICODIRENTRYSIZE;
 }
 
 LexerTransition<ICOState> nsICODecoder::ReadDirEntry(const char* aData) {
@@ -221,7 +221,11 @@ LexerTransition<ICOState> nsICODecoder::IterateUnsizedDirEntry() {
 
   // Move to the resource data to start metadata decoding.
   mDirEntry = &mUnsizedDirEntries[0];
-  size_t offsetToResource = mDirEntry->mImageOffset - FirstResourceOffset();
+  // We ignored any dir entries whose offset didn't make sense before this.
+  MOZ_ASSERT(static_cast<size_t>(mDirEntry->mImageOffset) >=
+             FirstResourceOffset());
+  size_t offsetToResource =
+      static_cast<size_t>(mDirEntry->mImageOffset) - FirstResourceOffset();
   return Transition::ToUnbuffered(ICOState::FOUND_RESOURCE,
                                   ICOState::SKIP_TO_RESOURCE, offsetToResource);
 }
@@ -313,6 +317,9 @@ LexerTransition<ICOState> nsICODecoder::FinishDirEntry() {
     mDownscaler.emplace(OutputSize().ToUnknownSize());
   }
 
+  // We ignored any dir entries whose offset didn't make sense before this.
+  MOZ_ASSERT(static_cast<size_t>(mDirEntry->mImageOffset) >=
+             FirstResourceOffset());
   size_t offsetToResource = mDirEntry->mImageOffset - FirstResourceOffset();
   return Transition::ToUnbuffered(ICOState::FOUND_RESOURCE,
                                   ICOState::SKIP_TO_RESOURCE, offsetToResource);
@@ -434,30 +441,59 @@ LexerTransition<ICOState> nsICODecoder::ReadBIH(const char* aData) {
 
   // Do we have an AND mask on this BMP? If so, we need to read it after we read
   // the BMP data itself.
-  uint32_t bmpDataLength = bmpDecoder->GetCompressedImageSize() + 4 * numColors;
-  bool hasANDMask = (BITMAPINFOSIZE + bmpDataLength) < mDirEntry->mBytesInRes;
+  auto bmpDataLength =
+      CheckedInt<uint32_t>(bmpDecoder->GetCompressedImageSize()) +
+      4 * numColors;
+  auto fullBmpLength = bmpDataLength + BITMAPINFOSIZE;
+  if (!bmpDataLength.isValid() || !fullBmpLength.isValid() ||
+      fullBmpLength.value() > mDirEntry->mBytesInRes) {
+    // Claimed data length inside the bmp resource exceeds dir entry size.
+    return Transition::TerminateFailure();
+  }
+  bool hasANDMask = fullBmpLength.value() < mDirEntry->mBytesInRes;
   ICOState afterBMPState =
       hasANDMask ? ICOState::PREPARE_FOR_MASK : ICOState::FINISHED_RESOURCE;
 
   // Read in the rest of the BMP unbuffered.
   return Transition::ToUnbuffered(afterBMPState, ICOState::READ_RESOURCE,
-                                  bmpDataLength);
+                                  bmpDataLength.value());
 }
 
 LexerTransition<ICOState> nsICODecoder::PrepareForMask() {
   MOZ_ASSERT(mDirEntry);
-  MOZ_ASSERT(mContainedDecoder->GetDecodeDone());
 
   // We have received all of the data required by the BMP decoder so flushing
-  // here guarantees the decode has finished.
+  // here guarantees the decode has finished, if we have a valid file.
   if (!FlushContainedDecoder()) {
     return Transition::TerminateFailure();
   }
 
-  MOZ_ASSERT(mContainedDecoder->GetDecodeDone());
+  if (!mContainedDecoder->GetDecodeDone()) {
+    return Transition::TerminateFailure();
+  }
 
   RefPtr<nsBMPDecoder> bmpDecoder =
       static_cast<nsBMPDecoder*>(mContainedDecoder.get());
+
+  if (!bmpDecoder->GetImageData() || bmpDecoder->GetImageDataLength() == 0) {
+    return Transition::TerminateFailure();
+  }
+  if (mDownscaler) {
+    if (mDownscaler->TargetSize().width < 0 ||
+        mDownscaler->TargetSize().height < 0 ||
+        bmpDecoder->GetImageDataLength() !=
+            static_cast<size_t>(mDownscaler->TargetSize().width *
+                                mDownscaler->TargetSize().height * 4)) {
+      return Transition::TerminateFailure();
+    }
+  } else {
+    if (mDirEntry->mSize.width < 0 || mDirEntry->mSize.height < 0 ||
+        bmpDecoder->GetImageDataLength() !=
+            static_cast<size_t>(mDirEntry->mSize.width *
+                                mDirEntry->mSize.height * 4)) {
+      return Transition::TerminateFailure();
+    }
+  }
 
   uint16_t numColors = GetNumColors();
   MOZ_ASSERT(numColors != uint16_t(-1));
@@ -465,6 +501,7 @@ LexerTransition<ICOState> nsICODecoder::PrepareForMask() {
   // Determine the length of the AND mask.
   uint32_t bmpLengthWithHeader =
       BITMAPINFOSIZE + bmpDecoder->GetCompressedImageSize() + 4 * numColors;
+  // We can't get here unless this is true.
   MOZ_ASSERT(bmpLengthWithHeader < mDirEntry->mBytesInRes);
   uint32_t maskLength = mDirEntry->mBytesInRes - bmpLengthWithHeader;
 
@@ -488,9 +525,6 @@ LexerTransition<ICOState> nsICODecoder::PrepareForMask() {
   // produced, so we need to downscale the mask into a temporary buffer and then
   // combine the mask's alpha values with the color values from the image.
   if (mDownscaler) {
-    MOZ_ASSERT(bmpDecoder->GetImageDataLength() ==
-               mDownscaler->TargetSize().width *
-                   mDownscaler->TargetSize().height * sizeof(uint32_t));
     mMaskBuffer =
         MakeUniqueFallible<uint8_t[]>(bmpDecoder->GetImageDataLength());
     if (NS_WARN_IF(!mMaskBuffer)) {
@@ -613,7 +647,11 @@ LexerTransition<ICOState> nsICODecoder::FinishResource() {
     return Transition::TerminateFailure();
   }
 
-  MOZ_ASSERT(mContainedDecoder->GetDecodeDone());
+  if (!mContainedDecoder->GetDecodeDone()) {
+    // We've sent as much data as the dir entry says for this resource, if it's
+    // not done by now then something is corrupt.
+    return Transition::TerminateFailure();
+  }
 
   // If it is a metadata decode, all we were trying to get was the size
   // information missing from the dir entry.
