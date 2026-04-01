@@ -10664,7 +10664,7 @@ void nsDOMAttributeMap::BlastSubtreeToPieces(nsINode* aNode) {
 
         mozilla::DebugOnly<nsresult> rv =
             element->UnsetAttr(attr->NodeInfo()->NamespaceID(),
-                               attr->NodeInfo()->NameAtom(), false);
+                               attr->NodeInfo()->NameAtom(), true);
 
         // XXX Should we abort here?
         NS_ASSERTION(NS_SUCCEEDED(rv), "Uh-oh, UnsetAttr shouldn't fail!");
