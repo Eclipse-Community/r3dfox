@@ -16,7 +16,8 @@ class ClientNavigateOpChild final : public PClientNavigateOpChild {
   nsCOMPtr<nsISerialEventTarget> mSerialEventTarget;
 
   [[nodiscard]] RefPtr<ClientOpPromise> DoNavigate(
-      const ClientNavigateOpConstructorArgs& aArgs);
+      const ClientNavigateOpConstructorArgs& aArgs,
+      mozilla::ipc::ActorLifecycleProxy* aProxy);
 
   // PClientNavigateOpChild interface
   void ActorDestroy(ActorDestroyReason aReason) override;
@@ -25,7 +26,8 @@ class ClientNavigateOpChild final : public PClientNavigateOpChild {
   ClientNavigateOpChild() = default;
   ~ClientNavigateOpChild() = default;
 
-  void Init(const ClientNavigateOpConstructorArgs& aArgs);
+  void Init(const ClientNavigateOpConstructorArgs& aArgs,
+            mozilla::ipc::ActorLifecycleProxy* aProxy);
 };
 
 }  // namespace mozilla::dom
