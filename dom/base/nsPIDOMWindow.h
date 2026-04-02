@@ -380,6 +380,7 @@ class nsPIDOMWindowInner : public mozIDOMWindow {
   mozilla::Maybe<mozilla::dom::ClientInfo> GetClientInfo() const;
   mozilla::Maybe<mozilla::dom::ClientState> GetClientState() const;
   mozilla::Maybe<mozilla::dom::ServiceWorkerDescriptor> GetController() const;
+  mozilla::dom::ClientSource* GetClientSource() const;
 
   void SetCsp(nsIContentSecurityPolicy* aCsp);
   void SetPreloadCsp(nsIContentSecurityPolicy* aPreloadCsp);

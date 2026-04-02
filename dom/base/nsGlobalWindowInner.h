@@ -1226,6 +1226,10 @@ class nsGlobalWindowInner final : public mozilla::dom::EventTarget,
   // Hint to the JS engine whether we are currently loading.
   void HintIsLoading(bool aIsLoading);
 
+  mozilla::dom::ClientSource* GetClientSource() const {
+    return mClientSource.get();
+  }
+
   mozilla::dom::ContentMediaController* GetContentMediaController();
 
   bool TryOpenExternalProtocolIframe() {

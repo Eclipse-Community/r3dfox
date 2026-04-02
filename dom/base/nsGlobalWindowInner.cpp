@@ -2488,6 +2488,10 @@ Maybe<ServiceWorkerDescriptor> nsPIDOMWindowInner::GetController() const {
   return nsGlobalWindowInner::Cast(this)->GetController();
 }
 
+ClientSource* nsPIDOMWindowInner::GetClientSource() const {
+  return nsGlobalWindowInner::Cast(this)->GetClientSource();
+}
+
 void nsPIDOMWindowInner::SetCsp(nsIContentSecurityPolicy* aCsp) {
   return nsGlobalWindowInner::Cast(this)->SetCsp(aCsp);
 }
