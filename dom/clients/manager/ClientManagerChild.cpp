@@ -55,8 +55,9 @@ bool ClientManagerChild::DeallocPClientNavigateOpChild(
 mozilla::ipc::IPCResult ClientManagerChild::RecvPClientNavigateOpConstructor(
     PClientNavigateOpChild* aActor,
     const ClientNavigateOpConstructorArgs& aArgs) {
-  auto actor = static_cast<ClientNavigateOpChild*>(aActor);
-  actor->Init(aArgs);
+  RefPtr<mozilla::ipc::ActorLifecycleProxy> proxy = aActor->GetLifecycleProxy();
+  auto* actor = static_cast<ClientNavigateOpChild*>(aActor);
+  actor->Init(aArgs, proxy);
   return IPC_OK();
 }
 

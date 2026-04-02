@@ -152,7 +152,8 @@ NS_IMPL_ISUPPORTS(NavigateLoadListener, nsIWebProgressListener,
 }  // anonymous namespace
 
 RefPtr<ClientOpPromise> ClientNavigateOpChild::DoNavigate(
-    const ClientNavigateOpConstructorArgs& aArgs) {
+    const ClientNavigateOpConstructorArgs& aArgs,
+    mozilla::ipc::ActorLifecycleProxy* aProxy) {
   nsCOMPtr<nsPIDOMWindowInner> window;
 
   // Navigating the target client window will result in the original
@@ -278,6 +279,12 @@ RefPtr<ClientOpPromise> ClientNavigateOpChild::DoNavigate(
     return ClientOpPromise::CreateAndReject(result, __func__);
   }
 
+  if (!aProxy->Get()) {
+    CopyableErrorResult result;
+    result.ThrowInvalidStateError("Unknown Client");
+    return ClientOpPromise::CreateAndReject(result, __func__);
+  }
+
   RefPtr<ClientOpPromise::Private> promise =
       new ClientOpPromise::Private(__func__);
 
@@ -305,8 +312,12 @@ void ClientNavigateOpChild::ActorDestroy(ActorDestroyReason aReason) {
   mPromiseRequestHolder.DisconnectIfExists();
 }
 
-void ClientNavigateOpChild::Init(const ClientNavigateOpConstructorArgs& aArgs) {
-  RefPtr<ClientOpPromise> promise = DoNavigate(aArgs);
+void ClientNavigateOpChild::Init(const ClientNavigateOpConstructorArgs& aArgs,
+                                 mozilla::ipc::ActorLifecycleProxy* aProxy) {
+  RefPtr<ClientOpPromise> promise = DoNavigate(aArgs, aProxy);
+  if (!aProxy->Get()) {
+    return;
+  }
 
   // Normally we get the event target from the window in DoNavigate().  If a
   // failure occurred, though, we may need to fall back to the current thread
