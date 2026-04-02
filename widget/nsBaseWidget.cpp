@@ -1947,7 +1947,8 @@ void nsBaseWidget::NotifyWindowMoved(int32_t aX, int32_t aY,
     mWidgetListener->WindowMoved(this, aX, aY, aByMoveToRect);
   }
 
-  if (mIMEHasFocus && IMENotificationRequestsRef().WantPositionChanged()) {
+  if (mIMEHasFocus && IMENotificationRequestsRef().contains(
+                          IMENotificationRequest::PositionChange)) {
     NotifyIME(IMENotification(IMEMessage::NOTIFY_IME_OF_POSITION_CHANGE));
   }
 }

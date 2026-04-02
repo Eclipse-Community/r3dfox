@@ -27,9 +27,10 @@ class KeyboardEvent;
 
 class TextInputProcessor final : public nsITextInputProcessor,
                                  public widget::TextEventDispatcherListener {
-  typedef mozilla::widget::IMENotification IMENotification;
-  typedef mozilla::widget::IMENotificationRequests IMENotificationRequests;
-  typedef mozilla::widget::TextEventDispatcher TextEventDispatcher;
+  using IMENotification = mozilla::widget::IMENotification;
+  using IMENotificationRequest = mozilla::widget::IMENotificationRequest;
+  using IMENotificationRequests = mozilla::widget::IMENotificationRequests;
+  using TextEventDispatcher = mozilla::widget::TextEventDispatcher;
 
  public:
   TextInputProcessor();

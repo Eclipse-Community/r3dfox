@@ -47,6 +47,7 @@ class IMEContentObserver final : public nsStubMutationObserver,
   using SelectionChangeData = widget::IMENotification::SelectionChangeData;
   using TextChangeData = widget::IMENotification::TextChangeData;
   using TextChangeDataBase = widget::IMENotification::TextChangeDataBase;
+  using IMENotificationRequest = widget::IMENotificationRequest;
   using IMENotificationRequests = widget::IMENotificationRequests;
   using IMEMessage = widget::IMEMessage;
   enum class ForRemoval : bool { No, Yes };
@@ -163,7 +164,8 @@ class IMEContentObserver final : public nsStubMutationObserver,
   bool IsEditorHandlingEventForComposition() const;
   bool KeepAliveDuringDeactive() const {
     return mIMENotificationRequests &&
-           mIMENotificationRequests->WantDuringDeactive();
+           mIMENotificationRequests->contains(
+               IMENotificationRequest::NotifyDuringInactive);
   }
   [[nodiscard]] bool EditorIsTextEditor() const {
     return mEditorBase && mEditorBase->IsTextEditor();
@@ -328,12 +330,13 @@ class IMEContentObserver final : public nsStubMutationObserver,
   void UnregisterObservers();
   void FlushMergeableNotifications();
   bool NeedsTextChangeNotification() const {
-    return mIMENotificationRequests &&
-           mIMENotificationRequests->WantTextChange();
+    return mIMENotificationRequests && mIMENotificationRequests->contains(
+                                           IMENotificationRequest::TextChange);
   }
   bool NeedsPositionChangeNotification() const {
     return mIMENotificationRequests &&
-           mIMENotificationRequests->WantPositionChanged();
+           mIMENotificationRequests->contains(
+               IMENotificationRequest::PositionChange);
   }
   void ClearPendingNotifications() {
     mNeedsToNotifyIMEOfFocusSet = false;

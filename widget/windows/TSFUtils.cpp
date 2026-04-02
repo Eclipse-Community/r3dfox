@@ -622,7 +622,7 @@ void TSFUtils::ClearStoringTextStoresIf(
 
 IMENotificationRequests TSFUtils::GetIMENotificationRequests() {
   return sCurrentTextStore ? sCurrentTextStore->GetIMENotificationRequests()
-                           : IMENotificationRequests();
+                           : IMENotificationRequests{};
 }
 
 inline std::ostream& operator<<(

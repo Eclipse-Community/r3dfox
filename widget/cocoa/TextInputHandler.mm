@@ -3436,7 +3436,7 @@ IMEInputHandler::GetIMENotificationRequests() {
   // XXX Shouldn't we move floating window which shows composition string
   //     when plugin has focus and its parent is scrolled or the window is
   //     moved?
-  return IMENotificationRequests(IMENotificationRequests::NOTIFY_TEXT_CHANGE);
+  return {IMENotificationRequest::TextChange};
 }
 
 NS_IMETHODIMP_(void)

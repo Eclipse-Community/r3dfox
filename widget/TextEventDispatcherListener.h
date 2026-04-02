@@ -5,14 +5,16 @@
 #ifndef mozilla_textinputdispatcherlistener_h_
 #define mozilla_textinputdispatcherlistener_h_
 
+#include "mozilla/EnumSet.h"
 #include "nsWeakReference.h"
 
 namespace mozilla {
 namespace widget {
 
+enum class IMENotificationRequest : uint8_t;
 class TextEventDispatcher;
 struct IMENotification;
-struct IMENotificationRequests;
+using IMENotificationRequests = EnumSet<IMENotificationRequest>;
 
 #define NS_TEXT_INPUT_PROXY_LISTENER_IID \
   {0xf2226f55,                           \

@@ -671,19 +671,6 @@ struct ParamTraits<mozilla::WidgetSelectionEvent> {
 };
 
 template <>
-struct ParamTraits<mozilla::widget::IMENotificationRequests> {
-  using paramType = mozilla::widget::IMENotificationRequests;
-
-  static void Write(MessageWriter* aWriter, const paramType& aParam) {
-    WriteParam(aWriter, aParam.mWantUpdates);
-  }
-
-  static bool Read(MessageReader* aReader, paramType* aResult) {
-    return ReadParam(aReader, &aResult->mWantUpdates);
-  }
-};
-
-template <>
 struct ParamTraits<mozilla::widget::NativeIMEContext> {
   using paramType = mozilla::widget::NativeIMEContext;
 
@@ -778,12 +765,21 @@ struct ParamTraits<mozilla::widget::IMENotification::MouseButtonEventData> {
 };
 
 template <>
+struct ParamTraits<mozilla::widget::IMEMessage>
+    : ContiguousEnumSerializerInclusive<
+          mozilla::widget::IMEMessage,
+          // FYI: mozilla::widget::NOTIFY_IME_OF_NOTHING is the actual lowest
+          // value, but it shouldn't be set at crossing the process boundary
+          // since it's odd to notify the process of "nothing happened".
+          mozilla::widget::NOTIFY_IME_OF_FOCUS,
+          mozilla::widget::REQUEST_TO_CANCEL_COMPOSITION> {};
+
+template <>
 struct ParamTraits<mozilla::widget::IMENotification> {
   using paramType = mozilla::widget::IMENotification;
 
   static void Write(MessageWriter* aWriter, const paramType& aParam) {
-    WriteParam(aWriter,
-               static_cast<mozilla::widget::IMEMessageType>(aParam.mMessage));
+    WriteParam(aWriter, aParam.mMessage);
     switch (aParam.mMessage) {
       case mozilla::widget::NOTIFY_IME_OF_SELECTION_CHANGE:
         WriteParam(aWriter, aParam.mSelectionChangeData);
@@ -800,21 +796,29 @@ struct ParamTraits<mozilla::widget::IMENotification> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    mozilla::widget::IMEMessageType IMEMessage = 0;
-    if (!ReadParam(aReader, &IMEMessage)) {
+    if (!ReadParam(aReader, &aResult->mMessage)) {
       return false;
     }
-    aResult->mMessage = static_cast<mozilla::widget::IMEMessage>(IMEMessage);
     switch (aResult->mMessage) {
+      case mozilla::widget::NOTIFY_IME_OF_NOTHING:
+        MOZ_MAKE_COMPILER_ASSUME_IS_UNREACHABLE(
+            "NOTIFY_IME_OF_NOTHING shouldn't cross the process boundary");
+        return false;
       case mozilla::widget::NOTIFY_IME_OF_SELECTION_CHANGE:
         return ReadParam(aReader, &aResult->mSelectionChangeData);
       case mozilla::widget::NOTIFY_IME_OF_TEXT_CHANGE:
         return ReadParam(aReader, &aResult->mTextChangeData);
       case mozilla::widget::NOTIFY_IME_OF_MOUSE_BUTTON_EVENT:
         return ReadParam(aReader, &aResult->mMouseButtonEventData);
-      default:
+      case mozilla::widget::NOTIFY_IME_OF_FOCUS:
+      case mozilla::widget::NOTIFY_IME_OF_BLUR:
+      case mozilla::widget::NOTIFY_IME_OF_COMPOSITION_EVENT_HANDLED:
+      case mozilla::widget::NOTIFY_IME_OF_POSITION_CHANGE:
+      case mozilla::widget::REQUEST_TO_COMMIT_COMPOSITION:
+      case mozilla::widget::REQUEST_TO_CANCEL_COMPOSITION:
         return true;
     }
+    return false;
   }
 };
 

@@ -497,7 +497,7 @@ nsresult TSFEmptyTextStore::SetFocusAndUpdateDocumentURLAndBrowsingMode(
 }
 
 IMENotificationRequests TSFEmptyTextStore::GetIMENotificationRequests() const {
-  return IMENotificationRequests();
+  return {};
 }
 
 }  // namespace mozilla::widget

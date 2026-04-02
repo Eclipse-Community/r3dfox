@@ -361,7 +361,7 @@ IMENotificationRequests IMEHandler::GetIMENotificationRequests() {
     // an editor has focus isn't supported by IMEContentObserver nor
     // ContentCacheInParent.  Therefore, we need to request whole notifications
     // which are necessary either IMMHandler or TSFTextStore.
-    return IMMHandler::GetIMENotificationRequests() |
+    return IMMHandler::GetIMENotificationRequests() +
            TSFUtils::GetIMENotificationRequests();
   }
 

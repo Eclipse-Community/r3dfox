@@ -36,7 +36,7 @@ nsresult TextInputHandler::NotifyIME(TextEventDispatcher* aTextEventDispatcher,
 }
 
 IMENotificationRequests TextInputHandler::GetIMENotificationRequests() {
-  return IMENotificationRequests();
+  return IMENotificationRequests{};
 }
 
 void TextInputHandler::OnRemovedFrom(

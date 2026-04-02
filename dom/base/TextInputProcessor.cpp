@@ -938,9 +938,8 @@ TextInputProcessor::NotifyIME(TextEventDispatcher* aTextEventDispatcher,
 NS_IMETHODIMP_(IMENotificationRequests)
 TextInputProcessor::GetIMENotificationRequests() {
   // TextInputProcessor should support all change notifications.
-  return IMENotificationRequests(
-      IMENotificationRequests::NOTIFY_TEXT_CHANGE |
-      IMENotificationRequests::NOTIFY_POSITION_CHANGE);
+  return {IMENotificationRequest::TextChange,
+          IMENotificationRequest::PositionChange};
 }
 
 NS_IMETHODIMP_(void)

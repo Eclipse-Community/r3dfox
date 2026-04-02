@@ -1461,7 +1461,7 @@ void GeckoEditableSupport::WillDispatchKeyboardEvent(
 
 NS_IMETHODIMP_(IMENotificationRequests)
 GeckoEditableSupport::GetIMENotificationRequests() {
-  return IMENotificationRequests(IMENotificationRequests::NOTIFY_TEXT_CHANGE);
+  return {IMENotificationRequest::TextChange};
 }
 
 static bool ShouldKeyboardDismiss(const nsAString& aInputType,

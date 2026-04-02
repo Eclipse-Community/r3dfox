@@ -30,6 +30,7 @@ include PTabContext;
 include PBackgroundSharedTypes;
 
 include "mozilla/AntiTrackingIPCUtils.h";
+include "mozilla/EnumSet.h";
 include "mozilla/dom/BindingIPCUtils.h";
 include "mozilla/dom/CSPMessageUtils.h";
 include "mozilla/dom/DocShellMessageUtils.h";
@@ -62,7 +63,7 @@ using struct mozilla::void_t from "mozilla/ipc/IPCCore.h";
 using mozilla::WindowsHandle from "mozilla/ipc/IPCTypes.h";
 using class mozilla::WidgetCompositionEvent from "ipc/nsGUIEventIPC.h";
 using struct mozilla::widget::IMENotification from "mozilla/widget/IMEData.h";
-using struct mozilla::widget::IMENotificationRequests from "mozilla/widget/IMEData.h";
+using mozilla::widget::IMENotificationRequests from "mozilla/widget/IMEData.h";
 using struct mozilla::widget::IMEState from "mozilla/widget/IMEData.h";
 using struct mozilla::widget::InputContext from "mozilla/widget/IMEData.h";
 using struct mozilla::widget::InputContextAction from "mozilla/widget/IMEData.h";

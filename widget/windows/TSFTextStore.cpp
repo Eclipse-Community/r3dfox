@@ -3189,7 +3189,7 @@ IMENotificationRequests TSFTextStore::GetIMENotificationRequests() const {
   if (NS_WARN_IF(!mDocumentMgr)) {
     // If there is no active text store, we don't need any notifications
     // since there is no sink which needs notifications.
-    return IMENotificationRequests();
+    return {};
   }
 
   // Otherwise, requests all notifications since even if some of them may not
@@ -3207,11 +3207,10 @@ IMENotificationRequests TSFTextStore::GetIMENotificationRequests() const {
   // focused element isn't changed.  Therefore, if sEnabledTextStore isn't
   // nullptr, we need to keep notifying the sink even when it is not focused
   // text store for the thread manager.
-  return IMENotificationRequests(
-      IMENotificationRequests::NOTIFY_TEXT_CHANGE |
-      IMENotificationRequests::NOTIFY_POSITION_CHANGE |
-      IMENotificationRequests::NOTIFY_MOUSE_BUTTON_EVENT_ON_CHAR |
-      IMENotificationRequests::NOTIFY_DURING_DEACTIVE);
+  return {IMENotificationRequest::TextChange,
+          IMENotificationRequest::PositionChange,
+          IMENotificationRequest::MouseEventOnChar,
+          IMENotificationRequest::NotifyDuringInactive};
 }
 
 nsresult TSFTextStore::OnTextChangeInternal(

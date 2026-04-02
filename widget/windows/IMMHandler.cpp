@@ -347,9 +347,8 @@ UINT IMMHandler::GetKeyboardCodePage() { return sCodePage; }
 
 // static
 IMENotificationRequests IMMHandler::GetIMENotificationRequests() {
-  return IMENotificationRequests(
-      IMENotificationRequests::NOTIFY_POSITION_CHANGE |
-      IMENotificationRequests::NOTIFY_MOUSE_BUTTON_EVENT_ON_CHAR);
+  return {IMENotificationRequest::PositionChange,
+          IMENotificationRequest::MouseEventOnChar};
 }
 
 // used for checking the lParam of WM_IME_COMPOSITION
