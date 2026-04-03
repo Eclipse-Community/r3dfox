@@ -1010,6 +1010,11 @@ class TelemetryEvent {
       selIndex: details.result?.rowIndex ?? -1,
     };
 
+    // Skip telemetry for intervention tips
+    if (details.provider == "UrlbarProviderInterventions") {
+      return;
+    }
+
     let { queryContext } = this._controller._lastQueryContextWrapper || {};
 
     this.#recordSearchEngagementTelemetry(method, startEventInfo, {
