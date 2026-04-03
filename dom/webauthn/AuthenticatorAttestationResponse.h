@@ -27,7 +27,7 @@ class AuthenticatorAttestationResponse final : public AuthenticatorResponse {
   explicit AuthenticatorAttestationResponse(nsPIDOMWindowInner* aParent);
 
  protected:
-  ~AuthenticatorAttestationResponse() override;
+  ~AuthenticatorAttestationResponse() override = default;
 
  public:
   virtual JSObject* WrapObject(JSContext* aCx,
@@ -58,7 +58,6 @@ class AuthenticatorAttestationResponse final : public AuthenticatorResponse {
 
   nsTArray<uint8_t> mAttestationObject;
   nsCOMPtr<nsIWebAuthnAttObj> mAttestationObjectParsed;
-  JS::Heap<JSObject*> mAttestationObjectCachedObj;
   nsTArray<nsString> mTransports;
 };
 
