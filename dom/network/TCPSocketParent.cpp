@@ -56,6 +56,11 @@ TCPSocketParentBase::~TCPSocketParentBase() = default;
 
 void TCPSocketParentBase::ReleaseIPDLReference() {
   MOZ_ASSERT(mIPCOpen);
+  NS_ASSERTION(mIPCOpen,
+               "ReleaseIPDLReference called without matching AddIPDLReference");
+  if (!mIPCOpen) {
+    return;
+  }
   mIPCOpen = false;
   this->Release();
 }
