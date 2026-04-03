@@ -244,11 +244,13 @@ nsBaseClipboard::AsyncSetClipboardData::SetData(nsITransferable* aTransferable,
   MOZ_ASSERT(mClipboard);
   MOZ_ASSERT(
       mClipboard->nsIClipboard::IsClipboardTypeSupported(mClipboardType));
-  MOZ_DIAGNOSTIC_ASSERT(mClipboard->mPendingWriteRequests[mClipboardType] ==
-                        this);
+  RefPtr<AsyncSetClipboardData> selfPin(this);
 
-  RefPtr<AsyncSetClipboardData> request =
-      std::move(mClipboard->mPendingWriteRequests[mClipboardType]);
+  if (mClipboard->mPendingWriteRequests[mClipboardType] != this) {
+    return NS_ERROR_IN_PROGRESS;
+  }
+  mClipboard->mPendingWriteRequests[mClipboardType] = nullptr;
+
   nsresult rv = mClipboard->SetData(aTransferable, aOwner, mClipboardType,
                                     mWindowContext);
   MaybeNotifyCallback(rv);
@@ -275,13 +277,13 @@ void nsBaseClipboard::AsyncSetClipboardData::MaybeNotifyCallback(
   // take a reference to mClipboard.
 
   MOZ_ASSERT(IsValid());
+  // Once the callback is notified, setData should not be allowed, so invalidate
+  // this request.
+  mClipboard = nullptr;
   if (nsCOMPtr<nsIAsyncClipboardRequestCallback> callback =
           mCallback.forget()) {
     callback->OnComplete(aResult);
   }
-  // Once the callback is notified, setData should not be allowed, so invalidate
-  // this request.
-  mClipboard = nullptr;
 }
 
 void nsBaseClipboard::RejectPendingAsyncSetDataRequestIfAny(
