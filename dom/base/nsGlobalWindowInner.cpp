@@ -2459,7 +2459,7 @@ VisualViewport* nsGlobalWindowInner::VisualViewport() {
 
 nsScreen* nsGlobalWindowInner::Screen() {
   if (!mScreen) {
-    mScreen = new nsScreen(this);
+    mScreen = nsScreen::Create(this);
   }
   return mScreen;
 }

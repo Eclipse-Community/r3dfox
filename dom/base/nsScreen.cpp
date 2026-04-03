@@ -23,8 +23,14 @@ using namespace mozilla;
 using namespace mozilla::dom;
 
 nsScreen::nsScreen(nsPIDOMWindowInner* aWindow)
-    : DOMEventTargetHelper(aWindow),
-      mScreenOrientation(new ScreenOrientation(aWindow, this)) {}
+    : DOMEventTargetHelper(aWindow) {}
+
+/* static */ already_AddRefed<nsScreen> nsScreen::Create(
+    nsPIDOMWindowInner* aWindow) {
+  RefPtr screen = new nsScreen(aWindow);
+  screen->mScreenOrientation = ScreenOrientation::Create(aWindow, screen);
+  return screen.forget();
+}
 
 nsScreen::~nsScreen() = default;
 
