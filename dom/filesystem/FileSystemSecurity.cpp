@@ -80,22 +80,24 @@ bool FileSystemSecurity::ContentProcessHasAccessTo(ContentParentId aId,
 
 #if defined(XP_WIN)
   if (StringBeginsWith(aPath, u"..\\"_ns) ||
-      FindInReadable(u"\\..\\"_ns, aPath)) {
-    return false;
-  }
-#elif defined(XP_UNIX)
-  if (StringBeginsWith(aPath, u"../"_ns) || FindInReadable(u"/../"_ns, aPath)) {
+      FindInReadable(u"\\..\\"_ns, aPath) ||
+      StringEndsWith(aPath, u"\\.."_ns)) {
     return false;
   }
 #endif
+  if (StringBeginsWith(aPath, u"../"_ns) || FindInReadable(u"/../"_ns, aPath) ||
+      StringEndsWith(aPath, u"/.."_ns) || aPath.EqualsLiteral("..")) {
+    return false;
+  }
 
   nsTArray<nsString>* paths;
   if (!mPaths.Get(aId, &paths)) {
     return false;
   }
 
-  for (uint32_t i = 0, len = paths->Length(); i < len; ++i) {
-    if (FileSystemUtils::IsDescendantPath(paths->ElementAt(i), aPath)) {
+  MOZ_DIAGNOSTIC_ASSERT(paths);
+  for (const auto& authorizedRoot : *paths) {
+    if (FileSystemUtils::IsDescendantPath(authorizedRoot, aPath)) {
       return true;
     }
   }
