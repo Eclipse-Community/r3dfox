@@ -1244,11 +1244,14 @@ const wchar_t kShellLibraryName[] =  L"shell32.dll";
       }
     }
     ::FreeLibrary(hDLL);
-    HICON icon = ::LoadIconW(
-        ::GetModuleHandleW(nullptr),
-        MAKEINTRESOURCEW(usePrivateAumid ? IDI_PBMODE : IDI_APPICON));
-    SetBigIcon(icon);
-    SetSmallIcon(icon);
+    HICON smallIcon;
+    smallIcon = (HICON)::LoadImageW(
+        ::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(usePrivateAumid ? IDI_PBMODE : IDI_APPICON), IMAGE_ICON,
+        ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON),
+        LR_DEFAULTCOLOR);
+    SetSmallIcon(smallIcon);
+    SetBigIcon(::LoadIconW(
+        ::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(usePrivateAumid ? IDI_PBMODE : IDI_APPICON)));
   }
 
   // If mDefaultScale is set before mWnd has been set, it will have the scale of
