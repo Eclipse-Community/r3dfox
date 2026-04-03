@@ -826,6 +826,14 @@ bool WebRenderBridgeParent::PushExternalImageForTexture(
   auto op = aIsUpdate ? TextureHost::UPDATE_IMAGE : TextureHost::ADD_IMAGE;
   WebRenderTextureHost* wrTexture = aTexture->AsWebRenderTextureHost();
   if (wrTexture) {
+    if (wrTexture->NumSubTextures() != 1) {
+      gfxCriticalNote << "PushExternalImageForTexture: texture requires "
+                      << wrTexture->NumSubTextures()
+                      << " keys but only 1 provided for extId:"
+                      << wr::AsUint64(aExtId);
+      return false;
+    }
+
     Range<wr::ImageKey> keys(&aKey, 1);
     wrTexture->PushResourceUpdates(aResources, op, keys,
                                    wrTexture->GetExternalImageKey());

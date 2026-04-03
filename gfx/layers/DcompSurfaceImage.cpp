@@ -106,7 +106,12 @@ void DcompSurfaceHandleHost::PushResourceUpdates(
     return;
   }
   MOZ_ASSERT(mHandle);
-  MOZ_ASSERT(aImageKeys.length() == 1);
+
+  if (aImageKeys.length() != 1) {
+    MOZ_ASSERT_UNREACHABLE("unexpected key length");
+    return;
+  }
+
   auto method = aOp == TextureHost::ADD_IMAGE
                     ? &wr::TransactionBuilder::AddExternalImage
                     : &wr::TransactionBuilder::UpdateExternalImage;
@@ -137,7 +142,10 @@ void DcompSurfaceHandleHost::PushDisplayItems(
     return;
   }
   LOG("DcompSurfaceHandleHost %p PushDisplayItems", this);
-  MOZ_ASSERT(aImageKeys.length() == 1);
+  if (aImageKeys.length() != 1) {
+    MOZ_ASSERT_UNREACHABLE("unexpected key length");
+    return;
+  }
   aBuilder.PushImage(
       aBounds, aClip, true, false, aFilter, aImageKeys[0],
       !(mFlags & TextureFlags::NON_PREMULTIPLIED),

@@ -540,7 +540,10 @@ void BufferTextureHost::PushResourceUpdates(
                                     : wr::ExternalImageType::Buffer();
 
   if (GetFormat() != gfx::SurfaceFormat::YUV420) {
-    MOZ_ASSERT(aImageKeys.length() == 1);
+    if (aImageKeys.length() != 1) {
+      MOZ_ASSERT_UNREACHABLE("unexpected keys lenght");
+      return;
+    }
 
     wr::ImageDescriptor descriptor(
         GetSize(),
@@ -549,7 +552,10 @@ void BufferTextureHost::PushResourceUpdates(
     (aResources.*method)(aImageKeys[0], descriptor, aExtID, imageType, 0,
                          /* aNormalizedUvs */ false);
   } else {
-    MOZ_ASSERT(aImageKeys.length() == 3);
+    if (aImageKeys.length() != 3) {
+      MOZ_ASSERT_UNREACHABLE("unexpected keys lenght");
+      return;
+    }
 
     const layers::YCbCrDescriptor& desc = mDescriptor.get_YCbCrDescriptor();
     gfx::IntSize ySize = desc.display().Size();
@@ -580,13 +586,19 @@ void BufferTextureHost::PushDisplayItems(wr::DisplayListBuilder& aBuilder,
   bool useExternalSurface =
       aFlags.contains(PushDisplayItemFlag::SUPPORTS_EXTERNAL_BUFFER_TEXTURES);
   if (GetFormat() != gfx::SurfaceFormat::YUV420) {
-    MOZ_ASSERT(aImageKeys.length() == 1);
+    if (aImageKeys.length() != 1) {
+      MOZ_ASSERT_UNREACHABLE("unexpected key length");
+      return;
+    }
     aBuilder.PushImage(aBounds, aClip, true, false, aFilter, aImageKeys[0],
                        !(mFlags & TextureFlags::NON_PREMULTIPLIED),
                        wr::ColorF{1.0f, 1.0f, 1.0f, 1.0f},
                        preferCompositorSurface, useExternalSurface);
   } else {
-    MOZ_ASSERT(aImageKeys.length() == 3);
+    if (aImageKeys.length() != 3) {
+      MOZ_ASSERT_UNREACHABLE("unexpected key length");
+      return;
+    }
     const YCbCrDescriptor& desc = mDescriptor.get_YCbCrDescriptor();
     aBuilder.PushYCbCrPlanarImage(
         aBounds, aClip, true, aImageKeys[0], aImageKeys[1], aImageKeys[2],
