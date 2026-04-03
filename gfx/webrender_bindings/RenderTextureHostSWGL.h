@@ -49,7 +49,7 @@ class RenderTextureHostSWGL : public RenderTextureHost {
   // WrSWGLCompositeSurfaceInfo. This is paired with a call to UnlockSWGL when
   // composition is done.
   bool LockSWGLCompositeSurface(void* aContext,
-                                wr::SWGLCompositeSurfaceInfo* aInfo);
+                                wr::SWGLCompositeSurfaceInfo* aInfo) override;
 
   size_t BytesFromPlanes() {
     NS_ASSERTION(mPlanes.size(), "Can't compute bytes without any planes");
