@@ -7572,6 +7572,15 @@ void DatabaseConnection::UpdateRefcountFunction::ReleaseSavepoint() {
   mConnection->AssertIsOnConnectionThread();
   MOZ_ASSERT(mInSavepoint);
 
+  // The savepoint is being committed. The deltas it contributed are now
+  // permanent in mDelta, so reset mSavepointDelta on each entry before
+  // dropping the index. The FileInfoEntry objects themselves persist in
+  // mFileInfoEntries across savepoints; without this reset, a stale
+  // mSavepointDelta would be carried into the next savepoint.
+  for (const auto& entry : mSavepointEntriesIndex.Values()) {
+    entry->ResetSavepointDelta();
+  }
+
   mSavepointEntriesIndex.Clear();
   mInSavepoint = false;
 }
