@@ -115,12 +115,13 @@ DEFINES['HB_NO_FALLBACK_SHAPE'] = True
 DEFINES['HB_NO_UCD'] = True
 DEFINES['HB_NO_UNICODE_FUNCS'] = True
 
-# On Android, we want to use harfbuzz's mmap support for file access,
+# We want to use harfbuzz's mmap support for file access,
 # so we need to set the appropriate configuration flags as we're not
 # running harfbuzz's own configure script.
-if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'android':
+if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'windows':
     DEFINES['HAVE_MMAP'] = 1
     DEFINES['HAVE_SYS_MMAN_H'] = 1
+    DEFINES['HAVE_UNISTD_H'] = 1
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
     DEFINES['UNICODE'] = True
