@@ -16,25 +16,27 @@ extern const GMPPlatformAPI* sPlatform;
 namespace mozilla {
 
 void WidevineFileIO::Open(const char* aFilename, uint32_t aFilenameLength) {
+  DestroyRecord();
+
   mName = std::string(aFilename, aFilename + aFilenameLength);
-  GMPRecord* record = nullptr;
-  GMPErr err = sPlatform->createrecord(aFilename, aFilenameLength, &record,
+  GMPErr err = sPlatform->createrecord(aFilename, aFilenameLength, &mRecord,
                                        static_cast<GMPRecordClient*>(this));
   if (GMP_FAILED(err)) {
     GMP_LOG_DEBUG("WidevineFileIO::Open() '%s' GMPCreateRecord failed",
                   mName.c_str());
+    DestroyRecord();
     mClient->OnOpenComplete(cdm::FileIOClient::Status::kError);
     return;
   }
-  if (GMP_FAILED(record->Open())) {
+  if (GMP_FAILED(mRecord->Open())) {
     GMP_LOG_DEBUG("WidevineFileIO::Open() '%s' record open failed",
                   mName.c_str());
+    DestroyRecord();
     mClient->OnOpenComplete(cdm::FileIOClient::Status::kError);
     return;
   }
 
   GMP_LOG_DEBUG("WidevineFileIO::Open() '%s'", mName.c_str());
-  mRecord = record;
 }
 
 void WidevineFileIO::Read() {
@@ -58,12 +60,16 @@ void WidevineFileIO::Write(const uint8_t* aData, uint32_t aDataSize) {
   mRecord->Write(aData, aDataSize);
 }
 
-void WidevineFileIO::Close() {
-  GMP_LOG_DEBUG("WidevineFileIO::Close() '%s'", mName.c_str());
+void WidevineFileIO::DestroyRecord() {
   if (mRecord) {
     mRecord->Close();
     mRecord = nullptr;
   }
+}
+
+void WidevineFileIO::Close() {
+  GMP_LOG_DEBUG("WidevineFileIO::Close() '%s'", mName.c_str());
+  DestroyRecord();
   delete this;
 }
 
