@@ -341,8 +341,8 @@ nsresult ImageEncoder::ExtractDataInternal(
         return NS_ERROR_INVALID_ARG;
       }
       auto size = data->GetSize();
-      rv = aEncoder->InitFromData(map.mData, size.width * size.height * 4,
-                                  size.width, size.height, size.width * 4,
+      rv = aEncoder->InitFromData(map.mData, map.mStride * size.height,
+                                  size.width, size.height, map.mStride,
                                   imgIEncoder::INPUT_FORMAT_HOSTARGB, aOptions);
       data->Unmap();
     }
@@ -374,8 +374,8 @@ nsresult ImageEncoder::ExtractDataInternal(
       }
 
       rv = aEncoder->InitFromData(data.Elements(),
-                                  aSize.width * aSize.height * 4, aSize.width,
-                                  aSize.height, aSize.width * 4,
+                                  length, aSize.width,
+                                  aSize.height, stride,
                                   imgIEncoder::INPUT_FORMAT_HOSTARGB, aOptions);
     } else {
       if (BufferSizeFromDimensions(aSize.width, aSize.height, 4) == 0) {
@@ -391,8 +391,8 @@ nsresult ImageEncoder::ExtractDataInternal(
         return NS_ERROR_INVALID_ARG;
       }
       auto size = dataSurface->GetSize();
-      rv = aEncoder->InitFromData(map.mData, size.width * size.height * 4,
-                                  size.width, size.height, size.width * 4,
+      rv = aEncoder->InitFromData(map.mData, map.mStride * size.height,
+                                  size.width, size.height, map.mStride,
                                   imgIEncoder::INPUT_FORMAT_HOSTARGB, aOptions);
       dataSurface->Unmap();
     }
@@ -421,13 +421,13 @@ nsresult ImageEncoder::ExtractDataInternal(
     if (!emptyCanvas->Map(DataSourceSurface::MapType::WRITE, &map)) {
       return NS_ERROR_INVALID_ARG;
     }
+    auto size = map.mStride * aSize.height;
     if (aUsePlaceholder) {
-      auto size = 4 * aSize.width * aSize.height;
       auto* data = map.mData;
       GeneratePlaceholderCanvasData(size, data);
     }
-    rv = aEncoder->InitFromData(map.mData, aSize.width * aSize.height * 4,
-                                aSize.width, aSize.height, aSize.width * 4,
+    rv = aEncoder->InitFromData(map.mData, size, aSize.width, aSize.height,
+                                map.mStride,
                                 imgIEncoder::INPUT_FORMAT_HOSTARGB, aOptions);
     emptyCanvas->Unmap();
     if (NS_SUCCEEDED(rv)) {
