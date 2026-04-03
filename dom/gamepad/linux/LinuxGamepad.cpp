@@ -111,8 +111,7 @@ class LinuxGamepadService {
 };
 
 // singleton instance
-LinuxGamepadService* gService MOZ_GUARDED_BY(mozilla::sMainThreadCapability) =
-    nullptr;
+LinuxGamepadService* gService = nullptr;
 
 void LinuxGamepadService::AddDevice(struct udev_device* dev) {
   RefPtr<GamepadPlatformService> service =
@@ -490,9 +489,7 @@ gboolean LinuxGamepadService::OnGamepadData(GIOChannel* source,
 gboolean LinuxGamepadService::OnUdevMonitor(GIOChannel* source,
                                             GIOCondition condition,
                                             gpointer data) {
-  mozilla::AssertIsOnMainThread();
-
-  if (!gService || condition & (G_IO_ERR | G_IO_HUP)) {
+  if (condition & (G_IO_ERR | G_IO_HUP)) {
     return FALSE;
   }
 
@@ -505,28 +502,20 @@ gboolean LinuxGamepadService::OnUdevMonitor(GIOChannel* source,
 namespace mozilla::dom {
 
 void StartGamepadMonitoring() {
-  MOZ_ASSERT(!NS_IsMainThread());
-
-  NS_DispatchToMainThread(NS_NewRunnableFunction("StartGamepadMonitoring", [] {
-    AssertIsOnMainThread();
-    if (!gService) {
-      gService = new LinuxGamepadService();
-      gService->Startup();
-    }
-  }));
+  if (gService) {
+    return;
+  }
+  gService = new LinuxGamepadService();
+  gService->Startup();
 }
 
 void StopGamepadMonitoring() {
-  MOZ_ASSERT(!NS_IsMainThread());
-
-  NS_DispatchToMainThread(NS_NewRunnableFunction("StopGamepadMonitoring", [] {
-    AssertIsOnMainThread();
-    if (gService) {
-      gService->Shutdown();
-      delete gService;
-      gService = nullptr;
-    }
-  }));
+  if (!gService) {
+    return;
+  }
+  gService->Shutdown();
+  delete gService;
+  gService = nullptr;
 }
 
 void SetGamepadLightIndicatorColor(const Tainted<GamepadHandle>& aGamepadHandle,
