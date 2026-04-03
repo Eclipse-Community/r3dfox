@@ -9,7 +9,11 @@ include GMPTypes;
 include "GMPMessageUtils.h";
 include "ChromiumCDMParent.h";
 
+using cdm::Exception from "GMPSanitizedExports.h";
+using cdm::KeyStatus from "GMPSanitizedExports.h";
 using cdm::HdcpVersion from "GMPSanitizedExports.h";
+using cdm::MessageType from "GMPSanitizedExports.h";
+using cdm::Status from "GMPSanitizedExports.h";
 
 namespace mozilla {
 namespace gmp {
@@ -78,19 +82,19 @@ parent:
   async __delete__();
 
   // cdm::Host_11
-  async OnResolvePromiseWithKeyStatus(uint32_t aPromiseId, uint32_t aKeyStatus);
+  async OnResolvePromiseWithKeyStatus(uint32_t aPromiseId, KeyStatus aKeyStatus);
 
   async OnResolveNewSessionPromise(uint32_t aPromiseId, nsCString aSessionId);
 
   async OnResolvePromise(uint32_t aPromiseId);
 
   async OnRejectPromise(uint32_t aPromiseId,
-                        uint32_t aException,
+                        Exception aException,
                         uint32_t aSystemCode,
                         nsCString aErrorMessage);
 
   async OnSessionMessage(nsCString aSessionId,
-                         uint32_t aMessageType,
+                         MessageType aMessageType,
                          uint8_t[] aMessage);
 
   async OnSessionKeysChange(nsCString aSessionId,
@@ -106,16 +110,16 @@ parent:
   async ResolveLoadSessionPromise(uint32_t aPromiseId, bool aSuccessful);
 
   // Return values of cdm::ContentDecryptionModule_10::Decrypt
-  async DecryptedShmem(uint32_t aId, uint32_t aStatus, Shmem aData);
-  async DecryptedData(uint32_t aId, uint32_t aStatus, uint8_t[] aData);
-  async DecryptFailed(uint32_t aId, uint32_t aStatus);
+  async DecryptedShmem(uint32_t aId, Status aStatus, Shmem aData);
+  async DecryptedData(uint32_t aId, Status aStatus, uint8_t[] aData);
+  async DecryptFailed(uint32_t aId, Status aStatus);
 
-  async OnDecoderInitDone(uint32_t aStatus);
+  async OnDecoderInitDone(Status aStatus);
 
   // Return values of cdm::ContentDecryptionModule_10::DecryptAndDecodeFrame
   async DecodedShmem(CDMVideoFrame aFrame, Shmem aData);
   async DecodedData(CDMVideoFrame aFrame, uint8_t[] aData);
-  async DecodeFailed(uint32_t aStatus);
+  async DecodeFailed(Status aStatus);
 
   async ResetVideoDecoderComplete();
 

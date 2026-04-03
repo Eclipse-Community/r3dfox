@@ -106,19 +106,19 @@ class ChromiumCDMParent final : public PChromiumCDMParent,
   ~ChromiumCDMParent() = default;
 
   ipc::IPCResult Recv__delete__() override;
-  ipc::IPCResult RecvOnResolvePromiseWithKeyStatus(const uint32_t& aPromiseId,
-                                                   const uint32_t& aKeyStatus);
+  ipc::IPCResult RecvOnResolvePromiseWithKeyStatus(
+      const uint32_t& aPromiseId, const cdm::KeyStatus& aKeyStatus);
   ipc::IPCResult RecvOnResolveNewSessionPromise(const uint32_t& aPromiseId,
                                                 const nsCString& aSessionId);
   ipc::IPCResult RecvResolveLoadSessionPromise(const uint32_t& aPromiseId,
                                                const bool& aSuccessful);
   ipc::IPCResult RecvOnResolvePromise(const uint32_t& aPromiseId);
   ipc::IPCResult RecvOnRejectPromise(const uint32_t& aPromiseId,
-                                     const uint32_t& aError,
+                                     const cdm::Exception& aError,
                                      const uint32_t& aSystemCode,
                                      const nsCString& aErrorMessage);
   ipc::IPCResult RecvOnSessionMessage(const nsCString& aSessionId,
-                                      const uint32_t& aMessageType,
+                                      const cdm::MessageType& aMessageType,
                                       nsTArray<uint8_t>&& aMessage);
   ipc::IPCResult RecvOnSessionKeysChange(
       const nsCString& aSessionId, nsTArray<CDMKeyInformation>&& aKeysInfo);
@@ -127,18 +127,19 @@ class ChromiumCDMParent final : public PChromiumCDMParent,
   ipc::IPCResult RecvOnSessionClosed(const nsCString& aSessionId);
   ipc::IPCResult RecvOnQueryOutputProtectionStatus();
   ipc::IPCResult RecvDecryptedShmem(const uint32_t& aId,
-                                    const uint32_t& aStatus,
+                                    const cdm::Status& aStatus,
                                     ipc::Shmem&& aData);
-  ipc::IPCResult RecvDecryptedData(const uint32_t& aId, const uint32_t& aStatus,
+  ipc::IPCResult RecvDecryptedData(const uint32_t& aId,
+                                   const cdm::Status& aStatus,
                                    nsTArray<uint8_t>&& aData);
   ipc::IPCResult RecvDecryptFailed(const uint32_t& aId,
-                                   const uint32_t& aStatus);
-  ipc::IPCResult RecvOnDecoderInitDone(const uint32_t& aStatus);
+                                   const cdm::Status& aStatus);
+  ipc::IPCResult RecvOnDecoderInitDone(const cdm::Status& aStatus);
   ipc::IPCResult RecvDecodedShmem(const CDMVideoFrame& aFrame,
                                   ipc::Shmem&& aShmem);
   ipc::IPCResult RecvDecodedData(const CDMVideoFrame& aFrame,
                                  nsTArray<uint8_t>&& aData);
-  ipc::IPCResult RecvDecodeFailed(const uint32_t& aStatus);
+  ipc::IPCResult RecvDecodeFailed(const cdm::Status& aStatus);
   ipc::IPCResult RecvShutdown();
   ipc::IPCResult RecvResetVideoDecoderComplete();
   ipc::IPCResult RecvDrainComplete();

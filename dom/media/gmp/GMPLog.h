@@ -51,10 +51,6 @@ inline const char* CdmStatusToString(cdm::Status aStatus) {
   }
 }
 
-inline const char* CdmStatusToString(uint32_t aStatus) {
-  return CdmStatusToString(cdm::Status(aStatus));
-}
-
 // End helpers
 
 }  // namespace mozilla

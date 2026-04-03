@@ -92,6 +92,34 @@ struct ParamTraits<cdm::HdcpVersion>
           cdm::HdcpVersion, cdm::HdcpVersion::kHdcpVersionNone,
           cdm::HdcpVersion::kHdcpVersion2_3> {};
 
+using CDMStatusEnumValidator =
+    ContiguousEnumValidatorInclusive<cdm::Status, cdm::Status::kSuccess,
+                                     cdm::kDeferredInitialization>;
+template <>
+struct ParamTraits<cdm::Status>
+    : public EnumSerializer<cdm::Status, CDMStatusEnumValidator> {};
+
+using CDMExceptionEnumValidator = ContiguousEnumValidatorInclusive<
+    cdm::Exception, cdm::Exception::kExceptionTypeError,
+    cdm::Exception::kExceptionQuotaExceededError>;
+template <>
+struct ParamTraits<cdm::Exception>
+    : public EnumSerializer<cdm::Exception, CDMExceptionEnumValidator> {};
+
+using CDMKeyStatusEnumValidator =
+    ContiguousEnumValidatorInclusive<cdm::KeyStatus, cdm::KeyStatus::kUsable,
+                                     cdm::KeyStatus::kReleased>;
+template <>
+struct ParamTraits<cdm::KeyStatus>
+    : public EnumSerializer<cdm::KeyStatus, CDMKeyStatusEnumValidator> {};
+
+using CDMMessageTypeEnumValidator = ContiguousEnumValidatorInclusive<
+    cdm::MessageType, cdm::MessageType::kLicenseRequest,
+    cdm::MessageType::kIndividualizationRequest>;
+template <>
+struct ParamTraits<cdm::MessageType>
+    : public EnumSerializer<cdm::MessageType, CDMMessageTypeEnumValidator> {};
+
 template <>
 struct ParamTraits<GMPSimulcastStream> {
   typedef GMPSimulcastStream paramType;
