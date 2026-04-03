@@ -174,7 +174,12 @@ static bool ReadStringPair(JSStructuredCloneReader* aReader,
 bool ClonedErrorHolder::WriteStructuredClone(JSContext* aCx,
                                              JSStructuredCloneWriter* aWriter,
                                              StructuredCloneHolder* aHolder) {
-  auto& data = mStack.BufferData();
+  const auto& data = mStack.BufferData();
+  CheckedUint32 dataSize(data.Size());
+  if (!dataSize.isValid()) {
+    return false;
+  }
+
   return JS_WriteUint32Pair(aWriter, SCTAG_DOM_CLONED_ERROR_OBJECT, 0) &&
          WriteStringPair(aWriter, mName, mMessage) &&
          WriteStringPair(aWriter, mFilename, mSourceLine) &&
@@ -183,7 +188,7 @@ bool ClonedErrorHolder::WriteStructuredClone(JSContext* aCx,
          JS_WriteUint32Pair(aWriter, mTokenOffset, mErrorNumber) &&
          JS_WriteUint32Pair(aWriter, uint32_t(mType), uint32_t(mExnType)) &&
          JS_WriteUint32Pair(aWriter, mCode, uint32_t(mResult)) &&
-         JS_WriteUint32Pair(aWriter, data.Size(),
+         JS_WriteUint32Pair(aWriter, dataSize.value(),
                             JS_STRUCTURED_CLONE_VERSION) &&
          data.ForEachDataChunk([&](const char* aData, size_t aSize) {
            return JS_WriteBytes(aWriter, aData, aSize);
