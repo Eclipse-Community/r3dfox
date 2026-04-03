@@ -1018,9 +1018,12 @@ void nsGeolocationService::RemoveLocator(Geolocation* aLocator) {
 }
 
 void nsGeolocationService::MoveLocators(nsGeolocationService* aService) {
-  for (uint32_t i = 0; i < mGeolocators.Length(); i++) {
-    aService->AddLocator(mGeolocators[i]);
+  for (Geolocation* loc : mGeolocators) {
+    aService->AddLocator(loc);
+    loc->SetService(aService);
   }
+
+  mGeolocators.Clear();
 }
 
 ////////////////////////////////////////////////////
