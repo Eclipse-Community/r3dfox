@@ -477,10 +477,16 @@ class Dualshock4Remapper final : public GamepadRemapper {
     return MAX_INPUT_LEN;
   }
 
-  virtual void ProcessTouchData(GamepadHandle aHandle, void* aInput) override {
+  static constexpr size_t kMinTouchReportLen = 43;
+
+  virtual void ProcessTouchData(GamepadHandle aHandle, const uint8_t* aInput,
+                                size_t aInputLen) override {
+    if (aInputLen < kMinTouchReportLen) {
+      return;
+    }
     nsTArray<GamepadTouchState> touches(TOUCH_EVENT_COUNT);
     touches.SetLength(TOUCH_EVENT_COUNT);
-    uint8_t* rawData = (uint8_t*)aInput;
+    const uint8_t* rawData = aInput;
 
     const uint32_t kTouchDimensionX = 1920;
     const uint32_t kTouchDimensionY = 942;

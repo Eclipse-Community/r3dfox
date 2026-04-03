@@ -152,7 +152,8 @@ class GamepadRemapper {
   virtual GamepadMappingType GetMappingType() const {
     return GamepadMappingType::Standard;
   }
-  virtual void ProcessTouchData(GamepadHandle aHandle, void* aInput) {}
+  virtual void ProcessTouchData(GamepadHandle aHandle, const uint8_t* aInput,
+                                size_t aInputLen) {}
   virtual void RemapAxisMoveEvent(GamepadHandle aHandle, uint32_t aAxis,
                                   double aValue) const = 0;
   virtual void RemapButtonEvent(GamepadHandle aHandle, uint32_t aButton,

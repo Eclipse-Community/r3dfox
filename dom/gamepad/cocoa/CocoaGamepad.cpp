@@ -397,7 +397,7 @@ void DarwinGamepadService::ReportChangedCallback(
 
 void Gamepad::ReportChanged(uint8_t* report, CFIndex report_len) {
   MOZ_RELEASE_ASSERT(report_len <= mRemapper->GetMaxInputReportLength());
-  mRemapper->ProcessTouchData(mHandle, report);
+  mRemapper->ProcessTouchData(mHandle, report, report_len);
 }
 
 size_t Gamepad::WriteOutputReport(const std::vector<uint8_t>& aReport) const {
