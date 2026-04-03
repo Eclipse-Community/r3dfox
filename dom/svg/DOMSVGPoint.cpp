@@ -198,8 +198,8 @@ void DOMSVGPoint::CleanupWeakRefs() {
   // cycle collected), so we that don't leave behind a pointer to
   // free / soon-to-be-free memory.
   if (nsCOMPtr<DOMSVGPointList> pointList = do_QueryInterface(mOwner)) {
-    MOZ_ASSERT(pointList->mItems[mListIndex] == this,
-               "Clearing out the wrong list index...?");
+    MOZ_RELEASE_ASSERT(pointList->mItems[mListIndex] == this,
+                       "Clearing out the wrong list index...?");
     pointList->mItems[mListIndex] = nullptr;
   }
 
