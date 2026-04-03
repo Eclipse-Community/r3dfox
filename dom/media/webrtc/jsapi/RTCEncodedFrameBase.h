@@ -24,11 +24,14 @@ class RTCEncodedFrameBase : public nsISupports, public nsWrapperCache {
   explicit RTCEncodedFrameBase(
       nsIGlobalObject* aGlobal,
       std::unique_ptr<webrtc::TransformableFrameInterface> aFrame,
-      uint64_t aCounter);
+      uint64_t aCounter,
+      RTCRtpScriptTransformer* aOwner);
 
   // nsISupports
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
   NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS(RTCEncodedFrameBase)
+
+  nsIGlobalObject* GetParentObject() const;
 
   // Common webidl for RTCEncodedVideoFrame/RTCEncodedAudioFrame
   unsigned long Timestamp() const;
@@ -53,6 +56,7 @@ class RTCEncodedFrameBase : public nsISupports, public nsWrapperCache {
   std::unique_ptr<webrtc::TransformableFrameInterface> mFrame;
   const uint64_t mCounter = 0;
   const unsigned long mTimestamp = 0;
+  RefPtr<RTCRtpScriptTransformer> mOwner;
   JS::Heap<JSObject*> mData;
 };
 

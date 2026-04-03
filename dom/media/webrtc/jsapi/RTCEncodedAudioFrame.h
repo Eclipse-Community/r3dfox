@@ -25,16 +25,9 @@ class RTCEncodedAudioFrame final : public RTCEncodedFrameBase {
       std::unique_ptr<webrtc::TransformableFrameInterface> aFrame,
       uint64_t aCounter, RTCRtpScriptTransformer* aOwner);
 
-  // nsISupports
-  NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(RTCEncodedAudioFrame,
-                                           RTCEncodedFrameBase)
-
   // webidl (timestamp and data accessors live in base class)
   JSObject* WrapObject(JSContext* aCx,
                        JS::Handle<JSObject*> aGivenProto) override;
-
-  nsIGlobalObject* GetParentObject() const;
 
   void GetMetadata(RTCEncodedAudioFrameMetadata& aMetadata) const;
 
@@ -43,8 +36,7 @@ class RTCEncodedAudioFrame final : public RTCEncodedFrameBase {
   bool IsVideo() const override { return false; }
 
  private:
-  virtual ~RTCEncodedAudioFrame();
-  RefPtr<RTCRtpScriptTransformer> mOwner;
+  virtual ~RTCEncodedAudioFrame() = default;
   RTCEncodedAudioFrameMetadata mMetadata;
 };
 

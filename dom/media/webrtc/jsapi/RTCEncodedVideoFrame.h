@@ -7,7 +7,6 @@
 #ifndef MOZILLA_DOM_MEDIA_WEBRTC_JSAPI_RTCENCODEDVIDEOFRAME_H_
 #define MOZILLA_DOM_MEDIA_WEBRTC_JSAPI_RTCENCODEDVIDEOFRAME_H_
 
-#include "mozilla/RefPtr.h"
 #include "nsIGlobalObject.h"
 #include "jsapi/RTCEncodedFrameBase.h"
 #include "mozilla/dom/RTCEncodedVideoFrameBinding.h"
@@ -26,16 +25,9 @@ class RTCEncodedVideoFrame final : public RTCEncodedFrameBase {
       std::unique_ptr<webrtc::TransformableFrameInterface> aFrame,
       uint64_t aCounter, RTCRtpScriptTransformer* aOwner);
 
-  // nsISupports
-  NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(RTCEncodedVideoFrame,
-                                           RTCEncodedFrameBase)
-
   // webidl (timestamp and data accessors live in base class)
   JSObject* WrapObject(JSContext* aCx,
                        JS::Handle<JSObject*> aGivenProto) override;
-
-  nsIGlobalObject* GetParentObject() const;
 
   RTCEncodedVideoFrameType Type() const;
 
@@ -50,8 +42,7 @@ class RTCEncodedVideoFrame final : public RTCEncodedFrameBase {
   Maybe<std::string> Rid() const;
 
  private:
-  virtual ~RTCEncodedVideoFrame();
-  RefPtr<RTCRtpScriptTransformer> mOwner;
+  virtual ~RTCEncodedVideoFrame() = default;
   RTCEncodedVideoFrameType mType;
   RTCEncodedVideoFrameMetadata mMetadata;
   Maybe<std::string> mRid;

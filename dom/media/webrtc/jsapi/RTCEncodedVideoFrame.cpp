@@ -16,9 +16,6 @@
 #include "jsapi/RTCEncodedFrameBase.h"
 #include "mozilla/dom/RTCEncodedVideoFrameBinding.h"
 #include "mozilla/dom/RTCRtpScriptTransformer.h"
-#include "nsWrapperCache.h"
-#include "nsISupports.h"
-#include "nsCycleCollectionParticipant.h"
 #include "nsIGlobalObject.h"
 #include "nsContentUtils.h"
 #include "mozilla/RefPtr.h"
@@ -29,21 +26,11 @@
 
 namespace mozilla::dom {
 
-NS_IMPL_CYCLE_COLLECTION_INHERITED(RTCEncodedVideoFrame, RTCEncodedFrameBase,
-                                   mOwner)
-NS_IMPL_ADDREF_INHERITED(RTCEncodedVideoFrame, RTCEncodedFrameBase)
-NS_IMPL_RELEASE_INHERITED(RTCEncodedVideoFrame, RTCEncodedFrameBase)
-
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(RTCEncodedVideoFrame)
-  NS_WRAPPERCACHE_INTERFACE_MAP_ENTRY
-NS_INTERFACE_MAP_END_INHERITING(RTCEncodedFrameBase)
-
 RTCEncodedVideoFrame::RTCEncodedVideoFrame(
     nsIGlobalObject* aGlobal,
     std::unique_ptr<webrtc::TransformableFrameInterface> aFrame,
     uint64_t aCounter, RTCRtpScriptTransformer* aOwner)
-    : RTCEncodedFrameBase(aGlobal, std::move(aFrame), aCounter),
-      mOwner(aOwner) {
+    : RTCEncodedFrameBase(aGlobal, std::move(aFrame), aCounter, aOwner) {
   const auto& videoFrame(
       static_cast<webrtc::TransformableVideoFrameInterface&>(*mFrame));
   mType = videoFrame.IsKeyFrame() ? RTCEncodedVideoFrameType::Key
@@ -85,19 +72,9 @@ RTCEncodedVideoFrame::RTCEncodedVideoFrame(
   mozilla::HoldJSObjects(this);
 }
 
-RTCEncodedVideoFrame::~RTCEncodedVideoFrame() {
-  // Base class needs this, but can't do it itself because of an assertion in
-  // the cycle-collector.
-  mozilla::DropJSObjects(this);
-}
-
 JSObject* RTCEncodedVideoFrame::WrapObject(JSContext* aCx,
                                            JS::Handle<JSObject*> aGivenProto) {
   return RTCEncodedVideoFrame_Binding::Wrap(aCx, this, aGivenProto);
-}
-
-nsIGlobalObject* RTCEncodedVideoFrame::GetParentObject() const {
-  return mGlobal;
 }
 
 RTCEncodedVideoFrameType RTCEncodedVideoFrame::Type() const { return mType; }

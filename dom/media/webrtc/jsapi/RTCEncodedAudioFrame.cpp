@@ -17,9 +17,6 @@
 #include "jsapi/RTCRtpScriptTransform.h"
 #include "mozilla/dom/RTCRtpScriptTransformer.h"
 #include "mozilla/dom/RTCEncodedAudioFrameBinding.h"
-#include "nsWrapperCache.h"
-#include "nsISupports.h"
-#include "nsCycleCollectionParticipant.h"
 #include "nsIGlobalObject.h"
 #include "nsContentUtils.h"
 #include "mozilla/HoldDropJSObjects.h"
@@ -30,21 +27,11 @@
 
 namespace mozilla::dom {
 
-NS_IMPL_CYCLE_COLLECTION_INHERITED(RTCEncodedAudioFrame, RTCEncodedFrameBase,
-                                   mOwner)
-NS_IMPL_ADDREF_INHERITED(RTCEncodedAudioFrame, RTCEncodedFrameBase)
-NS_IMPL_RELEASE_INHERITED(RTCEncodedAudioFrame, RTCEncodedFrameBase)
-
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(RTCEncodedAudioFrame)
-  NS_WRAPPERCACHE_INTERFACE_MAP_ENTRY
-NS_INTERFACE_MAP_END_INHERITING(RTCEncodedFrameBase)
-
 RTCEncodedAudioFrame::RTCEncodedAudioFrame(
     nsIGlobalObject* aGlobal,
     std::unique_ptr<webrtc::TransformableFrameInterface> aFrame,
     uint64_t aCounter, RTCRtpScriptTransformer* aOwner)
-    : RTCEncodedFrameBase(aGlobal, std::move(aFrame), aCounter),
-      mOwner(aOwner) {
+    : RTCEncodedFrameBase(aGlobal, std::move(aFrame), aCounter, aOwner) {
   mMetadata.mSynchronizationSource.Construct(mFrame->GetSsrc());
   mMetadata.mPayloadType.Construct(mFrame->GetPayloadType());
   // send frames are derived directly from TransformableFrameInterface, not
@@ -64,25 +51,11 @@ RTCEncodedAudioFrame::RTCEncodedAudioFrame(
       mMetadata.mSequenceNumber.Construct(*optionalSeqNum);
     }
   }
-
-  // Base class needs this, but can't do it itself because of an assertion in
-  // the cycle-collector.
-  mozilla::HoldJSObjects(this);
-}
-
-RTCEncodedAudioFrame::~RTCEncodedAudioFrame() {
-  // Base class needs this, but can't do it itself because of an assertion in
-  // the cycle-collector.
-  mozilla::DropJSObjects(this);
 }
 
 JSObject* RTCEncodedAudioFrame::WrapObject(JSContext* aCx,
                                            JS::Handle<JSObject*> aGivenProto) {
   return RTCEncodedAudioFrame_Binding::Wrap(aCx, this, aGivenProto);
-}
-
-nsIGlobalObject* RTCEncodedAudioFrame::GetParentObject() const {
-  return mGlobal;
 }
 
 void RTCEncodedAudioFrame::GetMetadata(
