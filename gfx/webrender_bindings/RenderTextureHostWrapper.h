@@ -56,6 +56,13 @@ class RenderTextureHostWrapper final : public RenderTextureHostSWGL {
                 PlaneInfo& aPlaneInfo) override;
   void UnmapPlanes() override;
 
+  wr::WrExternalImage LockSWGL(uint8_t aChannelIndex, void* aContext,
+                               RenderCompositor* aCompositor) override;
+
+  void UnlockSWGL() override;
+  bool LockSWGLCompositeSurface(void* aContext,
+                                wr::SWGLCompositeSurfaceInfo* aInfo) override;
+
   // This is just a wrapper, so doesn't need to report the
   // size of the wrapped object (which reports itself).
   size_t Bytes() override { return 0; }

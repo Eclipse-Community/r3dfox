@@ -61,6 +61,11 @@ class RenderTextureHost {
 
   virtual void UnlockSWGL() {}
 
+  virtual bool LockSWGLCompositeSurface(void* aContext,
+                                        wr::SWGLCompositeSurfaceInfo* aInfo) {
+    return false;
+  }
+
   virtual void ClearCachedResources() {}
 
   // Called asynchronouly when corresponding TextureHost's mCompositableCount

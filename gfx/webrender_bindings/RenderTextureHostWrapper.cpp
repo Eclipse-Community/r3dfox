@@ -60,6 +60,30 @@ std::pair<gfx::Point, gfx::Point> RenderTextureHostWrapper::GetUvCoords(
   return RenderTextureHost::GetUvCoords(aTextureSize);
 }
 
+wr::WrExternalImage RenderTextureHostWrapper::LockSWGL(
+    uint8_t aChannelIndex, void* aContext, RenderCompositor* aCompositor) {
+  if (!mTextureHost) {
+    return InvalidToWrExternalImage();
+  }
+
+  return mTextureHost->LockSWGL(aChannelIndex, aContext, aCompositor);
+}
+
+void RenderTextureHostWrapper::UnlockSWGL() {
+  if (mTextureHost) {
+    mTextureHost->UnlockSWGL();
+  }
+}
+
+bool RenderTextureHostWrapper::LockSWGLCompositeSurface(
+    void* aContext, wr::SWGLCompositeSurfaceInfo* aInfo) {
+  if (!mTextureHost) {
+    return false;
+  }
+
+  return mTextureHost->LockSWGLCompositeSurface(aContext, aInfo);
+}
+
 void RenderTextureHostWrapper::ClearCachedResources() {
   if (mTextureHost) {
     mTextureHost->ClearCachedResources();
