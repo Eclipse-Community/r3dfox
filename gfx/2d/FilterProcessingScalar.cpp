@@ -267,8 +267,8 @@ void FilterProcessing::DoOpacityCalculationA8_Scalar(
   uint8_t alpha = uint8_t(255.f * aValue);
   for (int32_t y = 0; y < aSize.height; y++) {
     for (int32_t x = 0; x < aSize.width; x++) {
-      int32_t inputIndex = y * aSourceStride;
-      int32_t targetIndex = y * aTargetStride;
+      int32_t inputIndex = y * aSourceStride + x;
+      int32_t targetIndex = y * aTargetStride + x;
       aTargetData[targetIndex] =
           FastDivideBy255<uint8_t>(aSourceData[inputIndex] * alpha);
     }
