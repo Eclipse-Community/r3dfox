@@ -18,7 +18,8 @@ void ServiceWorkerRegistrationChild::ActorDestroy(ActorDestroyReason aReason) {
   mIPCWorkerRef = nullptr;
 
   if (mOwner) {
-    mOwner->RevokeActor(this);
+    RefPtr<ServiceWorkerRegistration> owner = mOwner;
+    owner->RevokeActor(this);
     MOZ_DIAGNOSTIC_ASSERT(!mOwner);
   }
 }
