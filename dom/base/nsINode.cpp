@@ -965,11 +965,7 @@ void nsINode::Normalize() {
     const nsTextFragment* text = node->GetText();
     if (text->GetLength()) {
       nsIContent* target = node->GetPreviousSibling();
-      NS_ASSERTION(
-          (target && target->NodeType() == TEXT_NODE) || hasRemoveListeners,
-          "Should always have a previous text sibling unless "
-          "mutation events messed us up");
-      if (!hasRemoveListeners || (target && target->NodeType() == TEXT_NODE)) {
+      if (target && target->NodeType() == TEXT_NODE) {
         nsTextNode* t = static_cast<nsTextNode*>(target);
         if (text->Is2b()) {
           t->AppendTextForNormalize(text->Get2b(), text->GetLength(), true,
