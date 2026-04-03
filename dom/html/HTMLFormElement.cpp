@@ -250,7 +250,7 @@ void HTMLFormElement::MaybeSubmit(Element* aSubmitter) {
 
   // 1-4 of
   // https://html.spec.whatwg.org/multipage/forms.html#concept-form-submit
-  Document* doc = GetComposedDoc();
+  RefPtr<Document> doc = GetComposedDoc();
   if (mIsConstructingEntryList || !doc ||
       (doc->GetSandboxFlags() & SANDBOXED_FORMS)) {
     return;
