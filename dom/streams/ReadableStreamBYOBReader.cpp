@@ -188,11 +188,7 @@ void ReadableStreamBYOBReaderRead(JSContext* aCx,
   // Step 4. If stream.[[state]] is "errored", perform readIntoRequest’s error
   // steps given stream.[[storedError]].
   if (stream->State() == ReadableStream::ReaderState::Errored) {
-    JS::Rooted<JS::Value> error(aCx);
-    stream->GetStoredError(aCx, &error, aRv);
-    if (aRv.Failed()) {
-      return;
-    }
+    JS::Rooted<JS::Value> error(aCx, stream->StoredError());
 
     aReadIntoRequest->ErrorSteps(aCx, error, aRv);
     return;

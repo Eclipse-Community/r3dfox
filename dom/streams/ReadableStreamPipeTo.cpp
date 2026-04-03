@@ -259,8 +259,7 @@ bool PipeToPump::SourceOrDestErroredOrClosed(JSContext* aCx) {
   // Step 1. Errors must be propagated forward: if source.[[state]] is or
   // becomes "errored", then
   if (source->State() == ReadableStream::ReaderState::Errored) {
-    JS::Rooted<JS::Value> storedError(aCx);
-    source->GetStoredError(aCx, &storedError, IgnoredErrorResult());
+    JS::Rooted<JS::Value> storedError(aCx, source->StoredError());
     OnSourceErrored(aCx, storedError);
     return true;
   }
@@ -268,8 +267,7 @@ bool PipeToPump::SourceOrDestErroredOrClosed(JSContext* aCx) {
   // Step 2. Errors must be propagated backward: if dest.[[state]] is or becomes
   // "errored", then
   if (dest->State() == WritableStream::WriterState::Errored) {
-    JS::Rooted<JS::Value> storedError(aCx);
-    dest->GetStoredError(aCx, &storedError, IgnoredErrorResult());
+    JS::Rooted<JS::Value> storedError(aCx, dest->StoredError());
     OnDestErrored(aCx, storedError);
     return true;
   }
@@ -459,20 +457,15 @@ class ShutdownActionFinishedPromiseHandler final : public PromiseNativeHandler {
   }
 
   void ResolvedCallback(JSContext* aCx, JS::Handle<JS::Value> aValue,
-                        ErrorResult& aRv) override {
+                        ErrorResult&) override {
     // https://streams.spec.whatwg.org/#rs-pipeTo-shutdown-with-action
     // Step 5. Upon fulfillment of p, finalize, passing along originalError if
     // it was given.
-    JS::Rooted<Maybe<JS::Value>> maybeError(aCx);
+    JS::Rooted<Maybe<JS::Value>> error(aCx);
     if (mHasError) {
-      JS::Rooted<JS::Value> error(aCx, mError);
-      if (!JS_WrapValue(aCx, &error)) {
-        aRv.StealExceptionFromJSContext(aCx);
-        return;
-      }
-      maybeError = Some(error.get());
+      error = Some(mError);
     }
-    mPipeToPump->Finalize(aCx, maybeError);
+    mPipeToPump->Finalize(aCx, error);
   }
 
   void RejectedCallback(JSContext* aCx, JS::Handle<JS::Value> aReason,
