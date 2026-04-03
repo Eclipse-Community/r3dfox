@@ -1694,6 +1694,11 @@ void RuntimeService::CrashIfHanging() {
 void RuntimeService::Cleanup() {
   AssertIsOnMainThread();
 
+  if (mCleanedUp) {
+    return;
+  }
+  mCleanedUp = true;
+
   if (!mShuttingDown) {
     Shutdown();
   }
@@ -1788,9 +1793,9 @@ void RuntimeService::Cleanup() {
       obs->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
       mObserved = false;
     }
-  }
 
-  nsLayoutStatics::Release();
+    nsLayoutStatics::Release();
+  }
 }
 
 void RuntimeService::AddAllTopLevelWorkersToArray(

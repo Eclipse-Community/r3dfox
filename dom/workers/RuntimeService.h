@@ -83,6 +83,7 @@ class RuntimeService final : public nsIObserver {
   bool mObserved;
   bool mShuttingDown;
   bool mNavigatorPropertiesLoaded;
+  bool mCleanedUp{false};
 
  public:
   NS_DECL_ISUPPORTS
