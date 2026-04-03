@@ -173,10 +173,12 @@ add_task(async function test_createNiceUniqueFile() {
   testCreateNiceUniqueFile(tempFile, "test(2).txt");
 
   // Double extension.
-  tempFile.leafName = "test.tar.gz";
-  testCreateNiceUniqueFile(tempFile, "test.tar.gz");
-  testCreateNiceUniqueFile(tempFile, "test(1).tar.gz");
-  testCreateNiceUniqueFile(tempFile, "test(2).tar.gz");
+  for (let suffix of ["gz", "lzma", "xz", "zst", "bz2"]) {
+    tempFile.leafName = "test.tar." + suffix;
+    testCreateNiceUniqueFile(tempFile, "test.tar." + suffix);
+    testCreateNiceUniqueFile(tempFile, "test(1).tar." + suffix);
+    testCreateNiceUniqueFile(tempFile, "test(2).tar." + suffix);
+  }
 
   // Test automatic shortening of long file names. We don't know exactly how
   // many characters are removed, because it depends on the name of the folder

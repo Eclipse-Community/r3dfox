@@ -100,11 +100,12 @@ export var DownloadPaths = {
     //  .*?                      Matches the base name non-greedily.
     //  \.[A-Z0-9]{1,3}          Up to three letters or numbers preceding a
     //                           double extension.
-    //  \.(?:gz|bz2|Z)           The second part of common double extensions.
+    //  \.(?:bz2|gz|lzma|xz|zst|Z) The second part of common double extensions.
     //  \.[^.]*                  Matches any extension or a single trailing dot.
-    let [, base, ext] = /(.*?)(\.[A-Z0-9]{1,3}\.(?:gz|bz2|Z)|\.[^.]*)?$/i.exec(
-      leafName
-    );
+    let [, base, ext] =
+      /(.*?)(\.[A-Z0-9]{1,3}\.(?:bz2|gz|lzma|xz|zst|Z)|\.[^.]*)?$/i.exec(
+        leafName
+      );
     // Return an empty string instead of undefined if no extension is found.
     return [base, ext || ""];
   },
