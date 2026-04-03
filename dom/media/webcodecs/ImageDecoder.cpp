@@ -1009,6 +1009,10 @@ void ImageDecoder::Close(const MediaResult& aResult) {
   RefPtr<ImageDecoder> kungFuDeathGrip(this);
   MOZ_LOG(gWebCodecsLog, LogLevel::Debug, ("ImageDecoder %p Close", this));
 
+  if (mClosed) {
+    return;
+  }
+
   // 10.2.5. Algorithms - Close ImageDecoder (with exception)
   mClosed = true;
   mTypeNotSupported = aResult.Code() == NS_ERROR_DOM_NOT_SUPPORTED_ERR;
