@@ -185,8 +185,7 @@ already_AddRefed<DOMSVGNumber> DOMSVGNumberList::InsertItemBefore(
     return nullptr;
   }
 
-  index = std::min(index, LengthNoFlush());
-  if (index >= DOMSVGNumber::MaxListIndex()) {
+  if (LengthNoFlush() >= DOMSVGNumber::MaxListIndex()) {
     error.Throw(NS_ERROR_DOM_INDEX_SIZE_ERR);
     return nullptr;
   }
@@ -207,6 +206,8 @@ already_AddRefed<DOMSVGNumber> DOMSVGNumberList::InsertItemBefore(
       return nullptr;
     }
   }
+
+  index = std::min(index, LengthNoFlush());
 
   AutoChangeNumberListNotifier notifier(this);
   // Now that we know we're inserting, keep animVal list in sync as necessary.

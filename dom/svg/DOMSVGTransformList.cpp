@@ -190,8 +190,7 @@ already_AddRefed<DOMSVGTransform> DOMSVGTransformList::InsertItemBefore(
     return nullptr;
   }
 
-  index = std::min(index, LengthNoFlush());
-  if (index >= DOMSVGTransform::MaxListIndex()) {
+  if (LengthNoFlush() >= DOMSVGTransform::MaxListIndex()) {
     error.Throw(NS_ERROR_DOM_INDEX_SIZE_ERR);
     return nullptr;
   }
@@ -214,6 +213,8 @@ already_AddRefed<DOMSVGTransform> DOMSVGTransformList::InsertItemBefore(
       return nullptr;
     }
   }
+
+  index = std::min(index, LengthNoFlush());
 
   AutoChangeTransformListNotifier notifier(this);
   // Now that we know we're inserting, keep animVal list in sync as necessary.

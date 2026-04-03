@@ -249,8 +249,7 @@ already_AddRefed<DOMSVGPoint> DOMSVGPointList::InsertItemBefore(
     return nullptr;
   }
 
-  aIndex = std::min(aIndex, LengthNoFlush());
-  if (aIndex >= DOMSVGPoint::MaxListIndex()) {
+  if (LengthNoFlush() >= DOMSVGPoint::MaxListIndex()) {
     aError.Throw(NS_ERROR_DOM_INDEX_SIZE_ERR);
     return nullptr;
   }
@@ -275,6 +274,8 @@ already_AddRefed<DOMSVGPoint> DOMSVGPointList::InsertItemBefore(
       return nullptr;
     }
   }
+
+  aIndex = std::min(aIndex, LengthNoFlush());
 
   AutoChangePointListNotifier notifier(this);
   // Now that we know we're inserting, keep animVal list in sync as necessary.
