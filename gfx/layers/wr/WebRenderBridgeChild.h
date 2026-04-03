@@ -178,7 +178,7 @@ class WebRenderBridgeChild final : public PWebRenderBridgeChild,
   void DeallocResourceShmem(RefCountedShmem& aShm);
 
   void Capture();
-  void StartCaptureSequence(uint32_t aFlags);
+  void StartCaptureSequence(const nsCString& path, uint32_t aFlags);
   void StopCaptureSequence();
 
   bool SendEnsureConnected(TextureFactoryIdentifier* textureFactoryIdentifier,
