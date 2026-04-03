@@ -292,13 +292,21 @@ class ByteStreamTeeSourceAlgorithms final
         return nullptr;
       }
 
-      JS::Rooted<JS::Value> reason1(aCx, mTeeState->Reason1());
+      JS::Rooted<JS::Value> reason1(aCx);
+      mTeeState->GetReason1(aCx, &reason1, aRv);
+      if (aRv.Failed()) {
+        return nullptr;
+      }
       if (!JS_SetElement(aCx, compositeReason, 0, reason1)) {
         aRv.StealExceptionFromJSContext(aCx);
         return nullptr;
       }
 
-      JS::Rooted<JS::Value> reason2(aCx, mTeeState->Reason2());
+      JS::Rooted<JS::Value> reason2(aCx);
+      mTeeState->GetReason2(aCx, &reason2, aRv);
+      if (aRv.Failed()) {
+        return nullptr;
+      }
       if (!JS_SetElement(aCx, compositeReason, 1, reason2)) {
         aRv.StealExceptionFromJSContext(aCx);
         return nullptr;
