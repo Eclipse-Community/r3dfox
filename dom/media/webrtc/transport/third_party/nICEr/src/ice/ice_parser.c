@@ -94,8 +94,10 @@ grab_token(char **str, char **out)
     len = c - *str;
 
     tmp = RMALLOC(len + 1);
-    if (!tmp)
+    if (!tmp) {
+        *out = 0;
         ABORT(R_NO_MEMORY);
+    }
 
     memcpy(tmp, *str, len);
     tmp[len] = '\0';
