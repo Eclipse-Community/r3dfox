@@ -361,10 +361,8 @@ var CustomizableUIInternal = {
       Services.policies.isAllowed("removeHomeButtonByDefault")
         ? null
         : "home-button",
-      "spring",
       "vertical-spacer",
       "urlbar-container",
-      "spring",
       "downloads-button",
       AppConstants.MOZ_DEV_EDITION ? "developer-button" : null,
       lazy.ippEnabled ? "ipprotection-button" : null,
@@ -404,7 +402,6 @@ var CustomizableUIInternal = {
       {
         type: CustomizableUI.TYPE_TOOLBAR,
         defaultPlacements: [
-          "firefox-view-button",
           "tabbrowser-tabs",
           "new-tab-button",
           "alltabs-button",
@@ -629,36 +626,6 @@ var CustomizableUIInternal = {
 
     if (currentVersion < 9 && gSavedState.placements["nav-bar"]) {
       let placements = gSavedState.placements["nav-bar"];
-      if (placements.includes("urlbar-container")) {
-        let urlbarIndex = placements.indexOf("urlbar-container");
-        let secondSpringIndex = urlbarIndex + 1;
-        // Insert if there isn't already a spring before the urlbar
-        if (
-          urlbarIndex == 0 ||
-          !placements[urlbarIndex - 1].startsWith(kSpecialWidgetPfx + "spring")
-        ) {
-          placements.splice(urlbarIndex, 0, "spring");
-          // The url bar is now 1 index later, so increment the insertion point for
-          // the second spring.
-          secondSpringIndex++;
-        }
-        // If the search container is present, insert after the search container
-        // instead of after the url bar
-        let searchContainerIndex = placements.indexOf("search-container");
-        if (searchContainerIndex != -1) {
-          secondSpringIndex = searchContainerIndex + 1;
-        }
-        if (
-          secondSpringIndex == placements.length ||
-          !placements[secondSpringIndex].startsWith(
-            kSpecialWidgetPfx + "spring"
-          )
-        ) {
-          placements.splice(secondSpringIndex, 0, "spring");
-        }
-      }
-
-      // Finally, replace the bookmarks menu button with the library one if present
       if (placements.includes("bookmarks-menu-button")) {
         let bmbIndex = placements.indexOf("bookmarks-menu-button");
         placements.splice(bmbIndex, 1);
@@ -754,18 +721,6 @@ var CustomizableUIInternal = {
       // Place the menu item as the first item to the left of the hamburger menu
       if (navbarPlacements) {
         navbarPlacements.push("fxa-toolbar-menu-button");
-      }
-    }
-
-    // Add firefox-view if not present
-    if (currentVersion < 18) {
-      let tabstripPlacements =
-        gSavedState.placements[CustomizableUI.AREA_TABSTRIP];
-      if (
-        tabstripPlacements &&
-        !tabstripPlacements.includes("firefox-view-button")
-      ) {
-        tabstripPlacements.unshift("firefox-view-button");
       }
     }
 
