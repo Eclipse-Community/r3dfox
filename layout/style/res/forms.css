@@ -254,6 +254,7 @@ select::-moz-select-content {
   user-select: none;
 }
 
+@media -moz-pref("widget.non-native-theme.enabled") {
 select::-moz-select-picker-icon {
   display: inline-block;
   appearance: auto;
@@ -266,6 +267,7 @@ select::-moz-select-picker-icon {
    * baseline of the combobox to match the baseline of the label, so the
    * dropmarker is what gets the vertical-align. */
   vertical-align: top;
+}
 }
 
 select:-moz-select-list-box {
