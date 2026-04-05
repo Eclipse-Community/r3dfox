@@ -65,18 +65,19 @@
   }
 
   @media (-moz-platform: windows-win8),
-         (-moz-windows-default-theme),
-         (-moz-windows-glass)  {
+         (-moz-windows-glass) {
+    @media (-moz-windows-default-theme) {
       @media not (-moz-windows-classic) {
-      #TabsToolbar {
-        color: black;
-        --toolbarbutton-icon-fill: currentColor;
-      }
-    @media not -moz-pref("sidebar.verticalTabs") {
-    #toolbar-menubar {
-      color: black;
+        #TabsToolbar {
+          color: black;
+          --toolbarbutton-icon-fill: currentColor;
+        }
       }
     }
+    @media not -moz-pref("sidebar.verticalTabs") {
+      #toolbar-menubar {
+        color: black;
+      }
     }
   }
 
