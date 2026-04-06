@@ -708,7 +708,11 @@ already_AddRefed<gfx::DataSourceSurface> BufferTextureHost::GetAsSurface(
   if (mFormat == gfx::SurfaceFormat::UNKNOWN) {
     NS_WARNING("BufferTextureHost: unsupported format!");
     return nullptr;
-  } else if (mFormat == gfx::SurfaceFormat::YUV) {
+  }
+  if (!GetBuffer()) {
+    return nullptr;
+  }
+  if (mFormat == gfx::SurfaceFormat::YUV) {
     result = ImageDataSerializer::DataSourceSurfaceFromYCbCrDescriptor(
         GetBuffer(), mDescriptor.get_YCbCrDescriptor(), aSurface);
     if (NS_WARN_IF(!result)) {
