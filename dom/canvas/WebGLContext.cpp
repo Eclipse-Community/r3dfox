@@ -2598,6 +2598,23 @@ webgl::ExplicitPixelPackingState::ForUseWith(
     const Maybe<size_t> bytesPerRowStrideOverride) {
   auto state = stateOrZero;
 
+  // Enforce the GLES alignmentInTypeElems invariant. ElemsPerRowStride below
+  // assumes a in {1,2,4,8}. Callers at IPC entry points validate this but
+  // alignmentInTypeElems is deserialized from IPC, so guard it here too.
+  switch (state.alignmentInTypeElems) {
+    case 1:
+    case 2:
+    case 4:
+    case 8:
+      break;
+    default: {
+      const auto text = nsPrintfCString(
+          "PACK/UNPACK_ALIGNMENT must be one of [1,2,4,8], was %u.",
+          state.alignmentInTypeElems);
+      return Err(mozilla::ToString(text));
+    }
+  }
+
   if (!IsTexTarget3D(target)) {
     state.skipImages = 0;
     state.imageHeight = 0;
