@@ -107,7 +107,7 @@ nsresult txXSLTNumber::getValueList(Expr* aValueExpr, txPattern* aCountPattern,
 
   txPattern* countPattern = aCountPattern;
   UniquePtr<txPattern> newCountPattern;
-  const txXPathNode& currNode = aContext->getContextNode();
+  txXPathNode currNode(aContext->getContextNode());
 
   // Parse count- and from-attributes
 
