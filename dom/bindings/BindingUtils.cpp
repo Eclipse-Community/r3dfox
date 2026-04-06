@@ -3533,6 +3533,7 @@ static bool GetBackingObject(JSContext* aCx, JS::Handle<JSObject*> aObj,
                   ? aObj
                   : js::UncheckedUnwrap(aObj,
                                         /* stopAtWindowProxy = */ false);
+  MOZ_ASSERT(aSlotIndex < JSCLASS_RESERVED_SLOTS(JS::GetClass(reflector)));
 
   // Retrieve the backing object from the reserved slot on the maplike/setlike
   // object. If it doesn't exist yet, create it.

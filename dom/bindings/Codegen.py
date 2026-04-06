@@ -22811,7 +22811,9 @@ class CGIterableMethodGenerator(CGGeneric):
         CGGeneric.__init__(self, createIterator)
 
 
-def getObservableArrayBackingObject(descriptor, attr, errorReturn="return false;\n"):
+def getObservableArrayBackingObject(
+    descriptor, attr, objName="obj", errorReturn="return false;\n"
+):
     """
     Generate code to get/create a JS backing list for an observableArray attribute
     from the declaration slot.
@@ -22826,7 +22828,7 @@ def getObservableArrayBackingObject(descriptor, attr, errorReturn="return false;
         """
         JS::Rooted<JSObject*> backingObj(cx);
         bool created = false;
-        if (!GetObservableArrayBackingObject(cx, obj, ${slot},
+        if (!GetObservableArrayBackingObject(cx, ${objName}, ${slot},
                 &backingObj, &created, ${namespace}::ObservableArrayProxyHandler::getInstance(),
                 self)) {
           $*{errorReturn}
@@ -22835,8 +22837,9 @@ def getObservableArrayBackingObject(descriptor, attr, errorReturn="return false;
           PreserveWrapper(self);
         }
         """,
-        namespace=toBindingNamespace(MakeNativeName(attr.identifier.name)),
+        objName=objName,
         slot=memberReservedSlot(attr, descriptor),
+        namespace=toBindingNamespace(MakeNativeName(attr.identifier.name)),
         errorReturn=errorReturn,
         selfType=descriptor.nativeType,
     )
@@ -23128,7 +23131,9 @@ class CGObservableArraySetterGenerator(CGGeneric):
     def __init__(self, descriptor, attr):
         assert attr.isAttr()
         assert attr.type.isObservableArray()
-        getBackingObject = getObservableArrayBackingObject(descriptor, attr)
+        getBackingObject = getObservableArrayBackingObject(
+            descriptor, attr, objName="unwrappedObj"
+        )
         setElement = dedent(
             """
             if (!JS_SetElement(cx, backingObj, i, val)) {
@@ -23155,15 +23160,22 @@ class CGObservableArraySetterGenerator(CGGeneric):
                   return false;
                 }
 
-                ${getBackingObject}
-                const ObservableArrayProxyHandler* handler = GetObservableArrayProxyHandler(backingObj);
-                if (!handler->SetLength(cx, backingObj, 0)) {
-                  return false;
-                }
+                JS::Rooted<JSObject*> unwrappedObj(cx, js::UncheckedUnwrap(obj, /* stopAtWindowProxy = */ false));
+                MOZ_ASSERT(IsDOMObject(unwrappedObj));
+                {
+                  JSAutoRealm ar(cx, unwrappedObj);
 
-                JS::Rooted<JS::Value> val(cx);
-                for (size_t i = 0; i < arg0.Length(); i++) {
-                  $*{conversion}
+                  $*{getBackingObject}
+
+                  const ObservableArrayProxyHandler* handler = GetObservableArrayProxyHandler(backingObj);
+                  if (!handler->SetLength(cx, backingObj, 0)) {
+                    return false;
+                  }
+
+                  JS::Rooted<JS::Value> val(cx);
+                  for (size_t i = 0; i < arg0.Length(); i++) {
+                    $*{conversion}
+                  }
                 }
                 """,
                 conversion=conversion,
@@ -23209,7 +23221,7 @@ class CGObservableArrayHelperFunctionGenerator(CGHelperFunctionGenerator):
                     getObservableArrayBackingObject(
                         descriptor,
                         attr,
-                        dedent(
+                        errorReturn=dedent(
                             """
                             aRv.Throw(NS_ERROR_UNEXPECTED);
                             return%s;
