@@ -14,17 +14,11 @@ namespace mozilla::dom {
 NS_IMPL_CYCLE_COLLECTION_CLASS(AuthenticatorAssertionResponse)
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(AuthenticatorAssertionResponse,
                                                 AuthenticatorResponse)
-  tmp->mAuthenticatorDataCachedObj = nullptr;
-  tmp->mSignatureCachedObj = nullptr;
-  tmp->mUserHandleCachedObj = nullptr;
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 
 NS_IMPL_CYCLE_COLLECTION_TRACE_BEGIN_INHERITED(AuthenticatorAssertionResponse,
                                                AuthenticatorResponse)
   NS_IMPL_CYCLE_COLLECTION_TRACE_PRESERVED_WRAPPER
-  NS_IMPL_CYCLE_COLLECTION_TRACE_JS_MEMBER_CALLBACK(mAuthenticatorDataCachedObj)
-  NS_IMPL_CYCLE_COLLECTION_TRACE_JS_MEMBER_CALLBACK(mSignatureCachedObj)
-  NS_IMPL_CYCLE_COLLECTION_TRACE_JS_MEMBER_CALLBACK(mUserHandleCachedObj)
 NS_IMPL_CYCLE_COLLECTION_TRACE_END
 
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(
@@ -39,16 +33,7 @@ NS_INTERFACE_MAP_END_INHERITING(AuthenticatorResponse)
 
 AuthenticatorAssertionResponse::AuthenticatorAssertionResponse(
     nsPIDOMWindowInner* aParent)
-    : AuthenticatorResponse(aParent),
-      mAuthenticatorDataCachedObj(nullptr),
-      mSignatureCachedObj(nullptr),
-      mUserHandleCachedObj(nullptr) {
-  mozilla::HoldJSObjects(this);
-}
-
-AuthenticatorAssertionResponse::~AuthenticatorAssertionResponse() {
-  mozilla::DropJSObjects(this);
-}
+    : AuthenticatorResponse(aParent) {}
 
 JSObject* AuthenticatorAssertionResponse::WrapObject(
     JSContext* aCx, JS::Handle<JSObject*> aGivenProto) {
@@ -57,14 +42,7 @@ JSObject* AuthenticatorAssertionResponse::WrapObject(
 
 void AuthenticatorAssertionResponse::GetAuthenticatorData(
     JSContext* aCx, JS::MutableHandle<JSObject*> aValue, ErrorResult& aRv) {
-  if (!mAuthenticatorDataCachedObj) {
-    mAuthenticatorDataCachedObj =
-        ArrayBuffer::Create(aCx, mAuthenticatorData, aRv);
-    if (aRv.Failed()) {
-      return;
-    }
-  }
-  aValue.set(mAuthenticatorDataCachedObj);
+  aValue.set(ArrayBuffer::Create(aCx, mAuthenticatorData, aRv));
 }
 
 void AuthenticatorAssertionResponse::SetAuthenticatorData(
@@ -74,13 +52,7 @@ void AuthenticatorAssertionResponse::SetAuthenticatorData(
 
 void AuthenticatorAssertionResponse::GetSignature(
     JSContext* aCx, JS::MutableHandle<JSObject*> aValue, ErrorResult& aRv) {
-  if (!mSignatureCachedObj) {
-    mSignatureCachedObj = ArrayBuffer::Create(aCx, mSignature, aRv);
-    if (aRv.Failed()) {
-      return;
-    }
-  }
-  aValue.set(mSignatureCachedObj);
+  aValue.set(ArrayBuffer::Create(aCx, mSignature, aRv));
 }
 
 void AuthenticatorAssertionResponse::SetSignature(
@@ -96,13 +68,7 @@ void AuthenticatorAssertionResponse::GetUserHandle(
   if (mUserHandle.IsEmpty()) {
     aValue.set(nullptr);
   } else {
-    if (!mUserHandleCachedObj) {
-      mUserHandleCachedObj = ArrayBuffer::Create(aCx, mUserHandle, aRv);
-      if (aRv.Failed()) {
-        return;
-      }
-    }
-    aValue.set(mUserHandleCachedObj);
+    aValue.set(ArrayBuffer::Create(aCx, mUserHandle, aRv));
   }
 }
 
