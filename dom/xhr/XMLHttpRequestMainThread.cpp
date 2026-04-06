@@ -2495,6 +2495,7 @@ void XMLHttpRequestMainThread::ChangeStateToDone(bool aWasSync) {
 
 void XMLHttpRequestMainThread::ChangeStateToDoneInternal() {
   DEBUG_WORKERREFS;
+  RefPtr<XMLHttpRequestMainThread> kungfuDeathGrip(this);
   DisconnectDoneNotifier();
   StopProgressEventTimer();
 
