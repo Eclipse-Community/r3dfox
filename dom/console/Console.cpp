@@ -418,6 +418,7 @@ class ConsoleRunnable : public StructuredCloneHolderBase {
     }
 
     Sequence<JS::Value> arguments;
+    SequenceRooter<JS::Value> rooter(aCx, &arguments);
 
     for (uint32_t i = 0; i < length; ++i) {
       JS::Rooted<JS::Value> value(aCx);
