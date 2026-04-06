@@ -17,7 +17,7 @@ const { FileUtils } = ChromeUtils.importESModule(
 );
 
 const SOURCE =
-  "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/net/http/transport_security_state_static.json?format=TEXT";
+  "https://raw.githubusercontent.com/chromium/chromium/main/net/http/transport_security_state_static.json";
 const TOOL_SOURCE =
   "https://hg.mozilla.org/mozilla-central/file/default/taskcluster/docker/periodic-updates/scripts/getHSTSPreloadList.js";
 const OUTPUT = "nsSTSPreloadList.inc";
@@ -52,17 +52,8 @@ async function download() {
   }
 
   let text = await resp.text();
-  let resultDecoded;
-  try {
-    resultDecoded = atob(text);
-  } catch (e) {
-    throw new Error(
-      "ERROR: could not decode data as base64 from '" + SOURCE + "': " + e
-    );
-  }
-
   // we have to filter out '//' comments, while not mangling the json
-  let result = resultDecoded.replace(/^(\s*)?\/\/[^\n]*\n/gm, "");
+  let result = text.replace(/^(\s*)?\/\/[^\n]*\n/gm, "");
   let data = null;
   try {
     data = JSON.parse(result);
