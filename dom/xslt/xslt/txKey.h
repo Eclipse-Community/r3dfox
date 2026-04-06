@@ -69,11 +69,12 @@ struct txIndexedKeyHashEntry : public PLDHashEntryHdr {
   using KeyType = const txIndexedKeyHashKey&;
   using KeyTypePointer = const txIndexedKeyHashKey*;
 
-  explicit txIndexedKeyHashEntry(KeyTypePointer aKey)
-      : mKey(*aKey), mIndexed(false) {}
+  explicit txIndexedKeyHashEntry(KeyTypePointer aKey) : mKey(*aKey) {}
 
   txIndexedKeyHashEntry(const txIndexedKeyHashEntry& entry)
-      : mKey(entry.mKey), mIndexed(entry.mIndexed) {}
+      : mKey(entry.mKey),
+        mIndexed(entry.mIndexed),
+        mIsBeingIndexed(entry.mIsBeingIndexed) {}
 
   bool KeyEquals(KeyTypePointer aKey) const;
 
@@ -84,7 +85,8 @@ struct txIndexedKeyHashEntry : public PLDHashEntryHdr {
   enum { ALLOW_MEMMOVE = true };
 
   txIndexedKeyHashKey mKey;
-  bool mIndexed;
+  bool mIndexed = false;
+  bool mIsBeingIndexed = false;
 };
 
 using txIndexedKeyHash = nsTHashtable<txIndexedKeyHashEntry>;
