@@ -57,7 +57,8 @@ mozilla::ipc::IPCResult GMPContentChild::RecvPGMPVideoDecoderConstructor(
   auto vdc = static_cast<GMPVideoDecoderChild*>(aActor);
 
   void* vd = nullptr;
-  GMPErr err = mGMPChild->GetAPI(GMP_API_VIDEO_DECODER, &vdc->Host(), &vd);
+  GMPErr err = mGMPChild->GetAPI(GMP_API_VIDEO_DECODER,
+                                 static_cast<GMPVideoHost*>(vdc), &vd);
   if (err != GMPNoErr || !vd) {
     return IPC_FAIL(this, "GMPGetAPI call failed trying to construct decoder.");
   }
@@ -72,7 +73,8 @@ mozilla::ipc::IPCResult GMPContentChild::RecvPGMPVideoEncoderConstructor(
   auto vec = static_cast<GMPVideoEncoderChild*>(aActor);
 
   void* ve = nullptr;
-  GMPErr err = mGMPChild->GetAPI(GMP_API_VIDEO_ENCODER, &vec->Host(), &ve);
+  GMPErr err = mGMPChild->GetAPI(GMP_API_VIDEO_ENCODER,
+                                 static_cast<GMPVideoHost*>(vec), &ve);
   if (err != GMPNoErr || !ve) {
     return IPC_FAIL(this, "GMPGetAPI call failed trying to construct encoder.");
   }

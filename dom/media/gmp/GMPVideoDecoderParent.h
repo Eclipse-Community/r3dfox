@@ -23,7 +23,7 @@ class GMPContentParent;
 
 class GMPVideoDecoderParent final : public PGMPVideoDecoderParent,
                                     public GMPVideoDecoderProxy,
-                                    public GMPSharedMemManager,
+                                    public GMPVideoHostImpl,
                                     public GMPCrashHelperHolder {
   friend class PGMPVideoDecoderParent;
 
@@ -34,7 +34,6 @@ class GMPVideoDecoderParent final : public PGMPVideoDecoderParent,
 
   explicit GMPVideoDecoderParent(GMPContentParent* aPlugin);
 
-  GMPVideoHostImpl& Host();
   nsresult Shutdown();
 
   // GMPVideoDecoder
@@ -58,9 +57,14 @@ class GMPVideoDecoderParent final : public PGMPVideoDecoderParent,
     return AllocShmem(aSize, aMem);
   }
 
-  void MgrDeallocShmem(Shmem& aMem) override { DeallocShmem(aMem); }
+  void MgrDeallocShmem(Shmem& aMem) override {
+    if (CanSend()) {
+      DeallocShmem(aMem);
+    }
+  }
 
  protected:
+  bool MgrCanSend() const override { return CanSend(); }
   bool MgrIsOnOwningThread() const override;
 
  private:
@@ -99,7 +103,6 @@ class GMPVideoDecoderParent final : public PGMPVideoDecoderParent,
   bool mIsAwaitingDrainComplete;
   RefPtr<GMPContentParent> mPlugin;
   RefPtr<GMPVideoDecoderCallbackProxy> mCallback;
-  GMPVideoHostImpl mVideoHost;
   const uint32_t mPluginId;
   GMPPluginType mPluginType = GMPPluginType::Unknown;
   int32_t mFrameCount;

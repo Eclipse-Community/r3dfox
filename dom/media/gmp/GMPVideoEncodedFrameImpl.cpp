@@ -7,7 +7,9 @@
 #include "GMPVideoHost.h"
 #include "mozilla/gmp/GMPTypes.h"
 #include "mozilla/Unused.h"
-#include "GMPSharedMemManager.h"
+#include "nsProxyRelease.h"
+#include "nsThreadUtils.h"
+#include "nsXULAppAPI.h"
 
 namespace mozilla::gmp {
 
@@ -23,7 +25,6 @@ GMPVideoEncodedFrameImpl::GMPVideoEncodedFrameImpl(GMPVideoHostImpl* aHost)
       mHost(aHost),
       mBufferType(GMP_BufferSingle) {
   MOZ_ASSERT(aHost);
-  aHost->EncodedFrameCreated(this);
 }
 
 GMPVideoEncodedFrameImpl::GMPVideoEncodedFrameImpl(
@@ -41,7 +42,6 @@ GMPVideoEncodedFrameImpl::GMPVideoEncodedFrameImpl(
       mShmemBuffer(std::move(aShmemBuffer)),
       mBufferType(aFrameData.mBufferType()) {
   MOZ_ASSERT(aHost);
-  aHost->EncodedFrameCreated(this);
 }
 
 GMPVideoEncodedFrameImpl::GMPVideoEncodedFrameImpl(
@@ -59,26 +59,22 @@ GMPVideoEncodedFrameImpl::GMPVideoEncodedFrameImpl(
       mArrayBuffer(std::move(aArrayBuffer)),
       mBufferType(aFrameData.mBufferType()) {
   MOZ_ASSERT(aHost);
-  aHost->EncodedFrameCreated(this);
 }
 
 GMPVideoEncodedFrameImpl::~GMPVideoEncodedFrameImpl() {
   DestroyBuffer();
-  if (mHost) {
-    mHost->EncodedFrameDestroyed(this);
+  // Proxy release to ensure that any synchronous runnables from the plugin can
+  // first unblock the worker thread. If we destroy the plugin once this
+  // reference is freed, we won't be blocked trying to join the worker thread.
+  if (XRE_IsGMPluginProcess()) {
+    NS_ProxyRelease("GMPVideoEncodedFrameImpl::~GMPVideoEncodedFrameImpl",
+                    GetMainThreadSerialEventTarget(), mHost.forget(),
+                    /* aAlwaysProxy */ true);
   }
 }
 
 GMPVideoFrameFormat GMPVideoEncodedFrameImpl::GetFrameFormat() {
   return kGMPEncodedVideoFrame;
-}
-
-void GMPVideoEncodedFrameImpl::DoneWithAPI() {
-  DestroyBuffer();
-
-  // Do this after destroying the buffer because destruction
-  // involves deallocation, which requires a host.
-  mHost = nullptr;
 }
 
 /* static */
@@ -136,9 +132,8 @@ bool GMPVideoEncodedFrameImpl::RelinquishFrameData(
 }
 
 void GMPVideoEncodedFrameImpl::DestroyBuffer() {
-  if (mHost && mShmemBuffer.IsWritable()) {
-    mHost->SharedMemMgr()->MgrGiveShmem(GMPSharedMemClass::Encoded,
-                                        std::move(mShmemBuffer));
+  if (mShmemBuffer.IsWritable()) {
+    mHost->MgrGiveShmem(GMPSharedMemClass::Encoded, std::move(mShmemBuffer));
   }
   mShmemBuffer = ipc::Shmem();
   mArrayBuffer.Clear();
@@ -149,8 +144,8 @@ GMPErr GMPVideoEncodedFrameImpl::CreateEmptyFrame(uint32_t aSize) {
     DestroyBuffer();
   } else if (aSize > AllocatedSize()) {
     DestroyBuffer();
-    if (!mHost->SharedMemMgr()->MgrTakeShmem(GMPSharedMemClass::Encoded, aSize,
-                                             &mShmemBuffer) &&
+    if (!mHost->MgrTakeShmem(GMPSharedMemClass::Encoded, aSize,
+                             &mShmemBuffer) &&
         !mArrayBuffer.SetLength(aSize, fallible)) {
       return GMPAllocErr;
     }
@@ -219,18 +214,13 @@ void GMPVideoEncodedFrameImpl::SetAllocatedSize(uint32_t aNewSize) {
     return;
   }
 
-  if (!mHost) {
-    return;
-  }
-
   if (!mArrayBuffer.IsEmpty()) {
     Unused << mArrayBuffer.SetLength(aNewSize, fallible);
     return;
   }
 
   ipc::Shmem new_mem;
-  if (!mHost->SharedMemMgr()->MgrTakeShmem(GMPSharedMemClass::Encoded, aNewSize,
-                                           &new_mem) &&
+  if (!mHost->MgrTakeShmem(GMPSharedMemClass::Encoded, aNewSize, &new_mem) &&
       !mArrayBuffer.SetLength(aNewSize, fallible)) {
     return;
   }
@@ -239,8 +229,7 @@ void GMPVideoEncodedFrameImpl::SetAllocatedSize(uint32_t aNewSize) {
     if (new_mem.IsWritable()) {
       memcpy(new_mem.get<uint8_t>(), mShmemBuffer.get<uint8_t>(), mSize);
     }
-    mHost->SharedMemMgr()->MgrGiveShmem(GMPSharedMemClass::Encoded,
-                                        std::move(mShmemBuffer));
+    mHost->MgrGiveShmem(GMPSharedMemClass::Encoded, std::move(mShmemBuffer));
   }
 
   mShmemBuffer = new_mem;

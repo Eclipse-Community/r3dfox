@@ -63,7 +63,9 @@ void GMPSharedMemManager::MgrGiveShmem(GMPSharedMemClass aClass,
                                        ipc::Shmem&& aMem) {
   MOZ_ASSERT(MgrIsOnOwningThread());
 
-  if (!aMem.IsWritable()) {
+  if (!aMem.IsWritable() || !MgrCanSend()) {
+    // Either the shmem is not allocated, or the actor is already dead and it
+    // will get freed when the Shmem reference goes away.
     return;
   }
 

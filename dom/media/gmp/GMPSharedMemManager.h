@@ -33,6 +33,7 @@ class GMPSharedMemManager {
 
  protected:
   virtual bool MgrIsOnOwningThread() const = 0;
+  virtual bool MgrCanSend() const = 0;
 
   static constexpr size_t kMaxPools = 2;
 

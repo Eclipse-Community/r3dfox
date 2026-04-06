@@ -459,12 +459,10 @@ GeckoMediaPluginService::GetGMPVideoDecoder(
             RefPtr<GMPContentParent> parent = wrapper->mParent;
             UniquePtr<GetGMPVideoDecoderCallback> callback(rawCallback);
             GMPVideoDecoderParent* actor = nullptr;
-            GMPVideoHostImpl* host = nullptr;
             if (parent && NS_SUCCEEDED(parent->GetGMPVideoDecoder(&actor))) {
-              host = &(actor->Host());
               actor->SetCrashHelper(helper);
             }
-            callback->Done(actor, host);
+            callback->Done(actor, actor);
           },
           [rawCallback] {
             UniquePtr<GetGMPVideoDecoderCallback> callback(rawCallback);
@@ -499,12 +497,10 @@ GeckoMediaPluginService::GetGMPVideoEncoder(
             RefPtr<GMPContentParent> parent = wrapper->mParent;
             UniquePtr<GetGMPVideoEncoderCallback> callback(rawCallback);
             GMPVideoEncoderParent* actor = nullptr;
-            GMPVideoHostImpl* host = nullptr;
             if (parent && NS_SUCCEEDED(parent->GetGMPVideoEncoder(&actor))) {
-              host = &(actor->Host());
               actor->SetCrashHelper(helper);
             }
-            callback->Done(actor, host);
+            callback->Done(actor, actor);
           },
           [rawCallback] {
             UniquePtr<GetGMPVideoEncoderCallback> callback(rawCallback);

@@ -19,7 +19,7 @@ class GMPContentChild;
 
 class GMPVideoEncoderChild final : public PGMPVideoEncoderChild,
                                    public GMPVideoEncoderCallback,
-                                   public GMPSharedMemManager {
+                                   public GMPVideoHostImpl {
   friend class PGMPVideoEncoderChild;
 
  public:
@@ -30,7 +30,6 @@ class GMPVideoEncoderChild final : public PGMPVideoEncoderChild,
   explicit GMPVideoEncoderChild(GMPContentChild* aPlugin);
 
   void Init(GMPVideoEncoder* aEncoder);
-  GMPVideoHostImpl& Host();
 
   // GMPVideoEncoderCallback
   void Encoded(GMPVideoEncodedFrame* aEncodedFrame,
@@ -39,10 +38,15 @@ class GMPVideoEncoderChild final : public PGMPVideoEncoderChild,
   void Error(GMPErr aError) override;
 
   // GMPSharedMemManager
-  void MgrDeallocShmem(Shmem& aMem) override { DeallocShmem(aMem); }
+  void MgrDeallocShmem(Shmem& aMem) override {
+    if (CanSend()) {
+      DeallocShmem(aMem);
+    }
+  }
   void MgrDecodedFrameDestroyed(GMPVideoi420FrameImpl* aFrame) override;
 
  protected:
+  bool MgrCanSend() const override { return CanSend(); }
   bool MgrIsOnOwningThread() const override;
 
  private:
@@ -67,7 +71,6 @@ class GMPVideoEncoderChild final : public PGMPVideoEncoderChild,
 
   GMPContentChild* mPlugin;
   GMPVideoEncoder* mVideoEncoder;
-  GMPVideoHostImpl mVideoHost;
   uint64_t mLatestEncodedTimestamp = 0;
 };
 

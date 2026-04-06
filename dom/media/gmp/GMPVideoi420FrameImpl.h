@@ -37,10 +37,6 @@ class GMPVideoi420FrameImpl : public GMPVideoi420Frame {
       HostReportPolicy aReportPolicy = HostReportPolicy::None);
   virtual ~GMPVideoi420FrameImpl();
 
-  // This is called during a normal destroy sequence, which is
-  // when a consumer is finished or during XPCOM shutdown.
-  void DoneWithAPI();
-
   static bool CheckFrameData(const GMPVideoi420FrameData& aFrameData,
                              size_t aBufferSize);
 
@@ -106,13 +102,12 @@ class GMPVideoi420FrameImpl : public GMPVideoi420Frame {
   bool CheckDimensions(int32_t aWidth, int32_t aHeight, int32_t aStride_y,
                        int32_t aStride_u, int32_t aStride_v);
   GMPErr MaybeResize(int32_t aNewSize);
-  void DestroyBuffer();
 
  public:
   const HostReportPolicy mReportPolicy;
 
  protected:
-  GMPVideoHostImpl* mHost;
+  RefPtr<GMPVideoHostImpl> mHost;
   nsTArray<uint8_t> mArrayBuffer;
   ipc::Shmem mShmemBuffer;
   GMPFramePlane mYPlane;

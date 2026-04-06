@@ -12,17 +12,12 @@
 
 namespace mozilla::gmp {
 
-GMPVideoHostImpl::GMPVideoHostImpl(GMPSharedMemManager* aSharedMemMgr)
-    : mSharedMemMgr(aSharedMemMgr) {}
+GMPVideoHostImpl::GMPVideoHostImpl() = default;
 
 GMPVideoHostImpl::~GMPVideoHostImpl() = default;
 
 GMPErr GMPVideoHostImpl::CreateFrame(GMPVideoFrameFormat aFormat,
                                      GMPVideoFrame** aFrame) {
-  if (!mSharedMemMgr) {
-    return GMPGenericErr;
-  }
-
   if (!aFrame) {
     return GMPGenericErr;
   }
@@ -43,10 +38,6 @@ GMPErr GMPVideoHostImpl::CreateFrame(GMPVideoFrameFormat aFormat,
 }
 
 GMPErr GMPVideoHostImpl::CreatePlane(GMPPlane** aPlane) {
-  if (!mSharedMemMgr) {
-    return GMPGenericErr;
-  }
-
   if (!aPlane) {
     return GMPGenericErr;
   }
@@ -57,45 +48,6 @@ GMPErr GMPVideoHostImpl::CreatePlane(GMPPlane** aPlane) {
   *aPlane = p;
 
   return GMPNoErr;
-}
-
-GMPSharedMemManager* GMPVideoHostImpl::SharedMemMgr() { return mSharedMemMgr; }
-
-// XXX This should merge with ActorDestroyed
-void GMPVideoHostImpl::DoneWithAPI() { ActorDestroyed(); }
-
-void GMPVideoHostImpl::ActorDestroyed() {
-  for (uint32_t i = mEncodedFrames.Length(); i > 0; i--) {
-    mEncodedFrames[i - 1]->DoneWithAPI();
-    mEncodedFrames.RemoveElementAt(i - 1);
-  }
-  for (uint32_t i = mDecodedFrames.Length(); i > 0; i--) {
-    mDecodedFrames[i - 1]->DoneWithAPI();
-    mDecodedFrames.RemoveElementAt(i - 1);
-  }
-  mSharedMemMgr->MgrPurgeShmems();
-  mSharedMemMgr = nullptr;
-}
-
-void GMPVideoHostImpl::EncodedFrameCreated(
-    GMPVideoEncodedFrameImpl* aEncodedFrame) {
-  mEncodedFrames.AppendElement(aEncodedFrame);
-}
-
-void GMPVideoHostImpl::EncodedFrameDestroyed(GMPVideoEncodedFrameImpl* aFrame) {
-  MOZ_ALWAYS_TRUE(mEncodedFrames.RemoveElement(aFrame));
-}
-
-void GMPVideoHostImpl::DecodedFrameCreated(
-    GMPVideoi420FrameImpl* aDecodedFrame) {
-  mDecodedFrames.AppendElement(aDecodedFrame);
-}
-
-void GMPVideoHostImpl::DecodedFrameDestroyed(GMPVideoi420FrameImpl* aFrame) {
-  MOZ_ALWAYS_TRUE(mDecodedFrames.RemoveElement(aFrame));
-  if (mSharedMemMgr && aFrame->mReportPolicy == HostReportPolicy::Destroyed) {
-    mSharedMemMgr->MgrDecodedFrameDestroyed(aFrame);
-  }
 }
 
 }  // namespace mozilla::gmp

@@ -71,6 +71,7 @@ namespace gmp {
 
 GMPChild::GMPChild()
     : mGMPMessageLoop(MessageLoop::current()), mGMPLoader(nullptr) {
+  MOZ_ASSERT(NS_IsMainThread());
   GMP_CHILD_LOG_DEBUG("GMPChild ctor");
   nsDebugImpl::SetMultiprocessMode("GMP");
 }
@@ -583,8 +584,6 @@ void GMPChild::ActorDestroy(ActorDestroyReason aWhy) {
   if (mGMPLoader) {
     mGMPLoader->Shutdown();
   }
-
-  ShutdownPlatformAPI();
 
   if (AbnormalShutdown == aWhy) {
     NS_WARNING("Abnormal shutdown of GMP process!");

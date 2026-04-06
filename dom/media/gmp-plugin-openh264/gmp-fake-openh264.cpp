@@ -392,9 +392,9 @@ class FakeVideoDecoder : public GMPVideoDecoder {
     callback_->Decoded(frame);
   }
 
-  void Reset() override {}
+  void Reset() override { callback_->ResetComplete(); }
 
-  void Drain() override {}
+  void Drain() override { callback_->DrainComplete(); }
 
   void DecodingComplete() override { delete this; }
 
