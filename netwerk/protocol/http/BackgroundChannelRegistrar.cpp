@@ -34,7 +34,7 @@ BackgroundChannelRegistrar::~BackgroundChannelRegistrar() {
 }
 
 // static
-already_AddRefed<nsIBackgroundChannelRegistrar>
+already_AddRefed<BackgroundChannelRegistrar>
 BackgroundChannelRegistrar::GetOrCreate() {
   if (!gSingleton) {
     gSingleton = new BackgroundChannelRegistrar();
@@ -57,8 +57,22 @@ void BackgroundChannelRegistrar::NotifyChannelLinked(
 void BackgroundChannelRegistrar::DeleteChannel(uint64_t aKey) {
   MOZ_ASSERT(NS_IsMainThread());
 
-  mChannels.Remove(aKey);
-  mBgChannels.Remove(aKey);
+  RefPtr<HttpChannelParent> channel;
+  mChannels.Remove(aKey, getter_AddRefs(channel));
+  RefPtr<HttpBackgroundChannelParent> bgChannel;
+  mBgChannels.Remove(aKey, getter_AddRefs(bgChannel));
+}
+
+void BackgroundChannelRegistrar::DeleteChannelIfMatches(
+    uint64_t aKey, HttpChannelParent* aExpected) {
+  MOZ_ASSERT(NS_IsMainThread());
+
+  RefPtr<HttpChannelParent> channel;
+  if (mChannels.GetWeak(aKey) == aExpected) {
+    mChannels.Remove(aKey, getter_AddRefs(channel));
+  }
+  RefPtr<HttpBackgroundChannelParent> bgChannel;
+  mBgChannels.Remove(aKey, getter_AddRefs(bgChannel));
 }
 
 void BackgroundChannelRegistrar::LinkHttpChannel(uint64_t aKey,

@@ -270,12 +270,15 @@ void HttpChannelParent::CleanupBackgroundChannel() {
     }
 
     // This HttpChannelParent might still have a reference from
-    // BackgroundChannelRegistrar.
-    nsCOMPtr<nsIBackgroundChannelRegistrar> registrar =
+    // BackgroundChannelRegistrar. Only remove our own entry; another
+    // HttpChannelParent may have been registered under the same channel Id
+    // (e.g. after a redirect), and we must not remove that entry.
+    RefPtr<BackgroundChannelRegistrar> registrar =
         BackgroundChannelRegistrar::GetOrCreate();
     MOZ_ASSERT(registrar);
-
-    registrar->DeleteChannel(mChannel->ChannelId());
+    if (registrar) {
+      registrar->DeleteChannelIfMatches(mChannel->ChannelId(), this);
+    }
 
     // If mAsyncOpenBarrier is greater than zero, it means AsyncOpen procedure
     // is still on going. we need to abort AsyncOpen with failure to destroy
@@ -976,6 +979,11 @@ HttpChannelParent::ContinueVerification(
 
   MOZ_ASSERT(NS_IsMainThread());
   MOZ_ASSERT(aCallback);
+
+  if (mIPCClosed) {
+    aCallback->ReadyToVerify(NS_ERROR_FAILURE);
+    return NS_OK;
+  }
 
   // Continue the verification procedure if background channel is ready.
   if (mBgParent) {

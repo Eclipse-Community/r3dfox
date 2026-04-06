@@ -29,11 +29,18 @@ class BackgroundChannelRegistrar final : public nsIBackgroundChannelRegistrar {
 
   explicit BackgroundChannelRegistrar();
 
-  // Singleton accessor
-  static already_AddRefed<nsIBackgroundChannelRegistrar> GetOrCreate();
+  // Singleton accessors
+  static already_AddRefed<BackgroundChannelRegistrar> GetOrCreate();
 
  private:
   virtual ~BackgroundChannelRegistrar();
+
+  // Like DeleteChannel, but only removes the mChannels entry if it matches
+  // aExpected. Use this in preference to DeleteChannel when the caller knows
+  // which HttpChannelParent it registered, to avoid accidentally removing an
+  // entry belonging to a different object that shares the same channel Id.
+  void DeleteChannelIfMatches(uint64_t aKey, HttpChannelParent* aExpected);
+  friend class HttpChannelParent;
 
   // A helper function for BackgroundChannelRegistrar itself to callback
   // HttpChannelParent and HttpBackgroundChannelParent when both objects are
