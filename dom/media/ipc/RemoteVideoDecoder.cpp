@@ -152,6 +152,11 @@ RemoteVideoDecoderParent::RemoteVideoDecoderParent(
 
 IPCResult RemoteVideoDecoderParent::RecvConstruct(
     ConstructResolver&& aResolver) {
+  if (mDecoder || mShutdown) {
+    aResolver(MediaResult(NS_ERROR_ALREADY_INITIALIZED, __func__));
+    return IPC_OK();
+  }
+
   auto imageContainer = MakeRefPtr<layers::ImageContainer>(
       layers::ImageUsageType::RemoteVideoDecoder,
       layers::ImageContainer::SYNCHRONOUS);
@@ -176,6 +181,11 @@ IPCResult RemoteVideoDecoderParent::RecvConstruct(
           return;
         }
         MOZ_ASSERT(aValue.ResolveValue());
+        if (self->mDecoder || self->mShutdown) {
+          aValue.ResolveValue()->Shutdown();
+          resolver(MediaResult(NS_ERROR_ALREADY_INITIALIZED, __func__));
+          return;
+        }
         self->mDecoder =
             new MediaDataDecoderProxy(aValue.ResolveValue().forget(),
                                       do_AddRef(self->mDecodeTaskQueue.get()));

@@ -61,6 +61,8 @@ class RemoteDecoderParent : public ShmemRecycleAllocator<RemoteDecoderParent>,
   // Only be used on Windows when the media engine playback is enabled.
   const Maybe<uint64_t> mMediaEngineId;
 
+  bool mShutdown = false;
+
  private:
   void DecodeNextSample(const RefPtr<ArrayOfRemoteMediaRawData>& aData,
                         size_t aIndex, MediaDataDecoder::DecodedData&& aOutput,

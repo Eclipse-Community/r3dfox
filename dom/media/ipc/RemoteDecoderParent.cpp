@@ -43,6 +43,11 @@ void RemoteDecoderParent::Destroy() {
 mozilla::ipc::IPCResult RemoteDecoderParent::RecvInit(
     InitResolver&& aResolver) {
   MOZ_ASSERT(OnManagerThread());
+  if (!mDecoder) {
+    aResolver(MediaResult(NS_ERROR_ABORT, __func__));
+    return IPC_OK();
+  }
+
   RefPtr<RemoteDecoderParent> self = this;
   mDecoder->Init()->Then(
       mManagerThread, __func__,
@@ -142,6 +147,11 @@ mozilla::ipc::IPCResult RemoteDecoderParent::RecvDecode(
 mozilla::ipc::IPCResult RemoteDecoderParent::RecvFlush(
     FlushResolver&& aResolver) {
   MOZ_ASSERT(OnManagerThread());
+  if (!mDecoder) {
+    aResolver(MediaResult(NS_ERROR_ABORT, __func__));
+    return IPC_OK();
+  }
+
   RefPtr<RemoteDecoderParent> self = this;
   mDecoder->Flush()->Then(
       mManagerThread, __func__,
@@ -161,6 +171,11 @@ mozilla::ipc::IPCResult RemoteDecoderParent::RecvFlush(
 mozilla::ipc::IPCResult RemoteDecoderParent::RecvDrain(
     DrainResolver&& aResolver) {
   MOZ_ASSERT(OnManagerThread());
+  if (!mDecoder) {
+    aResolver(MediaResult(NS_ERROR_ABORT, __func__));
+    return IPC_OK();
+  }
+
   RefPtr<RemoteDecoderParent> self = this;
   mDecoder->Drain()->Then(
       mManagerThread, __func__,
@@ -202,13 +217,16 @@ mozilla::ipc::IPCResult RemoteDecoderParent::RecvShutdown(
         });
   }
   mDecoder = nullptr;
+  mShutdown = true;
   return IPC_OK();
 }
 
 mozilla::ipc::IPCResult RemoteDecoderParent::RecvSetSeekThreshold(
     const TimeUnit& aTime) {
   MOZ_ASSERT(OnManagerThread());
-  mDecoder->SetSeekThreshold(aTime);
+  if (mDecoder) {
+    mDecoder->SetSeekThreshold(aTime);
+  }
   return IPC_OK();
 }
 
