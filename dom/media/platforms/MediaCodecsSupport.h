@@ -197,7 +197,7 @@ class MCSInfo final {
 
  private:
   MCSInfo();
-  static MCSInfo* GetInstance();
+  static MCSInfo* GetInstance(const StaticMutexAutoLock& /* unused */);
 
   // Returns a codec definition by MIME type name ("media/vp9")
   // or "common" name ("VP9")

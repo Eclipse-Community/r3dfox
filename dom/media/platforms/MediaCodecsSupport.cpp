@@ -23,15 +23,14 @@ using MediaCodecsSupport = mozilla::media::MediaCodecsSupport;
 namespace mozilla::media {
 
 static StaticAutoPtr<MCSInfo> sInstance;
-static StaticMutex sInitMutex;
-static StaticMutex sUpdateMutex;
+static StaticMutex sMutex;
 
 #define CODEC_SUPPORT_LOG(msg, ...) \
   MOZ_LOG(sPDMLog, LogLevel::Debug, ("MediaCodecsSupport, " msg, ##__VA_ARGS__))
 
 void MCSInfo::AddSupport(const MediaCodecsSupported& aSupport) {
-  StaticMutexAutoLock lock(sUpdateMutex);
-  MCSInfo* instance = GetInstance();
+  StaticMutexAutoLock lock(sMutex);
+  MCSInfo* instance = GetInstance(lock);
   if (!instance) {
     CODEC_SUPPORT_LOG("Can't add codec support without a MCSInfo instance!");
     return;
@@ -40,8 +39,8 @@ void MCSInfo::AddSupport(const MediaCodecsSupported& aSupport) {
 }
 
 MediaCodecsSupported MCSInfo::GetSupport() {
-  StaticMutexAutoLock lock(sUpdateMutex);
-  MCSInfo* instance = GetInstance();
+  StaticMutexAutoLock lock(sMutex);
+  MCSInfo* instance = GetInstance(lock);
   if (!instance) {
     CODEC_SUPPORT_LOG("Can't get codec support without a MCSInfo instance!");
     return MediaCodecsSupported{};
@@ -50,8 +49,8 @@ MediaCodecsSupported MCSInfo::GetSupport() {
 }
 
 void MCSInfo::ResetSupport() {
-  StaticMutexAutoLock lock(sUpdateMutex);
-  MCSInfo* instance = GetInstance();
+  StaticMutexAutoLock lock(sMutex);
+  MCSInfo* instance = GetInstance(lock);
   if (!instance) {
     CODEC_SUPPORT_LOG("Can't reset codec support without a MCSInfo instance!");
     return;
@@ -104,7 +103,8 @@ void MCSInfo::GetMediaCodecsSupportedString(
     nsCString& aSupportString, const MediaCodecsSupported& aSupportedCodecs) {
   CodecDefinition supportInfo;
   aSupportString = ""_ns;
-  MCSInfo* instance = GetInstance();
+  StaticMutexAutoLock lock(sMutex);
+  MCSInfo* instance = GetInstance(lock);
   if (!instance) {
     CODEC_SUPPORT_LOG("Can't get codec support string w/o a MCSInfo instance!");
     return;
@@ -143,8 +143,7 @@ void MCSInfo::GetMediaCodecsSupportedString(
   }
 }
 
-MCSInfo* MCSInfo::GetInstance() {
-  StaticMutexAutoLock lock(sInitMutex);
+MCSInfo* MCSInfo::GetInstance(const StaticMutexAutoLock& /* unused */) {
   if (AppShutdown::IsInOrBeyond(ShutdownPhase::AppShutdownConfirmed)) {
     CODEC_SUPPORT_LOG("In XPCOM shutdown - not returning MCSInfo instance!");
     return nullptr;
@@ -169,13 +168,10 @@ MCSInfo::MCSInfo() {
   }
 
   GetMainThreadSerialEventTarget()->Dispatch(
-      NS_NewRunnableFunction("MCSInfo::MCSInfo", [&] {
-        // Ensure hash tables freed on shutdown
+      NS_NewRunnableFunction("MCSInfo::MCSInfo", [] {
         RunOnShutdown(
-            [&] {
-              mHashTableMCS.reset();
-              mHashTableString.reset();
-              mHashTableCodec.reset();
+            [] {
+              StaticMutexAutoLock lock(sMutex);
               sInstance = nullptr;
             },
             ShutdownPhase::XPCOMShutdown);
@@ -184,7 +180,8 @@ MCSInfo::MCSInfo() {
 
 CodecDefinition MCSInfo::GetCodecDefinition(const MediaCodec& aCodec) {
   CodecDefinition info;
-  MCSInfo* instance = GetInstance();
+  StaticMutexAutoLock lock(sMutex);
+  MCSInfo* instance = GetInstance(lock);
   if (!instance) {
     CODEC_SUPPORT_LOG("Can't get codec definition without a MCSInfo instance!");
   } else if (!instance->mHashTableCodec->Get(aCodec, &info)) {
