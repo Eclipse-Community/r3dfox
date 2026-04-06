@@ -308,6 +308,10 @@ already_AddRefed<DataSourceSurface> DataSourceSurfaceFromYCbCrDescriptor(
     return nullptr;
   }
 
+  if (!aBuffer) {
+    return nullptr;
+  }
+
   layers::PlanarYCbCrData ycbcrData;
   ycbcrData.mYChannel = GetYChannel(aBuffer, aDescriptor);
   ycbcrData.mYStride = aDescriptor.yStride();
