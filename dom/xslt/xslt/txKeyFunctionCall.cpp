@@ -193,7 +193,11 @@ nsresult txKeyHash::getKeyNodes(const txExpandedName& aKeyName,
   nsresult rv = xslKey->indexSubtreeRoot(aRoot, mKeyValues, aEs);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  indexEntry->mIndexed = true;
+  indexEntry = mIndexedKeys.GetEntry(indexKey);
+
+  if (MOZ_LIKELY(indexEntry)) {
+    indexEntry->mIndexed = true;
+  }
 
   // Now that the key is indexed we can get its value.
   valueEntry = mKeyValues.GetEntry(valueKey);
