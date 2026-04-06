@@ -169,10 +169,14 @@ class AudioBufferSourceNodeEngine final : public AudioNodeEngine {
       if (mResamplerOutRate == aOutRate) {
         return;
       }
-      if (speex_resampler_set_rate(mResampler, mBufferSampleRate, aOutRate) !=
-          RESAMPLER_ERR_SUCCESS) {
-        NS_ASSERTION(false, "speex_resampler_set_rate failed");
-        return;
+      int result =
+          speex_resampler_set_rate(mResampler, mBufferSampleRate, aOutRate);
+      if (result != RESAMPLER_ERR_SUCCESS) {
+        WEB_AUDIO_API_LOG("speex_resampler_set_rate failed: %i", result);
+        // mResampler den_rate and num_rate might have been updated, despite
+        // the error, in which case the resampler will output zeros but
+        // still consume input.  Continue below to update mBeginProcessing
+        // for any change in resampler behavior.
       }
     }
 
