@@ -89,7 +89,11 @@ IPCResult ClipboardWriteRequestParent::RecvSetData(
     return IPC_OK();
   }
 
-  mAsyncSetClipboardData->SetData(trans, nullptr);
+  rv = mAsyncSetClipboardData->SetData(trans, nullptr);
+  if (rv == NS_ERROR_IN_PROGRESS) {
+    return IPC_FAIL(this, "reentrant SetData");
+  }
+  // Non-fatal errors are notified via the callback inside SetData.
   return IPC_OK();
 }
 
