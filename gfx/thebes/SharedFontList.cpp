@@ -799,6 +799,14 @@ FontList::Header& FontList::GetHeader() const MOZ_NO_THREAD_SAFETY_ANALYSIS {
 
 bool FontList::AppendShmBlock(uint32_t aSizeNeeded) {
   MOZ_ASSERT(XRE_IsParentProcess());
+
+  // TODO: currently most callers of AppendShmBlock() (via Alloc()) assume
+  // the allocation is infallible; hence the release-assert here is the safe
+  // way to handle overflow. Consider whether to make the allocation fallible,
+  // and instead handle null safely in the callers.
+  MOZ_RELEASE_ASSERT(mBlocks.Length() < (1u << Pointer::kIndexBits),
+                     "FontList shm block limit exceeded");
+
   uint32_t size = std::max(aSizeNeeded, SHM_BLOCK_SIZE);
   auto newShm = MakeUnique<base::SharedMemory>();
   if (!newShm->CreateFreezeable(size)) {

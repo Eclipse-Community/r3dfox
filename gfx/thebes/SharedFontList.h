@@ -42,7 +42,8 @@ struct Pointer {
 
   Pointer(uint32_t aBlock, uint32_t aOffset)
       : mBlockAndOffset((aBlock << kBlockShift) | aOffset) {
-    MOZ_ASSERT(aBlock < (1u << kIndexBits) && aOffset < (1u << kBlockShift));
+    MOZ_RELEASE_ASSERT(aBlock < (1u << kIndexBits) &&
+                       aOffset < (1u << kBlockShift));
   }
 
   Pointer(const Pointer& aOther) {
