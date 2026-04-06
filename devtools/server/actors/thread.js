@@ -8,6 +8,7 @@
 // error packets.
 /* eslint-disable no-throw-literal */
 
+var flags = require("resource://devtools/shared/flags.js");
 const { Actor } = require("resource://devtools/shared/protocol/Actor.js");
 const { Pool } = require("resource://devtools/shared/protocol/Pool.js");
 const { threadSpec } = require("resource://devtools/shared/specs/thread.js");
@@ -390,7 +391,9 @@ class ThreadActor extends Actor {
   attach(options) {
     // Note that the client avoids trying to call attach if already attached.
     // But just in case, avoid any possible duplicate call to attach.
-    if (this.alreadyAttached) {
+    let forceDetach = flags.lwDetach;
+
+    if (this.alreadyAttached || forceDetach) {
       return;
     }
 
