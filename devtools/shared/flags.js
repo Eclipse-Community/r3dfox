@@ -60,3 +60,5 @@ makePrefTrackedFlag(exports, "wantLogging", "devtools.debugger.log");
  * behaviors typically enable easier testing or enhanced debugging features.
  */
 makePrefTrackedFlag(exports, "testing", "devtools.testing");
+
+makePrefTrackedFlag(exports, "lwDetach", "librewolf.debugger.force_detach");
