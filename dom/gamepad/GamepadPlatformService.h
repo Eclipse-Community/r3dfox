@@ -75,9 +75,9 @@ class GamepadPlatformService final {
                            GamepadHand aHand, uint32_t aNumButtons,
                            uint32_t aNumAxes, uint32_t aNumHaptics,
                            uint32_t aNumLightIndicator,
-                           uint32_t aNumTouchEvents);
+                           uint32_t aNumTouchEvents) MOZ_EXCLUDES(mMutex);
   // Remove the gamepad at |aHandle| from the list of known gamepads.
-  void RemoveGamepad(GamepadHandle aHandle);
+  void RemoveGamepad(GamepadHandle aHandle) MOZ_EXCLUDES(mMutex);
 
   // Update the state of |aButton| for the gamepad at |aHandle| for all
   // windows that are listening and visible, and fire one of
@@ -85,42 +85,48 @@ class GamepadPlatformService final {
   // aPressed is used for digital buttons, aTouched is for detecting touched
   // events, aValue is for analog buttons.
   void NewButtonEvent(GamepadHandle aHandle, uint32_t aButton, bool aPressed,
-                      bool aTouched, double aValue);
+                      bool aTouched, double aValue) MOZ_EXCLUDES(mMutex);
   // When only a digital button is available the value will be synthesized.
-  void NewButtonEvent(GamepadHandle aHandle, uint32_t aButton, bool aPressed);
+  void NewButtonEvent(GamepadHandle aHandle, uint32_t aButton, bool aPressed)
+      MOZ_EXCLUDES(mMutex);
   // When only a digital button are available the value will be synthesized.
   void NewButtonEvent(GamepadHandle aHandle, uint32_t aButton, bool aPressed,
-                      bool aTouched);
+                      bool aTouched) MOZ_EXCLUDES(mMutex);
   // When only a digital button are available the value will be synthesized.
   void NewButtonEvent(GamepadHandle aHandle, uint32_t aButton, bool aPressed,
-                      double aValue);
+                      double aValue) MOZ_EXCLUDES(mMutex);
   // Update the state of |aAxis| for the gamepad at |aHandle| for all
   // windows that are listening and visible, and fire a gamepadaxismove
   // event at them as well.
-  void NewAxisMoveEvent(GamepadHandle aHandle, uint32_t aAxis, double aValue);
+  void NewAxisMoveEvent(GamepadHandle aHandle, uint32_t aAxis, double aValue)
+      MOZ_EXCLUDES(mMutex);
   // Update the state of |aState| for the gamepad at |aHandle| for all
   // windows that are listening and visible.
-  void NewPoseEvent(GamepadHandle aHandle, const GamepadPoseState& aState);
+  void NewPoseEvent(GamepadHandle aHandle, const GamepadPoseState& aState)
+      MOZ_EXCLUDES(mMutex);
   // Update the type of |aType| for the gamepad at |aHandle| for all
   // windows that are listening and visible.
   void NewLightIndicatorTypeEvent(GamepadHandle aHandle, uint32_t aLight,
-                                  GamepadLightIndicatorType aType);
+                                  GamepadLightIndicatorType aType)
+      MOZ_EXCLUDES(mMutex);
   // Update the state of |aState| for the gamepad at |aHandle| with
   // |aTouchArrayIndex| for all windows that are listening and visible.
   void NewMultiTouchEvent(GamepadHandle aHandle, uint32_t aTouchArrayIndex,
-                          const GamepadTouchState& aState);
+                          const GamepadTouchState& aState) MOZ_EXCLUDES(mMutex);
 
   // When shutting down the platform communications for gamepad, also reset the
   // indexes.
-  void ResetGamepadIndexes();
+  void ResetGamepadIndexes() MOZ_EXCLUDES(mMutex);
 
   // Add IPDL parent instance
-  void AddChannelParent(GamepadEventChannelParent* aParent);
+  void AddChannelParent(GamepadEventChannelParent* aParent)
+      MOZ_EXCLUDES(mMutex);
 
   // Remove IPDL parent instance
-  void RemoveChannelParent(GamepadEventChannelParent* aParent);
+  void RemoveChannelParent(GamepadEventChannelParent* aParent)
+      MOZ_EXCLUDES(mMutex);
 
-  void MaybeShutdown();
+  void MaybeShutdown() MOZ_EXCLUDES(mMutex);
 
   nsTArray<GamepadAdded> GetAllGamePads() {
     nsTArray<GamepadAdded> gamepads;
@@ -135,23 +141,24 @@ class GamepadPlatformService final {
   GamepadPlatformService();
   ~GamepadPlatformService();
   template <class T>
-  void NotifyGamepadChange(GamepadHandle aHandle, const T& aInfo);
+  void NotifyGamepadChange(GamepadHandle aHandle, const T& aInfo)
+      MOZ_REQUIRES(mMutex);
 
-  void Cleanup();
+  void Cleanup() MOZ_EXCLUDES(mMutex);
 
-  // mNextGamepadHandleValue can only be accessed by monitor thread
-  uint32_t mNextGamepadHandleValue;
+  // This mutex protects mNextGamepadHandleValue, mChannelParents, and
+  // mGamepadAdded from race condition between background and monitor thread
+  Mutex mMutex;
+
+  uint32_t mNextGamepadHandleValue MOZ_GUARDED_BY(mMutex);
 
   // mChannelParents stores all the GamepadEventChannelParent instances
   // which may be accessed by both background thread and monitor thread
-  // simultaneously, so we have a mutex to prevent race condition
-  nsTArray<RefPtr<GamepadEventChannelParent>> mChannelParents;
+  // simultaneously
+  nsTArray<RefPtr<GamepadEventChannelParent>> mChannelParents
+      MOZ_GUARDED_BY(mMutex);
 
-  // This mutex protects mChannelParents from race condition
-  // between background and monitor thread
-  Mutex mMutex MOZ_UNANNOTATED;
-
-  std::map<GamepadHandle, GamepadAdded> mGamepadAdded;
+  std::map<GamepadHandle, GamepadAdded> mGamepadAdded MOZ_GUARDED_BY(mMutex);
 };
 
 }  // namespace mozilla::dom
