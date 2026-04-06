@@ -4533,10 +4533,9 @@ nsDOMWindowUtils::WrCapture() {
 }
 
 NS_IMETHODIMP
-nsDOMWindowUtils::WrStartCaptureSequence(const nsACString& aPath,
-                                         uint32_t aFlags) {
+nsDOMWindowUtils::WrStartCaptureSequence(uint32_t aFlags) {
   if (WebRenderBridgeChild* wrbc = GetWebRenderBridge()) {
-    wrbc->StartCaptureSequence(nsCString(aPath), aFlags);
+    wrbc->StartCaptureSequence(aFlags);
   }
   return NS_OK;
 }
