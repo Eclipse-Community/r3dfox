@@ -108,6 +108,7 @@ impl UI {
 /// These types must be sized to avoid fat pointers (i.e., the pointers must be FFI-compatible, the
 /// same size as usize).
 trait ToPointer: Sized {
+    /// Convert the value to a pointer, passing ownership.
     fn to_ptr(self) -> *mut ();
     /// # Safety
     /// The caller must ensure that the pointer was created as the result of `to_ptr` on the same
@@ -183,6 +184,33 @@ impl<T: Sized> ToPointer for &mut T {
 
     unsafe fn from_ptr(ptr: *mut ()) -> Self {
         &mut *(ptr as *mut T)
+    }
+}
+
+/// An owned GLib Source.
+///
+/// Dropping will remove the source.
+#[repr(transparent)]
+struct GSource(u32);
+
+impl ToPointer for GSource {
+    fn to_ptr(self) -> *mut () {
+        let ptr = self.0 as _;
+        // to_ptr passes ownership
+        std::mem::forget(self);
+        ptr
+    }
+
+    unsafe fn from_ptr(ptr: *mut ()) -> Self {
+        GSource(ptr as _)
+    }
+}
+
+impl Drop for GSource {
+    fn drop(&mut self) {
+        unsafe {
+            gtk::g_source_remove(self.0);
+        }
     }
 }
 
@@ -748,6 +776,11 @@ fn render_element_type(element_type: &model::ElementType) -> Option<*mut gtk::Gt
             property_read_only! {
                 property amount;
                 fn set(value: &Option<f32>) {
+                    // FIXME: The logic here assumes that if `amount` is None, it will remain that
+                    // way. Specifically, if we were to change back and forth, additional pulse
+                    // callbacks would be registered, and they are not be removed when changing to
+                    // a specific fraction. As this property is currently used, we don't encounter
+                    // this case.
                     match &*value {
                         Some(v) => unsafe {
                             gtk::gtk_progress_bar_set_fraction(
@@ -758,29 +791,16 @@ fn render_element_type(element_type: &model::ElementType) -> Option<*mut gtk::Gt
                         None => unsafe {
                             gtk::gtk_progress_bar_pulse(progress_ptr as *mut _);
 
-                            fn auto_pulse_progress_bar(progress: *mut gtk::GtkProgressBar) {
-                                unsafe extern "C" fn pulse(progress: *mut std::ffi::c_void) -> gtk::gboolean {
-                                    if gtk::gtk_widget_is_visible(progress as _) == 0 {
-                                        false.into()
-                                    } else {
-                                        gtk::gtk_progress_bar_pulse(progress as _);
-                                        true.into()
-                                    }
-                                }
-                                unsafe {
-                                    gtk::g_timeout_add(100, Some(pulse as unsafe extern "C" fn(*mut std::ffi::c_void) -> gtk::gboolean), progress as _);
-                                }
-
+                            unsafe extern "C" fn pulse(progress: *mut std::ffi::c_void) -> gtk::gboolean {
+                                gtk::gtk_progress_bar_pulse(progress as _);
+                                true.into()
                             }
 
-                            connect_signal! {
-                                object progress_ptr;
-                                with std::ptr::null_mut();
-                                signal show(_user_data: &(), progress: *mut gtk::GtkWidget) {
-                                    auto_pulse_progress_bar(progress as *mut _);
-                                }
-                            }
-                            auto_pulse_progress_bar(progress_ptr as *mut _);
+                            // This will call even when the progress bar is hidden, but it's of
+                            // little consequence.
+                            let source = GSource(gtk::g_timeout_add(100, Some(pulse), progress_ptr as _));
+
+                            source.drop_with_widget(progress_ptr);
                         }
                     }
                 }
