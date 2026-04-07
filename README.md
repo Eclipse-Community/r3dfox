@@ -4,7 +4,11 @@
 
 Eclipse r3dfox is a fork of the Mozilla Firefox web browser made specifically for Windows Vista, 7, and 8 compatibility. We also have Extended Support Release and beta versions as well.
 
-(r3dfox image goes here once 149.0.2 is out because revamped branding) (r3dfox ESR image goes here once 140.9.0 is out because revamped branding) (Plasmafox 150 beta image goes here when it exists)
+<img width="1440" height="900" alt="big1" src="https://github.com/user-attachments/assets/58c759f8-8935-40ce-9ff3-a7d5e5b7c924" />
+
+<img width="1440" height="900" alt="big2" src="https://github.com/user-attachments/assets/99acd2b3-bce5-4176-b5bf-a13241d2487a" />
+
+(r3dfox ESR image goes here once 140.9.0 is out because revamped branding) (Plasmafox 150 beta image goes here when it exists)
 
 Limited compatibility with One Core API on Windows XP is offered at the current time, however this is not tested consistently. Any issues that may arise that are hard to diagnose may be left to the extended kernel provider to fix.
 
