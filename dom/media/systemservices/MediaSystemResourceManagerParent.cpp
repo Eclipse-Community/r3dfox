@@ -52,15 +52,6 @@ mozilla::ipc::IPCResult MediaSystemResourceManagerParent::RecvRelease(
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult
-MediaSystemResourceManagerParent::RecvRemoveResourceManager() {
-  IProtocol* mgr = Manager();
-  if (!PMediaSystemResourceManagerParent::Send__delete__(this)) {
-    return IPC_FAIL_NO_REASON(mgr);
-  }
-  return IPC_OK();
-}
-
 void MediaSystemResourceManagerParent::ActorDestroy(
     ActorDestroyReason aReason) {
   MOZ_ASSERT(!mDestroyed);

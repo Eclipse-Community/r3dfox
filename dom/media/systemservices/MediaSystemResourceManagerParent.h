@@ -31,8 +31,6 @@ class MediaSystemResourceManagerParent final
 
   mozilla::ipc::IPCResult RecvRelease(const uint32_t& aId);
 
-  mozilla::ipc::IPCResult RecvRemoveResourceManager();
-
  private:
   void ActorDestroy(ActorDestroyReason aActorDestroyReason) override;
 
