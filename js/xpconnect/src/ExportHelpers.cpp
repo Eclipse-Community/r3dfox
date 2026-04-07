@@ -402,7 +402,7 @@ bool NewFunctionForwarder(JSContext* cx, HandleId idArg, HandleObject callable,
                           FunctionForwarderOptions& options,
                           MutableHandleValue vp) {
   RootedId id(cx, idArg);
-  if (id.isVoid()) {
+  if (!id.isString()) {
     id = GetJSIDByIndex(cx, XPCJSContext::IDX_EMPTYSTRING);
   }
 
@@ -501,7 +501,7 @@ bool ExportFunction(JSContext* cx, HandleValue vfunction, HandleValue vscope,
         }
       }
       if (!funName) {
-        funName = JS_AtomizeAndPinString(cx, "");
+        funName = JS_GetEmptyString(cx);
       }
       JS_MarkCrossZoneIdValue(cx, StringValue(funName));
 
@@ -511,7 +511,11 @@ bool ExportFunction(JSContext* cx, HandleValue vfunction, HandleValue vscope,
     } else {
       JS_MarkCrossZoneId(cx, id);
     }
-    MOZ_ASSERT(id.isString());
+
+    if (!id.isString()) {
+      JS_ReportErrorASCII(cx, "defineAs must be a string");
+      return false;
+    }
 
     // The function forwarder will live in the target compartment. Since
     // this function will be referenced from its private slot, to avoid a
