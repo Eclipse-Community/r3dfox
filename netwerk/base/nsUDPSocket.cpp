@@ -125,6 +125,9 @@ NS_IMETHODIMP nsUDPOutputStream::Close() {
   if (mIsClosed) return NS_BASE_STREAM_CLOSED;
 
   mIsClosed = true;
+  if (mSocket->IsSocketClosed()) {
+    return NS_BASE_STREAM_CLOSED;
+  }
   return NS_OK;
 }
 
@@ -137,6 +140,11 @@ NS_IMETHODIMP nsUDPOutputStream::StreamStatus() {
 NS_IMETHODIMP nsUDPOutputStream::Write(const char* aBuf, uint32_t aCount,
                                        uint32_t* _retval) {
   if (mIsClosed) return NS_BASE_STREAM_CLOSED;
+
+  if (mSocket->IsSocketClosed()) {
+    mIsClosed = true;
+    return NS_BASE_STREAM_CLOSED;
+  }
 
   *_retval = 0;
   int32_t count =
@@ -1223,8 +1231,6 @@ int64_t nsUDPSocket::GetFileDescriptor() {
 void nsUDPSocket::EnableWritePoll() {
   mPollFlags = (PR_POLL_WRITE | PR_POLL_READ | PR_POLL_EXCEPT);
 }
-
-bool nsUDPSocket::IsSocketClosed() { return mFD == nullptr; }
 
 NS_IMETHODIMP
 nsUDPSocket::SendBinaryStream(const nsACString& aHost, uint16_t aPort,

@@ -307,6 +307,10 @@ mozilla::ipc::IPCResult UDPSocketParent::RecvOutgoingData(
     return IPC_OK();
   }
 
+  if (!mFilter && aData.type() == UDPData::TIPCStream) {
+    return IPC_FAIL(this, "IPCStream payload requires a filter");
+  }
+
   nsresult rv;
   if (mFilter) {
     if (aAddr.type() != UDPSocketAddr::TNetAddr) {
