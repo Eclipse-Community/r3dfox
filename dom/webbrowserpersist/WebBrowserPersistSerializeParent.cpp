@@ -51,11 +51,14 @@ mozilla::ipc::IPCResult WebBrowserPersistSerializeParent::RecvWriteData(
 
 mozilla::ipc::IPCResult WebBrowserPersistSerializeParent::Recv__delete__(
     const nsACString& aContentType, const nsresult& aStatus) {
+  nsCOMPtr<nsIWebBrowserPersistWriteCompletion> finish = std::move(mFinish);
+  if (!finish) {
+    return IPC_FAIL(this, "missing finish callback");
+  }
   if (NS_SUCCEEDED(mOutputError)) {
     mOutputError = aStatus;
   }
-  mFinish->OnFinish(mDocument, mStream, aContentType, mOutputError);
-  mFinish = nullptr;
+  finish->OnFinish(mDocument, mStream, aContentType, mOutputError);
   return IPC_OK();
 }
 
