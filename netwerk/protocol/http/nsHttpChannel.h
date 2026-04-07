@@ -852,7 +852,7 @@ class nsHttpChannel final : public HttpBaseChannel,
  private:  // cache telemetry
   bool mDidReval{false};
 
-  RefPtr<nsIEarlyHintObserver> mEarlyHintObserver;
+  nsCOMPtr<nsIEarlyHintObserver> mEarlyHintObserver;
   Maybe<nsCString> mOpenerCallingScriptLocation;
   RefPtr<WebTransportSessionEventListener> mWebTransportSessionEventListener;
   nsMainThreadPtrHandle<nsIReplacedHttpResponse> mOverrideResponse;
