@@ -146,7 +146,7 @@ class WebRenderBridgeParent final : public PWebRenderBridgeParent,
       const wr::RenderReasons& aReasons) override;
   mozilla::ipc::IPCResult RecvCapture() override;
   mozilla::ipc::IPCResult RecvStartCaptureSequence(
-      const nsACString& path, const uint32_t& aFlags) override;
+      const uint32_t& aFlags) override;
   mozilla::ipc::IPCResult RecvStopCaptureSequence() override;
   mozilla::ipc::IPCResult RecvSyncWithCompositor() override;
 

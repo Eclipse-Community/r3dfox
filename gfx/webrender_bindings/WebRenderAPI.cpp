@@ -854,19 +854,16 @@ void WebRenderAPI::WaitFlushed() {
 void WebRenderAPI::Capture() {
   // see CaptureBits
   // SCENE | FRAME | TILE_CACHE
-  uint8_t bits = 15;                // TODO: get from JavaScript
-  const char* path = "wr-capture";  // TODO: get from JavaScript
-  wr_api_capture(mDocHandle, path, bits);
+  uint8_t bits = 15;  // TODO: get from JavaScript
+  wr_api_capture(mDocHandle, bits);
 }
 
-void WebRenderAPI::StartCaptureSequence(const nsACString& aPath,
-                                        uint32_t aFlags) {
+void WebRenderAPI::StartCaptureSequence(uint32_t aFlags) {
   if (mCaptureSequence) {
     wr_api_stop_capture_sequence(mDocHandle);
   }
 
-  wr_api_start_capture_sequence(mDocHandle, PromiseFlatCString(aPath).get(),
-                                aFlags);
+  wr_api_start_capture_sequence(mDocHandle, aFlags);
 
   mCaptureSequence = true;
 }

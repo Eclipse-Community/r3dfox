@@ -2067,9 +2067,9 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvCapture() {
 }
 
 mozilla::ipc::IPCResult WebRenderBridgeParent::RecvStartCaptureSequence(
-    const nsACString& aPath, const uint32_t& aFlags) {
+    const uint32_t& aFlags) {
   if (!mDestroyed) {
-    mApi->StartCaptureSequence(aPath, aFlags);
+    mApi->StartCaptureSequence(aFlags);
   }
   return IPC_OK();
 }

@@ -573,9 +573,8 @@ void WebRenderBridgeChild::DeallocResourceShmem(RefCountedShmem& aShm) {
 
 void WebRenderBridgeChild::Capture() { this->SendCapture(); }
 
-void WebRenderBridgeChild::StartCaptureSequence(const nsCString& aPath,
-                                                uint32_t aFlags) {
-  this->SendStartCaptureSequence(aPath, aFlags);
+void WebRenderBridgeChild::StartCaptureSequence(uint32_t aFlags) {
+  this->SendStartCaptureSequence(aFlags);
 }
 
 void WebRenderBridgeChild::StopCaptureSequence() {

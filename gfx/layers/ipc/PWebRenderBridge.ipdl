@@ -78,7 +78,7 @@ parent:
 
   // Start capturing each frame to disk. See
   // nsIDOMWindowUtils::wrStartCaptureSequence for documentation.
-  async StartCaptureSequence(nsCString aPath, uint32_t aFlags);
+  async StartCaptureSequence(uint32_t aFlags);
 
   // Stop the captures started by StartCaptureSequence. See
   // nsIDOMWindowUtils::wrStopCaptureSequence for documentation.
