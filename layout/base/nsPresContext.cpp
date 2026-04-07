@@ -47,6 +47,7 @@
 #include "nsViewManager.h"
 #include "mozilla/RestyleManager.h"
 #include "gfxPlatform.h"
+#include "COLRFonts.h"
 #include "nsFontFaceLoader.h"
 #include "mozilla/AnimationEventDispatcher.h"
 #include "mozilla/EffectCompositor.h"

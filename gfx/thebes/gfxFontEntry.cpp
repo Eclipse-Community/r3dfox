@@ -13,31 +13,22 @@
 
 #include "gfxTextRun.h"
 #include "gfxPlatform.h"
-#include "nsGkAtoms.h"
 
 #include "gfxTypes.h"
 #include "gfxContext.h"
-#include "gfxFontConstants.h"
 #include "gfxGraphiteShaper.h"
 #include "gfxHarfBuzzShaper.h"
 #include "gfxUserFontSet.h"
 #include "gfxPlatformFontList.h"
-#include "nsUnicodeProperties.h"
-#include "nsMathUtils.h"
-#include "nsBidiUtils.h"
-#include "nsStyleConsts.h"
-#include "mozilla/AppUnits.h"
 #include "mozilla/FloatingPoint.h"
 #include "mozilla/Likely.h"
 #include "mozilla/MemoryReporting.h"
-#include "mozilla/Preferences.h"
 #include "mozilla/ProfilerLabels.h"
 #include "mozilla/ScopeExit.h"
-#include "mozilla/Services.h"
 #include "mozilla/StaticPrefs_layout.h"
 #include "mozilla/Telemetry.h"
 #include "gfxSVGGlyphs.h"
-#include "gfx2DGlue.h"
+#include "COLRFonts.h"
 
 #include "harfbuzz/hb.h"
 #include "harfbuzz/hb-ot.h"
@@ -144,8 +135,9 @@ void gfxFontEntry::InitializeFrom(fontlist::Face* aFace,
 
 bool gfxFontEntry::TrySetShmemCharacterMap() {
   MOZ_ASSERT(mShmemFace);
-  auto list = gfxPlatformFontList::PlatformFontList()->SharedFontList();
-  auto* shmemCmap = mShmemFace->mCharacterMap.ToPtr<const SharedBitSet>(list);
+  auto* list = gfxPlatformFontList::PlatformFontList()->SharedFontList();
+  const auto* shmemCmap =
+      mShmemFace->mCharacterMap.ToPtr<const SharedBitSet>(list);
   mShmemCharacterMap.exchange(shmemCmap);
   return shmemCmap != nullptr;
 }
@@ -387,7 +379,7 @@ bool gfxFontEntry::TryGetColorGlyphs() {
   auto* colr = GetFontTable(TRUETYPE_TAG('C', 'O', 'L', 'R'));
   auto* cpal = colr ? GetFontTable(TRUETYPE_TAG('C', 'P', 'A', 'L')) : nullptr;
 
-  if (colr && cpal && gfx::COLRFonts::ValidateColorGlyphs(colr, cpal)) {
+  if (colr && cpal && COLRFonts::ValidateColorGlyphs(colr, cpal)) {
     if (!mCOLR.compareExchange(nullptr, colr)) {
       hb_blob_destroy(colr);
     }
@@ -1101,7 +1093,7 @@ bool gfxFontEntry::ParseTrakTable() {
   if (len < sizeof(TrakHeader)) {
     return false;
   }
-  auto trak = reinterpret_cast<const TrakHeader*>(data);
+  const auto* trak = reinterpret_cast<const TrakHeader*>(data);
   uint16_t horizOffset = trak->horizOffset;
   if (trak->version != 0x00010000 || uint16_t(trak->format) != 0 ||
       horizOffset == 0 || uint16_t(trak->reserved) != 0) {
@@ -1111,7 +1103,8 @@ bool gfxFontEntry::ParseTrakTable() {
   if (horizOffset > len - sizeof(TrackData)) {
     return false;
   }
-  auto trackData = reinterpret_cast<const TrackData*>(data + horizOffset);
+  const auto* trackData =
+      reinterpret_cast<const TrackData*>(data + horizOffset);
   uint16_t nTracks = trackData->nTracks;
   mNumTrakSizes = trackData->nSizes;
   if (nTracks == 0 || mNumTrakSizes < 2) {
@@ -1123,7 +1116,7 @@ bool gfxFontEntry::ParseTrakTable() {
       len - (sizeof(TrackData) + nTracks * sizeof(TrackTableEntry))) {
     return false;
   }
-  auto trackTable = reinterpret_cast<const TrackTableEntry*>(
+  const auto* trackTable = reinterpret_cast<const TrackTableEntry*>(
       data + horizOffset + sizeof(TrackData));
   // Look for 'normal' tracking, bail out if no such track is present.
   unsigned trackIndex;
@@ -1801,7 +1794,7 @@ void gfxFontFamily::FindFontForChar(GlobalFontMatch* aMatchData) {
   gfxFontEntry* fe = nullptr;
   float distance = INFINITY;
 
-  for (auto e : entries) {
+  for (auto* e : entries) {
     if (e->SkipDuringSystemFallback()) {
       continue;
     }
