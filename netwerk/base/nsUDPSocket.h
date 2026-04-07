@@ -36,6 +36,8 @@ class nsUDPSocket final : public nsASocketHandler, public nsIUDPSocket {
 
   void AddOutputBytes(int32_t aBytes);
 
+  bool IsSocketClosed();
+
   nsUDPSocket();
 
  private:
@@ -56,8 +58,6 @@ class nsUDPSocket final : public nsASocketHandler, public nsIUDPSocket {
   nsresult SetMulticastInterfaceInternal(const PRNetAddr& aIface);
 
   void CloseSocket();
-
-  bool IsSocketClosed();
 
   // lock protects access to mListener;
   // so mListener is not cleared while being used/locked.
