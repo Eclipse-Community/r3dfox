@@ -391,6 +391,8 @@ static void InitializeVarFuncs() {
 }
 
 gfxFontconfigFontEntry::~gfxFontconfigFontEntry() {
+  auto* face = mHBFace.exchange(nullptr);
+  hb_face_destroy(face);
   if (mMMVar) {
     // Prior to freetype 2.9, there was no specific function to free the
     // FT_MM_Var record, and the docs just said to use free().
@@ -408,6 +410,72 @@ gfxFontconfigFontEntry::~gfxFontconfigFontEntry() {
     auto* face = mFTFace.exchange(nullptr);
     NS_IF_RELEASE(face);
   }
+}
+
+gfxFontconfigFontEntry::AutoHBFace gfxFontconfigFontEntry::GetHBFace() {
+  hb_face_t* face = mHBFace;
+  if (!face) {
+    FcChar8* filename;
+    FcPattern* pattern = GetPattern();
+    bool useTableCache = false;
+    if (FcPatternGetString(pattern, FC_FILE, 0, &filename) == FcResultMatch) {
+      // Pattern has a filename: system font that we can load via
+      // hb_face_create_from_file_or_fail, allowing harfbuzz to manage table
+      // access internally.
+      int index;
+      if (FcPatternGetInteger(pattern, FC_INDEX, 0, &index) != FcResultMatch) {
+        index = 0;  // default to 0 if not found in pattern
+      }
+      // Mask out possible variation-instance index stashed by fontconfig; we
+      // just want the face index within a collection file.
+      index &= 0xFFFF;
+      if (hb_blob_t* blob =
+              hb_blob_create_from_file_or_fail((const char*)filename)) {
+        face = hb_face_create(blob, index);
+        hb_blob_destroy(blob);
+        if (face == hb_face_get_empty()) {
+          face = nullptr;
+        }
+      }
+    } else {
+      // If we have an FT_Font with webfont user data attached, we can use
+      // hb_face_create to wrap that.
+      if (mFTFaceInitialized) {
+        if (const FTUserFontData* ufd = GetUserFontData()) {
+          if (ufd->FontData()) {
+            hb_blob_t* blob = hb_blob_create(
+                (const char*)ufd->FontData(), ufd->FontDataLength(),
+                HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+            // Currently the face index is always zero, as we don't support
+            // collections as webfonts.
+            face = hb_face_create(blob, 0);
+            // Drop our blob reference; the face will hold on to it.
+            hb_blob_destroy(blob);
+          }
+        }
+      }
+    }
+    if (!face) {
+      // Failed to create a face directly; fall back to gfxFontEntry::GetHBFace,
+      // which will use hb_face_create_for_tables and the font table cache.
+      NS_WARNING(nsPrintfCString("fallback to gfxFontEntry::GetHBFace for %s",
+                                 Name().get())
+                     .get());
+      face = hb_face_reference(gfxFontEntry::GetHBFace());
+      useTableCache = true;
+    }
+    AutoWriteLock lock(mLock);
+    if (mHBFace.compareExchange(nullptr, face)) {
+      mUseTableCache = useTableCache;
+    } else {
+      // Lost a race to initialize mHBFace; discard our new one and use the
+      // winner of the race.
+      hb_face_destroy(face);
+      face = mHBFace;
+    }
+  }
+  // Return a new reference, owned by the AutoHBFace.
+  return AutoHBFace(hb_face_reference(face));
 }
 
 nsresult gfxFontconfigFontEntry::ReadCMAP(FontInfoData* aFontInfoData) {
@@ -518,7 +586,12 @@ hb_blob_t* gfxFontconfigFontEntry::GetFontTable(uint32_t aTableTag) {
     }
   }
 
-  return gfxFontEntry::GetFontTable(aTableTag);
+  if (mUseTableCache) {
+    return gfxFontEntry::GetFontTable(aTableTag);
+  }
+
+  auto* table = hb_face_reference_table(GetHBFace(), aTableTag);
+  return table != hb_blob_get_empty() ? table : nullptr;
 }
 
 double gfxFontconfigFontEntry::GetAspect(uint8_t aSizeAdjustBasis) {
