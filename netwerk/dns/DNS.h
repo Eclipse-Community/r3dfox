@@ -155,6 +155,7 @@ union NetAddr {
   bool IsIPAddrShared() const;
   nsresult GetPort(uint16_t* aResult) const;
   bool ToStringBuffer(char* buf, uint32_t bufSize) const;
+  bool ToString(nsACString& aOutput) const;
   nsCString ToString() const;
   void ToAddrPortString(nsACString& aOutput) const;
   nsILoadInfo::IPAddressSpace GetIpAddressSpace() const;
