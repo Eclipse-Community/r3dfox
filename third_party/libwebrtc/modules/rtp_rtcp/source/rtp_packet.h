@@ -27,6 +27,12 @@ class RtpPacket {
   using ExtensionType = RTPExtensionType;
   using ExtensionManager = RtpHeaderExtensionMap;
 
+  // Maximum number of CSRCs in an RTP packet as specified in section
+  // "5.1 RTP Fixed Header Fields" of RFC 3550.
+  // Note: This is a different limit than the one that applies to RTCP packets
+  // (which is specified in section 6.1).
+  static constexpr size_t kMaxCsrcs = 15;
+
   // `extensions` required for SetExtension/ReserveExtension functions during
   // packet creating and used if available in Parse function.
   // Adding and getting extensions will fail until `extensions` is
