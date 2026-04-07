@@ -37,6 +37,11 @@ void AbortSignalImpl::GetReason(JSContext* aCx,
   }
   MaybeAssignAbortError(aCx);
   aReason.set(mReason);
+  if (NS_WARN_IF(!JS_WrapValue(aCx, aReason))) {
+    aReason.setUndefined();
+    // TODO(Bug 2026137) - AbortSignalImpl::GetReason should be made fallible
+    JS_ClearPendingException(aCx);
+  }
 }
 
 JS::Value AbortSignalImpl::RawReason() const { return mReason.get(); }
