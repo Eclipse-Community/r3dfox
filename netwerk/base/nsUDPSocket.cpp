@@ -123,6 +123,9 @@ NS_IMETHODIMP nsUDPOutputStream::Close() {
   if (mIsClosed) return NS_BASE_STREAM_CLOSED;
 
   mIsClosed = true;
+  if (mSocket->IsSocketClosed()) {
+    return NS_BASE_STREAM_CLOSED;
+  }
   return NS_OK;
 }
 
@@ -135,6 +138,11 @@ NS_IMETHODIMP nsUDPOutputStream::StreamStatus() {
 NS_IMETHODIMP nsUDPOutputStream::Write(const char* aBuf, uint32_t aCount,
                                        uint32_t* _retval) {
   if (mIsClosed) return NS_BASE_STREAM_CLOSED;
+
+  if (mSocket->IsSocketClosed()) {
+    mIsClosed = true;
+    return NS_BASE_STREAM_CLOSED;
+  }
 
   *_retval = 0;
   int32_t count =
