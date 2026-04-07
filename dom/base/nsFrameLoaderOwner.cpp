@@ -105,7 +105,7 @@ void nsFrameLoaderOwner::ChangeRemotenessCommon(
   // no other blockers. Since we're going to be adding a new blocker as soon as
   // we recreate the frame loader, this is not what we want, so add our own
   // blocker until the process is complete.
-  Document* doc = owner->OwnerDoc();
+  RefPtr<Document> doc = owner->OwnerDoc();
   doc->BlockOnload();
   auto cleanup = MakeScopeExit([&]() { doc->UnblockOnload(false); });
 
