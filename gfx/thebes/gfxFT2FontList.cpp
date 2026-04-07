@@ -167,6 +167,8 @@ FTUserFontData* FT2FontEntry::GetUserFontData() {
 FT2FontEntry::~FT2FontEntry() {
   auto* cache = mFontTableCache.exchange(nullptr);
   delete cache;
+  auto* face = mHBFace.exchange(nullptr);
+  hb_face_destroy(face);
   if (mMMVar) {
     SharedFTFace* face = mFTFace;
     FT_Done_MM_Var(face->GetFace()->glyph->library, mMMVar);
@@ -455,45 +457,52 @@ nsresult FT2FontEntry::ReadCMAP(FontInfoData* aFontInfoData) {
   return rv;
 }
 
-hb_face_t* FT2FontEntry::CreateHBFace() const {
-  hb_face_t* result = nullptr;
+hb_face_t* FT2FontEntry::CreateHBFace() {
+  if (mHBFace) {
+    return hb_face_reference(mHBFace);
+  }
 
+  hb_face_t* face = nullptr;
   if (mFilename[0] == '/') {
     // An absolute path means a normal file in the filesystem, so we can use
-    // hb_blob_create_from_file to read it.
-    gfxFontUtils::AutoHBBlob fileBlob(
-        hb_blob_create_from_file(mFilename.get()));
-    if (hb_blob_get_length(fileBlob) > 0) {
-      result = hb_face_create(fileBlob, mFTFontIndex);
+    // hb_face_create_from_file_or_fail, and keep the face around.
+    if (hb_blob_t* blob = hb_blob_create_from_file_or_fail(mFilename.get())) {
+      face = hb_face_create(blob, mFTFontIndex);
+      hb_blob_destroy(blob);
+      if (face == hb_face_get_empty()) {
+        face = nullptr;
+      }
     }
-  } else {
-    // A relative path means an omnijar resource, which we may need to
-    // decompress to a temporary buffer.
-    RefPtr<nsZipArchive> reader = Omnijar::GetReader(Omnijar::Type::GRE);
-    nsZipItem* item = reader->GetItem(mFilename);
-    MOZ_ASSERT(item, "failed to find zip entry");
-    if (item) {
-      // TODO(jfkthame):
-      // Check whether the item is compressed; if not, we could just get a
-      // pointer without needing to allocate a buffer and copy the data.
-      // (Currently this configuration isn't used for Gecko on Android.)
-      uint32_t length = item->RealSize();
-      uint8_t* buffer = static_cast<uint8_t*>(malloc(length));
-      if (buffer) {
-        nsZipCursor cursor(item, reader, buffer, length);
-        cursor.Copy(&length);
-        MOZ_ASSERT(length == item->RealSize(), "error reading font");
-        if (length == item->RealSize()) {
-          gfxFontUtils::AutoHBBlob blob(
-              hb_blob_create((const char*)buffer, length,
-                             HB_MEMORY_MODE_READONLY, buffer, free));
-          result = hb_face_create(blob, mFTFontIndex);
-        }
+    return hb_face_reference(face);
+  }
+
+  // A relative path means an omnijar resource, which we may need to
+  // decompress to a temporary buffer.
+  RefPtr<nsZipArchive> reader = Omnijar::GetReader(Omnijar::Type::GRE);
+  nsZipItem* item = reader->GetItem(mFilename);
+  MOZ_ASSERT(item, "failed to find zip entry");
+  if (item) {
+    // TODO(jfkthame):
+    // Check whether the item is compressed; if not, we could just get a
+    // pointer without needing to allocate a buffer and copy the data.
+    // (Currently this configuration isn't used for Gecko on Android.)
+    uint32_t length = item->RealSize();
+    uint8_t* buffer = static_cast<uint8_t*>(malloc(length));
+    if (buffer) {
+      nsZipCursor cursor(item, reader, buffer, length);
+      cursor.Copy(&length);
+      MOZ_ASSERT(length == item->RealSize(), "error reading font");
+      if (length == item->RealSize()) {
+        gfxFontUtils::AutoHBBlob blob(
+            hb_blob_create((const char*)buffer, length, HB_MEMORY_MODE_READONLY,
+                           buffer, free));
+        // We don't retain this face; the caller will own the only reference.
+        return hb_face_create(blob, mFTFontIndex);
       }
     }
   }
 
-  return result;
+  return nullptr;
 }
 
 bool FT2FontEntry::HasFontTable(uint32_t aTableTag) {
@@ -564,14 +573,13 @@ hb_blob_t* FT2FontEntry::GetFontTable(uint32_t aTableTag) {
     }
   }
 
-  // If the FT_Face hasn't been instantiated, try to read table directly
-  // via harfbuzz API to avoid expensive FT_Face creation.
-  if (!mFTFace && !mFilename.IsEmpty()) {
-    hb_face_t* face = CreateHBFace();
-    if (face) {
+  // Try to read table directly via harfbuzz API, unless CreateHBFace will be
+  // expensive.
+  if (mHBFace || (!mFilename.IsEmpty() && mFilename[0] == '/')) {
+    if (hb_face_t* face = CreateHBFace()) {
       hb_blob_t* result = hb_face_reference_table(face, aTableTag);
       hb_face_destroy(face);
-      return result;
+      return result != hb_blob_get_empty() ? result : nullptr;
     }
   }
 
