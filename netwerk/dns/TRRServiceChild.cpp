@@ -66,6 +66,8 @@ void TRRServiceChild::Init(const bool& aCaptiveIsPassed,
 NS_IMETHODIMP
 TRRServiceChild::Observe(nsISupports* aSubject, const char* aTopic,
                          const char16_t* aData) {
+  // Must match
+  // TRRServiceParent::RecvNotifyNetworkConnectivityServiceObservers()
   if (!strcmp(aTopic, "network:connectivity-service:ip-checks-complete") ||
       !strcmp(aTopic, "network:connectivity-service:dns-checks-complete")) {
     Unused << SendNotifyNetworkConnectivityServiceObservers(

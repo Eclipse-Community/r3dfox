@@ -101,9 +101,22 @@ TRRServiceParent::Observe(nsISupports* aSubject, const char* aTopic,
 mozilla::ipc::IPCResult
 TRRServiceParent::RecvNotifyNetworkConnectivityServiceObservers(
     const nsCString& aTopic) {
+  // Must match TRRServiceChild::Observe()
+  const char* topic = nullptr;
+  if (!strcmp(aTopic.get(),
+              "network:connectivity-service:ip-checks-complete-from-socket-"
+              "process")) {
+    topic = "network:connectivity-service:ip-checks-complete";
+  } else if (!strcmp(aTopic.get(),
+                     "network:connectivity-service:dns-checks-complete-from-"
+                     "socket-process")) {
+    topic = "network:connectivity-service:dns-checks-complete";
+  } else {
+    return IPC_FAIL(this, "Unexpected notification");
+  }
   nsCOMPtr<nsIObserverService> obs = mozilla::services::GetObserverService();
   if (obs) {
-    obs->NotifyObservers(nullptr, aTopic.get(), nullptr);
+    obs->NotifyObservers(nullptr, topic, nullptr);
   }
   return IPC_OK();
 }
