@@ -21,16 +21,11 @@ sync protocol PMediaSystemResourceManager
 
 child:
   async Response(uint32_t aId, bool aSuccess);
-  async __delete__();
 
 parent:
   async Acquire(uint32_t aId, MediaSystemResourceType aResourceType, bool aWillWait);
   async Release(uint32_t aId);
-
-  /**
-   * Asynchronously tell the parent side to remove the PMediaSystemResourceManager.
-   */
-  async RemoveResourceManager();
+  async __delete__();
 };
 
 } // namespace media
