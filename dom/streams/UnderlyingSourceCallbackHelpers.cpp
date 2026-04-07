@@ -220,10 +220,10 @@ nsresult InputStreamHolder::AsyncWait(uint32_t aFlags, uint32_t aRequestedCount,
 NS_IMETHODIMP InputStreamHolder::OnInputStreamReady(
     nsIAsyncInputStream* aStream) {
   mAsyncWaitWorkerRef = nullptr;
-  mAsyncWaitAlgorithms = nullptr;
   // We may get called back after ::Shutdown()
-  if (mCallback) {
-    return mCallback->OnInputStreamReady(aStream);
+  if (RefPtr<InputToReadableStreamAlgorithms> callback =
+          mAsyncWaitAlgorithms.forget()) {
+    return callback->OnInputStreamReady(aStream);
   }
   return NS_ERROR_FAILURE;
 }
