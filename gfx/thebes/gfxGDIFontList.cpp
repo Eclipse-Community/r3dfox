@@ -124,10 +124,27 @@ GDIFontEntry::GDIFontEntry(const nsACString& aFaceName,
   InitLogFont(aFaceName, aFontType);
 }
 
+GDIFontEntry::~GDIFontEntry() {
+  auto* cache = mFontTableCache.exchange(nullptr);
+  delete cache;
+}
+
 gfxFontEntry* GDIFontEntry::Clone() const {
   MOZ_ASSERT(!IsUserFont(), "we can only clone installed fonts!");
   return new GDIFontEntry(Name(), mFontType, SlantStyle(), Weight(), Stretch(),
                           nullptr);
+}
+
+gfxFontEntry::FontTableCache* GDIFontEntry::GetFontTableCache(
+    bool aCreate) {
+  // Create the cache if it does not yet exist.
+  if (!mFontTableCache && aCreate) {
+    auto* cache = new FontTableCache();
+    if (!mFontTableCache.compareExchange(nullptr, cache)) {
+      delete cache;
+    }
+  }
+  return mFontTableCache;
 }
 
 nsresult GDIFontEntry::ReadCMAP(FontInfoData* aFontInfoData) {

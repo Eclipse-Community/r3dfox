@@ -84,6 +84,8 @@ class CTFontEntry final : public gfxFontEntry {
 
   static void DestroyBlobFunc(void* aUserData);
 
+  FontTableCache* GetFontTableCache(bool aCreate) override { return nullptr; }
+
   CGFontRef mFontRef MOZ_GUARDED_BY(mLock);  // owning reference
 
   const double mSizeHint;

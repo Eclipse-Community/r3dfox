@@ -106,14 +106,19 @@ class FT2FontEntry final : public gfxFT2FontEntryBase {
   void AddSizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf,
                               FontListSizes* aSizes) const override;
 
+  nsCString mFilename;
+  uint8_t mFTFontIndex;
+
+ protected:
+  FontTableCache* GetFontTableCache(bool aCreate) override;
+
+  mozilla::Atomic<FontTableCache*> mFontTableCache;
+
   // Strong reference (addref'd), but held in an atomic ptr rather than a
   // normal RefPtr.
   mozilla::Atomic<mozilla::gfx::SharedFTFace*> mFTFace;
 
   FT_MM_Var* mMMVar = nullptr;
-
-  nsCString mFilename;
-  uint8_t mFTFontIndex;
 
   mozilla::ThreadSafeWeakPtr<mozilla::gfx::UnscaledFontFreeType> mUnscaledFont;
 

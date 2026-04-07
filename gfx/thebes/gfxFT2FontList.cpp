@@ -165,6 +165,8 @@ FTUserFontData* FT2FontEntry::GetUserFontData() {
  */
 
 FT2FontEntry::~FT2FontEntry() {
+  auto* cache = mFontTableCache.exchange(nullptr);
+  delete cache;
   if (mMMVar) {
     SharedFTFace* face = mFTFace;
     FT_Done_MM_Var(face->GetFace()->glyph->library, mMMVar);
@@ -576,6 +578,17 @@ hb_blob_t* FT2FontEntry::GetFontTable(uint32_t aTableTag) {
   // Otherwise, use the default method (which in turn will call our
   // implementation of CopyFontTable).
   return gfxFontEntry::GetFontTable(aTableTag);
+}
+
+gfxFontEntry::FontTableCache* FT2FontEntry::GetFontTableCache(bool aCreate) {
+  // Create the cache if it does not yet exist.
+  if (!mFontTableCache && aCreate) {
+    auto* cache = new FontTableCache();
+    if (!mFontTableCache.compareExchange(nullptr, cache)) {
+      delete cache;
+    }
+  }
+  return mFontTableCache;
 }
 
 bool FT2FontEntry::HasVariations() {

@@ -103,7 +103,6 @@ gfxFontEntry::~gfxFontEntry() {
     }
   }
 
-  delete mFontTableCache.exchange(nullptr);
   delete mSVGGlyphs.exchange(nullptr);
   delete[] mUVSData.exchange(nullptr);
 
@@ -111,9 +110,8 @@ gfxFontEntry::~gfxFontEntry() {
   NS_IF_RELEASE(cmap);
 
   // By the time the entry is destroyed, all font instances that were
-  // using it should already have been deleted, and so the HB and/or Gr
-  // face objects should have been released.
-  MOZ_ASSERT(!mHBFace);
+  // using it should already have been deleted, and so any Graphite
+  // face object should have been released.
   MOZ_ASSERT(!mGrFaceInitialized);
 }
 
@@ -395,178 +393,6 @@ bool gfxFontEntry::TryGetColorGlyphs() {
   return mCOLR && mCPAL;
 }
 
-/**
- * FontTableBlobData
- *
- * See FontTableHashEntry for the general strategy.
- */
-
-class gfxFontEntry::FontTableBlobData {
- public:
-  explicit FontTableBlobData(nsTArray<uint8_t>&& aBuffer)
-      : mTableData(std::move(aBuffer)), mFontEntry(nullptr), mHashKey(0) {
-    MOZ_COUNT_CTOR(FontTableBlobData);
-  }
-
-  ~FontTableBlobData() {
-    MOZ_COUNT_DTOR(FontTableBlobData);
-    if (mFontEntry && mHashKey) {
-      AutoWriteLock lock(mFontEntry->mLock);
-      mFontEntry->GetFontTableCache()->RemoveEntry(mHashKey);
-    }
-  }
-
-  // Useful for creating blobs
-  const char* GetTable() const {
-    return reinterpret_cast<const char*>(mTableData.Elements());
-  }
-  uint32_t GetTableLength() const { return mTableData.Length(); }
-
-  // Tell this FontTableBlobData to remove the HashEntry when this is
-  // destroyed.
-  void ManageHashEntry(gfxFontEntry* aFontEntry, uint32_t aHashKey) {
-    mFontEntry = aFontEntry;
-    mHashKey = aHashKey;
-  }
-
-  // Disconnect from the HashEntry (because the blob has already been
-  // removed from the hashtable).
-  void ForgetHashEntry() {
-    mFontEntry = nullptr;
-    mHashKey = 0;
-  }
-
-  size_t SizeOfExcludingThis(MallocSizeOf aMallocSizeOf) const {
-    return mTableData.ShallowSizeOfExcludingThis(aMallocSizeOf);
-  }
-  size_t SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const {
-    return aMallocSizeOf(this) + SizeOfExcludingThis(aMallocSizeOf);
-  }
-
- private:
-  // The font table data block
-  const nsTArray<uint8_t> mTableData;
-
-  // The blob destroy function needs to know the owning font entry
-  // so that it can take the font-entry's lock while modifying the
-  // hashtable; and the hashtable key, so that it can remove the entry.
-  gfxFontEntry* mFontEntry;
-  uint32_t mHashKey;
-
-  // not implemented
-  FontTableBlobData(const FontTableBlobData&);
-};
-
-hb_blob_t* gfxFontEntry::FontTableHashEntry::ShareTableAndGetBlob(
-    nsTArray<uint8_t>&& aTable, gfxFontEntry* aFontEntry) {
-  Clear();
-  // adopts elements of aTable
-  mSharedBlobData = new FontTableBlobData(std::move(aTable));
-
-  mBlob = hb_blob_create(
-      mSharedBlobData->GetTable(), mSharedBlobData->GetTableLength(),
-      HB_MEMORY_MODE_READONLY, mSharedBlobData, DeleteFontTableBlobData);
-  if (mBlob == hb_blob_get_empty()) {
-    // The FontTableBlobData was destroyed during hb_blob_create().
-    // The (empty) blob will still be held in the hashtable with a strong
-    // reference.
-    mSharedBlobData = nullptr;
-    return hb_blob_reference(mBlob);
-  }
-
-  // Tell the FontTableBlobData to remove this hash entry when destroyed.
-  // The hashtable does not keep a strong reference.
-  mSharedBlobData->ManageHashEntry(aFontEntry, GetKey());
-  return mBlob;
-}
-
-void gfxFontEntry::FontTableHashEntry::Clear() {
-  // If the FontTableBlobData is managing the hash entry, then the blob is
-  // not owned by this HashEntry; otherwise there is strong reference to the
-  // blob that must be removed.
-  if (mSharedBlobData) {
-    mSharedBlobData->ForgetHashEntry();
-    mSharedBlobData = nullptr;
-  } else {
-    hb_blob_destroy(mBlob);
-  }
-  mBlob = nullptr;
-}
-
-// a hb_destroy_func for hb_blob_create
-
-/* static */
-void gfxFontEntry::FontTableHashEntry::DeleteFontTableBlobData(
-    void* aBlobData) {
-  delete static_cast<FontTableBlobData*>(aBlobData);
-}
-
-hb_blob_t* gfxFontEntry::FontTableHashEntry::GetBlob() const {
-  return hb_blob_reference(mBlob);
-}
-
-bool gfxFontEntry::GetExistingFontTable(uint32_t aTag, hb_blob_t** aBlob) {
-  // Accessing the mFontTableCache pointer is atomic, so we don't need to take
-  // a write lock even if we're initializing it here...
-  MOZ_PUSH_IGNORE_THREAD_SAFETY
-  if (MOZ_UNLIKELY(!mFontTableCache)) {
-    // We do this here rather than on fontEntry construction
-    // because not all shapers will access the table cache at all.
-    //
-    // We're not holding a write lock, so make sure to atomically update
-    // the cache pointer.
-    auto* newCache = new FontTableCache(8);
-    if (MOZ_UNLIKELY(!mFontTableCache.compareExchange(nullptr, newCache))) {
-      delete newCache;
-    }
-  }
-  FontTableCache* cache = GetFontTableCache();
-  MOZ_POP_THREAD_SAFETY
-
-  // ...but we do need a lock to read the actual hashtable contents.
-  AutoReadLock lock(mLock);
-  FontTableHashEntry* entry = cache->GetEntry(aTag);
-  if (!entry) {
-    return false;
-  }
-
-  *aBlob = entry->GetBlob();
-  return true;
-}
-
-hb_blob_t* gfxFontEntry::ShareFontTableAndGetBlob(uint32_t aTag,
-                                                  nsTArray<uint8_t>* aBuffer) {
-  MOZ_PUSH_IGNORE_THREAD_SAFETY
-  if (MOZ_UNLIKELY(!mFontTableCache)) {
-    auto* newCache = new FontTableCache(8);
-    if (MOZ_UNLIKELY(!mFontTableCache.compareExchange(nullptr, newCache))) {
-      delete newCache;
-    }
-  }
-  FontTableCache* cache = GetFontTableCache();
-  MOZ_POP_THREAD_SAFETY
-
-  AutoWriteLock lock(mLock);
-
-  FontTableHashEntry* entry;
-  if (MOZ_UNLIKELY(entry = cache->GetEntry(aTag))) {
-    // We must have been racing with another GetFontTable for the same table,
-    // and it won the race and filled in the entry before we took the lock.
-    // Ignore `aBuffer` and return a reference to the existing blob.
-    return entry->GetBlob();
-  }
-
-  entry = cache->PutEntry(aTag);
-
-  if (!aBuffer) {
-    // ensure the entry is null
-    entry->Clear();
-    return nullptr;
-  }
-
-  return entry->ShareTableAndGetBlob(std::move(*aBuffer), this);
-}
-
 already_AddRefed<gfxCharacterMap> gfxFontEntry::GetCMAPFromFontInfo(
     FontInfoData* aFontInfoData, uint32_t& aUVSOffset) {
   if (!aFontInfoData || !aFontInfoData->mLoadCmaps) {
@@ -576,16 +402,46 @@ already_AddRefed<gfxCharacterMap> gfxFontEntry::GetCMAPFromFontInfo(
   return aFontInfoData->GetCMAP(mName, aUVSOffset);
 }
 
+gfxFontEntry::FontTableBlob::FontTableBlob(nsTArray<uint8_t>&& aData)
+    : mData(std::move(aData)) {
+  if (!mData.IsEmpty()) {
+    mBlob = hb_blob_create(reinterpret_cast<const char*>(mData.Elements()),
+                           mData.Length(), HB_MEMORY_MODE_READONLY, nullptr,
+                           nullptr);
+  }
+}
+
+size_t gfxFontEntry::FontTableBlob::SizeOfExcludingThis(
+    MallocSizeOf aMallocSizeOf) const {
+  return mData.ShallowSizeOfExcludingThis(aMallocSizeOf) +
+         ((mBlob && mBlob != hb_blob_get_empty()) ? aMallocSizeOf(mBlob) : 0);
+}
+
 hb_blob_t* gfxFontEntry::GetFontTable(uint32_t aTag) {
-  hb_blob_t* blob;
-  if (GetExistingFontTable(aTag, &blob)) {
-    return blob;
+  auto* cache = GetFontTableCache(true);
+  MOZ_ASSERT(cache, "missing or incomplete GetFontTable override?");
+  if (!cache) {
+    return nullptr;
+  }
+
+  {
+    AutoReadLock lock(mLock);
+    if (auto lookup = cache->Lookup(aTag)) {
+      return lookup.Data().GetBlob();
+    }
   }
 
   nsTArray<uint8_t> buffer;
   bool haveTable = NS_SUCCEEDED(CopyFontTable(aTag, buffer));
 
-  return ShareFontTableAndGetBlob(aTag, haveTable ? &buffer : nullptr);
+  AutoWriteLock lock(mLock);
+  return cache
+      ->LookupOrInsertWith(aTag,
+                           [&] {
+                             return haveTable ? FontTableBlob(std::move(buffer))
+                                              : FontTableBlob();
+                           })
+      .GetBlob();
 }
 
 // callback for HarfBuzz to get a font table (in hb_blob_t form)
@@ -1404,18 +1260,6 @@ void gfxFontEntry::GetVariationsForStyle(nsTArray<gfxFontVariation>& aResult,
   }
 }
 
-size_t gfxFontEntry::FontTableHashEntry::SizeOfExcludingThis(
-    mozilla::MallocSizeOf aMallocSizeOf) const {
-  size_t n = 0;
-  if (mBlob) {
-    n += aMallocSizeOf(mBlob);
-  }
-  if (mSharedBlobData) {
-    n += mSharedBlobData->SizeOfIncludingThis(aMallocSizeOf);
-  }
-  return n;
-}
-
 void gfxFontEntry::AddSizeOfExcludingThis(MallocSizeOf aMallocSizeOf,
                                           FontListSizes* aSizes) const {
   aSizes->mFontListSize += mName.SizeOfExcludingThisIfUnshared(aMallocSizeOf);
@@ -1425,11 +1269,19 @@ void gfxFontEntry::AddSizeOfExcludingThis(MallocSizeOf aMallocSizeOf,
     aSizes->mCharMapsSize +=
         GetCharacterMap()->SizeOfIncludingThis(aMallocSizeOf);
   }
+
   {
     AutoReadLock lock(mLock);
-    if (mFontTableCache) {
+    // Passing `false` to GetFontTableCache() here means it will not actually
+    // modify anything, just return the existing cache if any.
+    if (auto* cache =
+            const_cast<gfxFontEntry*>(this)->GetFontTableCache(false)) {
       aSizes->mFontTableCacheSize +=
-          GetFontTableCache()->SizeOfIncludingThis(aMallocSizeOf);
+          cache->ShallowSizeOfIncludingThis(aMallocSizeOf);
+      for (auto it = cache->ConstIter(); !it.Done(); it.Next()) {
+        aSizes->mFontTableCacheSize +=
+            it.Data().SizeOfExcludingThis(aMallocSizeOf);
+      }
     }
   }
 
