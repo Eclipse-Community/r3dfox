@@ -712,6 +712,9 @@ class BrowsingContext : public nsILoadContext, public nsWrapperCache {
     mWindowProxy = aWindowProxy;
   }
 
+  // Since mWindowProxy is a weak pointer it has to be updated during sweeping.
+  static void SweepWindowProxies(JSTracer* aTrc);
+
   Nullable<WindowProxyHolder> GetWindow();
 
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
@@ -1322,10 +1325,8 @@ class BrowsingContext : public nsILoadContext, public nsWrapperCache {
   nsTArray<RefPtr<WindowContext>> mWindowContexts;
   RefPtr<WindowContext> mCurrentWindowContext;
 
-  // This is not a strong reference, but using a JS::Heap for that should be
-  // fine. The JSObject stored in here should be a proxy with a
-  // nsOuterWindowProxy handler, which will update the pointer from its
-  // objectMoved hook and clear it from its finalize hook.
+  // This is a weak reference. It will be updated automatically during sweeping
+  // by SweepWindowProxies.
   JS::Heap<JSObject*> mWindowProxy;
   LocationProxy mLocation;
 

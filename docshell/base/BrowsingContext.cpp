@@ -1878,6 +1878,19 @@ NS_IMPL_CYCLE_COLLECTION_CAN_SKIP_THIS_BEGIN(BrowsingContext)
   return IsCertainlyAliveForCC(tmp);
 NS_IMPL_CYCLE_COLLECTION_CAN_SKIP_THIS_END
 
+/* static */
+void BrowsingContext::SweepWindowProxies(JSTracer* aTrc) {
+  if (!sBrowsingContexts) {
+    return;
+  }
+
+  for (BrowsingContext* bc : sBrowsingContexts->Values()) {
+    if (bc->mWindowProxy) {
+      JS_UpdateWeakPointerAfterGC(aTrc, &bc->mWindowProxy);
+    }
+  }
+}
+
 class RemoteLocationProxy
     : public RemoteObjectProxy<BrowsingContext::LocationProxy,
                                Location_Binding::sCrossOriginProperties> {
