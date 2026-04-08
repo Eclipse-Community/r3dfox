@@ -78,6 +78,9 @@ RefPtr<ChromiumCDMParent::InitPromise> ChromiumCDMParent::Init(
       ->Then(
           GetCurrentSerialEventTarget(), __func__,
           [self, aCDMCallback](bool aSuccess) {
+            if (self->mIsShutdown) {
+              return;
+            }
             if (!aSuccess) {
               GMP_LOG_DEBUG(
                   "ChromiumCDMParent::Init() failed with callback from "
