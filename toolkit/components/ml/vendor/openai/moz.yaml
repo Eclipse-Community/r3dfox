@@ -1,0 +1,30 @@
+schema: 1
+
+bugzilla:
+  product: Core
+  component: Machine Learning
+
+origin:
+  name: openai-node
+  description: OpenAI TypeScript and JavaScript API Library
+  url: https://github.com/openai/openai-node
+  release: 5.6.0
+  revision: 059e83ddc09223ba717f2687107b9ca4d3c72135
+  license: Apache-2.0
+  notes: see README.md for more details
+
+vendoring:
+  url: https://github.com/openai/openai-node
+  source-hosting: github
+  tracking: commit
+  patches: 
+    - gecko.patch
+  exclude:
+    - "*"
+  include:
+    - dist/openai.js
+    - dist/openai-dev.js
+  update-actions:
+    - action: run-script
+      cwd: '{yaml_dir}'
+      script: yarn install && yarn build && yarn build:browser

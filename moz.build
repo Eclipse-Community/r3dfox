@@ -249,5 +249,3 @@ SPHINX_TREES["jsloader"] = "docs/jsloader"
 SPHINX_TREES["ai-agent-tools"] = "docs/ai-agent-tools"
 
 include("build/templates.mozbuild")
-
-DIRS += ["lw"]

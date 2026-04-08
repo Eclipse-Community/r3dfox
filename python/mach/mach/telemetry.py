@@ -92,7 +92,10 @@ def is_applicable_telemetry_environment():
 
 
 def is_telemetry_enabled(settings):
-    return False
+    if os.environ.get("DISABLE_TELEMETRY") == "1":
+        return False
+
+    return settings.mach_telemetry.is_enabled
 
 
 def arcrc_path():

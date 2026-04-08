@@ -414,13 +414,6 @@ var gBrowserInit = {
       )?.removeAttribute("key");
     }
 
-    if (Services.prefs.getBoolPref("librewolf.hidePasswdmgr", false)) {
-      PanelMultiView.getViewNode(
-        document,
-        "appMenu-passwords-button"
-      )?.remove();
-    }
-
     this._loadHandled = true;
   },
 
@@ -585,7 +578,7 @@ var gBrowserInit = {
       gDataNotificationInfoBar.init();
     }
 
-    if (Services.prefs.getBoolPref("librewolf.devHelpers", false)) {
+    if (!AppConstants.MOZILLA_OFFICIAL) {
       DevelopmentHelpers.init();
     }
 

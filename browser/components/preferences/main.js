@@ -239,7 +239,6 @@ Preferences.addAll([
 
   // Translations
   { id: "browser.translations.automaticallyPopup", type: "bool" },
-  { id: "browser.translations.enable", type: "bool" },
 ]);
 
 if (AppConstants.HAVE_SHELL_SERVICE) {
@@ -537,19 +536,21 @@ Preferences.addSetting(
 Preferences.addSetting({
   id: "linkPreviewEnabled",
   pref: "browser.ml.linkPreview.enabled",
+  deps: ["aiControlDefault", "aiControlLinkPreviews"],
+  visible: ({ aiControlDefault, aiControlLinkPreviews }) => {
+    return (
+      canShowAiFeature(aiControlLinkPreviews, aiControlDefault) &&
+      // @ts-ignore bug 1996860
+      LinkPreview.canShowPreferences
+    );
+  },
 });
 Preferences.addSetting({
   id: "linkPreviewKeyPoints",
   pref: "browser.ml.linkPreview.optin",
-  deps: ["aiControlDefault", "aiControlLinkPreviews"],
   // LinkPreview.canShowKeyPoints depends on the global genai pref.
-  visible: ({ aiControlDefault, aiControlLinkPreviews }) => {
-       return (
-         canShowAiFeature(aiControlLinkPreviews, aiControlDefault) &&
-         // @ts-ignore bug 1996860
-         LinkPreview.canShowKeyPoints
-       );
-  }
+  // @ts-ignore bug 1996860
+  visible: () => LinkPreview.canShowKeyPoints,
 });
 Preferences.addSetting({
   id: "linkPreviewLongPress",
@@ -642,67 +643,7 @@ Preferences.addSetting({
   id: "web-appearance-override-warning",
   setup: emitChange => {
     FORCED_COLORS_QUERY.addEventListener("change", emitChange);
-
-    const updateRfpUi = () => {
-      document.getElementById("web-appearance-rfp-warning")?.remove();
-      const chooser = document.getElementById("web-appearance-chooser");
-      const container = document.getElementById("webAppearanceGroup");
-      const rfp = Services.prefs.getBoolPref("privacy.resistFingerprinting", false);
-
-      if (chooser) {
-        chooser.style.opacity = rfp ? "0.3" : "1";
-        chooser.style.pointerEvents = rfp ? "none" : "all";
-      }
-
-      if (rfp && container && !document.getElementById("web-appearance-rfp-warning")) {
-        const infoBox = document.createElement("div");
-        infoBox.id = "web-appearance-rfp-warning";
-        infoBox.className = "info-box-container";
-        infoBox.style.display = "flex";
-        infoBox.style.alignItems = "center";
-        infoBox.style.marginTop = "10px";
-        infoBox.style.marginBottom = "5px";
-        const text = document.createElement("div");
-        text.innerText = "This feature is disabled because ResistFingerprinting is enabled. This means LibreWolf will force web content to display in a light theme.";
-        infoBox.appendChild(text);
-        const a = document.createElement("a");
-        a.className = "text-link";
-        a.href = "https://librewolf.net/docs/faq/#why-is-librewolf-forcing-light-theme";
-        a.innerText = " Learn more";
-        infoBox.appendChild(a);
-        const insertBeforeNode = container.children[1] ? container.children[1].nextSibling : null;
-        container.insertBefore(infoBox, insertBeforeNode);
-      }
-    };
-
-    const prefObserver = {
-      observe() {
-        updateRfpUi();
-      },
-    };
-    Services.prefs.addObserver("privacy.resistFingerprinting", prefObserver);
-
-    const ensurePaneReady = cb => {
-      const id = "webAppearanceGroup";
-      if (document.getElementById(id)) return cb();
-      const mo = new MutationObserver((_, obs) => {
-        if (document.getElementById(id)) {
-          obs.disconnect();
-          cb();
-        }
-      });
-      mo.observe(document.documentElement, { childList: true, subtree: true });
-      setTimeout(() => { try { mo.disconnect(); } catch (e) {} ; cb(); }, 1000);
-    };
-
-    ensurePaneReady(() => {
-      updateRfpUi();
-    });
-
-    return () => {
-      FORCED_COLORS_QUERY.removeEventListener("change", emitChange);
-      Services.prefs.removeObserver("privacy.resistFingerprinting", prefObserver);
-    };
+    return () => FORCED_COLORS_QUERY.removeEventListener("change", emitChange);
   },
   visible: () => {
     return FORCED_COLORS_QUERY.matches;
@@ -2702,6 +2643,7 @@ SettingGroupManager.registerGroups({
       },
     ],
   },
+  defaultBrowser: createDefaultBrowserConfig(),
   startup: {
     l10nId: "startup-group",
     headingLevel: 2,
@@ -2739,6 +2681,10 @@ SettingGroupManager.registerGroups({
         id: "windowsLaunchOnLoginDisabledProfileBox",
         control: "moz-message-bar",
         l10nId: "startup-windows-launch-on-login-profile-disabled",
+      },
+      {
+        id: "alwaysCheckDefault",
+        l10nId: "always-check-default",
       },
     ],
   },
@@ -3340,6 +3286,18 @@ SettingGroupManager.registerGroups({
         supportPage: "media-keyboard-control",
       },
       {
+        id: "cfrRecommendations",
+        l10nId: "browsing-cfr-recommendations",
+        supportPage: "extensionrecommendations",
+        subcategory: "cfraddons",
+      },
+      {
+        id: "cfrRecommendations-features",
+        l10nId: "browsing-cfr-features",
+        supportPage: "extensionrecommendations",
+        subcategory: "cfrfeatures",
+      },
+      {
         id: "linkPreviewEnabled",
         l10nId: "link-preview-settings-enable",
         subcategory: "link-preview",
@@ -3934,6 +3892,34 @@ SettingGroupManager.registerGroups({
     headingLevel: 2,
     items: [
       {
+        id: "historyMode",
+        control: "moz-select",
+        options: [
+          {
+            value: "remember",
+            l10nId: "history-remember-option-all",
+          },
+          { value: "dontremember", l10nId: "history-remember-option-never2" },
+          { value: "custom", l10nId: "history-remember-option-custom2" },
+        ],
+        controlAttrs: {
+          "search-l10n-ids": `
+            history-remember-description4,
+            history-dontremember-description4,
+            history-custom-description4,
+            history-private-browsing-permanent.label,
+            history-remember-browser-option.label,
+            history-remember-search-option.label,
+            history-clear-on-close-option.label,
+            history-clear-on-close-settings.label
+          `,
+        },
+      },
+      {
+        id: "privateBrowsingAutoStart",
+        l10nId: "history-private-browsing-permanent",
+      },
+      {
         id: "rememberHistory",
         l10nId: "history-remember-browser-option",
       },
@@ -4167,16 +4153,6 @@ SettingGroupManager.registerGroups({
                 "permissions-remove.label,permissions-remove-all.label,permissions-site-xr-window2.title,permissions-site-xr-desc,permissions-site-xr-disable-label,permissions-site-xr-disable-desc,",
             },
           },
-          {
-                   id: "webglSettingsButton",
-                       control: "moz-box-button",
-                       l10nId: "permissions-webgl2",
-                       controlAttrs: {
-               ".iconSrc": "chrome://browser/skin/notification-icons/webgl.svg",
-               "search-l10n-ids":
-               "permissions-remove.label,permissions-remove-all.label,permissions-site-webgl-window2.title,permissions-site-webgl-desc",
-                   },
-                 },
         ],
       },
       {
@@ -4261,70 +4237,6 @@ SettingGroupManager.registerGroups({
             control: "moz-select",
           },
         ],
-      },
-    ],
-  },
-  librewolfBehavior: {
-    l10nId: "librewolf-general-heading2",
-    headingLevel: 2,
-    items: [
-      {
-        id: "librewolfExtensionUpdate",
-        l10nId: "librewolf-extension-update-checkbox2",
-      },
-      {
-        id: "librewolfSync",
-        l10nId: "librewolf-sync-checkbox2",
-      },
-      {
-        id: "librewolfMiddleClick",
-        l10nId: "librewolf-autocopy-checkbox2",
-      },
-      {
-        id: "librewolfUserChrome",
-        l10nId: "librewolf-styling-checkbox2",
-      },
-    ],
-  },
-  librewolfNetworking: {
-    l10nId: "librewolf-network-heading2",
-    headingLevel: 2,
-    items: [
-      {
-        id: "librewolfIPv6",
-        l10nId: "librewolf-ipv6-checkbox2",
-      }
-    ],
-  },
-  librewolfPrivacy: {
-    l10nId: "librewolf-privacy-heading2",
-    headingLevel: 2,
-    items: [
-      {
-        id: "librewolfCrossOrigin",
-        l10nId: "librewolf-xorigin-ref-checkbox2",
-      },
-    ],
-  },
-  librewolfFingerprinting: {
-    l10nId: "librewolf-broken-heading2",
-    headingLevel: 2,
-    items: [
-      {
-        id: "librewolfRFP",
-        l10nId: "librewolf-rfp-checkbox2",
-      },
-      {
-        id: "librewolfLetterboxing",
-        l10nId: "librewolf-letterboxing-checkbox2",
-      },
-      {
-        id: "librewolfWebGLPrompt",
-        l10nId: "librewolf-webgl-checkbox2",
-      },
-      {
-        id: "librewolfWebGLPromptHide",
-        l10nId: "librewolf-webgl-prompt-checkbox2",
       },
     ],
   },
@@ -5283,6 +5195,39 @@ SettingGroupManager.registerGroups({
             l10nId: "addressbar-locbar-quickactions-option",
             supportPage: "quick-actions-firefox-search-bar",
           },
+          {
+            id: "firefoxSuggestAll",
+            l10nId: "addressbar-locbar-suggest-all-option-2",
+            items: [
+              {
+                id: "firefoxSuggestSponsored",
+                l10nId: "addressbar-locbar-suggest-sponsored-option-2",
+              },
+              {
+                id: "firefoxSuggestOnlineEnabledToggle",
+                l10nId: "addressbar-firefox-suggest-online",
+                supportPage: "firefox-suggest",
+                subcategory: "w_what-is-firefox-suggest",
+              },
+            ],
+          },
+          {
+            id: "dismissedSuggestionsDescription",
+            l10nId: "addressbar-dismissed-suggestions-label-2",
+            control: "moz-fieldset",
+            controlAttrs: {
+              headinglevel: 3,
+            },
+            items: [
+              {
+                id: "restoreDismissedSuggestions",
+                l10nId: "addressbar-restore-dismissed-suggestions-button-2",
+                control: "moz-button",
+                iconSrc:
+                  "chrome://global/skin/icons/arrow-counterclockwise-16.svg",
+              },
+            ],
+          },
         ],
       },
     ],
@@ -5409,6 +5354,7 @@ var gMainPane = {
     initSettingGroup("translations");
     initSettingGroup("spellCheck");
     initSettingGroup("performance");
+    initSettingGroup("defaultBrowser");
     initSettingGroup("startup");
     initSettingGroup("importBrowserData");
     initSettingGroup("networkProxy");
@@ -5614,10 +5560,6 @@ var gMainPane = {
     }
 
     // Notify observers that the UI is now ready
-    Preferences.addSyncFromPrefListener(
-      document.getElementById("translations-manage-enable"),
-      () => this.readEnableTranslations()
-    );
     Services.obs.notifyObservers(window, "main-pane-loaded");
     this.setInitialized();
   },
@@ -5722,36 +5664,39 @@ var gMainPane = {
     button.disabled = !preference.value;
     return undefined;
   },
-  
-  readEnableTranslations(skipInit = false) {
-    const translationsEnabled = Preferences.get("browser.translations.enable").value;
-    document.getElementById("innerTranslationsGroup").hidden = !translationsEnabled;
-    if (!this._translationsInitialized && !skipInit)
-      this.initTranslations();
-  },
-
-  _translationsInitialized: false,
-
 
   /**
    * Initialize the translations view.
    */
   async initTranslations() {
-    this.readEnableTranslations(true);
-    
-    if (!Services.prefs.getBoolPref("browser.translations.enable")) {
-       return;
-    }
-    
-    this._translationsInitialized = true;
-    
+    let legacyTranslationsVisible = Preferences.getSetting(
+      "legacyTranslationsVisible"
+    );
     /**
      * Which phase a language download is in.
      *
      * @typedef {"downloaded" | "loading" | "uninstalled"} DownloadPhase
      */
 
+    let translationsGroup = document.getElementById("translationsGroup");
+    let setTranslationsGroupVisbility = () => {
+      // Immediately show the group so that the async load of the component does
+      // not cause the layout to jump. The group will be empty initially.
+      translationsGroup.hidden = !legacyTranslationsVisible.visible;
+      translationsGroup.classList.toggle(
+        "setting-hidden",
+        translationsGroup.hidden
+      );
+    };
+    setTranslationsGroupVisbility();
 
+    legacyTranslationsVisible.on("change", setTranslationsGroupVisbility);
+    window.addEventListener(
+      "unload",
+      () =>
+        legacyTranslationsVisible.off("change", setTranslationsGroupVisbility),
+      { once: true }
+    );
 
     class TranslationsState {
       /**

@@ -8,7 +8,6 @@
 /* import-globals-from search.js */
 /* import-globals-from containers.js */
 /* import-globals-from privacy.js */
-/* import-globals-from librewolf.js */
 /* import-globals-from sync.js */
 /* import-globals-from experimental.js */
 /* import-globals-from moreFromMozilla.js */
@@ -359,7 +358,6 @@ function init_all() {
   register_module("paneHome", gHomePane);
   register_module("paneSearch", gSearchPane);
   register_module("panePrivacy", gPrivacyPane);
-  register_module("paneLibrewolf", gLibrewolfPane);
   register_module("paneContainers", gContainersPane);
 
   for (let [id, config] of Object.entries(CONFIG_PANES)) {
@@ -408,6 +406,8 @@ function init_all() {
   categories.addEventListener("mousedown", function () {
     this.removeAttribute("keyboard-navigation");
   });
+
+  maybeDisplayPoliciesNotice();
 
   window.addEventListener("hashchange", onHashChange);
 

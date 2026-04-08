@@ -69,7 +69,7 @@ void* ChromiumCdmHostCompat(int aHostInterfaceVersion, void* aUserData) {
   return aUserData;
 }
 
-#if 0
+#ifdef MOZILLA_OFFICIAL
 static cdm::HostFile TakeToCDMHostFile(HostFileData& aHostFileData) {
   return cdm::HostFile(aHostFileData.mBinary.Path().get(),
                        aHostFileData.mBinary.TakePlatformFile(),
@@ -85,7 +85,7 @@ GMPErr ChromiumCDMAdapter::GMPInit(const GMPPlatformAPI* aPlatformAPI) {
     return GMPGenericErr;
   }
 
-#if 0
+#ifdef MOZILLA_OFFICIAL
   // Note: we must call the VerifyCdmHost_0 function if it's present before
   // we call the initialize function.
   auto verify = reinterpret_cast<decltype(::VerifyCdmHost_0)*>(

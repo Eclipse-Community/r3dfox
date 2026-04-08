@@ -88,7 +88,5 @@ if CONFIG["USE_LIBZ_RS"]:
 if CONFIG["MOZ_JXL"]:
     gkrust_features += ["jxl_decoder"]
 
-gkrust_features += ["glean_disable_upload"]
-
 # This must remain last.
 gkrust_features = ["gkrust-shared/%s" % f for f in gkrust_features]

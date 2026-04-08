@@ -336,25 +336,23 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
  * On Linux this is /usr/{lib,lib64}/mozilla
  *   (for 32- and 64-bit systems respsectively)
  */
-static nsresult GetSystemParentDirectory(nsIFile** aFile,
-					 nsCString aName = "LibreWolf"_ns) {
+static nsresult GetSystemParentDirectory(nsIFile** aFile) {
   nsresult rv;
   nsCOMPtr<nsIFile> localDir;
 #  if defined(XP_MACOSX)
   rv = GetOSXFolderType(kOnSystemDisk, kApplicationSupportFolderType,
                         getter_AddRefs(localDir));
   if (NS_SUCCEEDED(rv)) {
-    rv = localDir->AppendNative(aName);
+    rv = localDir->AppendNative("Mozilla"_ns);
   }
 #  else
-  ToLowerCase(aName);
-  nsCString dirname =
+  constexpr auto dirname =
 #    ifdef HAVE_USR_LIB64_DIR
-      "/usr/lib64/"_ns + aName
+      "/usr/lib64/mozilla"_ns
 #    elif defined(__OpenBSD__) || defined(__FreeBSD__)
-      "/usr/local/lib/"_ns + aName
+      "/usr/local/lib/mozilla"_ns
 #    else
-      "/usr/lib/"_ns + aName
+      "/usr/lib/mozilla"_ns
 #    endif
       ;
   rv = NS_NewNativeLocalFile(dirname, getter_AddRefs(localDir));
@@ -422,20 +420,10 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
 #if defined(XP_UNIX) || defined(XP_MACOSX)
   else if (!strcmp(aProperty, XRE_SYS_NATIVE_MANIFESTS)) {
     rv = ::GetSystemParentDirectory(getter_AddRefs(file));
-  } else if (!strcmp(aProperty, XRE_MOZ_SYS_NATIVE_MANIFESTS)) {
-    rv = ::GetSystemParentDirectory(getter_AddRefs(file), "Mozilla"_ns);
   } else if (!strcmp(aProperty, XRE_USER_NATIVE_MANIFESTS)) {
     // Keep forcing the legacy path for compatibility
     rv = GetUserDataDirectoryHome(getter_AddRefs(file), /* aLocal */ false,
                                   /* aForceLegacy */ true);
-    NS_ENSURE_SUCCESS(rv, rv);
-#  if defined(XP_MACOSX)
-    rv = file->AppendNative("LibreWolf"_ns);
-#  else   // defined(XP_MACOSX)
-    rv = file->AppendNative(".librewolf"_ns);
-#  endif  // defined(XP_MACOSX)
-  } else if (!strcmp(aProperty, XRE_MOZ_USER_NATIVE_MANIFESTS)) {
-    rv = GetUserDataDirectoryHome(getter_AddRefs(file), false, true);
     NS_ENSURE_SUCCESS(rv, rv);
 #  if defined(XP_MACOSX)
     rv = file->AppendNative("Mozilla"_ns);
@@ -470,9 +458,9 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
   else if (!strcmp(aProperty, XRE_SYS_SHARE_EXTENSION_PARENT_DIR)) {
 #  ifdef ENABLE_SYSTEM_EXTENSION_DIRS
 #    if defined(__OpenBSD__) || defined(__FreeBSD__)
-    static const char* const sysLExtDir = "/usr/local/share/librewolf/extensions";
+    static const char* const sysLExtDir = "/usr/local/share/mozilla/extensions";
 #    else
-    static const char* const sysLExtDir = "/usr/share/librewolf/extensions";
+    static const char* const sysLExtDir = "/usr/share/mozilla/extensions";
 #    endif
     rv = NS_NewNativeLocalFile(nsDependentCString(sysLExtDir),
                                getter_AddRefs(file));
@@ -999,7 +987,13 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
   }
   appDirPath = Substring(appDirPath, 1, dotIndex - 1);
 
-  if (NS_FAILED(localDir->AppendNative("LibreWolf"_ns))) {
+  bool hasVendor = GetAppVendor() && strlen(GetAppVendor()) != 0;
+  if (hasVendor || GetAppName()) {
+    if (NS_FAILED(localDir->AppendNative(
+            nsDependentCString(hasVendor ? GetAppVendor() : GetAppName())))) {
+      return NS_ERROR_FAILURE;
+    }
+  } else if (NS_FAILED(localDir->AppendNative("Mozilla"_ns))) {
     return NS_ERROR_FAILURE;
   }
 
@@ -1297,7 +1291,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
 
 #if defined(XP_MACOSX) || defined(XP_WIN)
 
-  static const char* const sXR = "LibreWolf";
+  static const char* const sXR = "Mozilla";
   rv = aFile->AppendNative(nsDependentCString(sXR));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1307,7 +1301,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
 
 #elif defined(XP_UNIX)
 
-  static const char* const sXR = ".librewolf";
+  static const char* const sXR = ".mozilla";
   rv = aFile->AppendNative(nsDependentCString(sXR));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1348,11 +1342,9 @@ nsresult nsXREDirProvider::AppendFromAppData(nsIFile* aFile, bool aIsDotted) {
   // Similar to nsXREDirProvider::AppendProfilePath.
   // TODO: Bug 1990407 - Evaluate if refactoring might be required there in the
   // future?
-  // Use aIsDotted for a different purpose here, will probably break in the future
-  if (gAppData->profile && aIsDotted) {
+  if (gAppData->profile) {
     nsAutoCString profile;
     profile = gAppData->profile;
-    profile = "."_ns + nsDependentCString(gAppData->profile);
     MOZ_TRY(aFile->AppendRelativeNativePath(profile));
   } else {
     nsAutoCString vendor;
@@ -1362,8 +1354,8 @@ nsresult nsXREDirProvider::AppendFromAppData(nsIFile* aFile, bool aIsDotted) {
     ToLowerCase(vendor);
     ToLowerCase(appName);
 
-    //MOZ_TRY(aFile->AppendRelativeNativePath(aIsDotted ? ("."_ns + vendor)
-    //                                                  : vendor));
+    MOZ_TRY(aFile->AppendRelativeNativePath(aIsDotted ? ("."_ns + vendor)
+                                                      : vendor));
     MOZ_TRY(aFile->AppendRelativeNativePath(appName));
   }
 
@@ -1529,21 +1521,27 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
       return NS_OK;
     }
 
-    // Since we set gAppData->profile and don't want to force legacy behaviour
-    MOZ_TRY(GetLegacyOrXDGConfigHome(aHomeDir, getter_AddRefs(localDir)));
-    MOZ_TRY(localDir->Clone(getter_AddRefs(parentDir)));
+    // If the build was made against a specific profile name, MOZ_APP_PROFILE=
+    // then make sure we respect this and dont move to XDG directory
+    if (gAppData->profile) {
+      MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(aHomeDir),
+                                    getter_AddRefs(localDir)));
+    } else {
+      MOZ_TRY(GetLegacyOrXDGConfigHome(aHomeDir, getter_AddRefs(localDir)));
+      MOZ_TRY(localDir->Clone(getter_AddRefs(parentDir)));
+    }
 
     MOZ_TRY(AppendFromAppData(localDir, false));
   }
 
-  // The profile root directory needs to exists at that point.
-  MOZ_TRY(EnsureDirectoryExists(localDir));
-  
   // If required return the parent directory that matches the profile root
   // directory.
   if (aFile) {
-    localDir.forget(aFile);
+    parentDir.forget(aFile);
   }
+
+  // The profile root directory needs to exists at that point.
+  MOZ_TRY(EnsureDirectoryExists(localDir));
 
   return NS_OK;
 }
@@ -1589,6 +1587,10 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
   if (!profile.IsEmpty()) {
     rv = AppendProfileString(aFile, profile.get());
   } else {
+    if (!vendor.IsEmpty()) {
+      rv = aFile->AppendNative(vendor);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
     rv = aFile->AppendNative(appName);
   }
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1626,6 +1628,16 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
 
     rv = AppendProfileString(aFile, folder.BeginReading());
   } else {
+    if (!vendor.IsEmpty()) {
+      folder.Append(vendor);
+      ToLowerCase(folder);
+
+      rv = aFile->AppendNative(folder);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      folder.Truncate();
+    }
+
     // This can be the case in tests.
     if (!appName.IsEmpty()) {
       folder.Append(appName);

@@ -293,7 +293,6 @@ Preferences.addAll([
 
   // Permissions
   { id: "media.setsinkid.enabled", type: "bool" },
-  { id: "webgl.disabled", type: "bool" },
 
   // Security and Privacy Warnings
   { id: "browser.preferences.config_warning.dismissAll", type: "bool" },
@@ -2084,18 +2083,6 @@ Preferences.addSetting({
   id: "xrSettingsButton",
   onUserClick: () => gPrivacyPane.showXRExceptions(),
 });
-Preferences.addSetting({
-  id: "webglDisabled",
-  pref: "webgl.disabled",
-});
-Preferences.addSetting({
-  id: "webglSettingsButton",
-  onUserClick: () => gPrivacyPane.showWebGLExceptions(),
-  deps: ["webglDisabled"],
-  visible: deps => {
-    return !deps.webglDisabled.value;
-  },
-});
 
 Preferences.addSetting({
   id: "dohBox",
@@ -3441,7 +3428,7 @@ var gPrivacyPane = {
     initSettingGroup("securityPrivacyStatus");
     initSettingGroup("securityPrivacyWarnings");
     initSettingGroup("httpsOnly");
-    //initSettingGroup("browsingProtection");
+    initSettingGroup("browsingProtection");
     initSettingGroup("cookiesAndSiteData");
     initSettingGroup("cookiesAndSiteData2");
     initSettingGroup("certificates");
@@ -3609,10 +3596,6 @@ var gPrivacyPane = {
     this.initDoH();
 
     this.initWebAuthn();
-
-    if (Services.prefs.getBoolPref("librewolf.hidePasswdmgr", false)) {
-      document.getElementById("passwordsGroup")?.remove();
-    }
 
     // Notify observers that the UI is now ready
     Services.obs.notifyObservers(window, "privacy-pane-loaded");
@@ -4618,22 +4601,6 @@ var gPrivacyPane = {
    */
   showXRExceptions() {
     let params = { permissionType: "xr" };
-
-    gSubDialog.open(
-      "chrome://browser/content/preferences/dialogs/sitePermissions.xhtml",
-      { features: "resizable=yes" },
-      params
-    );
-  },
-
-  // WebGL
-
-  /**
-   * Displays the WebGL exceptions dialog where specific site WebGL
-   * preferences can be set.
-   */
-  showWebGLExceptions() {
-    let params = { permissionType: "webgl" };
 
     gSubDialog.open(
       "chrome://browser/content/preferences/dialogs/sitePermissions.xhtml",

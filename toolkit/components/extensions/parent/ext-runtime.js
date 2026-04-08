@@ -333,15 +333,7 @@ this.runtime = class extends ExtensionAPIPersistent {
 
         getBrowserInfo: function () {
           const { name, vendor, version, appBuildID } = Services.appinfo;
-          const useFirefoxDefaults = Services.prefs.getBoolPref(
-            "librewolf.getBrowserInfo.setToFirefoxDefaults",
-            true
-          );
-
-          const info = useFirefoxDefaults
-            ? { name: "Firefox", vendor: "Mozilla", version, buildID: appBuildID }
-            : { name, vendor, version, buildID: appBuildID };
-
+          const info = { name, vendor, version, buildID: appBuildID };
           return Promise.resolve(info);
         },
 

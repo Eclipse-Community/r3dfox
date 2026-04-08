@@ -196,17 +196,7 @@ function getenv(name) {
   return undefined;
 }
 
-function setEnv(name, value) {
-  try {
-    return Services.env.set(name, value);
-  } catch (e) {
-    displayError("getEnvironment", e);
-  }
-  return undefined;
-}
-
 var APIs = {
-  setEnv,
   pref,
   defaultPref,
   lockPref,

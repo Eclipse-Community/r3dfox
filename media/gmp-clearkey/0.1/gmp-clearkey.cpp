@@ -73,7 +73,7 @@ void* CreateCdmInstance(int cdm_interface_version, const char* key_system,
     return nullptr;
   }
 
-#if 0
+#ifdef MOZILLA_OFFICIAL
   // Test that we're able to read the host files.
   if (!sCanReadHostVerificationFiles) {
     return nullptr;

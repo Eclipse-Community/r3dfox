@@ -98,8 +98,7 @@ class ConsoleAPIListener {
    *        The message object receives from the ConsoleAPIStorage service.
    */
   onConsoleAPILogEvent(message) {
-    let disableConsole = Services.prefs.getBoolPref("librewolf.console.logging_disabled", false);
-    if (!this.handler || disableConsole) {
+    if (!this.handler) {
       return;
     }
 

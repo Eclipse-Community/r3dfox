@@ -71,7 +71,9 @@ async function getRuntimeIcon(runtime, channel) {
     }
   }
 
-  return "chrome://devtools/skin/images/aboutdebugging-firefox-librewolf.svg";
+  return channel === "release" || channel === "beta" || channel === "aurora"
+    ? `chrome://devtools/skin/images/aboutdebugging-firefox-${channel}.svg`
+    : "chrome://devtools/skin/images/aboutdebugging-firefox-nightly.svg";
 }
 
 function onRemoteDevToolsClientClosed() {

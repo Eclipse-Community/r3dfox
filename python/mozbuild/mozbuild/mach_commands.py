@@ -3083,7 +3083,7 @@ def repackage_msi(
 @CommandArgument(
     "--vendor",
     type=str,
-    default=None,
+    default="Mozilla",
     required=False,
     help="The vendor to use in the Package/Identity/Name string to use in the App Manifest."
     + " Defaults to 'Mozilla'.",
@@ -3241,7 +3241,7 @@ def repackage_msix(
         command_context.topsrcdir,
         channel=channel,
         arch=arch,
-        identity=identity_name,
+        displayname=identity_name,
         vendor=vendor,
         publisher=publisher,
         publisher_display_name=publisher_display_name,

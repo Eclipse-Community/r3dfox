@@ -2857,7 +2857,7 @@ const BASE_MESSAGES = () => [
     },
     priority: 3,
     targeting:
-      "false",
+      "'messaging-system-action.easyChecklist.open' | preferenceValue == true",
     trigger: {
       id: "preferenceObserver",
       params: ["messaging-system-action.easyChecklist.open"],
@@ -3061,7 +3061,7 @@ const BASE_MESSAGES = () => [
     },
     priority: 3,
     targeting:
-      "false",
+      "'messaging-system-action.easyChecklist.open' | preferenceValue == true",
     trigger: {
       id: "messagesLoaded",
     },
