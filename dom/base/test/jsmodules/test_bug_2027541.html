@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+  <meta charset=utf-8>
+  <title>Call import.meta.resolve after iframe removal</title>
+</head>
+<body>
+<script src="/tests/SimpleTest/SimpleTest.js"></script>
+<script>
+SimpleTest.waitForExplicitFinish();
+
+window.stolenResolve = null;
+
+async function runTest() {
+  const iframe = document.createElement("iframe");
+  iframe.srcdoc = `<!DOCTYPE html><html><body>
+    <script type="module">
+      window.parent.stolenResolve = import.meta.resolve;
+      window.parent.postMessage("ready", "*");
+    <\/script>
+    </body></html>`;
+
+  const ready = new Promise(resolve => {
+    window.addEventListener("message", () => resolve(), { once: true });
+  });
+  document.body.appendChild(iframe);
+  await ready;
+
+  ok(typeof window.stolenResolve === "function",
+     "Got import.meta.resolve from inline iframe module");
+
+  iframe.remove();
+
+  SpecialPowers.forceGC();
+  SpecialPowers.forceCC();
+  await new Promise(r => requestAnimationFrame(r));
+
+  let result = window.stolenResolve("https://example.com/");
+  is(result, "https://example.com/",
+     "import.meta.resolve returns correct result after iframe removal and GC");
+
+  window.stolenResolve = null;
+  SimpleTest.finish();
+}
+
+runTest();
+</script>
+</body>
