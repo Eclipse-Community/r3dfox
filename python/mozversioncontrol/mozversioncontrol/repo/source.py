@@ -107,7 +107,7 @@ class SrcRepository(Repository):
         for root, dirs, files in os.walk(self.path):
             base = os.path.relpath(root, self.path)
             for name in files:
-                res.append(os.path.join(base, name))
+                res.append(os.path.join(base, name).replace("\\", "/"))
         return res
 
     def get_tracked_files_finder(self, path):
