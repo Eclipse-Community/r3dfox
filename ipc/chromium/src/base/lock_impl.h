@@ -22,7 +22,7 @@ namespace internal {
 class LockImpl {
  public:
 #if defined(XP_WIN)
-  using NativeHandle = SRWLOCK;
+  using NativeHandle = CRITICAL_SECTION;
 #else
   using NativeHandle = pthread_mutex_t;
 #endif
