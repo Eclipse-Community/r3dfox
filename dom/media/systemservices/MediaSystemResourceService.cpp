@@ -34,7 +34,6 @@ void MediaSystemResourceService::Init() {
 
 /* static */
 void MediaSystemResourceService::Shutdown() {
-  MOZ_ASSERT(CompositorThreadHolder::IsInCompositorThread());
   if (sSingleton) {
     sSingleton->Destroy();
     sSingleton = nullptr;
