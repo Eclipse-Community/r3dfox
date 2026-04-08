@@ -1048,9 +1048,10 @@ void WebrtcGmpVideoDecoder::Decoded(GMPVideoi420Frame* aDecodedFrame) {
   CheckedInt32 length =
       (CheckedInt32(aDecodedFrame->Stride(kGMPYPlane)) *
        aDecodedFrame->Height()) +
-      (aDecodedFrame->Stride(kGMPVPlane) + aDecodedFrame->Stride(kGMPUPlane)) *
-          ((aDecodedFrame->Height() + 1) / 2);
-  int32_t size = length.value();
+      (CheckedInt32(aDecodedFrame->Stride(kGMPVPlane)) +
+       aDecodedFrame->Stride(kGMPUPlane)) *
+      ((aDecodedFrame->Height() + 1) / 2);
+  int32_t size = length.isValid() ? length.value() : 0;
   MOZ_RELEASE_ASSERT(length.isValid() && size > 0);
 
   // Don't use MakeUniqueFallible here, because UniquePtr isn't copyable, and
