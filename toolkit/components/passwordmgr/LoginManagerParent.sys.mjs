@@ -1502,7 +1502,7 @@ export class LoginManagerParent extends JSWindowActorParent {
   }
 
   async searchAutoCompleteEntries(searchString, data) {
-    return this.doAutocompleteSearch(data.formOrigin, data);
+    return this.doAutocompleteSearch(this.origin, data);
   }
 
   onAutoCompleteEntryHovered(_message, _data) {
