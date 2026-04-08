@@ -5,7 +5,7 @@
 @import url("chrome://global/skin/design-system/toolbar.css");
 
 :root {
-  &:where([customtitlebar]) {
+  &:where([tabsintitlebar]) {
     --toolbox-bgcolor: ActiveCaption;
     --toolbox-textcolor: CaptionText;
     --toolbox-bgcolor-inactive: InactiveCaption;
@@ -94,7 +94,7 @@
     --tab-selected-textcolor: light-dark(rgb(21, 20, 26), rgb(255, 255, 255));
     --tabs-navbar-separator-style: none;
 
-    &:where([customtitlebar]) {
+      &:where([tabsintitlebar]) {
       --toolbox-bgcolor-inactive: light-dark(rgb(235, 235, 239), rgb(31, 30, 37));
     }
 
