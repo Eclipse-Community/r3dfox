@@ -114,6 +114,7 @@ void DataStruct::GetData(nsISupports** aData) {
 void DataStruct::ClearData() {
   if (mCacheFD) {
     PR_Close(mCacheFD);
+    mCacheFD = nullptr;
   }
   mData = nullptr;
 }
