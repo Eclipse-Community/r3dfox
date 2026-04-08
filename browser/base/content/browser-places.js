@@ -1816,7 +1816,11 @@ var BookmarkingUI = {
         // The page action panel element may not have been created yet.
         continue;
       }
-      element.toggleAttribute("starred", starred);
+      if (starred) {
+        element.setAttribute("starred", "true");
+      } else {
+        element.removeAttribute("starred");
+      }
     }
 
     if (!this.starBox) {
