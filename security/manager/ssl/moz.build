@@ -191,7 +191,11 @@ if CONFIG["OS_ARCH"] == "WINNT":
         "ntdll",
     ]
 
-    UNIFIED_SOURCES += [
+    # CredentialManagerSecret.cpp includes <windows.h> without WIN32_LEAN_AND_MEAN,
+    # which pulls in <winsock.h> and conflicts with <winsock2.h> included by other
+    # files in the same unified translation unit. Compile independently to prevent
+    # that interference.
+    SOURCES += [
         "CredentialManagerSecret.cpp",
     ]
     # Version string comparison is generally wrong, but by the time it would
