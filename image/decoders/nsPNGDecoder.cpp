@@ -448,9 +448,6 @@ uint32_t nsPNGDecoder::ReadColorProfile(png_structp png_ptr, png_infop info_ptr,
         mInProfile = qcms_profile_create_cicp(
             primaries, ChooseTransferCharacteristics(tc));
         if (mInProfile) {
-          if (!(color_type & PNG_COLOR_MASK_COLOR)) {
-            png_set_gray_to_rgb(png_ptr);
-          }
           return qcms_profile_get_rendering_intent(mInProfile);
         }
       }
@@ -477,9 +474,7 @@ uint32_t nsPNGDecoder::ReadColorProfile(png_structp png_ptr, png_infop info_ptr,
           mismatch = true;
         }
       } else {
-        if (profileSpace == icSigRgbData) {
-          png_set_gray_to_rgb(png_ptr);
-        } else if (profileSpace != icSigGrayData) {
+        if (profileSpace != icSigRgbData && profileSpace != icSigGrayData) {
           mismatch = true;
         }
       }
@@ -498,7 +493,6 @@ uint32_t nsPNGDecoder::ReadColorProfile(png_structp png_ptr, png_infop info_ptr,
     *sRGBTag = true;
 
     int fileIntent;
-    png_set_gray_to_rgb(png_ptr);
     png_get_sRGB(png_ptr, info_ptr, &fileIntent);
     uint32_t map[] = {QCMS_INTENT_PERCEPTUAL, QCMS_INTENT_RELATIVE_COLORIMETRIC,
                       QCMS_INTENT_SATURATION,
@@ -523,10 +517,6 @@ uint32_t nsPNGDecoder::ReadColorProfile(png_structp png_ptr, png_infop info_ptr,
 
     mInProfile = qcms_profile_create_rgb_with_gamma(whitePoint, primaries,
                                                     1.0 / gammaOfFile);
-
-    if (mInProfile) {
-      png_set_gray_to_rgb(png_ptr);
-    }
   }
 
   return QCMS_INTENT_PERCEPTUAL;  // Our default
@@ -593,9 +583,9 @@ void nsPNGDecoder::info_callback(png_structp png_ptr, png_infop info_ptr) {
   // We only need to extract the color profile for non-metadata decodes. It is
   // fairly expensive to read the profile and create the transform so we should
   // avoid it if not necessary.
-  uint32_t intent = -1;
-  bool sRGBTag = false;
   if (!decoder->IsMetadataDecode()) {
+    uint32_t intent = -1;
+    bool sRGBTag = false;
     if (decoder->mCMSMode != CMSMode::Off) {
       intent = gfxPlatform::GetRenderingIntent();
       uint32_t pIntent =
@@ -604,15 +594,74 @@ void nsPNGDecoder::info_callback(png_structp png_ptr, png_infop info_ptr) {
       if (intent == uint32_t(-1)) {
         intent = pIntent;
       }
-    }
-    const bool hasColorInfo = decoder->mInProfile || sRGBTag;
-    if (!hasColorInfo || !decoder->GetCMSOutputProfile()) {
-      png_set_gray_to_rgb(png_ptr);
 
-      // only do gamma correction if CMS isn't entirely disabled
-      if (decoder->mCMSMode != CMSMode::Off) {
-        PNGDoGammaCorrection(png_ptr, info_ptr);
+      // png_get_channels won't return accurate info for determining the alpha
+      // status until after we call png_read_update_info below so we use this
+      // method of determining if we will have alpha so that we can select the
+      // correct qcms input type here.
+      const bool willHaveAlpha =
+          (color_type & PNG_COLOR_MASK_ALPHA) || num_trans != 0;
+
+      // Determine the qcms transform here, before png_read_update_info commits
+      // libpng to a specific output format. For gray images the presence or
+      // absence of a qcms transform determines if we want libpng to output
+      // gray data (we call qcms to transform it to rgb before passing it to
+      // the surface pipe), or rgb data (no qcms transform so we need rgb data
+      // to pass directly into the surface pipe).
+      if (decoder->mInProfile && decoder->GetCMSOutputProfile()) {
+        uint32_t profileSpace =
+            qcms_profile_get_color_space(decoder->mInProfile);
+        decoder->mUsePipeTransform = profileSpace != icSigGrayData;
+
+        qcms_data_type inType, outType;
+        if (decoder->mUsePipeTransform) {
+          // libpng outputs data in RGBA order and we want our final output to
+          // be BGRA order. SurfacePipe takes care of this for us but
+          // unfortunately the swizzle to change the order can happen before or
+          // after color management depending on if we have alpha. If we have
+          // alpha then the order will be color management then swizzle. If we
+          // do not have alpha then the order will be swizzle then color
+          // management. See CreateSurfacePipe
+          // https://searchfox.org/mozilla-central/rev/7d6651d29c5c1620bc059f879a3e9bbfb53f271f/image/SurfacePipeFactory.h#133-145
+          if (willHaveAlpha) {
+            inType = QCMS_DATA_RGBA_8;
+            outType = QCMS_DATA_RGBA_8;
+          } else {
+            inType = gfxPlatform::GetCMSOSRGBAType();
+            outType = inType;
+          }
+        } else {
+          // qcms operates on the data before we hand it to SurfacePipe.
+          inType = willHaveAlpha ? QCMS_DATA_GRAYA_8 : QCMS_DATA_GRAY_8;
+          outType = gfxPlatform::GetCMSOSRGBAType();
+        }
+        decoder->mTransform = qcms_transform_create(
+            decoder->mInProfile, inType, decoder->GetCMSOutputProfile(),
+            outType, (qcms_intent)intent);
+      } else if ((sRGBTag && decoder->mCMSMode == CMSMode::TaggedOnly) ||
+                 decoder->mCMSMode == CMSMode::All) {
+        // See comment above about SurfacePipe, color management and ordering.
+        decoder->mUsePipeTransform = true;
+        if (willHaveAlpha) {
+          decoder->mTransform =
+              decoder->GetCMSsRGBTransform(SurfaceFormat::R8G8B8A8);
+        } else {
+          decoder->mTransform =
+              decoder->GetCMSsRGBTransform(SurfaceFormat::OS_RGBA);
+        }
       }
+    }
+
+    // Expand gray to RGB unless we will pass the data to qcms to handle it via
+    // a non-pipe transform.
+    if (!decoder->mTransform || decoder->mUsePipeTransform) {
+      png_set_gray_to_rgb(png_ptr);
+    }
+
+    // Only apply libpng gamma correction when there is no qcms transform to
+    // handle it, and CMS is not entirely disabled.
+    if (!decoder->mTransform && decoder->mCMSMode != CMSMode::Off) {
+      PNGDoGammaCorrection(png_ptr, info_ptr);
     }
   }
 
@@ -651,7 +700,6 @@ void nsPNGDecoder::info_callback(png_structp png_ptr, png_infop info_ptr) {
   }
 #endif
 
-  auto transparency = decoder->GetTransparencyType(frameRect);
   if (decoder->IsMetadataDecode()) {
     // If we are animated then the first frame rect is either:
     // 1) the whole image if the IDAT chunk is part of the animation
@@ -660,59 +708,12 @@ void nsPNGDecoder::info_callback(png_structp png_ptr, png_infop info_ptr) {
     // PostHasTransparency in the metadata decode if we need to. So it's
     // okay to pass IntRect(0, 0, width, height) here for animated images;
     // they will call with the proper first frame rect in the full decode.
-    decoder->PostHasTransparencyIfNeeded(transparency);
+    decoder->PostHasTransparencyIfNeeded(
+        decoder->GetTransparencyType(frameRect));
 
     // We have the metadata we're looking for, so stop here, before we allocate
     // buffers below.
     return decoder->DoTerminate(png_ptr, TerminalState::SUCCESS);
-  }
-
-  if (decoder->mInProfile && decoder->GetCMSOutputProfile()) {
-    qcms_data_type inType;
-    qcms_data_type outType;
-
-    uint32_t profileSpace = qcms_profile_get_color_space(decoder->mInProfile);
-    decoder->mUsePipeTransform = profileSpace != icSigGrayData;
-    if (decoder->mUsePipeTransform) {
-      // libpng outputs data in RGBA order and we want our final output to be
-      // BGRA order. SurfacePipe takes care of this for us but unfortunately the
-      // swizzle to change the order can happen before or after color management
-      // depending on if we have alpha. If we have alpha then the order will be
-      // color management then swizzle. If we do not have alpha then the order
-      // will be swizzle then color management. See CreateSurfacePipe
-      // https://searchfox.org/mozilla-central/rev/7d6651d29c5c1620bc059f879a3e9bbfb53f271f/image/SurfacePipeFactory.h#133-145
-      if (transparency == TransparencyType::eAlpha) {
-        inType = QCMS_DATA_RGBA_8;
-        outType = QCMS_DATA_RGBA_8;
-      } else {
-        inType = gfxPlatform::GetCMSOSRGBAType();
-        outType = inType;
-      }
-    } else {
-      // qcms operates on the data before we hand it to SurfacePipe.
-      if (color_type & PNG_COLOR_MASK_ALPHA) {
-        inType = QCMS_DATA_GRAYA_8;
-        outType = gfxPlatform::GetCMSOSRGBAType();
-      } else {
-        inType = QCMS_DATA_GRAY_8;
-        outType = gfxPlatform::GetCMSOSRGBAType();
-      }
-    }
-
-    decoder->mTransform = qcms_transform_create(decoder->mInProfile, inType,
-                                                decoder->GetCMSOutputProfile(),
-                                                outType, (qcms_intent)intent);
-  } else if ((sRGBTag && decoder->mCMSMode == CMSMode::TaggedOnly) ||
-             decoder->mCMSMode == CMSMode::All) {
-    // See comment above about SurfacePipe, color management and ordering.
-    decoder->mUsePipeTransform = true;
-    if (transparency == TransparencyType::eAlpha) {
-      decoder->mTransform =
-          decoder->GetCMSsRGBTransform(SurfaceFormat::R8G8B8A8);
-    } else {
-      decoder->mTransform =
-          decoder->GetCMSsRGBTransform(SurfaceFormat::OS_RGBA);
-    }
   }
 
 #ifdef PNG_APNG_SUPPORTED
