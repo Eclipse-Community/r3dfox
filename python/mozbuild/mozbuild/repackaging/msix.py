@@ -106,68 +106,19 @@ def get_embedded_version(version, buildid):
     the dotted quad to be identically 0, so we enforce that here.
     """
 
-    # It's irritating to roll our own version parsing, but the tree doesn't seem
-    # to contain exactly what we need at this time.
-    version = version.rsplit("esr", 1)[0]
-    alpha = "a" in version
+    [ver, rel] = version.split("-")
 
-    tail = None
-    if "a" in version:
-        head, tail = version.rsplit("a", 1)
-        if tail != "1":
-            # Disallow anything beyond `X.Ya1`.
-            raise ValueError(
-                f"Alpha version not of the form X.0a1 is not supported: {version}"
-            )
-        tail = buildid
-    elif "b" in version:
-        head, tail = version.rsplit("b", 1)
-        if len(head.split(".")) > 2:
-            raise ValueError(
-                f"Beta version not of the form X.YbZ is not supported: {version}"
-            )
-    elif "rc" in version:
-        head, tail = version.rsplit("rc", 1)
-        if len(head.split(".")) > 2:
-            raise ValueError(
-                f"Release candidate version not of the form X.YrcZ is not supported: {version}"
-            )
-    else:
-        head = version
+    ver_parts = ver.split(".")
+    ver_parts += ["0"] * (3 - len(ver_parts))
 
-    components = (head.split(".") + ["0", "0", "0"])[:3]
-    if tail:
-        components[2] = tail
-
-    if alpha:
-        # Nightly builds are all `X.0a1`, which isn't helpful.  Include build ID
-        # to disambiguate.  But each part of the dotted quad is 16 bits, so we
-        # have to squash.
-        if components[1] != "0":
-            # Disallow anything beyond `X.0a1`.
-            raise ValueError(
-                f"Alpha version not of the form X.0a1 is not supported: {version}"
-            )
-
-        # Last two digits only to save space.  Nightly builds in 2066 and 2099
-        # will be impacted, but future us can deal with that.
-        year = buildid[2:4]
-        if year[0] == "0":
-            # Avoid leading zero, like `.0YMm`.
-            year = year[1:]
-        month = buildid[4:6]
-        day = buildid[6:8]
-        if day[0] == "0":
-            # Avoid leading zero, like `.0DHh`.
-            day = day[1:]
-        hour = buildid[8:10]
-
-        components[1] = "".join((year, month))
-        components[2] = "".join((day, hour))
-
-    version = "{}.{}.{}.0".format(*components)
-
-    return version
+    return ".".join(
+        [
+            ver_parts[0],
+            str(100 * int(ver_parts[1]) + int(ver_parts[2])),
+            str(int(rel) * 100),
+            "0",
+        ]
+    )
 
 
 def remove_single_line_comments(text):
@@ -410,21 +361,7 @@ def repackage_msix(
     )
 
     first = next(values)
-    if not displayname:
-        displayname = first
-
-        # Release (official) and Beta share branding.  Differentiate Beta a little bit.
-        if channel == "beta":
-            suffix = " Beta"
-            if not displayname.endswith(suffix):
-                displayname += suffix
-
-        elif channel == "esr":
-            # Release (official) and ESR share branding.  Differentiate ESR a little bit.
-            suffix = " ESR"
-            if not displayname.endswith(suffix):
-                displayname += suffix
-
+    displayname = displayname or first
     second = next(values)
     vendor = vendor or second
 
@@ -552,16 +489,6 @@ def repackage_msix(
         else:
             # In local builds and unpacked MSIX directories, `p` is like "firefox.exe" already.
             pp = p
-
-        if pp.startswith("distribution"):
-            # Treat any existing distribution as a distribution directory,
-            # potentially with language packs. This makes it easy to repack
-            # unpacked MSIXes.
-            distribution_dir = mozpath.join(dir_or_package, "distribution")
-            if distribution_dir not in distribution_dirs:
-                distribution_dirs.append(distribution_dir)
-
-            continue
 
         copier.add(mozpath.normsep(mozpath.join("VFS", "ProgramFiles", instdir, pp)), f)
 
