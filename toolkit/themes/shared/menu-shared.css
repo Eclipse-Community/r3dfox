@@ -8,91 +8,14 @@ menupopup,
 panel {
   --menu-icon-opacity: 1;
   --menu-arrow-width: 1em;
-  --menuitem-border-radius: 3px;
-  --menuitem-margin: 0px;
-  --menuitem-padding: 0.5em 1em;
   --menuitem-max-width: 42em;
 
-  @media (-moz-platform: linux) {
-    --menuitem-padding: 0.25em 0.5em;
-  }
-  @media (-moz-platform: macos) {
-    --menuitem-padding: 3px 9px;
-
-    @media (-moz-mac-tahoe-theme) {
-      --menuitem-padding: 4px 11px;
-      --menuitem-border-radius: 7px;
-    }
-  }
 
   @media (-moz-platform: windows) {
     --menu-arrow-width: max(1em, 16px);
 
     @media (prefers-color-scheme: light) {
       --menu-icon-opacity: 0.7;
-    }
-  }
-}
-
-menupopup {
-  font: menu;
-
-  --menuitem-icon-fill: currentColor;
-  /* Also apply the padding in the inline axis for menus */
-  --panel-padding: var(--panel-padding-block);
-
-  @media (-moz-windows-mica-popups) {
-    appearance: auto;
-    -moz-default-appearance: menupopup;
-    /* The mica backdrop takes care of our shadow, border, and border-radius */
-    --panel-border-color: transparent;
-    --panel-shadow-margin: 0px;
-    --panel-border-radius: 0px;
-  }
-
-  @media (-moz-platform: macos) {
-    /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
-    font: -moz-pull-down-menu;
-
-    /* On macOS, native menu icons should always be black by default so that
-       they are considered template images. Template images should be used
-       whenever possible so that the OS can manage the icon color, as the OS
-       theme may differ from our theme. */
-    menubar[native] &,
-    &:not([native="false"]) {
-      --menuitem-icon-fill: black;
-    }
-  }
-
-  > menu > menupopup {
-    /* Vertically align nested menupopups: the shadow plus the top padding plus top border */
-    margin-top: calc(-1 * (var(--panel-shadow-margin) + var(--panel-padding-block) + 1px));
-  }
-}
-
-/* Rules for popups associated with menulists */
-menulist > menupopup {
-  min-width: 0;
-  font: inherit;
-
-  @media (-moz-platform: macos) {
-    color: FieldText;
-
-    &:not([position]) {
-      margin-inline-start: -13px;
-      margin-top: -1px;
-    }
-  }
-
-  > menuitem,
-  > menucaption,
-  > menu {
-    max-width: none;
-
-    @media (-moz-platform: windows) {
-      > label {
-        padding-block: 0;
-      }
     }
   }
 }
@@ -109,18 +32,13 @@ menuseparator {
     padding-block: 5px;
     margin-inline: 9px;
   }
+}
 
-  @media (-moz-platform: windows) {
-    /* The side padding should align with the start of the menu item text. */
-    padding-inline: 1em;
-  }
-
-  &::before {
-    border-top: 1px solid var(--panel-separator-color);
-    content: "";
-    display: block;
-    flex: 1;
-  }
+menuseparator::before {
+  border-top: 1px solid var(--panel-separator-color);
+  content: "";
+  display: block;
+  flex: 1;
 }
 
 /* Accel text */
@@ -156,43 +74,25 @@ menuseparator {
   border-bottom: 16px solid transparent;
 }
 
-menubar {
-  font: menu;
+@media (-moz-platform: windows) or (-moz-platform: linux) {
+  menupopup,
+  menubar {
+    font: menu;
+  }
 }
 
-menubar  > menu {
-  @media (-moz-platform: linux) {
-    color: inherit;
-    background-color: transparent;
-    border-radius: 0;
-    padding-bottom: 1px;
-    border-bottom: 3px solid transparent;
+@media (-moz-platform: macos) {
+  menupopup {
+    /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+    font: -moz-pull-down-menu;
 
-    &[open] {
-      border-bottom-color: AccentColor;
-    }
-  }
-
-  @media (-moz-platform: macos) {
-    padding-block: 2px;
-    padding-inline: 7px 5px;
-    margin: 1px 0;
-  }
-
-  @media (-moz-platform: windows) {
-    &:not([disabled]) {
-      color: inherit;
-    }
-    &[_moz-menuactive]:not([disabled]) {
-      color: -moz-menubarhovertext;
-
-      *|*:root[lwtheme] & {
-        /* FIXME: This feels out of place, maybe we can just use the lwtheme
-         * rules everywhere? */
-        background-color: SelectedItem;
-        color: SelectedItemText;
-        text-shadow: none;
-      }
+    /* On macOS, native menu icons should always be black by default so that
+       they are considered template images. Template images should be used
+       whenever possible so that the OS can manage the icon color, as the OS
+       theme may differ from our theme. */
+    menubar[native] &,
+    &:not([native="false"]) {
+      --menuitem-icon-fill: black;
     }
   }
 }
@@ -200,13 +100,19 @@ menubar  > menu {
 menu,
 menuitem,
 menucaption {
-  border-radius: var(--menuitem-border-radius);
-  padding: var(--menuitem-padding);
-  margin: var(--menuitem-margin);
+  border-radius: 3px;
   align-items: center;
   flex-shrink: 0;
   list-style-image: none;
   max-width: var(--menuitem-max-width);
+
+  @media (-moz-platform: linux) {
+    padding: 4px 6px;
+  }
+
+  @media (-moz-platform: macos) {
+    padding: 3px 9px;
+  }
 }
 
 menu,
@@ -224,7 +130,7 @@ menuitem {
     background-color: -moz-menuhover;
   }
 
-  &:where([_moz-menuactive][disabled]) {
+  &:where([_moz-menuactive="true"][disabled]) {
     background-color: -moz-menuhoverdisabled;
   }
 }

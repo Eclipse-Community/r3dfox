@@ -77,9 +77,6 @@
   --panel-border-radius: var(--arrowpanel-border-radius);
   --panel-padding: var(--arrowpanel-padding);
   --panel-shadow-margin: var(--arrowpanel-shadow-margin);
-  --menuitem-border-radius: var(--arrowpanel-menuitem-border-radius);
-  --menuitem-padding: var(--arrowpanel-menuitem-padding);
-  --menuitem-margin: var(--arrowpanel-menuitem-margin);
 }
 
 /* Lightweight theme roots */
