@@ -42,7 +42,6 @@
 @APPNAME@/Contents/PkgInfo
 @RESPATH@/firefox.icns
 @RESPATH@/document.icns
-@RESPATH@/Assets.car
 @RESPATH@/@LPROJ_ROOT@.lproj/*
 #endif
 
