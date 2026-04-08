@@ -28,9 +28,21 @@ export class FindBarParent extends JSWindowActorParent {
       }
 
       switch (message.name) {
-        case "Findbar:Keypress":
-          findBar._onBrowserKeypress(message.data);
+        case "Findbar:Keypress": {
+          let d = message.data || {};
+          findBar._onBrowserKeypress({
+            type: "keypress",
+            bubbles: false,
+            cancelable: !!d.cancelable,
+            ctrlKey: !!d.ctrlKey,
+            altKey: !!d.altKey,
+            shiftKey: !!d.shiftKey,
+            metaKey: !!d.metaKey,
+            keyCode: (d.keyCode | 0) & 0xffff,
+            charCode: (d.charCode | 0) & 0xffff,
+          });
           break;
+        }
         case "Findbar:Mouseup":
           findBar.onMouseUp();
           break;
