@@ -127,7 +127,6 @@ UNIFIED_SOURCES += [
     "nsTLSSocketProvider.cpp",
     "OSKeyStore.cpp",
     "PKCS11ModuleDB.cpp",
-    "PSMRunnable.cpp",
     "PublicKeyPinningService.cpp",
     "RootCertificateTelemetryUtils.cpp",
     "SecretDecoderRing.cpp",

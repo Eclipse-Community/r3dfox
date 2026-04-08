@@ -13,7 +13,6 @@
 #include "NSSCertDBTrustDomain.h"
 #include "NSSErrorsService.h"
 #include "NSSSocketControl.h"
-#include "PSMRunnable.h"
 #include "SSLServerCertVerification.h"
 #include "ScopedNSSTypes.h"
 #include "TLSClientAuthCertSelection.h"
