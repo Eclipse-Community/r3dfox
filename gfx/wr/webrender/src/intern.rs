@@ -402,7 +402,7 @@ macro_rules! enumerate_interners {
     ($macro_name: ident) => {
         $macro_name! {
             clip: ClipIntern,
-            prim: RectanglePrim,
+            prim: PrimitiveKeyKind,
             normal_border: NormalBorderPrim,
             image_border: ImageBorder,
             image: Image,
