@@ -178,3 +178,26 @@ const { i31GetU_null, i31GetS_null } = wasmEvalText(`(module
 
 assertErrorMessage(() => i31GetU_null(), WebAssembly.RuntimeError, /dereferencing null pointer/);
 assertErrorMessage(() => i31GetS_null(), WebAssembly.RuntimeError, /dereferencing null pointer/);
+
+// Test i31.get_s and i31.get_u operations with some cornercases.
+let { f } = new WebAssembly.Instance(
+  new WebAssembly.Module(wasmTextToBinary(`
+(module
+  (func (export "f") (param i32) (result i32)
+    (local i31ref)
+    local.get 0
+    ref.i31
+    local.tee 1
+    i31.get_s
+    local.get 1
+    i31.get_u
+    i32.eq
+  )
+)`))).exports;
+
+assertEq(f(-1), 0);
+assertEq(f(-2), 0);
+assertEq(f(-0x40000000), 0);
+assertEq(f(0), 1);
+assertEq(f(1), 1);
+assertEq(f(0x3FFFFFFF), 1);

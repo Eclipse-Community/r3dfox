@@ -825,7 +825,7 @@
     wideningOp: wasm::FieldWideningOp
   type_policy: none
   result_type: Int32
-  congruent_to: if_operands_equal
+  congruent_to: custom
   alias_set: none
   generate_lir: true
 
