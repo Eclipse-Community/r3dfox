@@ -13,15 +13,22 @@
   margin: 0;
   padding: 0;
 
-  > .menu-text {
+  > .menu-iconic-text,
+  > .menu-accel-container {
     display: none;
   }
 
-  > .menu-icon {
-    width: auto;
-    height: auto;
-    padding: 7px;
+  > .menu-iconic-left {
+    appearance: none;
     margin: 0;
+    padding: 0;
+
+    > .menu-iconic-icon {
+      width: auto;
+      height: auto;
+      padding: 7px;
+      margin: 0;
+    }
   }
 }
 
