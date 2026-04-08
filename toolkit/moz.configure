@@ -1757,7 +1757,7 @@ with only_when("--enable-compile-environment"):
                     "int main() { return 0; }\nint (*ptr)() = main;",
                     pack_rel_relocs
                     + ["-pie", "-o", path]
-                    + (extra_toolchain_flags or [])
+                    + extra_toolchain_flags
                     + linker_ldflags,
                     wrapper=c_compiler.wrapper,
                     onerror=lambda: None,

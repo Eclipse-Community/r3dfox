@@ -60,7 +60,7 @@ def link_libstdcxx_statically(
                     #include <iostream>
                     int main() { std::cout << 1;}
                 """,
-                ["-o", bin_path] + (extra_toolchain_flags or []),
+                ["-o", bin_path] + extra_toolchain_flags,
                 wrapper=cxx_compiler.wrapper,
                 onerror=lambda: None,
             )
@@ -137,7 +137,7 @@ def linker_supports_icf(
                                  """,
                 ["-o", bin_path, "-Wl,--icf=safe", "-ffunction-sections"]
                 + (["-faddrsig"] if add_addrsig_flag else [])
-                + (extra_toolchain_flags or []),
+                + extra_toolchain_flags,
                 wrapper=c_compiler.wrapper,
                 onerror=lambda: None,
             )
@@ -490,7 +490,7 @@ def expand_libs_list_style(c_compiler, link, linker_flags, extra_flags):
         ):
             die("couldn't compile a simple C file")
 
-        ldflags = linker_flags + (extra_flags or [])
+        ldflags = linker_flags + extra_flags
 
         if c_compiler.type == "clang-cl":
             base_linker_cmd = [link] + ldflags + [f"-OUT:{outname}"]
