@@ -57,7 +57,20 @@ typedef struct _D3DKMTQS_ADAPTER_INFO {
   ULONG64 Reserved[8];
 } D3DKMTQS_ADAPTER_INFO;
 
-typedef struct _D3DKMTQS_SEGMENT_INFO {
+typedef struct _D3DKMTQS_SEGMENT_INFO_WIN7 {
+  ULONG Filler[3];
+  struct {
+    ULONGLONG Filler;
+    ULONG Filler2[2];
+  } Filler_M;
+
+  ULONG Aperture;
+
+  ULONGLONG Filler3[5];
+  ULONG64 Filler4[8];
+} D3DKMTQS_SEGMENT_INFO_WIN7;
+
+typedef struct _D3DKMTQS_SEGMENT_INFO_WIN8 {
   ULONGLONG Filler[3];
   struct {
     ULONGLONG Filler;
@@ -68,7 +81,7 @@ typedef struct _D3DKMTQS_SEGMENT_INFO {
 
   ULONGLONG Filler3[5];
   ULONG64 Filler4[8];
-} D3DKMTQS_SEGMENT_INFO;
+} D3DKMTQS_SEGMENT_INFO_WIN8;
 
 typedef struct _D3DKMTQS_SYSTEM_MEMORY {
   ULONGLONG BytesAllocated;
@@ -88,7 +101,16 @@ typedef struct _D3DKMTQS_PROCESS_INFO {
 } D3DKMTQS_PROCESS_INFO;
 
 typedef struct _D3DKMTQS_PROCESS_SEGMENT_INFO {
-  ULONGLONG BytesCommitted;
+  union {
+    struct {
+      ULONGLONG BytesCommitted;
+    } Win8;
+    struct {
+      ULONG BytesCommitted;
+      ULONG UnknownRandomness;
+    } Win7;
+  };
+
   ULONGLONG Filler[2];
   ULONG Filler2;
   struct {
@@ -120,7 +142,8 @@ typedef enum _D3DKMTQS_TYPE {
 
 typedef union _D3DKMTQS_RESULT {
   D3DKMTQS_ADAPTER_INFO AdapterInfo;
-  D3DKMTQS_SEGMENT_INFO SegmentInfo;
+  D3DKMTQS_SEGMENT_INFO_WIN7 SegmentInfoWin7;
+  D3DKMTQS_SEGMENT_INFO_WIN8 SegmentInfoWin8;
   D3DKMTQS_PROCESS_INFO ProcessInfo;
   D3DKMTQS_PROCESS_SEGMENT_INFO ProcessSegmentInfo;
   D3DKMTQS_PROCESS_NODE_INFO ProcessNodeInformation;
