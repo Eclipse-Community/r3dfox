@@ -74,10 +74,15 @@ class VideoBridgeParent final : public PVideoBridgeParent,
 
   void DoUnregisterExternalImages();
 
+  struct TextureHolder {
+    RefPtr<TextureHost> mTextureHost;
+    dom::ContentParentId mContentId;
+  };
+
   Monitor mMonitor;
   RefPtr<CompositorThreadHolder> mCompositorThreadHolder
       MOZ_GUARDED_BY(mMonitor);
-  std::map<uint64_t, PTextureParent*> mTextureMap MOZ_GUARDED_BY(mMonitor);
+  std::map<uint64_t, TextureHolder> mTextureMap MOZ_GUARDED_BY(mMonitor);
   bool mClosed;
 };
 
