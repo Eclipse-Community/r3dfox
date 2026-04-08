@@ -1,7 +1,7 @@
 {
   "data": [
     {
-      "schema": 1773806379382,
+      "schema": 1774483206927,
       "providerId": "google",
       "excludeParams": [
         {
@@ -15,8 +15,9 @@
       ],
       "includeParams": [],
       "searchPageRegexp": "^https://www\\.google\\.[^/]+/search\\b",
+      "filter_expression": "env.version|versionCompare(\"148.0a1\")>=0",
       "id": "1a479a17-f8cf-4ce1-9086-41d1f3ef7b69",
-      "last_modified": 1773858354869
+      "last_modified": 1775078290693
     },
     {
       "schema": 1773705620356,
@@ -69,5 +70,5 @@
       "last_modified": 1719927826946
     }
   ],
-  "timestamp": 1773858354869
+  "timestamp": 1775078290693
 }

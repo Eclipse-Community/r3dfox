@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2026-03-26_14-47-43_UTC
-// COMMIT: d333b72b39575da1ce6932b01d7c421a4107c620
+// VERSION: 2026-04-07_13-26-27_UTC
+// COMMIT: 6eaf1b08ebd26b3579144a43cf1077d9957e15f4
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -12336,6 +12336,10 @@ eero-stage.online
 
 // concludes Amazon
 
+// Anomaly : https://opencode.ai
+// Submitted by Dax Raad <security@anoma.ly>
+opentunnel.xyz
+
 // Antagonist B.V. : https://www.antagonist.nl/
 // Submitted by Sander Hoentjen <systeembeheer@antagonist.nl>
 antagonist.cloud
@@ -13600,6 +13604,7 @@ fh-muenster.io
 
 // Figma : https://www.figma.com
 // Submitted by Nick Frost <psl@figma.com>
+payload.dev
 figma.site
 figma-gov.site
 preview.site
@@ -14023,6 +14028,10 @@ homesklep.pl
 *.kin.one
 *.id.pub
 *.kin.pub
+
+// HOOC AG : https://www.hooc.ch
+// Submitted by Fabrizio Steiner <info@hooc.ch>
+seprox.hooc.me
 
 // Hoplix : https://www.hoplix.com
 // Submitted by Danilo De Franco<info@hoplix.shop>
@@ -15089,6 +15098,10 @@ gl.srv.us
 // Submitted by Steve Leung <steveleung@peplink.com>
 mypep.link
 
+// Perplexity AI : https://www.perplexity.ai/
+// Submitted by Alec Xiang <security@perplexity.ai>
+pplx.app
+
 // Perspecta : https://perspecta.com/
 // Submitted by Kenneth Van Alstyne <kvanalstyne@perspecta.com>
 perspecta.cloud
@@ -15749,6 +15762,7 @@ stackit.zone
 
 // Stackryze : https://stackryze.com
 // Submitted by Sudheer Bhuvana <security@stackryze.com>
+sryze.cc
 indevs.in
 
 // Staclar : https://staclar.com
