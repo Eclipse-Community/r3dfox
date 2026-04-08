@@ -1259,7 +1259,6 @@ class nsIWidget : public nsSupportsWeakReference {
    * @param aOpaqueRegion the region of the window that is opaque.
    */
   virtual void UpdateOpaqueRegion(const LayoutDeviceIntRegion& aOpaqueRegion) {}
-  virtual LayoutDeviceIntRegion GetOpaqueRegionForTesting() const { return {}; }
 
   /**
    * Informs the widget about the region of the window that is draggable.
