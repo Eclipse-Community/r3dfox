@@ -224,7 +224,7 @@ void RtpPacket::ZeroMutableExtensions() {
   }
 }
 
-void RtpPacket::SetCsrcs(std::span<const uint32_t> csrcs) {
+void RtpPacket::SetCsrcs(rtc::ArrayView<const uint32_t> csrcs) {
   RTC_DCHECK_EQ(extensions_size_, 0);
   RTC_DCHECK_EQ(payload_size_, 0);
   RTC_DCHECK_EQ(padding_size_, 0);
@@ -234,7 +234,7 @@ void RtpPacket::SetCsrcs(std::span<const uint32_t> csrcs) {
   if (csrcs.size() > kMaxCsrcs) {
     RTC_LOG(LS_WARNING) << "Truncating CSRC list to spec length " << kMaxCsrcs
                         << " from " << csrcs.size();
-    csrcs = csrcs.first(kMaxCsrcs);
+    csrcs = csrcs.subview(0, kMaxCsrcs);
   }
 
   payload_offset_ = kFixedHeaderSize + 4 * csrcs.size();

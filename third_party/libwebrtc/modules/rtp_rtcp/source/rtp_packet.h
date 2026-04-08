@@ -11,7 +11,6 @@
 #define MODULES_RTP_RTCP_SOURCE_RTP_PACKET_H_
 
 #include <optional>
-#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -122,7 +121,7 @@ class RtpPacket {
   // Writes csrc list. Assumes:
   // a) There is enough room left in buffer.
   // b) Extension headers, payload or padding data has not already been added.
-  void SetCsrcs(std::span<const uint32_t> csrcs);
+  void SetCsrcs(rtc::ArrayView<const uint32_t> csrcs);
 
   // Header extensions.
   template <typename Extension>
