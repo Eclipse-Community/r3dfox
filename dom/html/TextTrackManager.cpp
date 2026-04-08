@@ -343,7 +343,7 @@ void TextTrackManager::HonorUserPreferencesForTrackSelection() {
   // Step 4: Set all TextTracks with a kind of metadata that are disabled
   // to hidden.
   for (uint32_t i = 0; i < mTextTracks->Length(); i++) {
-    TextTrack* track = (*mTextTracks)[i];
+    RefPtr<TextTrack> track = (*mTextTracks)[i];
     if (track->Kind() == TextTrackKind::Metadata && TrackIsDefault(track) &&
         track->Mode() == TextTrackMode::Disabled) {
       track->SetMode(TextTrackMode::Hidden);
@@ -384,11 +384,11 @@ void TextTrackManager::PerformTrackSelection(TextTrackKind aTextTrackKinds[],
   // first TextTrack in candidates with a default attribute to showing.
   // TODO: Bug 981691 - Honor user preferences for text track selection.
   for (uint32_t i = 0; i < candidates.Length(); i++) {
-    if (TrackIsDefault(candidates[i]) &&
-        candidates[i]->Mode() == TextTrackMode::Disabled) {
-      candidates[i]->SetMode(TextTrackMode::Showing);
+    RefPtr<TextTrack> track = candidates[i];
+    if (TrackIsDefault(track) && track->Mode() == TextTrackMode::Disabled) {
+      track->SetMode(TextTrackMode::Showing);
       WEBVTT_LOGV("PerformTrackSelection set Showing kind %d",
-                  static_cast<int>(candidates[i]->Kind()));
+                  static_cast<int>(track->Kind()));
       return;
     }
   }

@@ -94,6 +94,7 @@ JSObject* TextTrack::WrapObject(JSContext* aCx,
 }
 
 void TextTrack::SetMode(TextTrackMode aValue) {
+  RefPtr<TextTrack> kungFuDeathGrip = this;
   if (mMode == aValue) {
     return;
   }
