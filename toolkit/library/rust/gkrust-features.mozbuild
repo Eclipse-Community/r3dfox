@@ -83,5 +83,7 @@ if CONFIG["MOZ_ICU4X"]:
 if CONFIG["USE_LIBZ_RS"]:
     gkrust_features += ["libz-rs-sys"]
 
+gkrust_features += ["glean_disable_upload"]
+
 # This must remain last.
 gkrust_features = ["gkrust-shared/%s" % f for f in gkrust_features]
