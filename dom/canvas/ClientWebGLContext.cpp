@@ -25,7 +25,9 @@
 #include "mozilla/RandomNum.h"
 #include "mozilla/ResultVariant.h"
 #include "mozilla/ScopeExit.h"
+#include "mozilla/StaticPrefs_librewolf.h"
 #include "mozilla/StaticPrefs_webgl.h"
+#include "mozilla/dom/BrowserChild.h"
 #include "mozilla/dom/BufferSourceBinding.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/GeneratePlaceholderCanvasData.h"
@@ -46,6 +48,8 @@
 #include "mozilla/layers/WebRenderUserData.h"
 #include "nsContentUtils.h"
 #include "nsDisplayList.h"
+#include "nsIPrincipal.h"
+#include "nsIPermissionManager.h"
 
 namespace mozilla {
 
@@ -860,6 +864,131 @@ static bool IsWebglOutOfProcessEnabled() {
   return StaticPrefs::webgl_out_of_process();
 }
 
+static uint32_t GetWebGLPermission(nsIPrincipal* aPrincipal) {
+  if (!aPrincipal) {
+    return nsIPermissionManager::UNKNOWN_ACTION;
+  }
+
+  if (IsUnrestrictedPrincipal(aPrincipal)) {
+    return true;
+  }
+
+  nsresult rv;
+  nsCOMPtr<nsIPermissionManager> permissionManager =
+      do_GetService(NS_PERMISSIONMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, nsIPermissionManager::UNKNOWN_ACTION);
+
+  uint32_t permission;
+  rv = permissionManager->TestPermissionFromPrincipal(
+      aPrincipal, "webgl"_ns, &permission);
+  NS_ENSURE_SUCCESS(rv, nsIPermissionManager::UNKNOWN_ACTION);
+
+  return permission;
+}
+
+static bool IsWebGLAllowed_impl(
+       bool webGLDisabled, JSContext* aCx,
+       nsIPrincipal* aPrincipal,
+       const std::function<void(const nsAutoString&)>& aReportToConsole,
+       const std::function<void(bool)>& aTryPrompt) {
+
+       if(!webGLDisabled) {
+               return true;
+       }
+
+       if (!aCx) {
+               return false;
+       }
+
+       if (IsUnrestrictedPrincipal(aPrincipal)) {
+               return true;
+       }
+
+       Maybe<nsAutoCString> origin = Nothing();
+       auto getOrigin = [&]() {
+               if (origin.isSome()) {
+                       return origin->IsEmpty();
+               }
+
+               nsAutoCString originResult;
+               nsresult rv = NS_ERROR_FAILURE;
+               if (aPrincipal) {
+                       rv = aPrincipal->GetOrigin(originResult);
+               }
+               origin = NS_SUCCEEDED(rv) ? Some(originResult) : Some(""_ns);
+
+               return NS_SUCCEEDED(rv);
+       };
+
+       uint64_t permission = GetWebGLPermission(aPrincipal);
+       switch (permission) {
+               case nsIPermissionManager::ALLOW_ACTION:
+                       return true;
+               case nsIPermissionManager::DENY_ACTION:
+                       return false;
+               default:
+                       break;
+       }
+
+       bool hidePermissionDoorhanger = StaticPrefs::librewolf_webgl_prompt_hide();
+
+       nsAutoString message;
+       message.AppendPrintf("Blocked %s from creating WebGL context but prompting the user.",
+                                               getOrigin() ? origin->get() : "unknown");
+       aReportToConsole(message);
+
+       aTryPrompt(hidePermissionDoorhanger);
+
+       return false;
+}
+
+static bool IsWebGLAllowed(dom::Document* aDocument, JSContext* aCx,
+                                  nsIPrincipal* aPrincipal) {
+       if(NS_WARN_IF(!aDocument)) {
+               return false;
+       }
+
+       bool webGLDisabled = StaticPrefs::librewolf_webgl_prompt();
+
+       if (!webGLDisabled) {
+               return true;
+       }
+
+       auto reportToConsole = [&](const nsAutoString& message) {
+               nsContentUtils::ReportToConsoleNonLocalized(
+                       message, nsIScriptError::warningFlag, "Security"_ns, aDocument);
+       };
+
+       auto prompt = [&](bool hidePermissionDoorhanger) {
+    if (!aPrincipal) {
+      return;
+    }
+
+    nsAutoCString origin;
+    nsresult rv = aPrincipal->GetOrigin(origin);
+    if (NS_FAILED(rv)) {
+      return;
+    }
+
+    if (!XRE_IsContentProcess()) {
+      MOZ_ASSERT_UNREACHABLE(
+          "Who's calling this from the parent process without a chrome window "
+          "(it would have been exempt from the RFP targets)?");
+      return;
+    }
+
+    nsPIDOMWindowOuter* win = aDocument->GetWindow();
+    if (RefPtr<dom::BrowserChild> browserChild =
+            dom::BrowserChild::GetFrom(win)) {
+      browserChild->SendShowWebGLPermissionPrompt(origin, hidePermissionDoorhanger);
+    }
+  };
+
+       return IsWebGLAllowed_impl(
+      webGLDisabled, aCx, aPrincipal,
+      reportToConsole, prompt);
+}
+
 bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
   const auto pNotLost = MakeRefPtr<webgl::NotLostData>(*this);
   auto& notLost = *pNotLost;
@@ -893,6 +1022,17 @@ bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
         .size = requestedSize,
         .options = options,
     };
+
+       if (mCanvasElement && !StaticPrefs::webgl_disabled()) {
+               if(!IsWebGLAllowed(mCanvasElement->OwnerDoc(),
+                                  nsContentUtils::GetCurrentJSContext(),
+                                  mCanvasElement->NodePrincipal())) {
+
+                       return Err("WebGL is currently disabled.");
+               }
+       }
+
+
 
     // -
 
@@ -1373,7 +1513,8 @@ UniquePtr<uint8_t[]> ClientWebGLContext::GetImageBuffer(
   *out_imageSize = dataSurface->GetSize();
 
   nsRFPService::PotentiallyDumpImage(PrincipalOrNull(), dataSurface);
-  if (aExtractionBehavior == CanvasUtils::ImageExtraction::Randomize) {
+  if (aExtractionBehavior == CanvasUtils::ImageExtraction::Randomize ||
+      aExtractionBehavior == CanvasUtils::ImageExtraction::EfficientRandomize) {
     return gfxUtils::GetImageBufferWithRandomNoise(
         dataSurface, premultAlpha, GetCookieJarSettings(), PrincipalOrNull(),
         out_format);
@@ -3643,7 +3784,9 @@ void ClientWebGLContext::GetBufferSubData(GLenum target, GLintptr srcByteOffset,
       if (extraction == CanvasUtils::ImageExtraction::Placeholder) {
         dom::GeneratePlaceholderCanvasData(destView->size_bytes(),
                                            destView->Elements());
-      } else if (extraction == CanvasUtils::ImageExtraction::Randomize) {
+      } else if (extraction == CanvasUtils::ImageExtraction::Randomize ||
+                 extraction ==
+                     CanvasUtils::ImageExtraction::EfficientRandomize) {
         // We have no idea what's in the buffer. So, we randomize it as if each
         // elemSize bytes is a single element.
         uint8_t elementsPerGroup = 1,
@@ -5402,7 +5545,8 @@ void ClientWebGLContext::ReadPixels(GLint x, GLint y, GLsizei width,
       } else {
         RecordCanvasUsage(CanvasExtractionAPI::ReadPixels,
                           CSSIntSize(width, height));
-        if (extraction == CanvasUtils::ImageExtraction::Randomize) {
+        if (extraction == CanvasUtils::ImageExtraction::Randomize ||
+            extraction == CanvasUtils::ImageExtraction::EfficientRandomize) {
           const auto pii = webgl::PackingInfoInfo::For(desc.pi);
           // DoReadPixels() requres pii to be Some().
           MOZ_ASSERT(pii.isSome());

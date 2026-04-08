@@ -400,6 +400,16 @@ BrowserGlue.prototype = {
 
     // handle any UI migration
     this._migrateUI();
+    
+    const removeLangpacks = async () => {
+      for (const addon of await lazy.AddonManager.getAddonsByTypes(["locale"])) {
+        await addon.uninstall();
+      }
+    };
+    
+    removeLangpacks().catch(err => {
+      console.error("Could not remove langpacks", err);
+    });
 
     if (!Services.prefs.prefHasUserValue(PREF_PDFJS_ISDEFAULT_CACHE_STATE)) {
       lazy.PdfJs.checkIsDefault(this._isNewProfile);

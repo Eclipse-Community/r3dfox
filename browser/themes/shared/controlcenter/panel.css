@@ -795,6 +795,49 @@
 
 /* Trustpanel popup */
 
+/* Hide ETP description (reads like ad) */
+#trustpanel-etp-description {
+  display: none;
+}
+
+/* Hide most of graphic but show tracker count */
+#trustpanel-graphic-image,
+#trustpanel-graphic-section-text,
+#trustpanel-blocker-section > label:nth-child(2) {
+  display: none;
+}
+#trustpanel-graphic-section,
+#trustpanel-blocker-section,
+#trustpanel-toggle-section {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+#trustpanel-toggle-section {
+  margin-bottom: 0 !important;
+}
+#trustpanel-graphic-section {
+  margin-top: 0 !important;
+}
+#trustpanel-blocker-section {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: start;
+}
+
+/* Make tracker count non-bold */
+#trustpanel-blocker-section > label:nth-child(1) {
+  font-weight: normal;
+}
+
+/* Place toggle before tracker count */
+#trustpanel-header-row {
+  order: -2;
+}
+#trustpanel-toggle-section {
+  order: -1;
+}
+
 #trustpanel-header-row {
   justify-content: space-between;
   padding-block-start: var(--space-small);

@@ -177,7 +177,7 @@ def compiler_class(compiler, host_or_target):
             ):
                 flags = list(flags or [])
                 if is_target:
-                    flags += extra_flags or []
+                    flags += extra_flags
                 header = header or ""
                 if isinstance(header, (list, tuple)):
                     header = "\n".join(header)

@@ -59,6 +59,7 @@ pref_groups = [
     "javascript",
     "layers",
     "layout",
+    "librewolf",
     "logging",
     "mathml",
     "media",
@@ -142,7 +143,7 @@ GeneratedFile(
     *gen_all_tuple,
     script="init/generate_static_pref_list.py",
     entry_point="emit_code",
-    inputs=gen_inputs
+    inputs=gen_inputs,
 )
 
 PYTHON_UNITTEST_MANIFESTS += [

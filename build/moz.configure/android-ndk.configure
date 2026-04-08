@@ -264,7 +264,7 @@ set_config("STLPORT_LIBS", stlport_libs)
 
 
 @depends(android_sysroot, android_toolchain)
-def extra_toolchain_flags(android_sysroot, toolchain_dir):
+def android_toolchain_flags(android_sysroot, toolchain_dir):
     if not android_sysroot:
         return []
     flags = [
@@ -274,8 +274,8 @@ def extra_toolchain_flags(android_sysroot, toolchain_dir):
     return flags
 
 
-@depends(extra_toolchain_flags)
-def android_flags(extra_toolchain_flags):
+@depends(android_toolchain_flags)
+def android_flags(android_toolchain_flags):
     wead_symbols_defines = [
         "-D__ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__",
     ]
@@ -283,18 +283,18 @@ def android_flags(extra_toolchain_flags):
         "-Werror=unguarded-availability",
     ]
     return namespace(
-        cflags=extra_toolchain_flags
+        cflags=android_toolchain_flags
         + [
             "-fno-short-enums",
         ]
         + weak_symbols_flags,
-        cxxflags=extra_toolchain_flags
+        cxxflags=android_toolchain_flags
         + [
             "-fno-short-enums",
         ]
         + weak_symbols_flags,
-        ldflags=extra_toolchain_flags,
-        asflags=extra_toolchain_flags
+        ldflags=android_toolchain_flags,
+        asflags=android_toolchain_flags
         + [
             "-DANDROID",
         ]
@@ -330,7 +330,7 @@ def android_system_headers(host, ndk):
 set_config("ANDROID_SYSTEM_HEADERS", android_system_headers)
 
 
-@depends(extra_toolchain_flags)
+@depends(android_toolchain_flags)
 def bindgen_cflags_android(toolchain_flags):
     return toolchain_flags
 
