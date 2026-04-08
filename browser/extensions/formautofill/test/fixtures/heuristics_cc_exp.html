@@ -47,22 +47,24 @@
     </p>
     <p>
       <label>Exp:
-        <select>
-          <option value="2015"></option>
-          <option value="2016"></option>
-          <option value="2017"></option>
-          <option value="2018"></option>
-          <option value="2019"></option>
-          <option value="2020"></option>
-          <option value="2021"></option>
-          <option value="2022"></option>
-          <option value="2023"></option>
-          <option value="2024"></option>
-          <option value="2025"></option>
+        <select id="form4-exp-year">
         </select>
       </label>
     </p>
   </form>
+  <script>
+    "use strict";
+    // Generate year options dynamically so this test doesn't go stale each year.
+    // The cc-exp-year heuristic requires at least 3 consecutive years starting
+    // from the current year.
+    const select = document.getElementById("form4-exp-year");
+    const curYear = new Date().getFullYear();
+    for (let year = curYear - 3; year <= curYear + 7; year++) {
+      const opt = document.createElement("option");
+      opt.value = year;
+      select.appendChild(opt);
+    }
+  </script>
 
   <form id="form5">
     <input id="cc-number" autocomplete="cc-number">
