@@ -14,7 +14,7 @@
   if (AppConstants.MOZ_DATA_REPORTING) {
     Services.scriptloader.loadSubScript("chrome://browser/content/browser-data-submission-info-bar.js", this);
   }
-  if (!AppConstants.MOZILLA_OFFICIAL) {
+  if (Services.prefs.getBoolPref("librewolf.devHelpers", false)) {
     Services.scriptloader.loadSubScript("chrome://browser/content/browser-development-helpers.js", this);
   }
   Services.scriptloader.loadSubScript("chrome://browser/content/browser-pageActions.js", this);

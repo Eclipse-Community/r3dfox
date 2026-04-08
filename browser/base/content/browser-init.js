@@ -507,7 +507,7 @@ var gBrowserInit = {
       gDataNotificationInfoBar.init();
     }
 
-    if (!AppConstants.MOZILLA_OFFICIAL) {
+    if (Services.prefs.getBoolPref("librewolf.devHelpers", false)) {
       DevelopmentHelpers.init();
     }
 
