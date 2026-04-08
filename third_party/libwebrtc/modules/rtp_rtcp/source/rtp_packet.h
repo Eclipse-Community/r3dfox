@@ -11,6 +11,7 @@
 #define MODULES_RTP_RTCP_SOURCE_RTP_PACKET_H_
 
 #include <optional>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,6 +27,12 @@ class RtpPacket {
  public:
   using ExtensionType = RTPExtensionType;
   using ExtensionManager = RtpHeaderExtensionMap;
+
+  // Maximum number of CSRCs in an RTP packet as specified in section
+  // "5.1 RTP Fixed Header Fields" of RFC 3550.
+  // Note: This is a different limit than the one that applies to RTCP packets
+  // (which is specified in section 6.1).
+  static constexpr size_t kMaxCsrcs = 15;
 
   // `extensions` required for SetExtension/ReserveExtension functions during
   // packet creating and used if available in Parse function.
@@ -115,7 +122,7 @@ class RtpPacket {
   // Writes csrc list. Assumes:
   // a) There is enough room left in buffer.
   // b) Extension headers, payload or padding data has not already been added.
-  void SetCsrcs(rtc::ArrayView<const uint32_t> csrcs);
+  void SetCsrcs(std::span<const uint32_t> csrcs);
 
   // Header extensions.
   template <typename Extension>
