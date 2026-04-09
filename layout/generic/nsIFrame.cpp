@@ -1324,12 +1324,7 @@ void nsIFrame::DidSetComputedStyle(ComputedStyle* aOldComputedStyle) {
   }
 
   if (handleStickyChange && !HasAnyStateBits(NS_FRAME_IS_NONDISPLAY) &&
-      !GetPrevInFlow()) {
-    // Note that we only add first continuations, but we really only
-    // want to add first continuation-or-ib-split-siblings. But since we don't
-    // yet know if we're a later part of a block-in-inline split, we'll just
-    // add later members of a block-in-inline split here, and then
-    // StickyScrollContainer will remove them later.
+      nsLayoutUtils::IsFirstContinuationOrIBSplitSibling(this)) {
     if (auto* ssc =
             StickyScrollContainer::GetStickyScrollContainerForFrame(this)) {
       if (disp->mPosition == StylePositionProperty::Sticky) {
