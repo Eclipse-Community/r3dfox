@@ -170,6 +170,8 @@ class InternalResponse final : public AtomicSafeRefCounted<InternalResponse> {
     return Headers();
   }
 
+  void SnapshotUnfilteredHeaders();
+
   void GetUnfilteredBody(nsIInputStream** aStream,
                          int64_t* aBodySize = nullptr) {
     if (mWrappedResponse) {

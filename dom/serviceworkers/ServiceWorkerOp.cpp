@@ -1512,10 +1512,10 @@ void FetchEventOp::ResolvedCallback(JSContext* aCx,
   // https://w3c.github.io/ServiceWorker/#on-fetch-request-algorithm Step 26: If
   // eventHandled is not null, then resolve eventHandled.
   //
-  // mRespondWithPromiseHolder will resolve a MozPromise that will resolve on
-  // the worker owner's thread, so it's fine to resolve the mHandled promise now
-  // because content will not interfere with respondWith getting the Response to
-  // where it's going.
+  // Take an immutable snapshot of the headers now, while still on the worker
+  // thread.
+  ir->SnapshotUnfilteredHeaders();
+
   mHandled->MaybeResolveWithUndefined();
   mRespondWithPromiseHolder.Resolve(
       FetchEventRespondWithResult(std::make_tuple(

@@ -123,6 +123,19 @@ template <typename T>
 
 InternalResponse::~InternalResponse() = default;
 
+void InternalResponse::SnapshotUnfilteredHeaders() {
+  auto snapshot = [](InternalHeaders* aHeaders) {
+    nsTArray<InternalHeaders::Entry> entries;
+    aHeaders->GetEntries(entries);
+    return MakeRefPtr<InternalHeaders>(std::move(entries), aHeaders->Guard());
+  };
+  if (mWrappedResponse) {
+    mWrappedResponse->mHeaders = snapshot(mWrappedResponse->mHeaders);
+  } else {
+    mHeaders = snapshot(mHeaders);
+  }
+}
+
 InternalResponseMetadata InternalResponse::GetMetadata() {
   nsTArray<HeadersEntry> headers;
   HeadersGuardEnum headersGuard;
