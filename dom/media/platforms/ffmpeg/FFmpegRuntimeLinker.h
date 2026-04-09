@@ -9,12 +9,13 @@
 
 #include "PlatformDecoderModule.h"
 #include "PlatformEncoderModule.h"
+#include "mozilla/StaticMutex.h"
 
 namespace mozilla {
 
 class FFmpegRuntimeLinker {
  public:
-  static bool Init();
+  static bool Init() MOZ_EXCLUDES(sMutex);
   static already_AddRefed<PlatformDecoderModule> CreateDecoder();
   static already_AddRefed<PlatformEncoderModule> CreateEncoder();
   enum LinkStatus {
@@ -32,14 +33,21 @@ class FFmpegRuntimeLinker {
     LinkStatus_INVALID_CANDIDATE,  // Found some lib with unexpected contents.
     LinkStatus_NOT_FOUND,  // Haven't found any library with an expected name.
   };
-  static LinkStatus LinkStatusCode() { return sLinkStatus; }
+  static LinkStatus LinkStatusCode() {
+    StaticMutexAutoLock lock(sMutex);
+    return sLinkStatus;
+  }
   static const char* LinkStatusString();
   // Library name to which the sLinkStatus applies, or "" if not applicable.
-  static const char* LinkStatusLibraryName() { return sLinkStatusLibraryName; }
+  static const char* LinkStatusLibraryName() {
+    StaticMutexAutoLock lock(sMutex);
+    return sLinkStatusLibraryName;
+  }
 
  private:
-  static LinkStatus sLinkStatus;
-  static const char* sLinkStatusLibraryName;
+  static StaticMutex sMutex;
+  static LinkStatus sLinkStatus MOZ_GUARDED_BY(sMutex);
+  static const char* sLinkStatusLibraryName MOZ_GUARDED_BY(sMutex);
 };
 
 }  // namespace mozilla
