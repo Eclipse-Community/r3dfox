@@ -9,6 +9,8 @@
 #include "mozilla/BinarySearch.h"
 #include "mozilla/Components.h"
 #include "mozilla/ClearOnShutdown.h"
+#include "mozilla/StaticMutex.h"
+#include "nsThreadUtils.h"
 #include "mozilla/dom/Promise.h"
 #include "mozilla/dom/Promise-inl.h"
 #include "mozilla/ExtensionPolicyService.h"
@@ -20,6 +22,7 @@
 #include "mozilla/Omnijar.h"
 #include "mozilla/RefPtr.h"
 #include "mozilla/ResultExtensions.h"
+#include "mozilla/SyncRunnable.h"
 #include "mozilla/Try.h"
 
 #include "FileDescriptorFile.h"
@@ -386,9 +389,24 @@ NS_IMPL_RELEASE_INHERITED(ExtensionProtocolHandler, SubstitutingProtocolHandler)
 
 already_AddRefed<ExtensionProtocolHandler>
 ExtensionProtocolHandler::GetSingleton() {
+  static StaticMutex sMutex;
+  StaticMutexAutoLock lock(sMutex);
   if (!sSingleton) {
-    sSingleton = new ExtensionProtocolHandler();
-    ClearOnShutdown(&sSingleton);
+    if (NS_IsMainThread()) {
+      sSingleton = new ExtensionProtocolHandler();
+      ClearOnShutdown(&sSingleton);
+    } else {
+      StaticMutexAutoUnlock unlock(sMutex);
+      RefPtr<nsIRunnable> r = NS_NewRunnableFunction(
+          "ExtensionProtocolHandler::GetSingleton", []() {
+            StaticMutexAutoLock lock(sMutex);
+            if (!sSingleton) {
+              sSingleton = new ExtensionProtocolHandler();
+              ClearOnShutdown(&sSingleton);
+            }
+          });
+      SyncRunnable::DispatchToThread(GetMainThreadSerialEventTarget(), r);
+    }
   }
   return do_AddRef(sSingleton);
 }
