@@ -687,15 +687,17 @@ const gfxHarfBuzzShaper::Glyf* gfxHarfBuzzShaper::FindGlyf(
   uint32_t len;
   const char* data = hb_blob_get_data(mLocaTable, &len);
   if (mLocaLongOffsets) {
-    if ((aGlyph + 1) * sizeof(AutoSwap_PRUint32) > len) {
+    // We read offsets[aGlyph] and offsets[aGlyph + 1], so require aGlyph + 2
+    // entries.
+    if ((aGlyph + 2) * sizeof(AutoSwap_PRUint32) > len) {
       return nullptr;
     }
     const AutoSwap_PRUint32* offsets =
         reinterpret_cast<const AutoSwap_PRUint32*>(data);
     offset = offsets[aGlyph];
-    *aEmptyGlyf = (offset == uint16_t(offsets[aGlyph + 1]));
+    *aEmptyGlyf = (offset == uint32_t(offsets[aGlyph + 1]));
   } else {
-    if ((aGlyph + 1) * sizeof(AutoSwap_PRUint16) > len) {
+    if ((aGlyph + 2) * sizeof(AutoSwap_PRUint16) > len) {
       return nullptr;
     }
     const AutoSwap_PRUint16* offsets =
