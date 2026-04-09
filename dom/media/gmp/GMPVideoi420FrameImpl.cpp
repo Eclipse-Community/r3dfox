@@ -60,6 +60,9 @@ bool GMPVideoi420FrameImpl::CheckFrameData(
   // This implies a bug or serious error on the child size.  Ignore this frame
   // if so. Note: Size() greater than expected is also an error, but with no
   // negative consequences
+  if (aFrameData.mWidth() <= 0 || aFrameData.mHeight() <= 0) {
+    return false;
+  }
   int32_t half_width = (aFrameData.mWidth() + 1) / 2;
   if ((aFrameData.mYPlane().mStride() <= 0) ||
       (aFrameData.mYPlane().mSize() <= 0) ||
