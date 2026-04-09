@@ -1726,7 +1726,9 @@ already_AddRefed<TextureReadLock> TextureReadLock::Deserialize(
     case ReadLockDescriptor::TUntrustedShmemSection: {
       const UntrustedShmemSection& untrusted =
           aDescriptor.get_UntrustedShmemSection();
-      Maybe<ShmemSection> section = ShmemSection::FromUntrusted(untrusted);
+      size_t minSize = sizeof(ShmemTextureReadLock::ShmReadLockInfo);
+      Maybe<ShmemSection> section =
+          ShmemSection::FromUntrusted(untrusted, minSize);
       if (section.isNothing()) {
         return nullptr;
       }

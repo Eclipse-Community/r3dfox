@@ -158,7 +158,7 @@ class HostIPCAllocator : public ISurfaceAllocator {
 class ShmemSection {
  public:
   static Maybe<ShmemSection> FromUntrusted(
-      const UntrustedShmemSection& aUntrusted);
+      const UntrustedShmemSection& aUntrusted, size_t aMinSize);
   bool Init(const mozilla::ipc::Shmem& aShm, uint32_t offset, uint32_t size);
   UntrustedShmemSection AsUntrusted();
 
