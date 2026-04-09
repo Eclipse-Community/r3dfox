@@ -1449,6 +1449,8 @@ bool gfxHarfBuzzShaper::ShapeText(DrawTarget* aDrawTarget,
                                   nsAtom* aLanguage, bool aVertical,
                                   RoundingFlags aRounding,
                                   gfxShapedText* aShapedText) {
+  MutexAutoLock lock(mShapeLock);
+
   mUseVerticalPresentationForms = false;
 
   if (!Initialize()) {

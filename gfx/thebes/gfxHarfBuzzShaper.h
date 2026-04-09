@@ -135,7 +135,8 @@ class gfxHarfBuzzShaper : public gfxFontShaper {
   // size-specific font object, owned by the gfxHarfBuzzShaper
   hb_font_t* mHBFont;
 
-  // harfbuzz buffer for the shaping process
+  // Held for the duration of ShapeText() to serialize mBuffer usage.
+  mozilla::Mutex mShapeLock = mozilla::Mutex("gfxHarfBuzzShaper::mShapeLock");
   hb_buffer_t* mBuffer;
 
   mutable mozilla::Mutex mCacheLock = mozilla::Mutex("shaperCacheMutex");
