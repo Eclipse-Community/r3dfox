@@ -37,30 +37,10 @@ using namespace mozilla::unicode;  // for Unicode property lookup
 
 gfxHarfBuzzShaper::gfxHarfBuzzShaper(gfxFont* aFont)
     : gfxFontShaper(aFont),
-      mHBFont(nullptr),
-      mBuffer(nullptr),
-      mCallbackData(),
-      mKernTable(nullptr),
-      mHmtxTable(nullptr),
-      mVmtxTable(nullptr),
-      mVORGTable(nullptr),
-      mLocaTable(nullptr),
-      mGlyfTable(nullptr),
-      mCmapTable(nullptr),
-      mCmapFormat(-1),
-      mSubtableOffset(0),
-      mUVSTableOffset(0),
-      mNumLongHMetrics(0),
-      mNumLongVMetrics(0),
-      mDefaultVOrg(-1.0),
       mUseFontGetGlyph(aFont->ProvidesGetGlyph()),
-      mIsSymbolFont(false),
-      mUseFontGlyphWidths(aFont->ProvidesGlyphWidths()),
-      mInitialized(false),
-      mVerticalInitialized(false),
-      mUseVerticalPresentationForms(false),
-      mLoadedLocaGlyf(false),
-      mLocaLongOffsets(false) {}
+      mUseFontGlyphWidths(aFont->ProvidesGlyphWidths()) {
+  (void)NS_WARN_IF(!Initialize());
+}
 
 gfxHarfBuzzShaper::~gfxHarfBuzzShaper() {
   // hb_*_destroy functions are safe to call on nullptr
@@ -79,15 +59,16 @@ gfxHarfBuzzShaper::~gfxHarfBuzzShaper() {
 
 hb_codepoint_t gfxHarfBuzzShaper::GetGlyphUncached(
     hb_codepoint_t unicode) const {
+  // Note that the fields used here are set during Initialize() and then never
+  // modified, so locking is not necessary.
   hb_codepoint_t gid = 0;
 
   if (mUseFontGetGlyph) {
-    MutexAutoUnlock unlock(mCacheLock);
     gid = mFont->GetGlyph(unicode, 0);
   } else {
     // we only instantiate a harfbuzz shaper if there's a cmap available
-    NS_ASSERTION(mCmapTable && (mCmapFormat > 0) && (mSubtableOffset > 0),
-                 "cmap data not correctly set up, expect disaster");
+    MOZ_ASSERT(mCmapTable && (mCmapFormat > 0) && (mSubtableOffset > 0),
+               "cmap data not correctly set up, expect disaster");
 
     uint32_t length;
     const uint8_t* data = (const uint8_t*)hb_blob_get_data(mCmapTable, &length);
@@ -147,30 +128,21 @@ hb_codepoint_t gfxHarfBuzzShaper::GetGlyphUncached(
 
 hb_codepoint_t gfxHarfBuzzShaper::GetNominalGlyph(
     hb_codepoint_t unicode) const {
-  MutexAutoLock lock(mCacheLock);
+  RecursiveMutexAutoLock lock(mMutex);
   auto cached = mCmapCache->Lookup(unicode);
   if (cached) {
     return cached.Data().mGlyphId;
   }
 
-  // This call can temporarily unlock the cache if mUseFontGetGlyph is true.
   hb_codepoint_t gid = GetGlyphUncached(unicode);
-
-  if (mUseFontGetGlyph) {
-    // GetGlyphUncached may have invalidated our earlier cache lookup!
-    mCmapCache->Put(unicode, CmapCacheData{unicode, gid});
-  } else {
-    cached.Set(CmapCacheData{unicode, gid});
-  }
-
+  mCmapCache->Put(unicode, CmapCacheData{unicode, gid});
   return gid;
 }
 
 unsigned int gfxHarfBuzzShaper::GetNominalGlyphs(
     unsigned int count, const hb_codepoint_t* first_unicode,
     unsigned int unicode_stride, hb_codepoint_t* first_glyph,
-    unsigned int glyph_stride) {
-  MutexAutoLock lock(mCacheLock);
+    unsigned int glyph_stride) const {
   unsigned int result = 0;
   while (result < count) {
     hb_codepoint_t usv = *first_unicode;
@@ -302,17 +274,18 @@ hb_codepoint_t gfxHarfBuzzShaper::GetVerticalPresentationForm(
   return charPair ? charPair[1] : 0;
 }
 
-static hb_bool_t HBGetNominalGlyph(hb_font_t* font, void* font_data,
-                                   hb_codepoint_t unicode,
-                                   hb_codepoint_t* glyph, void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
+hb_bool_t gfxHarfBuzzShaper::HBGetNominalGlyph(hb_font_t* font, void* font_data,
+                                               hb_codepoint_t unicode,
+                                               hb_codepoint_t* glyph,
+                                               void* user_data) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
 
-  if (fcd->mShaper->UseVerticalPresentationForms()) {
+  if (shaper->UseVerticalPresentationForms()) {
     hb_codepoint_t verticalForm =
         gfxHarfBuzzShaper::GetVerticalPresentationForm(unicode);
     if (verticalForm) {
-      *glyph = fcd->mShaper->GetNominalGlyph(verticalForm);
+      *glyph = shaper->GetNominalGlyph(verticalForm);
       if (*glyph != 0) {
         return true;
       }
@@ -320,37 +293,39 @@ static hb_bool_t HBGetNominalGlyph(hb_font_t* font, void* font_data,
     // fall back to the non-vertical form if we didn't find an alternate
   }
 
-  *glyph = fcd->mShaper->GetNominalGlyph(unicode);
+  *glyph = shaper->GetNominalGlyph(unicode);
   return *glyph != 0;
 }
 
-static unsigned int HBGetNominalGlyphs(
+/* static */ unsigned int gfxHarfBuzzShaper::HBGetNominalGlyphs(
     hb_font_t* font, void* font_data, unsigned int count,
     const hb_codepoint_t* first_unicode, unsigned int unicode_stride,
     hb_codepoint_t* first_glyph, unsigned int glyph_stride, void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
-  if (fcd->mShaper->UseVerticalPresentationForms()) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
+  if (shaper->UseVerticalPresentationForms()) {
     return 0;
   }
 
-  return fcd->mShaper->GetNominalGlyphs(count, first_unicode, unicode_stride,
-                                        first_glyph, glyph_stride);
+  // GetNominalGlyphs requires that the mMutex is held, which is guaranteed
+  // because we're inside a callback from hb_shape.
+  MOZ_PUSH_IGNORE_THREAD_SAFETY
+  return shaper->GetNominalGlyphs(count, first_unicode, unicode_stride,
+                                  first_glyph, glyph_stride);
+  MOZ_POP_THREAD_SAFETY
 }
 
-static hb_bool_t HBGetVariationGlyph(hb_font_t* font, void* font_data,
-                                     hb_codepoint_t unicode,
-                                     hb_codepoint_t variation_selector,
-                                     hb_codepoint_t* glyph, void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
+/* static */ hb_bool_t gfxHarfBuzzShaper::HBGetVariationGlyph(
+    hb_font_t* font, void* font_data, hb_codepoint_t unicode,
+    hb_codepoint_t variation_selector, hb_codepoint_t* glyph, void* user_data) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
 
-  if (fcd->mShaper->UseVerticalPresentationForms()) {
+  if (shaper->UseVerticalPresentationForms()) {
     hb_codepoint_t verticalForm =
         gfxHarfBuzzShaper::GetVerticalPresentationForm(unicode);
     if (verticalForm) {
-      *glyph =
-          fcd->mShaper->GetVariationGlyph(verticalForm, variation_selector);
+      *glyph = shaper->GetVariationGlyph(verticalForm, variation_selector);
       if (*glyph != 0) {
         return true;
       }
@@ -358,7 +333,7 @@ static hb_bool_t HBGetVariationGlyph(hb_font_t* font, void* font_data,
     // fall back to the non-vertical form if we didn't find an alternate
   }
 
-  *glyph = fcd->mShaper->GetVariationGlyph(unicode, variation_selector);
+  *glyph = shaper->GetVariationGlyph(unicode, variation_selector);
   return *glyph != 0;
 }
 
@@ -405,13 +380,12 @@ hb_position_t gfxHarfBuzzShaper::GetGlyphHAdvanceUncached(
 
 hb_position_t gfxHarfBuzzShaper::GetGlyphHAdvance(hb_codepoint_t glyph) const {
   if (mUseFontGlyphWidths) {
-    MutexAutoLock lock(mCacheLock);
+    RecursiveMutexAutoLock lock(mMutex);
     if (auto cached = mWidthCache->Lookup(glyph)) {
       return cached.Data().mAdvance;
     }
-    mCacheLock.Unlock();
+
     hb_position_t advance = GetFont()->GetGlyphWidth(glyph);
-    mCacheLock.Lock();
     mWidthCache->Put(glyph, WidthCacheData{glyph, advance});
     return advance;
   }
@@ -424,19 +398,14 @@ void gfxHarfBuzzShaper::GetGlyphHAdvances(unsigned int count,
                                           unsigned int glyph_stride,
                                           hb_position_t* first_advance,
                                           unsigned int advance_stride) const {
+  // This is called with the mMutex mutex already held.
   if (mUseFontGlyphWidths) {
-    // Take the cache lock here, hoping we'll be able to retrieve a bunch of
-    // widths from the cache for the cost of a single locking operation.
-    MutexAutoLock lock(mCacheLock);
     for (unsigned int i = 0; i < count; ++i) {
       hb_codepoint_t gid = *first_glyph;
       if (auto cached = mWidthCache->Lookup(gid)) {
         *first_advance = cached.Data().mAdvance;
       } else {
-        // Unlock to avoid deadlock if the font needs internal locking.
-        mCacheLock.Unlock();
         hb_position_t advance = GetFont()->GetGlyphWidth(gid);
-        mCacheLock.Lock();
         mWidthCache->Put(gid, WidthCacheData{gid, advance});
         *first_advance = advance;
       }
@@ -458,7 +427,9 @@ void gfxHarfBuzzShaper::GetGlyphHAdvances(unsigned int count,
 }
 
 hb_position_t gfxHarfBuzzShaper::GetGlyphVAdvance(hb_codepoint_t glyph) {
-  InitializeVertical();
+  if (!mVerticalInitialized) {
+    InitializeVertical();
+  }
 
   if (!mVmtxTable) {
     // Must be a "vertical" font that doesn't actually have vertical metrics.
@@ -483,39 +454,41 @@ hb_position_t gfxHarfBuzzShaper::GetGlyphVAdvance(hb_codepoint_t glyph) {
                       uint16_t(metrics->metrics[glyph].advanceWidth));
 }
 
-static hb_position_t HBGetGlyphHAdvance(hb_font_t* font, void* font_data,
-                                        hb_codepoint_t glyph, void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
-  return fcd->mShaper->GetGlyphHAdvance(glyph);
+/* static */ hb_position_t gfxHarfBuzzShaper::HBGetGlyphHAdvance(
+    hb_font_t* font, void* font_data, hb_codepoint_t glyph, void* user_data) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
+  return shaper->GetGlyphHAdvance(glyph);
 }
 
-static void HBGetGlyphHAdvances(hb_font_t* font, void* font_data,
-                                unsigned int count,
-                                const hb_codepoint_t* first_glyph,
-                                unsigned int glyph_stride,
-                                hb_position_t* first_advance,
-                                unsigned int advance_stride, void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
-  fcd->mShaper->GetGlyphHAdvances(count, first_glyph, glyph_stride,
-                                  first_advance, advance_stride);
+/* static */ void gfxHarfBuzzShaper::HBGetGlyphHAdvances(
+    hb_font_t* font, void* font_data, unsigned int count,
+    const hb_codepoint_t* first_glyph, unsigned int glyph_stride,
+    hb_position_t* first_advance, unsigned int advance_stride,
+    void* user_data) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
+
+  // GetGlyphHAdvances requires that mMutex is held, which is guaranteed
+  // because we're inside a callback from hb_shape.
+  MOZ_PUSH_IGNORE_THREAD_SAFETY
+  shaper->GetGlyphHAdvances(count, first_glyph, glyph_stride, first_advance,
+                            advance_stride);
+  MOZ_POP_THREAD_SAFETY
 }
 
-static hb_position_t HBGetGlyphVAdvance(hb_font_t* font, void* font_data,
-                                        hb_codepoint_t glyph, void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
+/* static */ hb_position_t gfxHarfBuzzShaper::HBGetGlyphVAdvance(
+    hb_font_t* font, void* font_data, hb_codepoint_t glyph, void* user_data) {
+  gfxHarfBuzzShaper* shaper = static_cast<gfxHarfBuzzShaper*>(font_data);
   // Currently, we don't offer gfxFont subclasses a method to override this
   // and provide hinted platform-specific vertical advances (analogous to the
   // GetGlyphWidth method for horizontal advances). If that proves necessary,
   // we'll add a new gfxFont method and call it from here.
-  hb_position_t advance = fcd->mShaper->GetGlyphVAdvance(glyph);
+  hb_position_t advance = shaper->GetGlyphVAdvance(glyph);
   if (advance < 0) {
     // Not available (e.g. broken metrics in the font); use a fallback value.
-    advance = FloatToFixed(fcd->mShaper->GetFont()
-                               ->GetMetrics(nsFontMetrics::eVertical)
-                               .aveCharWidth);
+    advance = FloatToFixed(
+        shaper->GetFont()->GetMetrics(nsFontMetrics::eVertical).aveCharWidth);
   }
   // We negate the value from GetGlyphVAdvance here because harfbuzz shapes
   // with a coordinate system where positive is upwards, whereas the inline
@@ -535,12 +508,12 @@ struct VORGrec {
   AutoSwap_PRInt16 vertOriginY;
 };
 
-static hb_bool_t HBGetGlyphVOrigin(hb_font_t* font, void* font_data,
-                                   hb_codepoint_t glyph, hb_position_t* x,
-                                   hb_position_t* y, void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
-  fcd->mShaper->GetGlyphVOrigin(glyph, x, y);
+/* static */ hb_bool_t gfxHarfBuzzShaper::HBGetGlyphVOrigin(
+    hb_font_t* font, void* font_data, hb_codepoint_t glyph, hb_position_t* x,
+    hb_position_t* y, void* user_data) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
+  shaper->GetGlyphVOrigin(glyph, x, y);
   return true;
 }
 
@@ -644,13 +617,12 @@ void gfxHarfBuzzShaper::GetGlyphVOrigin(hb_codepoint_t aGlyph,
   *aY = mDefaultVOrg;
 }
 
-static hb_bool_t HBGetGlyphExtents(hb_font_t* font, void* font_data,
-                                   hb_codepoint_t glyph,
-                                   hb_glyph_extents_t* extents,
-                                   void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
-  return fcd->mShaper->GetGlyphExtents(glyph, extents);
+/* static */ hb_bool_t gfxHarfBuzzShaper::HBGetGlyphExtents(
+    hb_font_t* font, void* font_data, hb_codepoint_t glyph,
+    hb_glyph_extents_t* extents, void* user_data) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
+  return shaper->GetGlyphExtents(glyph, extents);
 }
 
 // Find the data for glyph ID |aGlyph| in the 'glyf' table, if present.
@@ -747,10 +719,9 @@ hb_bool_t gfxHarfBuzzShaper::GetGlyphExtents(
   return true;
 }
 
-static hb_bool_t HBGetContourPoint(hb_font_t* font, void* font_data,
-                                   unsigned int point_index,
-                                   hb_codepoint_t glyph, hb_position_t* x,
-                                   hb_position_t* y, void* user_data) {
+/* static */ hb_bool_t gfxHarfBuzzShaper::HBGetContourPoint(
+    hb_font_t* font, void* font_data, unsigned int point_index,
+    hb_codepoint_t glyph, hb_position_t* x, hb_position_t* y, void* user_data) {
   /* not yet implemented - no support for used of hinted contour points
      to fine-tune anchor positions in GPOS AnchorFormat2 */
   return false;
@@ -1125,13 +1096,12 @@ hb_position_t gfxHarfBuzzShaper::GetHKerning(uint16_t aFirstGlyph,
   return 0;
 }
 
-static hb_position_t HBGetHKerning(hb_font_t* font, void* font_data,
-                                   hb_codepoint_t first_glyph,
-                                   hb_codepoint_t second_glyph,
-                                   void* user_data) {
-  const gfxHarfBuzzShaper::FontCallbackData* fcd =
-      static_cast<const gfxHarfBuzzShaper::FontCallbackData*>(font_data);
-  return fcd->mShaper->GetHKerning(first_glyph, second_glyph);
+/* static */ hb_position_t gfxHarfBuzzShaper::HBGetHKerning(
+    hb_font_t* font, void* font_data, hb_codepoint_t first_glyph,
+    hb_codepoint_t second_glyph, void* user_data) {
+  const gfxHarfBuzzShaper* shaper =
+      static_cast<const gfxHarfBuzzShaper*>(font_data);
+  return shaper->GetHKerning(first_glyph, second_glyph);
 }
 
 /*
@@ -1218,11 +1188,9 @@ MOZ_RUNINIT static const hb_script_t sMathScript =
     hb_ot_tag_to_script(HB_TAG('m', 'a', 't', 'h'));
 
 bool gfxHarfBuzzShaper::Initialize() {
-  if (mInitialized) {
-    return mHBFont != nullptr;
-  }
-  mInitialized = true;
-  mCallbackData.mShaper = this;
+  // We don't need to lock here, as we're just initializing the shaper and no
+  // other thread can yet be using it.
+  MOZ_PUSH_IGNORE_THREAD_SAFETY
 
   if (!sHBFontFuncs) {
     // static function callback pointers, initialized by the first
@@ -1295,9 +1263,6 @@ bool gfxHarfBuzzShaper::Initialize() {
     mNumGlyphs = uint16_t(maxp->numGlyphs);
   }
 
-  // We don't need to take the cache lock here, as we're just initializing the
-  // shaper and no other thread can yet be using it.
-  MOZ_PUSH_IGNORE_THREAD_SAFETY
   mCmapCache = MakeUnique<CmapCache>();
 
   if (mUseFontGlyphWidths) {
@@ -1309,7 +1274,6 @@ bool gfxHarfBuzzShaper::Initialize() {
       return false;
     }
   }
-  MOZ_POP_THREAD_SAFETY
 
   mBuffer = hb_buffer_create();
   hb_buffer_set_unicode_funcs(mBuffer, sHBUnicodeFuncs);
@@ -1320,14 +1284,16 @@ bool gfxHarfBuzzShaper::Initialize() {
       mFont->GetFontEntry()->HasFontTable(TRUETYPE_TAG('C', 'F', 'F', ' '))
           ? sNominalGlyphFunc
           : sHBFontFuncs;
-  mHBFont = CreateHBFont(mFont, funcs, &mCallbackData);
+  mHBFont = CreateHBFont(mFont, funcs, this);
+
+  MOZ_POP_THREAD_SAFETY
 
   return true;
 }
 
 hb_font_t* gfxHarfBuzzShaper::CreateHBFont(gfxFont* aFont,
                                            hb_font_funcs_t* aFontFuncs,
-                                           FontCallbackData* aCallbackData) {
+                                           void* aCallbackData) {
   auto face(aFont->GetFontEntry()->GetHBFace());
   hb_font_t* result = hb_font_create(face);
 
@@ -1397,9 +1363,8 @@ bool gfxHarfBuzzShaper::LoadHmtxTable() {
 void gfxHarfBuzzShaper::InitializeVertical() {
   // We only do this once. If we don't have a mHmtxTable after that,
   // we'll be making up fallback metrics.
-  if (mVerticalInitialized) {
-    return;
-  }
+  RecursiveMutexAutoLock lock(mMutex);
+
   mVerticalInitialized = true;
 
   if (!mHmtxTable) {
@@ -1461,14 +1426,16 @@ bool gfxHarfBuzzShaper::ShapeText(DrawTarget* aDrawTarget,
                                   nsAtom* aLanguage, bool aVertical,
                                   RoundingFlags aRounding,
                                   gfxShapedText* aShapedText) {
+  // gfxFont (and hence this shaper) may be shared across threads via the
+  // global font cache; serialize ShapeText so that mBuffer and other mutable
+  // per-call state cannot be touched concurrently.
+  RecursiveMutexAutoLock lock(mMutex);
+
   mUseVerticalPresentationForms = false;
-
-  if (!Initialize()) {
-    return false;
-  }
-
   if (aVertical) {
-    InitializeVertical();
+    if (!mVerticalInitialized) {
+      InitializeVertical();
+    }
     if (!mFont->GetFontEntry()->SupportsOpenTypeFeature(
             aScript, HB_TAG('v', 'e', 'r', 't'))) {
       mUseVerticalPresentationForms = true;
