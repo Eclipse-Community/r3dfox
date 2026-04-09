@@ -7,6 +7,8 @@
 // mostly derived from the Allegro source code at:
 // http://alleg.svn.sourceforge.net/viewvc/alleg/allegro/branches/4.9/src/macosx/hidjoy.m?revision=13760&view=markup
 
+#include "mozilla/Atomics.h"
+#include "mozilla/Mutex.h"
 #include "mozilla/dom/GamepadHandle.h"
 #include "mozilla/dom/GamepadPlatformService.h"
 #include "mozilla/dom/GamepadRemapping.h"
@@ -96,6 +98,7 @@ class Gamepad {
 
   bool operator==(IOHIDDeviceRef device) const { return mDevice == device; }
   bool empty() const { return mDevice == nullptr; }
+  IOHIDDeviceRef Device() const { return mDevice; }
   void clear() {
     mDevice = nullptr;
     buttons.Clear();
@@ -104,7 +107,6 @@ class Gamepad {
   }
   void init(IOHIDDeviceRef device, bool defaultRemapper);
   void ReportChanged(uint8_t* report, CFIndex report_length);
-  size_t WriteOutputReport(const std::vector<uint8_t>& aReport) const;
 
   size_t numButtons() { return buttons.Length(); }
   size_t numAxes() { return axes.Length(); }
@@ -200,12 +202,13 @@ void Gamepad::init(IOHIDDeviceRef aDevice, bool aDefaultRemapper) {
 class DarwinGamepadService {
  private:
   IOHIDManagerRef mManager;
-  nsTArray<Gamepad> mGamepads;
+  Mutex mGamepadsMutex;
+  nsTArray<Gamepad> mGamepads MOZ_GUARDED_BY(mGamepadsMutex);
 
   nsCOMPtr<nsIThread> mMonitorThread;
   nsCOMPtr<nsIThread> mBackgroundThread;
   nsCOMPtr<nsITimer> mPollingTimer;
-  bool mIsRunning;
+  Atomic<bool> mIsRunning;
 
   static void DeviceAddedCallback(void* data, IOReturn result, void* sender,
                                   IOHIDDeviceRef device);
@@ -292,6 +295,12 @@ void DarwinGamepadService::DeviceAdded(IOHIDDeviceRef device) {
     return;
   }
 
+  // Holding the lock through IOHIDDeviceRegisterInputReportCallback is safe:
+  // ReportChangedCallback (which also acquires this lock) is only ever invoked
+  // from within CFRunLoopRunInMode on the monitor thread, which is not running
+  // while DeviceAdded is executing.
+  MutexAutoLock lock(mGamepadsMutex);
+
   size_t slot = size_t(-1);
   for (size_t i = 0; i < mGamepads.Length(); i++) {
     if (mGamepads[i] == device) return;
@@ -360,6 +369,11 @@ void DarwinGamepadService::DeviceRemoved(IOHIDDeviceRef device) {
   if (!service) {
     return;
   }
+  // Same reasoning as DeviceAdded: holding the lock through
+  // IOHIDDeviceRegisterInputReportCallback (the unregister call) is safe
+  // because ReportChangedCallback only runs from within CFRunLoopRunInMode on
+  // the monitor thread, which is not running while DeviceRemoved executes.
+  MutexAutoLock lock(mGamepadsMutex);
   for (Gamepad& gamepad : mGamepads) {
     if (gamepad == device) {
       IOHIDDeviceRegisterInputReportCallback(
@@ -382,6 +396,7 @@ void DarwinGamepadService::ReportChangedCallback(
   if (context && report_type == kIOHIDReportTypeInput && report_length) {
     auto reportContext = static_cast<GamepadInputReportContext*>(context);
     DarwinGamepadService* service = reportContext->service;
+    MutexAutoLock lock(service->mGamepadsMutex);
     service->mGamepads[reportContext->gamepadSlot].ReportChanged(report,
                                                                  report_length);
   }
@@ -390,15 +405,6 @@ void DarwinGamepadService::ReportChangedCallback(
 void Gamepad::ReportChanged(uint8_t* report, CFIndex report_len) {
   MOZ_RELEASE_ASSERT(report_len <= mRemapper->GetMaxInputReportLength());
   mRemapper->ProcessTouchData(mHandle, report);
-}
-
-size_t Gamepad::WriteOutputReport(const std::vector<uint8_t>& aReport) const {
-  IOReturn success =
-      IOHIDDeviceSetReport(mDevice, kIOHIDReportTypeOutput, aReport[0],
-                           aReport.data(), aReport.size());
-
-  MOZ_ASSERT(success == kIOReturnSuccess);
-  return (success == kIOReturnSuccess) ? aReport.size() : 0;
 }
 
 void DarwinGamepadService::InputValueChanged(IOHIDValueRef value) {
@@ -417,6 +423,7 @@ void DarwinGamepadService::InputValueChanged(IOHIDValueRef value) {
   IOHIDElementRef element = IOHIDValueGetElement(value);
   IOHIDDeviceRef device = IOHIDElementGetDevice(element);
 
+  MutexAutoLock lock(mGamepadsMutex);
   for (Gamepad& gamepad : mGamepads) {
     if (gamepad == device) {
       // Axis elements represent axes and d-pads.
@@ -497,7 +504,9 @@ static CFMutableDictionaryRef MatchingDictionary(UInt32 inUsagePage,
 }
 
 DarwinGamepadService::DarwinGamepadService()
-    : mManager(nullptr), mIsRunning(false) {}
+    : mManager(nullptr),
+      mGamepadsMutex("DarwinGamepadService::mGamepads"),
+      mIsRunning(false) {}
 
 DarwinGamepadService::~DarwinGamepadService() {
   if (mManager != nullptr) CFRelease(mManager);
@@ -604,24 +613,38 @@ void DarwinGamepadService::SetLightIndicatorColor(
     const uint8_t& aGreen, const uint8_t& aBlue) {
   // We get aControllerIdx from GamepadPlatformService::AddGamepad(),
   // It begins from 1 and is stored at Gamepad.id.
-  const Gamepad* gamepad = MOZ_FIND_AND_VALIDATE(
-      aGamepadHandle, list_item.mHandle == aGamepadHandle, mGamepads);
-  if (!gamepad) {
-    MOZ_ASSERT(false);
-    return;
-  }
-
-  RefPtr<GamepadRemapper> remapper = gamepad->mRemapper;
-  if (!remapper ||
-      MOZ_IS_VALID(aLightColorIndex,
-                   remapper->GetLightIndicatorCount() <= aLightColorIndex)) {
-    MOZ_ASSERT(false);
-    return;
-  }
-
+  IOHIDDeviceRef device = nullptr;
   std::vector<uint8_t> report;
-  remapper->GetLightColorReport(aRed, aGreen, aBlue, report);
-  gamepad->WriteOutputReport(report);
+  {
+    MutexAutoLock lock(mGamepadsMutex);
+    // the tainting macro confuses clang
+    MOZ_PUSH_IGNORE_THREAD_SAFETY
+    const Gamepad* gamepad = MOZ_FIND_AND_VALIDATE(
+        aGamepadHandle, list_item.mHandle == aGamepadHandle, mGamepads);
+    MOZ_POP_THREAD_SAFETY
+    if (!gamepad) {
+      MOZ_ASSERT(false);
+      return;
+    }
+
+    RefPtr<GamepadRemapper> remapper = gamepad->mRemapper;
+    if (!remapper ||
+        MOZ_IS_VALID(aLightColorIndex,
+                     remapper->GetLightIndicatorCount() <= aLightColorIndex)) {
+      MOZ_ASSERT(false);
+      return;
+    }
+
+    remapper->GetLightColorReport(aRed, aGreen, aBlue, report);
+    device = gamepad->Device();
+  }
+  if (device) {
+    IOReturn success = IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput,
+                                            report[0], report.data(),
+                                            report.size());
+    MOZ_ASSERT(success == kIOReturnSuccess);
+    (void)success;
+  }
 }
 
 }  // namespace
