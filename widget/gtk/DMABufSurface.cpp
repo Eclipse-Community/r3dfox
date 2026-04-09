@@ -915,17 +915,38 @@ bool DMABufSurfaceRGBA::Create(
   return true;
 }
 
+static bool CheckSurfaceDescriptor(const SurfaceDescriptorDMABuf& aDesc) {
+  auto bufferPlaneCount = aDesc.fds().Length();
+  MOZ_RELEASE_ASSERT(bufferPlaneCount <= DMABUF_BUFFER_PLANES);
+  if (bufferPlaneCount <= 0 ||
+      aDesc.width().Length() < (uint32_t)bufferPlaneCount ||
+      aDesc.height().Length() < (uint32_t)bufferPlaneCount ||
+      aDesc.widthAligned().Length() < (uint32_t)bufferPlaneCount ||
+      aDesc.heightAligned().Length() < (uint32_t)bufferPlaneCount ||
+      aDesc.format().Length() < (uint32_t)bufferPlaneCount ||
+      aDesc.modifier().Length() < (uint32_t)bufferPlaneCount ||
+      aDesc.strides().Length() < (uint32_t)bufferPlaneCount ||
+      aDesc.offsets().Length() < (uint32_t)bufferPlaneCount) {
+    return false;
+  }
+  return true;
+}
+
 bool DMABufSurfaceRGBA::ImportSurfaceDescriptor(
     const SurfaceDescriptor& aDesc) {
   const SurfaceDescriptorDMABuf& desc = aDesc.get_SurfaceDescriptorDMABuf();
 
+  if (!CheckSurfaceDescriptor(desc)) {
+    return false;
+  }
+
+  mBufferPlaneCount = desc.fds().Length();
+
   mFOURCCFormat = desc.fourccFormat();
   mWidth = desc.width()[0];
   mHeight = desc.height()[0];
-  mBufferPlaneCount = desc.fds().Length();
   mGbmBufferFlags = desc.flags();
   mBufferModifier = desc.modifier()[0];
-  MOZ_RELEASE_ASSERT(mBufferPlaneCount <= DMABUF_BUFFER_PLANES);
   mUID = desc.uid();
   mPID = desc.pid();
 
@@ -1482,6 +1503,9 @@ bool DMABufSurfaceYUV::ImportPRIMESurfaceDescriptor(
     unsigned int subsample = i == 0 ? 0 : 1;
 
     unsigned int object = aDesc.layers[i].object_index[0];
+    if (object >= aDesc.num_objects) {
+      return false;
+    }
     mBufferModifiers[i] = aDesc.objects[object].drm_format_modifier;
     mDrmFormats[i] = aDesc.layers[i].drm_format;
     mOffsets[i] = aDesc.layers[i].offset[0];
@@ -1515,6 +1539,9 @@ void DMABufSurfaceYUV::ReleaseVADRMPRIMESurfaceDescriptor(
     VADRMPRIMESurfaceDescriptor& aDesc) {
   for (unsigned int i = 0; i < aDesc.num_layers; i++) {
     unsigned int object = aDesc.layers[i].object_index[0];
+    if (object >= aDesc.num_objects) {
+      continue;
+    }
     if (aDesc.objects[object].fd != -1) {
       close(aDesc.objects[object].fd);
       aDesc.objects[object].fd = -1;
@@ -1791,6 +1818,10 @@ bool DMABufSurfaceYUV::Create(const SurfaceDescriptor& aDesc) {
 
 bool DMABufSurfaceYUV::ImportSurfaceDescriptor(
     const SurfaceDescriptorDMABuf& aDesc) {
+  if (!CheckSurfaceDescriptor(aDesc)) {
+    return false;
+  }
+
   mBufferPlaneCount = aDesc.fds().Length();
   mSurfaceType = SURFACE_YUV;
   mFOURCCFormat = aDesc.fourccFormat();
@@ -1804,7 +1835,6 @@ bool DMABufSurfaceYUV::ImportSurfaceDescriptor(
 
   LOGDMABUF("DMABufSurfaceYUV::ImportSurfaceDescriptor() UID %d", mUID);
 
-  MOZ_RELEASE_ASSERT(mBufferPlaneCount <= DMABUF_BUFFER_PLANES);
   for (int i = 0; i < mBufferPlaneCount; i++) {
     mDmabufFds[i] = aDesc.fds()[i];
     mWidth[i] = aDesc.width()[i];
