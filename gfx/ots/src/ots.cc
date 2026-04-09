@@ -1059,7 +1059,7 @@ bool Table::ShouldSerialize() {
 void Table::Message(int level, const char *format, va_list va) {
   char msg[206] = { OTS_UNTAG(m_tag), ':', ' ' };
   std::vsnprintf(msg + 6, 200, format, va);
-  m_font->file->context->Message(level, msg);
+  m_font->file->context->Message(level, "%s", msg);
 }
 
 bool Table::Error(const char *format, ...) {
