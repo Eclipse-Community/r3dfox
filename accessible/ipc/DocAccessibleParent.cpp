@@ -110,6 +110,10 @@ mozilla::ipc::IPCResult DocAccessibleParent::RecvShowEvent(
 #endif
     }
 
+    if (parent->IsOuterDoc()) {
+      return IPC_FAIL(this, "Cannot attach non-doc to OuterDoc");
+    }
+
     uint32_t childIdx = accData.IndexInParent();
     if (childIdx > parent->ChildCount()) {
       NS_ERROR("invalid index to add child at");
