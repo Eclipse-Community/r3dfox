@@ -487,23 +487,28 @@ bool ShaderValidatorResults::CanLinkTo(const ShaderValidatorResults& vert,
 size_t ShaderValidatorResults::SizeOfIncludingThis(
     const MallocSizeOf fnSizeOf) const {
   auto ret = fnSizeOf(this);
-  ret += mInfoLog.size();
-  ret += mObjectCode.size();
 
-  for (const auto& cur : mAttributes) {
-    ret += fnSizeOf(&cur);
+  // std::string heap allocations are not measured here because:
+  // 1. Small String Optimization (SSO) means data() may point to inline
+  //    storage within the std::string object (already counted in
+  //    fnSizeOf(this))
+  // 2. There's no standard way to distinguish SSO from heap-allocated strings
+  // 3. Calling fnSizeOf on a pointer to inline storage is inappropriate
+
+  if (!mAttributes.empty()) {
+    ret += fnSizeOf(mAttributes.data());
   }
-  for (const auto& cur : mInterfaceBlocks) {
-    ret += fnSizeOf(&cur);
+  if (!mInterfaceBlocks.empty()) {
+    ret += fnSizeOf(mInterfaceBlocks.data());
   }
-  for (const auto& cur : mOutputVariables) {
-    ret += fnSizeOf(&cur);
+  if (!mOutputVariables.empty()) {
+    ret += fnSizeOf(mOutputVariables.data());
   }
-  for (const auto& cur : mUniforms) {
-    ret += fnSizeOf(&cur);
+  if (!mUniforms.empty()) {
+    ret += fnSizeOf(mUniforms.data());
   }
-  for (const auto& cur : mVaryings) {
-    ret += fnSizeOf(&cur);
+  if (!mVaryings.empty()) {
+    ret += fnSizeOf(mVaryings.data());
   }
 
   return ret;
