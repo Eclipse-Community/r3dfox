@@ -350,6 +350,9 @@ void nsFontFaceLoader::Cancel() {
   if (doc) {
     doc->UnblockOnload(false);
   }
+  // Remove ourselves from the set that registered us, so it never holds a
+  // dangling raw pointer to us after we're freed.
+  mFontFaceSet->RemoveLoader(this);
   mFontFaceSet = nullptr;
   if (mLoadTimer) {
     mLoadTimer->Cancel();

@@ -469,8 +469,8 @@ bool FontFaceSetDocumentImpl::UpdateRules(
       RefPtr<FontFaceImpl> f = record.mFontFace;
       if (gfxUserFontEntry* userFontEntry = f->GetUserFontEntry()) {
         if (nsFontFaceLoader* loader = userFontEntry->GetLoader()) {
+          // Cancel() removes the loader from its registering set's mLoaders.
           loader->Cancel();
-          RemoveLoader(loader);
         }
       }
 

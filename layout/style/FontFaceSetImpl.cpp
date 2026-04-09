@@ -93,10 +93,12 @@ void FontFaceSetImpl::DestroyLoaders() {
     return;
   }
   if (NS_IsMainThread()) {
-    for (const auto& key : mLoaders.Keys()) {
+    // Move mLoaders to a local, because Cancel() calls RemoveLoader() which
+    // would otherwise mutate the table during the iteration.
+    auto loaders = std::move(mLoaders);
+    for (const auto& key : loaders.Keys()) {
       key->Cancel();
     }
-    mLoaders.Clear();
     return;
   }
 

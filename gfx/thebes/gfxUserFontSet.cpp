@@ -1130,12 +1130,13 @@ void gfxUserFontSet::ForgetLocalFace(gfxUserFontFamily* aFontFamily) {
   for (auto& ufe : entriesToCancel) {
     if (auto* loader = ufe->GetLoader()) {
       // If there's a loader, we need to cancel it, because we'll trigger a
-      // fresh load if required when we re-resolve the font...
+      // fresh load if required when we re-resolve the font. Cancel() removes
+      // the loader from the set it was registered in (not necessarily |this|
+      // font set).
       loader->Cancel();
-      RemoveLoader(loader);
     } else {
-      // ...otherwise, just reset our state so that we'll re-evaluate the
-      // source list from the beginning.
+      // Otherwise, just reset our state so that we'll re-evaluate the source
+      // list from the beginning.
       ufe->LoadCanceled();
     }
   }
