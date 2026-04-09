@@ -40,6 +40,11 @@ class nsUDPSocket final : public nsASocketHandler, public nsIUDPSocket {
 
   nsUDPSocket();
 
+  PRFileDesc* GetFD() {
+    MOZ_ASSERT(OnSocketThread(), "not on socket thread");
+    return mFD;
+  }
+
  private:
   virtual ~nsUDPSocket();
 
@@ -111,14 +116,12 @@ class nsUDPOutputStream : public nsIOutputStream {
   NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIOUTPUTSTREAM
 
-  nsUDPOutputStream(nsUDPSocket* aSocket, PRFileDesc* aFD,
-                    PRNetAddr& aPrClientAddr);
+  nsUDPOutputStream(nsUDPSocket* aSocket, PRNetAddr& aPrClientAddr);
 
  private:
   virtual ~nsUDPOutputStream() = default;
 
   RefPtr<nsUDPSocket> mSocket;
-  PRFileDesc* mFD;
   PRNetAddr mPrClientAddr;
   bool mIsClosed;
 };
