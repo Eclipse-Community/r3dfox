@@ -747,7 +747,7 @@ bool gfxFT2FontBase::GetFTGlyphExtents(uint16_t aGID, int32_t* aAdvance,
  * Get the cached glyph metrics for the glyph id if available. Otherwise, query
  * FreeType for the glyph extents and initialize the glyph metrics.
  */
-const gfxFT2FontBase::GlyphMetrics& gfxFT2FontBase::GetCachedGlyphMetrics(
+gfxFT2FontBase::GlyphMetrics gfxFT2FontBase::GetCachedGlyphMetrics(
     uint16_t aGID, IntRect* aBounds) {
   {
     // Try to read cached metrics without exclusive locking.
@@ -782,7 +782,7 @@ const gfxFT2FontBase::GlyphMetrics& gfxFT2FontBase::GetCachedGlyphMetrics(
 bool gfxFT2FontBase::GetGlyphBounds(uint16_t aGID, gfxRect* aBounds,
                                     bool aTight) {
   IntRect bounds;
-  const GlyphMetrics& metrics = GetCachedGlyphMetrics(aGID, &bounds);
+  const GlyphMetrics metrics = GetCachedGlyphMetrics(aGID, &bounds);
   if (!metrics.HasValidBounds()) {
     return false;
   }

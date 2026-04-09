@@ -142,7 +142,7 @@ class gfxFT2FontBase : public gfxFont {
     uint16_t mHeight;
   };
 
-  const GlyphMetrics& GetCachedGlyphMetrics(
+  GlyphMetrics GetCachedGlyphMetrics(
       uint16_t aGID, mozilla::gfx::IntRect* aBounds = nullptr);
 
   mozilla::UniquePtr<nsTHashMap<nsUint32HashKey, GlyphMetrics>> mGlyphMetrics
