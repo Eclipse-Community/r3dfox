@@ -45,11 +45,27 @@ RefMessageBodyService::RefMessageBodyService(
   MOZ_DIAGNOSTIC_ASSERT(sService == nullptr);
 }
 
-RefMessageBodyService::~RefMessageBodyService() {
+MozExternalRefCountType RefMessageBodyService::AddRef() {
+  MOZ_ASSERT(int32_t(mRefCnt) >= 0, "illegal refcnt");
+  nsrefcnt cnt = ++mRefCnt;
+  NS_LOG_ADDREF(this, cnt, "RefMessageBodyService", sizeof(*this));
+  return cnt;
+}
+
+MozExternalRefCountType RefMessageBodyService::Release() {
   StaticMutexAutoLock lock(sRefMessageBodyServiceMutex);
+  nsrefcnt cnt = --mRefCnt;
+  NS_LOG_RELEASE(this, cnt, "RefMessageBodyService");
+  if (cnt > 0) {
+    return cnt;
+  }
   MOZ_DIAGNOSTIC_ASSERT(sService == this);
   sService = nullptr;
+  delete this;
+  return 0;
 }
+
+RefMessageBodyService::~RefMessageBodyService() = default;
 
 const nsID RefMessageBodyService::Register(
     already_AddRefed<RefMessageBody> aBody, ErrorResult& aRv) {

@@ -107,7 +107,9 @@ class RefMessageBody final {
 
 class RefMessageBodyService final {
  public:
-  NS_INLINE_DECL_THREADSAFE_REFCOUNTING(RefMessageBodyService)
+  MozExternalRefCountType AddRef();
+  MozExternalRefCountType Release();
+  using HasThreadSafeRefCnt = std::true_type;
 
   static already_AddRefed<RefMessageBodyService> GetOrCreate();
 
@@ -124,6 +126,9 @@ class RefMessageBodyService final {
  private:
   explicit RefMessageBodyService(const StaticMutexAutoLock& aProofOfLock);
   ~RefMessageBodyService();
+
+ protected:
+  ::mozilla::ThreadSafeAutoRefCnt mRefCnt;
 
   static RefMessageBodyService* GetOrCreateInternal(
       const StaticMutexAutoLock& aProofOfLock);
