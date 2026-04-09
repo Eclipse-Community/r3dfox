@@ -279,7 +279,7 @@ RefPtr<ClientOpPromise> ClientNavigateOpChild::DoNavigate(
     return ClientOpPromise::CreateAndReject(result, __func__);
   }
 
-  if (!aProxy->Get()) {
+  if (!aProxy->Get() || !CanSend()) {
     CopyableErrorResult result;
     result.ThrowInvalidStateError("Unknown Client");
     return ClientOpPromise::CreateAndReject(result, __func__);
@@ -315,7 +315,7 @@ void ClientNavigateOpChild::ActorDestroy(ActorDestroyReason aReason) {
 void ClientNavigateOpChild::Init(const ClientNavigateOpConstructorArgs& aArgs,
                                  mozilla::ipc::ActorLifecycleProxy* aProxy) {
   RefPtr<ClientOpPromise> promise = DoNavigate(aArgs, aProxy);
-  if (!aProxy->Get()) {
+  if (!aProxy->Get() || !CanSend()) {
     return;
   }
 
