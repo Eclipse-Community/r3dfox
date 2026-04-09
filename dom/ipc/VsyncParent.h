@@ -12,7 +12,7 @@
 #include "nsCOMPtr.h"
 #include "mozilla/RefPtr.h"
 
-class nsIThread;
+#include "nsIThread.h"
 
 namespace mozilla::dom {
 
@@ -22,7 +22,8 @@ namespace mozilla::dom {
 class VsyncParent final : public PVsyncParent, public VsyncObserver {
   friend class PVsyncParent;
 
-  NS_INLINE_DECL_THREADSAFE_REFCOUNTING(VsyncParent, override)
+  NS_INLINE_DECL_THREADSAFE_REFCOUNTING_WITH_DELETE_ON_EVENT_TARGET(
+      VsyncParent, mInitialThread, override)
 
  public:
   VsyncParent();
