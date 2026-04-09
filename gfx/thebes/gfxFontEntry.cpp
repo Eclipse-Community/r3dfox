@@ -42,10 +42,12 @@ using namespace mozilla;
 using namespace mozilla::gfx;
 using namespace mozilla::unicode;
 
-void gfxCharacterMap::NotifyMaybeReleased(gfxCharacterMap* aCmap) {
+void gfxCharacterMap::NotifyMaybeReleased(gfxCharacterMap* aCmap,
+                                          uint32_t aHash) {
   // Tell gfxPlatformFontList that a charmap's refcount was decremented,
-  // so it should check whether the object is to be deleted.
-  gfxPlatformFontList::PlatformFontList()->MaybeRemoveCmap(aCmap);
+  // so it should check whether the object is to be deleted. aCmap may be
+  // dangling; aHash was captured while it was alive.
+  gfxPlatformFontList::PlatformFontList()->MaybeRemoveCmap(aCmap, aHash);
 }
 
 gfxFontEntry::gfxFontEntry(const nsACString& aName, bool aIsStandardFace)

@@ -89,14 +89,15 @@ class gfxCharacterMap : public gfxSparseBitSet {
   // new reference, or completes the release first!)
   void Release() {
     MOZ_ASSERT(int32_t(mRefCnt) > 0, "dup release");
-    // We can't safely read this after we've decremented mRefCnt, so save it
-    // in a local variable here. Note that the value is never reset to false
+    // We can't safely read mShared and mHash after we've decremented mRefCnt,
+    // so save them in locals here. Note that mShared is never reset to false
     // once it has been set to true (when recording the cmap in the shared
     // table), so there's no risk of this resulting in a "false positive" when
     // tested later. A "false negative" is possible but harmless; it would
     // just mean we miss an opportunity to release a reference from the shared
-    // cmap table.
+    // cmap table. mHash is set once before sharing and never changes.
     bool isShared = mShared;
+    uint32_t hash = mHash;
 
     // Ensure we only access mRefCnt once, for consistency if the object is
     // being used by multiple threads.
@@ -109,7 +110,13 @@ class gfxCharacterMap : public gfxSparseBitSet {
     if (isShared) {
       MOZ_ASSERT(count > 0);
       if (count == 1) {
-        NotifyMaybeReleased(this);
+        // After --mRefCnt (above), `this` may be freed at any time (by another
+        // thread racing us into MaybeRemoveCmap and deleting first, or by the
+        // gfxPlatformFontList destructor's teardown path). We must not
+        // dereference `this` from here on. Pass the captured hash by value so
+        // MaybeRemoveCmap can perform the hashtable lookup without
+        // dereferencing the potentially-dangling pointer.
+        NotifyMaybeReleased(this, hash);
       }
       return;
     }
@@ -155,7 +162,7 @@ class gfxCharacterMap : public gfxSparseBitSet {
 
   void CalcHash() { mHash = GetChecksum(); }
 
-  static void NotifyMaybeReleased(gfxCharacterMap* aCmap);
+  static void NotifyMaybeReleased(gfxCharacterMap* aCmap, uint32_t aHash);
 
   // Only used when clearing the shared-cmap hashtable during shutdown.
   void ClearSharedFlag() {

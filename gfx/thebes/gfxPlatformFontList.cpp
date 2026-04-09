@@ -1990,7 +1990,8 @@ already_AddRefed<gfxCharacterMap> gfxPlatformFontList::FindCharMap(
   aCmap->CalcHash();
   aCmap->mShared = true;  // Set the shared flag in preparation for adding
                           // to the global table.
-  RefPtr cmap = mSharedCmaps.PutEntry(aCmap)->GetKey();
+  CharMapLookup lookup{aCmap, aCmap->mHash, /* mCompareByPointer */ false};
+  RefPtr cmap = mSharedCmaps.PutEntry(lookup)->GetCharMap();
 
   // If we ended up finding a different, pre-existing entry, clear the
   // shared flag on this one so that it'll get deleted on Release().
@@ -2005,9 +2006,17 @@ already_AddRefed<gfxCharacterMap> gfxPlatformFontList::FindCharMap(
 // when a user of the charmap drops a reference and the refcount goes to 1;
 // in that case, it is possible our shared set is the only remaining user
 // of the object, and we should remove it.
-// Note that aCharMap might have already been freed, so we must not try to
-// dereference it until we have checked that it's still present in our table.
-void gfxPlatformFontList::MaybeRemoveCmap(gfxCharacterMap* aCharMap) {
+//
+// CAUTION: aCharMap may already have been freed by the time we are called
+// (another thread may have raced us here and deleted it first, or the
+// destructor's teardown path may have run). We MUST NOT dereference aCharMap
+// until we have established that it is still present in our table -- the
+// table's strong reference then guarantees the object is alive. The hash
+// lookup itself uses aHash (captured before the caller's --mRefCnt while the
+// object was definitely alive) and pointer-identity comparison, so it never
+// dereferences aCharMap.
+void gfxPlatformFontList::MaybeRemoveCmap(gfxCharacterMap* aCharMap,
+                                          uint32_t aHash) {
   // Lock so that nobody else can get a reference via FindCharMap while we're
   // checking here.
   AutoLock lock(mLock);
@@ -2017,14 +2026,18 @@ void gfxPlatformFontList::MaybeRemoveCmap(gfxCharacterMap* aCharMap) {
     return;
   }
 
-  // aCharMap needs to match the entry and be the same ptr and still have a
-  // refcount of exactly 1 (i.e. we hold the only reference) before removing.
-  // If we're racing another thread, it might already have been removed, in
-  // which case GetEntry will not find it and we won't try to dereference the
-  // already-freed pointer.
-  CharMapHashKey* found =
-      mSharedCmaps.GetEntry(const_cast<gfxCharacterMap*>(aCharMap));
-  if (found && found->GetKey() == aCharMap && aCharMap->RefCount() == 1) {
+  // Look up by captured hash + pointer identity; this does not dereference
+  // aCharMap. If a racing thread already removed and freed aCharMap, GetEntry
+  // simply won't find it (the freed slot can't reappear in the table at the
+  // same address while we hold mLock, since insertions also need mLock).
+  CharMapLookup lookup{aCharMap, aHash, /* mCompareByPointer */ true};
+  CharMapHashKey* found = mSharedCmaps.GetEntry(lookup);
+
+  // If found, the table holds a strong ref, so aCharMap is alive and we may
+  // dereference it. We must check that it still has a refcount of exactly 1
+  // (the table's ref) before we remove; a FindCharMap may have raced us and
+  // AddRef'd it.
+  if (found && aCharMap->RefCount() == 1) {
     // Forget our reference to the object that's being deleted, without
     // calling Release() on it.
     Unused << found->mCharMap.forget();
@@ -2917,7 +2930,8 @@ void gfxPlatformFontList::AddSizeOfExcludingThis(MallocSizeOf aMallocSizeOf,
   aSizes->mFontListSize +=
       mSharedCmaps.ShallowSizeOfExcludingThis(aMallocSizeOf);
   for (const auto& entry : mSharedCmaps) {
-    aSizes->mCharMapsSize += entry.GetKey()->SizeOfIncludingThis(aMallocSizeOf);
+    aSizes->mCharMapsSize +=
+        entry.GetCharMap()->SizeOfIncludingThis(aMallocSizeOf);
   }
 
   aSizes->mFontListSize +=
