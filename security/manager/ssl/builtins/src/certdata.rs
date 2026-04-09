@@ -14,6 +14,7 @@ pub const CKO_CERTIFICATE_BYTES: &[u8] = &CKO_CERTIFICATE.to_ne_bytes();
 pub const CKO_NSS_BUILTIN_ROOT_LIST_BYTES: &[u8] = &CKO_NSS_BUILTIN_ROOT_LIST.to_ne_bytes();
 pub const CKO_NSS_TRUST_BYTES: &[u8] = &CKO_NSS_TRUST.to_ne_bytes();
 pub const CKT_NSS_MUST_VERIFY_TRUST_BYTES: &[u8] = &CKT_NSS_MUST_VERIFY_TRUST.to_ne_bytes();
+#[allow(dead_code)]
 pub const CKT_NSS_NOT_TRUSTED_BYTES: &[u8] = &CKT_NSS_NOT_TRUSTED.to_ne_bytes();
 pub const CKT_NSS_TRUSTED_DELEGATOR_BYTES: &[u8] = &CKT_NSS_TRUSTED_DELEGATOR.to_ne_bytes();
 pub const CK_FALSE_BYTES: &[u8] = &CK_FALSE.to_ne_bytes();
