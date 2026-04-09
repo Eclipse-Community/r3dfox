@@ -944,7 +944,7 @@ bool js::UnmappedArgSetter(JSContext* cx, HandleObject obj, HandleId id,
 
   if (id.isInt()) {
     unsigned arg = unsigned(id.toInt());
-    if (arg < argsobj->initialLength()) {
+    if (argsobj->isElement(arg)) {
       argsobj->setElement(arg, v);
       return result.succeed();
     }
