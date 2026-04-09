@@ -86,12 +86,18 @@ inline void nsWrapperCache::UpdateWrapperForNewGlobal(T* aScriptObjectHolder,
     SetPreservingWrapper(false);
   }
 
+  JSObject* oldWrapper = mWrapper;
   SetWrapper(aNewWrapper);
 
   if (zoneChanged) {
     PreserveWrapper(aScriptObjectHolder);
   } else if (preserving) {
     SetPreservingWrapper(true);
+    if (!JS::ObjectIsTenured(mWrapper)) {
+      // SetWrapper doesn't fire a write barrier; add one so minor GC can
+      // update mWrapper if the new wrapper is tenured.
+      JS::HeapObjectPostWriteBarrier(&mWrapper, oldWrapper, mWrapper);
+    }
   }
 }
 
