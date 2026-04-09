@@ -774,10 +774,10 @@
       }
 
       // The event information comes from the child process.
-      let event = new target.ownerGlobal.KeyboardEvent(
-        fakeEvent.type,
-        fakeEvent
-      );
+      let event = new target.ownerGlobal.KeyboardEvent("keypress", {
+        ...fakeEvent,
+        bubbles: false,
+      });
       target.dispatchEvent(event);
     }
 
