@@ -11,6 +11,7 @@
 
 #include "libyuv/scale.h"
 
+#include <algorithm>
 #include <assert.h>
 #include <string.h>
 
@@ -937,7 +938,7 @@ static void YUVToARGBCopy(const uint8_t* src_y, int src_stride_y,
                           YUVColorSpace yuv_color_space)
 {
   YUVBuferIter iter;
-  iter.src_width = src_width;
+  iter.src_width = std::min(src_width, dst_width);
   iter.src_height = src_height;
   iter.src_stride_y = src_stride_y;
   iter.src_stride_u = src_stride_u;
