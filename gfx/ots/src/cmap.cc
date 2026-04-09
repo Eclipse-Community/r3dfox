@@ -314,8 +314,9 @@ bool OpenTypeCMAP::Parse31012(const uint8_t *data, size_t length,
       return Error("format 12 subtable group endCharCode before startCharCode (0x%4X < 0x%4X)",
                              groups[i].end_range, groups[i].start_range);
     }
+    // Maximum glyph ID must be less than num_glyphs.
     if ((groups[i].end_range - groups[i].start_range) +
-        groups[i].start_glyph_id > num_glyphs) {
+        groups[i].start_glyph_id >= num_glyphs) {
       return Error("bad format 12 subtable group startGlyphID (%d)", groups[i].start_glyph_id);
     }
   }
