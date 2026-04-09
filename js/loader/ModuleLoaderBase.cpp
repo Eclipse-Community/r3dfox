@@ -163,8 +163,13 @@ JSObject* ModuleLoaderBase::HostResolveImportedModule(
 bool ModuleLoaderBase::ImportMetaResolve(JSContext* cx, unsigned argc,
                                          Value* vp) {
   CallArgs args = CallArgsFromVp(argc, vp);
-  RootedValue modulePrivate(
-      cx, js::GetFunctionNativeReserved(&args.callee(), ModulePrivateSlot));
+  RootedValue moduleValue(
+      cx, js::GetFunctionNativeReserved(&args.callee(),
+                                        static_cast<size_t>(ModuleRecordSlot)));
+  MOZ_ASSERT(!moduleValue.isUndefined());
+  RootedObject moduleRecord(cx, &moduleValue.toObject());
+  RootedValue modulePrivate(cx, GetModulePrivate(moduleRecord));
+  MOZ_ASSERT(!modulePrivate.isUndefined());
 
   // https://html.spec.whatwg.org/#hostgetimportmetaproperties
   // Step 4.1. Set specifier to ? ToString(specifier).
@@ -274,10 +279,15 @@ bool ModuleLoaderBase::HostPopulateImportMeta(
   }
 
   // Store the 'active script' of the meta object into the function slot.
-  // https://html.spec.whatwg.org/#active-script
+  // See https://html.spec.whatwg.org/#active-script
+  //
+  // Note: Hold a reference to the module record which in turn keeps the
+  // ModuleScript alive when import.resolve is called.
   RootedObject resolveFuncObj(aCx, JS_GetFunctionObject(resolveFunc));
-  js::SetFunctionNativeReserved(resolveFuncObj, ModulePrivateSlot,
-                                aReferencingPrivate);
+  RootedObject moduleRecord(aCx, script->ModuleRecord());
+  js::SetFunctionNativeReserved(resolveFuncObj,
+                                static_cast<size_t>(ModuleRecordSlot),
+                                JS::ObjectValue(*moduleRecord));
 
   return true;
 }

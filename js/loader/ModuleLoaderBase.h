@@ -483,7 +483,7 @@ class ModuleLoaderBase : public nsISupports {
   bool IsFetchingAndHasWaitingRequest(ModuleLoadRequest* aRequest);
 
   // The slot stored in ImportMetaResolve function.
-  enum { ModulePrivateSlot = 0, SlotCount };
+  enum { ModuleRecordSlot = 0, SlotCount };
 
   // The number of args in ImportMetaResolve.
   static const uint32_t ImportMetaResolveNumArgs = 1;
