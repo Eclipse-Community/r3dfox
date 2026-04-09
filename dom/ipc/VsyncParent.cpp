@@ -8,7 +8,6 @@
 
 #include "mozilla/Unused.h"
 #include "nsThreadUtils.h"
-#include "nsIThread.h"
 
 namespace mozilla::dom {
 
