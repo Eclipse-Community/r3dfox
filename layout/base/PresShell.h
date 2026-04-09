@@ -2331,11 +2331,10 @@ class PresShell final : public nsStubDocumentObserver,
      *
      * @param aGUIEvent                 The handling event.
      * @return                          true if this actually flushes pending
-     *                                  layout and that has caused changing the
      *                                  layout.
      */
-    MOZ_CAN_RUN_SCRIPT
-    bool MaybeFlushPendingNotifications(WidgetGUIEvent* aGUIEvent);
+    MOZ_CAN_RUN_SCRIPT bool MaybeFlushPendingNotifications(
+        WidgetGUIEvent* aGUIEvent);
 
     /**
      * GetFrameToHandleNonTouchEvent() returns a frame to handle the event.

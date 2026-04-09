@@ -7867,17 +7867,13 @@ bool PresShell::EventHandler::MaybeFlushPendingNotifications(
 
   switch (aGUIEvent->mMessage) {
     case eMouseDown:
-    case eMouseUp: {
-      RefPtr<nsPresContext> presContext = mPresShell->GetPresContext();
-      if (NS_WARN_IF(!presContext)) {
+    case eMouseUp:  // XXX How about eContextMenu?
+    {
+      if (NS_WARN_IF(!mPresShell->GetPresContext())) {
         return false;
       }
-      uint64_t framesConstructedCount = presContext->FramesConstructedCount();
-      uint64_t framesReflowedCount = presContext->FramesReflowedCount();
-
       MOZ_KnownLive(mPresShell)->FlushPendingNotifications(FlushType::Layout);
-      return framesConstructedCount != presContext->FramesConstructedCount() ||
-             framesReflowedCount != presContext->FramesReflowedCount();
+      return true;
     }
     default:
       return false;
@@ -7947,18 +7943,19 @@ nsIFrame* PresShell::EventHandler::GetFrameToHandleNonTouchEvent(
   // If target is in a child document, we've not flushed its layout yet.
   PresShell* childPresShell = targetFrame->PresShell();
   EventHandler childEventHandler(*childPresShell);
-  bool layoutChanged =
+  const AutoWeakFrame targetFrameWeak(targetFrame);
+  const DebugOnly<bool> flushedPendingNotifications =
       childEventHandler.MaybeFlushPendingNotifications(aGUIEvent);
   if (!aWeakRootFrameToHandleEvent.IsAlive()) {
     // Stop handling the event if the root frame to handle event is destroyed
     // by the reflow. (but why?)
     return nullptr;
   }
-  if (!layoutChanged) {
-    // If the layout in the child PresShell hasn't been changed, we don't
-    // need to recompute the target.
+  if (targetFrameWeak.IsAlive()) {
+    // If the target frame is alive, we don't need to recompute the target.
     return targetFrame;
   }
+  MOZ_ASSERT(flushedPendingNotifications);
 
   // Finally, we need to recompute the target with the latest layout.
   targetFrame =
