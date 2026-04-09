@@ -1004,8 +1004,10 @@ class CanvasRenderingContext2D : public nsICanvasRenderingContextInternal,
                        (mCanvasElement && mCanvasElement->IsWriteOnly()) ||
                        (mOffscreenCanvas && mOffscreenCanvas->IsWriteOnly());
     if (CurrentState().filterSourceGraphicTainted != isWriteOnly) {
-      UpdateFilter(/* aFlushIfNeeded = */ true);
-      EnsureTarget();
+      // Do not flush here: this runs inside drawing operations that hold raw
+      // references to mPath/state, and a flush can run script that resets the
+      // context, leading to UAF. Flush already happened at SetFilter() time.
+      UpdateFilter(/* aFlushIfNeeded = */ false);
     }
     MOZ_ASSERT(CurrentState().filterSourceGraphicTainted == isWriteOnly);
     return CurrentState().filter;
