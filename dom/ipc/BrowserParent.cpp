@@ -2285,6 +2285,12 @@ bool BrowserParent::SendHandleTap(
         }
       }
     }
+    // SetFocus may have run script (blur handlers) that destroyed this
+    // actor. Callers hold a strong reference to us to reading
+    // mIsDestroyed is safe, but do not send an IPC message in that case.
+    if (mIsDestroyed) {
+      return false;
+    }
   }
   return Manager()->IsInputPriorityEventEnabled()
              ? PBrowserParent::SendHandleTap(
