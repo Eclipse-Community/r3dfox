@@ -970,13 +970,22 @@ nsresult nsHtml5TreeOperation::Perform(nsHtml5TreeOpExecutor* aBuilder,
         return NS_OK;
       }
 
+      nsIContent* node = *aOperation.mTemplateNode;
+      nsIContent* host = *aOperation.mHost;
+
+      if (MOZ_UNLIKELY(node->GetParentNode())) {
+        Detach(node, mBuilder);
+        if (MOZ_UNLIKELY(node->GetParentNode())) {
+          // Can this happen? If it can, give up.
+          return NS_OK;
+        }
+      }
+
       // We failed to attach a new shadow root, so instead attach a template
       // element and return its content.
-      nsHtml5TreeOperation::Append(*aOperation.mTemplateNode, *aOperation.mHost,
-                                   mBuilder);
+      nsHtml5TreeOperation::Append(node, host, mBuilder);
       *aOperation.mFragHandle =
-          static_cast<HTMLTemplateElement*>(*aOperation.mTemplateNode)
-              ->Content();
+          static_cast<HTMLTemplateElement*>(node)->Content();
       nsContentUtils::LogSimpleConsoleError(
           u"Failed to attach Declarative Shadow DOM."_ns, "DOM"_ns,
           mBuilder->GetDocument()->IsInPrivateBrowsing(),
