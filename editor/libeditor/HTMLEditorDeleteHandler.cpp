@@ -3356,8 +3356,8 @@ Result<EditActionResult, nsresult> HTMLEditor::AutoDeleteRangesHandler::
     return EditActionResult::HandledResult();
   }
 
-  EditorRawDOMPoint newCaretPosition =
-      HTMLEditUtils::GetGoodCaretPointFor<EditorRawDOMPoint>(
+  EditorDOMPoint newCaretPosition =
+      HTMLEditUtils::GetGoodCaretPointFor<EditorDOMPoint>(
           *mLeafContentInOtherBlock, aDirectionAndAmount);
   if (MOZ_UNLIKELY(!newCaretPosition.IsInContentNode())) {
     NS_WARNING("HTMLEditUtils::GetGoodCaretPointFor() failed");
@@ -3381,6 +3381,8 @@ Result<EditActionResult, nsresult> HTMLEditor::AutoDeleteRangesHandler::
               BlockInlineCheck::UseComputedDisplayOutsideStyle);
     }
     if (nextThingOfCaretPoint.ReachedBlockBoundary()) {
+      AutoTrackDOMPoint trackNewCaretPosition(aHTMLEditor.RangeUpdaterRef(),
+                                              &newCaretPosition);
       const EditorDOMPoint atBlockBoundary =
           nextThingOfCaretPoint.ReachedCurrentBlockBoundary()
               ? EditorDOMPoint::AtEndOf(*nextThingOfCaretPoint.ElementPtr())
@@ -3393,6 +3395,10 @@ Result<EditActionResult, nsresult> HTMLEditor::AutoDeleteRangesHandler::
             "WhiteSpaceVisibilityKeeper::NormalizeWhiteSpacesBefore() "
             "failed");
         return afterLastVisibleThingOrError.propagateErr();
+      }
+      trackNewCaretPosition.Flush(StopTracking::Yes);
+      if (NS_WARN_IF(!newCaretPosition.IsSetAndValidInComposedDoc())) {
+        return Err(NS_ERROR_EDITOR_UNEXPECTED_DOM_TREE);
       }
     }
   }
