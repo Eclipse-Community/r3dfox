@@ -69,13 +69,13 @@ class FileSystemRequestHandler {
                            ErrorResult& aError);
 
   virtual void MoveEntry(RefPtr<FileSystemManager>& aManager,
-                         FileSystemHandle* aHandle,
+                         RefPtr<FileSystemHandle> aHandle,
                          FileSystemEntryMetadata* const aEntry,
                          const FileSystemChildMetadata& aNewEntry,
                          RefPtr<Promise> aPromise, ErrorResult& aError);
 
   virtual void RenameEntry(RefPtr<FileSystemManager>& aManager,
-                           FileSystemHandle* aHandle,
+                           RefPtr<FileSystemHandle> aHandle,
                            FileSystemEntryMetadata* const aEntry,
                            const Name& aName, RefPtr<Promise> aPromise,
                            ErrorResult& aError);
