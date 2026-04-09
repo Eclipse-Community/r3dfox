@@ -16,25 +16,9 @@ function getSiteBlockedErrorDetails(docShell) {
       Ci.nsIClassifiedChannel
     );
     if (classifiedChannel) {
-      let httpChannel = docShell.failedChannel.QueryInterface(
-        Ci.nsIHttpChannel
-      );
-
-      let reportUri = httpChannel.URI;
-
-      // Remove the query to avoid leaking sensitive data
-      if (reportUri instanceof Ci.nsIURL) {
-        reportUri = reportUri.mutate().setQuery("").finalize();
-      }
-
-      let triggeringPrincipal = docShell.failedChannel.loadInfo
-        ? docShell.failedChannel.loadInfo.triggeringPrincipal
-        : null;
       blockedInfo = {
         list: classifiedChannel.matchedList,
-        triggeringPrincipal,
         provider: classifiedChannel.matchedProvider,
-        uri: reportUri.asciiSpec,
       };
     }
   }
