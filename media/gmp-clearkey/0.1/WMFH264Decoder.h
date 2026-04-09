@@ -23,8 +23,8 @@ namespace wmf {
 
 class WMFH264Decoder {
  public:
-  WMFH264Decoder();
-  ~WMFH264Decoder();
+  WMFH264Decoder() = default;
+  ~WMFH264Decoder() = default;
 
   HRESULT Init(int32_t aCoreCount);
 
@@ -35,9 +35,9 @@ class WMFH264Decoder {
 
   HRESULT Reset();
 
-  int32_t GetFrameHeight() const;
-  const IntRect& GetPictureRegion() const;
-  int32_t GetStride() const;
+  int32_t GetFrameHeight() const { return mVideoHeight; }
+  const IntRect& GetPictureRegion() const { return mPictureRegion; }
+  int32_t GetStride() const { return mStride; }
 
   HRESULT Drain();
 
@@ -54,15 +54,15 @@ class WMFH264Decoder {
   HRESULT GetOutputSample(IMFSample** aOutSample);
   HRESULT ConfigureVideoFrameGeometry(IMFMediaType* aMediaType);
 
-  MFT_INPUT_STREAM_INFO mInputStreamInfo;
-  MFT_OUTPUT_STREAM_INFO mOutputStreamInfo;
+  MFT_INPUT_STREAM_INFO mInputStreamInfo{};
+  MFT_OUTPUT_STREAM_INFO mOutputStreamInfo{};
 
   CComPtr<IMFTransform> mDecoder;
 
-  int32_t mVideoWidth;
-  int32_t mVideoHeight;
+  int32_t mVideoWidth = 0;
+  int32_t mVideoHeight = 0;
   IntRect mPictureRegion;
-  int32_t mStride;
+  int32_t mStride = 0;
 };
 
 }  // namespace wmf

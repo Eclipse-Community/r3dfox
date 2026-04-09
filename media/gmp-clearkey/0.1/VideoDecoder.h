@@ -64,7 +64,13 @@ class VideoDecoder : public RefCounted {
   cdm::Host_11* mHost;
   wmf::AutoPtr<wmf::WMFH264Decoder> mDecoder;
 
-  std::queue<wmf::CComPtr<IMFSample>> mOutputQueue;
+  struct OutputData {
+    wmf::CComPtr<IMFSample> mSample;
+    wmf::IntRect mPictureRegion;
+    int32_t mStride;
+    int32_t mFrameHeight;
+  };
+  std::queue<OutputData> mOutputQueue;
 
   bool mHasShutdown;
 };

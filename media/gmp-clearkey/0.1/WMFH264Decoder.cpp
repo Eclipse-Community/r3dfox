@@ -22,13 +22,6 @@
 
 namespace wmf {
 
-WMFH264Decoder::WMFH264Decoder() : mDecoder(nullptr) {
-  memset(&mInputStreamInfo, 0, sizeof(MFT_INPUT_STREAM_INFO));
-  memset(&mOutputStreamInfo, 0, sizeof(MFT_OUTPUT_STREAM_INFO));
-}
-
-WMFH264Decoder::~WMFH264Decoder() {}
-
 HRESULT
 WMFH264Decoder::Init(int32_t aCoreCount) {
   HRESULT hr;
@@ -102,14 +95,6 @@ WMFH264Decoder::ConfigureVideoFrameGeometry(IMFMediaType* aMediaType) {
 
   return S_OK;
 }
-
-int32_t WMFH264Decoder::GetFrameHeight() const { return mVideoHeight; }
-
-const IntRect& WMFH264Decoder::GetPictureRegion() const {
-  return mPictureRegion;
-}
-
-int32_t WMFH264Decoder::GetStride() const { return mStride; }
 
 HRESULT
 WMFH264Decoder::SetDecoderInputType() {
@@ -263,7 +248,10 @@ WMFH264Decoder::GetOutputSample(IMFSample** aOutSample) {
     hr = SetDecoderOutputType();
     ENSURE(SUCCEEDED(hr), hr);
 
-    return GetOutputSample(aOutSample);
+    hr = mDecoder->GetOutputStreamInfo(0, &mOutputStreamInfo);
+    ENSURE(SUCCEEDED(hr), hr);
+
+    return MF_E_TRANSFORM_STREAM_CHANGE;
   } else if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT) {
     return MF_E_TRANSFORM_NEED_MORE_INPUT;
   }
@@ -300,15 +288,21 @@ HRESULT
 WMFH264Decoder::Output(IMFSample** aOutput) {
   HRESULT hr;
   CComPtr<IMFSample> outputSample;
-  hr = GetOutputSample(&outputSample);
+  do {
+    hr = GetOutputSample(&outputSample);
+  } while (hr == MF_E_TRANSFORM_STREAM_CHANGE);
+
   if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT) {
     return MF_E_TRANSFORM_NEED_MORE_INPUT;
   }
-  // Treat other errors as fatal.
-  ENSURE(SUCCEEDED(hr) && outputSample, hr);
+
+  ENSURE(SUCCEEDED(hr), hr);
+  if (!outputSample) {
+    LOG("GetOutputSample returned success without sample\n");
+    return E_UNEXPECTED;
+  }
 
   *aOutput = outputSample.Detach();
-
   return S_OK;
 }
 

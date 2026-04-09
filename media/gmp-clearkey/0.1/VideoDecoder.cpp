@@ -131,7 +131,8 @@ cdm::Status VideoDecoder::OutputFrame(cdm::VideoFrame* aVideoFrame) {
 
     CK_LOGD("VideoDecoder::OutputFrame Decoder output ret=0x%x", hr);
 
-    mOutputQueue.push(output);
+    mOutputQueue.push({output, mDecoder->GetPictureRegion(),
+                       mDecoder->GetStride(), mDecoder->GetFrameHeight()});
     CK_LOGD("VideoDecoder::OutputFrame: Queue size: %u", mOutputQueue.size());
   }
 
@@ -148,20 +149,19 @@ cdm::Status VideoDecoder::OutputFrame(cdm::VideoFrame* aVideoFrame) {
     return cdm::Status::kDecodeError;
   }
 
-  CComPtr<IMFSample> result = mOutputQueue.front();
+  OutputData result = std::move(mOutputQueue.front());
   mOutputQueue.pop();
 
   // The Chromium CDM API doesn't have support for negative strides, though
   // they are theoretically possible in real world data.
-  if (mDecoder->GetStride() <= 0) {
+  if (result.mStride <= 0) {
     CK_LOGD("VideoDecoder::OutputFrame Failed! (negative stride)");
     return cdm::Status::kDecodeError;
   }
 
-  const IntRect& picture = mDecoder->GetPictureRegion();
-  hr = SampleToVideoFrame(result, picture.width, picture.height,
-                          mDecoder->GetStride(), mDecoder->GetFrameHeight(),
-                          aVideoFrame);
+  const IntRect& picture = result.mPictureRegion;
+  hr = SampleToVideoFrame(result.mSample, picture.width, picture.height,
+                          result.mStride, result.mFrameHeight, aVideoFrame);
   if (FAILED(hr)) {
     CK_LOGD("VideoDecoder::OutputFrame Failed!");
     return cdm::Status::kDecodeError;
