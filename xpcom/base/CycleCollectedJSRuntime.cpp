@@ -1556,7 +1556,11 @@ void CycleCollectedJSRuntime::JSObjectsTenured(JS::GCContext* aGCContext) {
       continue;
     }
     JSObject* wrapper = cache->GetWrapperMaybeDead();
-    MOZ_DIAGNOSTIC_ASSERT(wrapper);
+    if (MOZ_UNLIKELY(!wrapper)) {
+      // Wrapper might have been cleared temporarily while updating reflector
+      // global.
+      continue;
+    }
 
     if (js::gc::InCollectedNurseryRegion(wrapper)) {
       MOZ_ASSERT(!cache->PreservingWrapper());
