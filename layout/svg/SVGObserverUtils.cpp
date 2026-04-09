@@ -1710,8 +1710,10 @@ SVGPaintServerFrame* SVGObserverUtils::GetAndObservePaintServer(
   // anonymous block frame, then we look up to its parent (the SVGTextFrame).
   nsIFrame* paintedFrame = aPaintedFrame;
   if (paintedFrame->IsInSVGTextSubtree()) {
-    paintedFrame = paintedFrame->GetParent();
-    nsIFrame* grandparent = paintedFrame->GetParent();
+    // Continuations can come and go during reflow, and we don't need to
+    // observe the referenced element more than once for a given node.
+    paintedFrame = paintedFrame->GetParent()->FirstContinuation();
+    nsIFrame* grandparent = paintedFrame->GetParent()->FirstContinuation();
     if (grandparent && grandparent->IsSVGTextFrame()) {
       paintedFrame = grandparent;
     }
