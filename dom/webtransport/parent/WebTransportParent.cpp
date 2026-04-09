@@ -166,6 +166,9 @@ IPCResult WebTransportParent::RecvClose(const uint32_t& aCode,
                                         const nsACString& aReason) {
   LOG(("Close for %p received, code = %u, reason = %s", this, aCode,
        PromiseFlatCString(aReason).get()));
+  if (!mSessionReady) {
+    return IPC_FAIL(this, "Close received before session was ready");
+  }
   {
     MutexAutoLock lock(mMutex);
     MOZ_ASSERT(!mClosed);
