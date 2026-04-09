@@ -37,3 +37,4 @@ upload:
         files-changed:
             - 'testing/web-platform/tests/**'
             - 'testing/web-platform/mozilla/tests/**'
+    expiration-policy: long
