@@ -211,6 +211,10 @@ bool ContentCompositorBridgeParent::DeallocPWebRenderBridgeParent(
 
 mozilla::ipc::IPCResult ContentCompositorBridgeParent::RecvNotifyChildCreated(
     const LayersId& child, CompositorOptions* aOptions) {
+  if (NS_WARN_IF(!LayerTreeOwnerTracker::Get()->IsMapped(child, OtherPid()))) {
+    return IPC_OK();
+  }
+
   StaticMonitorAutoLock lock(CompositorBridgeParent::sIndirectLayerTreesLock);
   for (auto it = CompositorBridgeParent::sIndirectLayerTrees.begin();
        it != CompositorBridgeParent::sIndirectLayerTrees.end(); it++) {
@@ -381,32 +385,7 @@ ContentCompositorBridgeParent::~ContentCompositorBridgeParent() {
 PTextureParent* ContentCompositorBridgeParent::AllocPTextureParent(
     const SurfaceDescriptor& aSharedData, ReadLockDescriptor& aReadLock,
     const LayersBackend& aLayersBackend, const TextureFlags& aFlags,
-    const LayersId& aId, const uint64_t& aSerial,
-    const wr::MaybeExternalImageId& aExternalImageId) {
-  CompositorBridgeParent::LayerTreeState* state = nullptr;
-
-  StaticMonitorAutoLock lock(CompositorBridgeParent::sIndirectLayerTreesLock);
-  auto itr = CompositorBridgeParent::sIndirectLayerTrees.find(aId);
-  if (CompositorBridgeParent::sIndirectLayerTrees.end() != itr) {
-    state = &itr->second;
-  }
-
-  TextureFlags flags = aFlags;
-
-  LayersBackend actualBackend = LayersBackend::LAYERS_NONE;
-  if (!state) {
-    // The compositor was recreated, and we're receiving layers updates for a
-    // a layer manager that will soon be discarded or invalidated. We can't
-    // return null because this will mess up deserialization later and we'll
-    // kill the content process. Instead, we signal that the underlying
-    // TextureHost should not attempt to access the compositor.
-    flags |= TextureFlags::INVALID_COMPOSITOR;
-  } else if (actualBackend != LayersBackend::LAYERS_NONE &&
-             aLayersBackend != actualBackend) {
-    gfxDevCrash(gfx::LogReason::PAllocTextureBackendMismatch)
-        << "Texture backend is wrong";
-  }
-
+    const uint64_t& aSerial, const wr::MaybeExternalImageId& aExternalImageId) {
   return TextureHost::CreateIPDLActor(
       this, aSharedData, std::move(aReadLock), aLayersBackend, aFlags,
       mCompositorManager->GetContentId(), aSerial, aExternalImageId);

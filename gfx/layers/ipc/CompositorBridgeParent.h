@@ -161,7 +161,7 @@ class CompositorBridgeParentBase : public PCompositorBridgeParent,
   virtual PTextureParent* AllocPTextureParent(
       const SurfaceDescriptor& aSharedData, ReadLockDescriptor& aReadLock,
       const LayersBackend& aBackend, const TextureFlags& aTextureFlags,
-      const LayersId& id, const uint64_t& aSerial,
+      const uint64_t& aSerial,
       const MaybeExternalImageId& aExternalImageId) = 0;
   virtual bool DeallocPTextureParent(PTextureParent* aActor) = 0;
 
@@ -316,7 +316,7 @@ class CompositorBridgeParent final : public CompositorBridgeParentBase,
   PTextureParent* AllocPTextureParent(
       const SurfaceDescriptor& aSharedData, ReadLockDescriptor& aReadLock,
       const LayersBackend& aLayersBackend, const TextureFlags& aFlags,
-      const LayersId& aId, const uint64_t& aSerial,
+      const uint64_t& aSerial,
       const wr::MaybeExternalImageId& aExternalImageId) override;
   bool DeallocPTextureParent(PTextureParent* actor) override;
 
