@@ -94,6 +94,10 @@ gfxUserFontEntry::~gfxUserFontEntry() {
   // traversal, since PostTraversalTask objects can hold raw pointers to
   // gfxUserFontEntry objects.
   MOZ_ASSERT(!gfxFontUtils::IsInServoTraversal());
+  // Ensure the platform font entry is destroyed on the main thread, to avoid
+  // potential race updating the sUserFonts cache.
+  NS_ReleaseOnMainThread("gfxUserFontEntry::mPlatformFontEntry",
+                         mPlatformFontEntry.forget());
 }
 
 bool gfxUserFontEntry::Matches(const nsTArray<gfxFontFaceSrc>& aFontFaceSrcList,
@@ -1230,6 +1234,7 @@ bool gfxUserFontSet::UserFontCache::Entry::KeyEquals(
 }
 
 void gfxUserFontSet::UserFontCache::CacheFont(gfxFontEntry* aFontEntry) {
+  MOZ_ASSERT(NS_IsMainThread());
   NS_ASSERTION(aFontEntry->mFamilyName.Length() != 0,
                "caching a font associated with no family yet");
 
@@ -1284,6 +1289,10 @@ void gfxUserFontSet::UserFontCache::CacheFont(gfxFontEntry* aFontEntry) {
 }
 
 void gfxUserFontSet::UserFontCache::ForgetFont(gfxFontEntry* aFontEntry) {
+  // The only caller is ~gfxFontEntry; if this fires, there is a path to
+  // off-main-thread destruction of a font entry with mIsDataUserFont set
+  // that needs to be proxied to main thread (see ~gfxUserFontEntry).
+  MOZ_ASSERT(NS_IsMainThread());
   if (!sUserFonts) {
     // if we've already deleted the cache (i.e. during shutdown),
     // just ignore this
@@ -1307,6 +1316,7 @@ void gfxUserFontSet::UserFontCache::ForgetFont(gfxFontEntry* aFontEntry) {
 
 gfxFontEntry* gfxUserFontSet::UserFontCache::GetFont(
     const gfxFontFaceSrc& aSrc, const gfxUserFontEntry& aUserFontEntry) {
+  MOZ_ASSERT(NS_IsMainThread() || gfxFontUtils::CurrentServoStyleSet());
   if (!sUserFonts || StaticPrefs::gfx_downloadable_fonts_disable_cache()) {
     return nullptr;
   }
