@@ -41,12 +41,6 @@
       // Chrome's test domains.
       "pinningtest.appspot.com",
       "pinning-test.badssl.com",
-      // Tor
-      "torproject.org",
-      "blog.torproject.org",
-      "check.torproject.org",
-      "dist.torproject.org",
-      "www.torproject.org",
       // SpiderOak
       "spideroak.com"
     ],
@@ -91,11 +85,6 @@
     {
       "name": "google_root_pems",
       "sha256_hashes": [
-        "AffirmTrust Commercial",
-        "AffirmTrust Networking",
-        "AffirmTrust Premium",
-        "AffirmTrust Premium ECC",
-        "Baltimore CyberTrust Root",
         "Comodo AAA Services root",
         "COMODO Certification Authority",
         "COMODO ECC Certification Authority",
@@ -108,10 +97,6 @@
         "DigiCert Global Root G3",
         "DigiCert High Assurance EV Root CA",
         "DigiCert Trusted Root G4",
-        "Entrust Root Certification Authority",
-        "Entrust Root Certification Authority - EC1",
-        "Entrust Root Certification Authority - G2",
-        "Entrust.net Premium 2048 Secure Server CA",
         "GlobalSign ECC Root CA - R4",
         "GlobalSign ECC Root CA - R5",
         "GlobalSign Root CA",
