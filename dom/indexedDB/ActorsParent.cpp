@@ -17028,6 +17028,8 @@ void GetDatabasesOp::SendResults() {
   if (HasFailed()) {
     mResolver(ClampResultCode(ResultCode()));
   } else {
+    std::sort(mDatabaseMetadataArray.begin(), mDatabaseMetadataArray.end(),
+              [](const auto& a, const auto& b) { return a.name() < b.name(); });
     mResolver(mDatabaseMetadataArray);
   }
 
