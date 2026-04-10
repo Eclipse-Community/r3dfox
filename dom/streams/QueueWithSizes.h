@@ -127,7 +127,7 @@ inline void PeekQueueValue(JSContext* aCx, QueueContainingClass aContainer,
 
   // Step 4. Return valueWithSize’s value.
   aResultValue.set(valueWithSize->mValue);
-  valueWithSizes = nullptr;
+  valueWithSize = nullptr;
   if (!JS_WrapValue(aCx, aResultValue)) {
     aResultValue.setUndefined();
     aRv.StealExceptionFromJSContext(aCx);
