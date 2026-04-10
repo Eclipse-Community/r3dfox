@@ -19,10 +19,9 @@ MessageEventRunnable::MessageEventRunnable(WorkerPrivate* aWorkerPrivate)
       StructuredCloneHolder(CloningSupported, TransferringSupported,
                             StructuredCloneScope::SameProcess) {}
 
-bool MessageEventRunnable::DispatchDOMEvent(JSContext* aCx,
-                                            WorkerPrivate* aWorkerPrivate,
-                                            DOMEventTargetHelper* aTarget,
-                                            bool aIsMainThread) {
+bool MessageEventRunnable::DispatchDOMEvent(
+    JSContext* aCx, WorkerPrivate* aWorkerPrivate,
+    RefPtr<DOMEventTargetHelper> aTarget, bool aIsMainThread) {
   nsCOMPtr<nsIGlobalObject> parent = aTarget->GetParentObject();
 
   // For some workers without window, parent is null and we try to find it
@@ -117,7 +116,7 @@ MessageEventToParentRunnable::MessageEventToParentRunnable(
 
 bool MessageEventToParentRunnable::DispatchDOMEvent(
     JSContext* aCx, WorkerPrivate* aWorkerPrivate,
-    DOMEventTargetHelper* aTarget, bool aIsMainThread) {
+    RefPtr<DOMEventTargetHelper> aTarget, bool aIsMainThread) {
   nsCOMPtr<nsIGlobalObject> parent = aTarget->GetParentObject();
 
   // For some workers without window, parent is null and we try to find it

@@ -242,7 +242,7 @@ void WorkerErrorReport::AssignErrorReport(JSErrorReport* aReport) {
 /* static */
 void WorkerErrorReport::ReportError(
     JSContext* aCx, WorkerPrivate* aWorkerPrivate, bool aFireAtScope,
-    DOMEventTargetHelper* aTarget, UniquePtr<WorkerErrorReport> aReport,
+    RefPtr<DOMEventTargetHelper> aTarget, UniquePtr<WorkerErrorReport> aReport,
     uint64_t aInnerWindowId, JS::Handle<JS::Value> aException) {
   if (aWorkerPrivate) {
     aWorkerPrivate->AssertIsOnWorkerThread();
@@ -324,7 +324,7 @@ void WorkerErrorReport::ReportError(
         MOZ_ASSERT(globalScope->GetWrapperPreserveColor() == global);
 
         RefPtr<ErrorEvent> event = ErrorEvent::Constructor(
-            aTarget ? aTarget : globalScope, u"error"_ns, init);
+            aTarget ? aTarget.get() : globalScope, u"error"_ns, init);
         event->SetTrusted(true);
 
         if (NS_FAILED(EventDispatcher::DispatchDOMEvent(
