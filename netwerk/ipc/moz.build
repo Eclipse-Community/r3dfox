@@ -68,7 +68,6 @@ SOURCES += [
 
 
 PREPROCESSED_IPDL_SOURCES += [
-    "PNecko.ipdl",
     "PSocketProcess.ipdl",
     "PSocketProcessBridge.ipdl",
 ]
@@ -79,6 +78,7 @@ IPDL_SOURCES = [
     "PDocumentChannel.ipdl",
     "PFileChannel.ipdl",
     "PInputChannelThrottleQueue.ipdl",
+    "PNecko.ipdl",
     "PProxyAutoConfig.ipdl",
     "PProxyConfigLookup.ipdl",
     "PSimpleChannel.ipdl",
