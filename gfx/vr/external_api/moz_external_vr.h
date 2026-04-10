@@ -209,8 +209,9 @@ inline constexpr bool IsEnumCase<gfx::VRControllerType>(
     case gfx::VRControllerType::PicoGaze:
     case gfx::VRControllerType::PicoG2:
     case gfx::VRControllerType::PicoNeo2:
-    case gfx::VRControllerType::_end:
       return true;
+    case gfx::VRControllerType::_end:
+      break;
   }
   return false;
 }
