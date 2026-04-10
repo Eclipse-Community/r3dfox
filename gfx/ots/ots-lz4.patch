@@ -28,7 +28,7 @@ diff --git a/src/glat.cc b/src/glat.cc
 -          decompressed_size);  // output buffer size
 -      if (ret < 0 || unsigned(ret) != decompressed_size) {
 -        return DropGraphite("Decompression failed with error code %d", ret);
-+          &outputSize);  // return output size
++          &outputSize);  // output buffer size
 +      if (!ret || outputSize != decompressed_size) {
 +        return DropGraphite("Decompression failed");
        }
@@ -53,7 +53,7 @@ diff --git a/src/silf.cc b/src/silf.cc
                                OTS_MAX_DECOMPRESSED_TABLE_SIZE / (1024.0 * 1024.0),
                                decompressed_size / (1024.0 * 1024.0));
          }
-         std::unique_ptr<uint8_t> decompressed(new uint8_t[decompressed_size]());
+         std::unique_ptr<uint8_t[]> decompressed(new uint8_t[decompressed_size]());
 -        int ret = LZ4_decompress_safe_partial(
 +        size_t outputSize = 0;
 +        bool ret = mozilla::Compression::LZ4::decompressPartial(
@@ -65,7 +65,7 @@ diff --git a/src/silf.cc b/src/silf.cc
 -            decompressed_size);  // output buffer size
 -        if (ret < 0 || unsigned(ret) != decompressed_size) {
 -          return DropGraphite("Decompression failed with error code %d", ret);
-+            &outputSize);   // return output size
++            &outputSize);  // output buffer size
 +        if (!ret || outputSize != decompressed_size) {
 +          return DropGraphite("Decompression failed");
          }
