@@ -41,12 +41,6 @@ if CONFIG["MOZ_AUTH_EXTENSION"]:
         "/extensions/auth",
     ]
 
-if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
-    LOCAL_INCLUDES += [
-        "/netwerk/protocol/gio",
-    ]
-
-
 LOCAL_INCLUDES += [
     "!/netwerk/dns",
     "/modules/brotli/dec",

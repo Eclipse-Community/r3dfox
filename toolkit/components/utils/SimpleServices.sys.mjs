@@ -143,8 +143,8 @@ HttpIndexViewer.prototype = {
     aDocListenerResult
   ) {
     // Bug 1824325: application/http-index-format is deprecated for almost all
-    // sites, we only allow it for urls with a inner scheme of "file" or
-    // "moz-gio" (specified in network.http_index_format.allowed_schemes).
+    // sites, we only allow it for urls with a inner scheme of "file"
+    // (specified in network.http_index_format.allowed_schemes).
     // This also includes jar: and resource:// uris, as jar: uris has a inner
     // scheme of "file", and resource:// uris have been turned into either a
     // jar: or file:// uri by the point where we are checking them here.

@@ -18,9 +18,6 @@
 #include "mozilla/net/WebSocketChannelParent.h"
 #include "mozilla/net/WebSocketEventListenerParent.h"
 #include "mozilla/net/DataChannelParent.h"
-#ifdef MOZ_WIDGET_GTK
-#  include "mozilla/net/GIOChannelParent.h"
-#endif
 #include "mozilla/net/DocumentChannelParent.h"
 #include "mozilla/net/SimpleChannelParent.h"
 #include "mozilla/net/AltDataOutputStreamParent.h"
@@ -329,51 +326,6 @@ mozilla::ipc::IPCResult NeckoParent::RecvPDataChannelConstructor(
   MOZ_ASSERT(rv);
   return IPC_OK();
 }
-
-#ifdef MOZ_WIDGET_GTK
-static already_AddRefed<nsIPrincipal> GetRequestingPrincipal(
-    const GIOChannelCreationArgs& aArgs) {
-  if (aArgs.type() != GIOChannelCreationArgs::TGIOChannelOpenArgs) {
-    return nullptr;
-  }
-
-  const GIOChannelOpenArgs& args = aArgs.get_GIOChannelOpenArgs();
-  return GetRequestingPrincipal(args.loadInfo());
-}
-
-PGIOChannelParent* NeckoParent::AllocPGIOChannelParent(
-    PBrowserParent* aBrowser, const SerializedLoadContext& aSerialized,
-    const GIOChannelCreationArgs& aOpenArgs) {
-  nsCOMPtr<nsIPrincipal> requestingPrincipal =
-      GetRequestingPrincipal(aOpenArgs);
-
-  nsCOMPtr<nsILoadContext> loadContext;
-  CreateChannelLoadContext(aBrowser, Manager(), aSerialized,
-                           requestingPrincipal, loadContext);
-  PBOverrideStatus overrideStatus =
-      PBOverrideStatusFromLoadContext(aSerialized);
-  GIOChannelParent* p = new GIOChannelParent(BrowserParent::GetFrom(aBrowser),
-                                             loadContext, overrideStatus);
-  p->AddRef();
-  return p;
-}
-
-bool NeckoParent::DeallocPGIOChannelParent(PGIOChannelParent* channel) {
-  GIOChannelParent* p = static_cast<GIOChannelParent*>(channel);
-  p->Release();
-  return true;
-}
-
-mozilla::ipc::IPCResult NeckoParent::RecvPGIOChannelConstructor(
-    PGIOChannelParent* actor, PBrowserParent* aBrowser,
-    const SerializedLoadContext& aSerialized,
-    const GIOChannelCreationArgs& aOpenArgs) {
-  GIOChannelParent* p = static_cast<GIOChannelParent*>(actor);
-  DebugOnly<bool> rv = p->Init(aOpenArgs);
-  MOZ_ASSERT(rv);
-  return IPC_OK();
-}
-#endif
 
 PSimpleChannelParent* NeckoParent::AllocPSimpleChannelParent(
     const uint32_t& channelId) {

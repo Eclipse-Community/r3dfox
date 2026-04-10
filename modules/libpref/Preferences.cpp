@@ -6209,7 +6209,6 @@ static const PrefListEntry sDynamicPrefOverrideList[]{
     PREF_LIST_ENTRY("media.peerconnection.nat_simulator.network_delay_ms"),
     PREF_LIST_ENTRY("media.video_loopback_dev"),
     PREF_LIST_ENTRY("media.webspeech.service.endpoint"),
-    PREF_LIST_ENTRY("network.gio.supported-protocols"),
     PREF_LIST_ENTRY("network.protocol-handler.external."),
     PREF_LIST_ENTRY("network.security.ports.banned"),
     PREF_LIST_ENTRY("nimbus.syncdatastore."),

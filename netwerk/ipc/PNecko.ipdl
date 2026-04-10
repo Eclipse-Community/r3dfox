@@ -9,9 +9,6 @@ include protocol PContent;
 include protocol PHttpChannel;
 include protocol PCookieService;
 include protocol PBrowser;
-#ifdef MOZ_WIDGET_GTK
-include protocol PGIOChannel;
-#endif
 include protocol PWebSocket;
 include protocol PWebSocketEventListener;
 include protocol PTCPSocket;
@@ -58,9 +55,6 @@ namespace net {
   manages PUDPSocket;
   manages PDNSRequest;
   manages PDataChannel;
-#ifdef MOZ_WIDGET_GTK
-  manages PGIOChannel;
-#endif
   manages PSimpleChannel;
   manages PFileChannel;
   manages PTransportProvider;
@@ -114,9 +108,6 @@ parent:
    * the parent and the child when we're redirecting to a data: URI.
    */
   async PDataChannel(uint32_t channelId);
-#ifdef MOZ_WIDGET_GTK
-  async PGIOChannel(nullable PBrowser browser, SerializedLoadContext loadContext, GIOChannelCreationArgs args);
-#endif
   async PSimpleChannel(uint32_t channelId);
   async PFileChannel();
 

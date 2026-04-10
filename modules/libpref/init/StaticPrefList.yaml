@@ -15403,7 +15403,7 @@
 # Set to * to allow all schemes.
 - name: network.http_index_format.allowed_schemes
   type: String
-  value: "file,moz-gio"
+  value: "file"
   mirror: never
 
 # Enable off-main-thread decompression of network streams

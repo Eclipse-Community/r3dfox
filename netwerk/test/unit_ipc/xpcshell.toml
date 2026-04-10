@@ -17,7 +17,6 @@ support-files = [
   "!/netwerk/test/unit/test_duplicate_headers.js",
   "!/netwerk/test/unit/test_event_sink.js",
   "!/netwerk/test/unit/test_getHost.js",
-  "!/netwerk/test/unit/test_gio_protocol.js",
   "!/netwerk/test/unit/test_head.js",
   "!/netwerk/test/unit/test_headers.js",
   "!/netwerk/test/unit/test_httpsuspend.js",
@@ -135,9 +134,6 @@ prefs = ["network.allow_raw_sockets_in_content_processes=true"]
 
 ["test_getHost_wrap.js"]
 prefs = ["network.allow_raw_sockets_in_content_processes=true"]
-
-["test_gio_protocol_wrap.js"]
-run-if = ["os == 'linux'"]
 
 ["test_head_wrap.js"]
 prefs = ["network.allow_raw_sockets_in_content_processes=true"]

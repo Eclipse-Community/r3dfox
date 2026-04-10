@@ -91,7 +91,7 @@ DEFINE_STATIC_ATOM_SET(HostLocatorSchemes, nsGkAtoms::http, nsGkAtoms::https,
                        nsGkAtoms::ws, nsGkAtoms::wss, nsGkAtoms::file,
                        nsGkAtoms::ftp, nsGkAtoms::moz_extension,
                        nsGkAtoms::chrome, nsGkAtoms::resource, nsGkAtoms::moz,
-                       nsGkAtoms::moz_icon, nsGkAtoms::moz_gio);
+                       nsGkAtoms::moz_icon);
 
 DEFINE_STATIC_ATOM_SET(WildcardSchemes, nsGkAtoms::http, nsGkAtoms::https,
                        nsGkAtoms::ws, nsGkAtoms::wss);

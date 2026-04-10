@@ -142,17 +142,6 @@ class NeckoParent : public PNeckoParent {
 
   virtual mozilla::ipc::IPCResult RecvPDataChannelConstructor(
       PDataChannelParent* aActor, const uint32_t& channelId) override;
-#  ifdef MOZ_WIDGET_GTK
-  PGIOChannelParent* AllocPGIOChannelParent(
-      PBrowserParent* aBrowser, const SerializedLoadContext& aSerialized,
-      const GIOChannelCreationArgs& aOpenArgs);
-  bool DeallocPGIOChannelParent(PGIOChannelParent* channel);
-
-  virtual mozilla::ipc::IPCResult RecvPGIOChannelConstructor(
-      PGIOChannelParent* aActor, PBrowserParent* aBrowser,
-      const SerializedLoadContext& aSerialized,
-      const GIOChannelCreationArgs& aOpenArgs) override;
-#  endif
   PSimpleChannelParent* AllocPSimpleChannelParent(const uint32_t& channelId);
   bool DeallocPSimpleChannelParent(PSimpleChannelParent* actor);
 

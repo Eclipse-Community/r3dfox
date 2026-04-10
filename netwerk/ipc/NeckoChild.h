@@ -41,12 +41,6 @@ class NeckoChild : public PNeckoChild {
 
   PCookieServiceChild* AllocPCookieServiceChild();
   bool DeallocPCookieServiceChild(PCookieServiceChild*);
-#ifdef MOZ_WIDGET_GTK
-  PGIOChannelChild* AllocPGIOChannelChild(
-      PBrowserChild* aBrowser, const SerializedLoadContext& aSerialized,
-      const GIOChannelCreationArgs& aOpenArgs);
-  bool DeallocPGIOChannelChild(PGIOChannelChild*);
-#endif
   PWebSocketChild* AllocPWebSocketChild(PBrowserChild*,
                                         const SerializedLoadContext&,
                                         const uint32_t&);
