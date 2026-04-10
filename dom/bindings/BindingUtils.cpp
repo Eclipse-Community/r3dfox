@@ -2429,9 +2429,19 @@ void UpdateReflectorGlobal(JSContext* aCx, JS::Handle<JSObject*> aObjArg,
 
   bool isProxy = js::IsProxy(aObj);
   JS::Rooted<JSObject*> expandoObject(aCx);
+  JS::Rooted<JS::Value> expandoRollbackToken(aCx);
   if (isProxy) {
-    expandoObject = DOMProxyHandler::GetAndClearExpandoObject(aObj);
+    expandoObject =
+        DOMProxyHandler::GetAndClearExpandoObject(aObj, &expandoRollbackToken);
   }
+  auto resetExpando = MakeScopeExit([&]() {
+    // We must clear the expando object from `aObj`, since otherwise it will be
+    // copied as part of JS_CloneObject. But on an error, it needs to be
+    // restored.
+    if (expandoObject) {
+      DOMProxyHandler::RestoreExpando(aObj, expandoRollbackToken);
+    }
+  });
 
   JSAutoRealm newAr(aCx, newGlobal);
 
@@ -2471,6 +2481,10 @@ void UpdateReflectorGlobal(JSContext* aCx, JS::Handle<JSObject*> aObjArg,
   } else {
     propertyHolder = nullptr;
   }
+
+  // We've made it far enough to be able to mutate the source. Cleared slots
+  // will not be observed even if a failure occurs after this point.
+  resetExpando.release();
 
   // We've set up |newobj|, so we make it own the native by setting its reserved
   // slot and nulling out the reserved slot of |obj|.

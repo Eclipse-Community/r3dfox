@@ -127,10 +127,20 @@ class DOMProxyHandler : public BaseDOMProxyHandler {
    * function will ensure that the returned object is exposed to active JS if
    * the given object is exposed.
    *
+   * rollbackToken is an outparam that may be used to restore the expando object
+   * to its previous value by passing it to RestoreExpando().
+   *
    * GetAndClearExpandoObject does not DROP or clear the preserving wrapper
    * flag.
    */
-  static JSObject* GetAndClearExpandoObject(JSObject* obj);
+  static JSObject* GetAndClearExpandoObject(
+      JSObject* obj, JS::MutableHandle<JS::Value> rollbackToken);
+
+  /*
+   * Restore the expando object for the given DOM proxy to what it was before
+   * GetAndClearExpandoObject cleared it.
+   */
+  static void RestoreExpando(JSObject* obj, const JS::Value& rollbackToken);
 
   /*
    * Ensure that the given proxy (obj) has an expando object, and return it.
