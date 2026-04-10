@@ -125,7 +125,12 @@ void TransformStreamDefaultController::Enqueue(JSContext* aCx,
     TransformStreamErrorWritableAndUnblockWrite(aCx, stream, error, aRv);
 
     // Step 5.2: Throw stream.[[readable]].[[storedError]].
-    JS::Rooted<JS::Value> storedError(aCx, stream->Readable()->StoredError());
+    JS::Rooted<JS::Value> storedError(aCx);
+    stream->Readable()->GetStoredError(aCx, &storedError, aRv);
+    if (aRv.Failed()) {
+      return;
+    }
+
     aRv.MightThrowJSException();
     aRv.ThrowJSException(aCx, storedError);
     return;
