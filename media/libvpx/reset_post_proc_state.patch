@@ -1,0 +1,32 @@
+# HG changeset patch
+# User Jan-Ivar Bruaroey <jib@mozilla.com>
+
+Bug 2029423 - Reset post_proc state.
+
+diff --git a/vp8/common/alloccommon.c b/vp8/common/alloccommon.c
+--- a/vp8/common/alloccommon.c
++++ b/vp8/common/alloccommon.c
+@@ -34,7 +34,7 @@ void vp8_de_alloc_frame_buffers(VP8_COMM
+   oci->pp_limits_buffer = NULL;
+
+   vpx_free(oci->postproc_state.generated_noise);
+-  oci->postproc_state.generated_noise = NULL;
++  memset(&oci->postproc_state, 0, sizeof(oci->postproc_state));
+ #endif
+
+   vpx_free(oci->above_context);
+@@ -42,10 +42,14 @@ void vp8_de_alloc_frame_buffers(VP8_COMM
+ #if CONFIG_ERROR_CONCEALMENT
+   vpx_free(oci->prev_mip);
+   oci->prev_mip = NULL;
++  oci->prev_mi = NULL;
+ #endif
+
+   oci->above_context = NULL;
+   oci->mip = NULL;
++  oci->mi = NULL;
++  oci->show_frame_mi = NULL;
++  oci->frame_to_show = NULL;
+ }
+
+ int vp8_alloc_frame_buffers(VP8_COMMON *oci, int width, int height) {
