@@ -79,6 +79,16 @@ JSObject* WritableStream::WrapObject(JSContext* aCx,
   return WritableStream_Binding::Wrap(aCx, this, aGivenProto);
 }
 
+void WritableStream::GetStoredError(JSContext* aCx,
+                                    JS::MutableHandle<JS::Value> aStoredError,
+                                    ErrorResult& aRv) const {
+  aStoredError.set(mStoredError);
+  if (!JS_WrapValue(aCx, aStoredError)) {
+    aStoredError.setUndefined();
+    aRv.StealExceptionFromJSContext(aCx);
+  }
+}
+
 // https://streams.spec.whatwg.org/#writable-stream-deal-with-rejection
 void WritableStream::DealWithRejection(JSContext* aCx,
                                        JS::Handle<JS::Value> aError,
@@ -140,6 +150,10 @@ void WritableStream::FinishErroring(JSContext* aCx, ErrorResult& aRv) {
   // Step 9. Let abortRequest be stream.[[pendingAbortRequest]].
   RefPtr<Promise> abortPromise = mPendingAbortRequestPromise;
   JS::Rooted<JS::Value> abortReason(aCx, mPendingAbortRequestReason);
+  if (!JS_WrapValue(aCx, &abortReason)) {
+    aRv.StealExceptionFromJSContext(aCx);
+    return;
+  }
   bool abortWasAlreadyErroring = mPendingAbortRequestWasAlreadyErroring;
 
   // Step 10. Set stream.[[pendingAbortRequest]] to undefined.

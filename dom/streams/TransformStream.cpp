@@ -265,8 +265,12 @@ class TransformStreamUnderlyingSinkAlgorithms final
                 // Step 3: If state is "erroring", throw
                 // writable.[[storedError]].
                 if (state == WritableStream::WriterState::Erroring) {
-                  JS::Rooted<JS::Value> storedError(aCx,
-                                                    writable->StoredError());
+                  JS::Rooted<JS::Value> storedError(aCx);
+                  writable->GetStoredError(aCx, &storedError, aRv);
+                  if (aRv.Failed()) {
+                    return nullptr;
+                  }
+
                   aRv.MightThrowJSException();
                   aRv.ThrowJSException(aCx, storedError);
                   return nullptr;
@@ -361,8 +365,12 @@ class TransformStreamUnderlyingSinkAlgorithms final
                   // readable.[[storedError]].
                   if (aReadable->State() ==
                       ReadableStream::ReaderState::Errored) {
-                    JS::Rooted<JS::Value> storedError(aCx,
-                                                      aReadable->StoredError());
+                    JS::Rooted<JS::Value> storedError(aCx);
+                    aReadable->GetStoredError(aCx, &storedError, aRv);
+                    if (aRv.Failed()) {
+                      return nullptr;
+                    }
+
                     aRv.MightThrowJSException();
                     aRv.ThrowJSException(aCx, storedError);
                     return nullptr;
@@ -389,8 +397,12 @@ class TransformStreamUnderlyingSinkAlgorithms final
                   }
 
                   // Step 5.2.2: Throw readable.[[storedError]].
-                  JS::Rooted<JS::Value> storedError(aCx,
-                                                    aReadable->StoredError());
+                  JS::Rooted<JS::Value> storedError(aCx);
+                  aReadable->GetStoredError(aCx, &storedError, aRv);
+                  if (aRv.Failed()) {
+                    return nullptr;
+                  }
+
                   aRv.MightThrowJSException();
                   aRv.ThrowJSException(aCx, storedError);
                   return nullptr;
