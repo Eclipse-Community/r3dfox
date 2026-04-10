@@ -374,8 +374,8 @@ static bool HasColorAndAlpha(const WebGLTexelFormat format) {
 }
 
 bool TexUnpackBlob::ConvertIfNeeded(
-    const WebGLContext* const webgl, const uint32_t rowLength,
-    const uint32_t rowCount, WebGLTexelFormat srcFormat,
+    const WebGLContext* const webgl, const size_t rowLength,
+    const size_t rowCount, WebGLTexelFormat srcFormat,
     const uint8_t* const srcBegin, const ptrdiff_t srcStride,
     WebGLTexelFormat dstFormat, const ptrdiff_t dstStride,
     const uint8_t** const out_begin,
@@ -442,7 +442,7 @@ bool TexUnpackBlob::ConvertIfNeeded(
 
   ////
 
-  const auto dstTotalBytes = CheckedUint32(rowCount) * dstStride;
+  const auto dstTotalBytes = CheckedInt<size_t>(rowCount) * dstStride;
   if (!dstTotalBytes.isValid()) {
     webgl->ErrorOutOfMemory("Calculation failed.");
     return false;

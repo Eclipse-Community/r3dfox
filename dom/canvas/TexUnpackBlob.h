@@ -63,8 +63,8 @@ class TexUnpackBlob {
   virtual ~TexUnpackBlob() = default;
 
  protected:
-  bool ConvertIfNeeded(const WebGLContext*, const uint32_t rowLength,
-                       const uint32_t rowCount, WebGLTexelFormat srcFormat,
+  bool ConvertIfNeeded(const WebGLContext*, const size_t rowLength,
+                       const size_t rowCount, WebGLTexelFormat srcFormat,
                        const uint8_t* const srcBegin, const ptrdiff_t srcStride,
                        WebGLTexelFormat dstFormat, const ptrdiff_t dstStride,
 
