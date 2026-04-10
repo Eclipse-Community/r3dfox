@@ -150,8 +150,11 @@ fail-if = ["a11y_checks"] # Bug 1849028 clicked element may not be focusable and
 
 ["browser_animation_logic_mutations_fast.js"]
 skip-if = [
-  "os == 'linux' && os_version == '18.04' && processor == 'x86_64' && debug", # Bug 1567800
-  "os == 'linux' && os_version == '24.04' && processor == 'x86_64' && display == 'x11' && debug", # Bug 1567800
+  "os == 'linux' && processor == 'x86_64' && asan", # Bug 1980142, Bug 2030884
+  "os == 'linux' && processor == 'x86_64' && debug", # Bug 1567800, Bug 2030884
+  "os == 'linux' && processor == 'x86_64' && tsan", # Bug 1980142, Bug 2030884
+  "os == 'win' && os_version == '11.26100' && processor == 'x86_64' && debug", # Bug 1980142, Bug 2030884
+  "os == 'win' && os_version == '11.26200' && processor == 'x86_64' && debug", # Bug 1980142, Bug 2030884
 ]
 
 ["browser_animation_logic_mutations_properties.js"]

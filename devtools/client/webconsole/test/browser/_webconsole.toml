@@ -587,7 +587,9 @@ support-files = ["browser_webconsole_object_inspector_entries.snapshot.mjs"]
 https_first_disabled = true # JS HttpServer doesn't support https
 skip-if = [
   "http3", # JS HttpServer doesn't support http3
+  "os == 'linux' && os_version == '18.04' && processor == 'x86_64' && opt", # Bug 1965340, Bug 2030884
   "os == 'linux' && os_version == '24.04' && processor == 'x86_64' && display == 'x11' && opt", # Bug 1965340
+  "os == 'mac' && os_version == '14.70' && processor == 'x86_64'", # Bug 1965340, Bug 2030884
 ]
 
 ["browser_webconsole_object_inspector_getters.js"]

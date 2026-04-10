@@ -115,6 +115,9 @@ skip-if = [
 ["browser_dbg-call-stack.js"]
 
 ["browser_dbg-chrome-create.js"]
+skip-if = [
+  "os == 'linux' && os_version == '18.04' && processor == 'x86_64' && asan", # Bug 2030884
+]
 
 ["browser_dbg-console-async.js"]
 
@@ -286,6 +289,7 @@ skip-if = [
 ["browser_dbg-javascript-tracer-values-preview.js"]
 skip-if = [
   "os == 'linux' && os_version == '18.04' && processor == 'x86_64' && opt && a11y_checks", # Bug The tracer tree isn't yet accessible
+  "os == 'linux' && os_version == '18.04' && processor == 'x86_64' && tsan", # Bug 1959018, Bug 2030884
   "os == 'linux' && os_version == '24.04' && processor == 'x86_64' && display == 'x11' && opt && a11y_checks", # Bug The tracer tree isn't yet accessible
 ]
 
