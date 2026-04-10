@@ -179,17 +179,17 @@ function getCleanedPacket(key, packet) {
     res.startedDateTime = existingPacket.startedDateTime;
   }
 
-  if (res.totalTime && existingPacket.totalTime) {
-    res.totalTime = existingPacket.totalTime;
-  }
-
   if (res.securityState && existingPacket.securityState) {
     res.securityState = existingPacket.securityState;
   }
 
-  // waitingTime can be very small and rounded to 0. However this is still a
-  // valid waiting time, so check isNaN instead of a simple truthy check.
-  if (!isNaN(res.waitingTime) && existingPacket.waitingTime) {
+  // totalTime and waitingTime can be very small and rounded to 0. However this
+  // is still a valid time value, so check isNaN instead of a simple truthy check.
+  if (!isNaN(res.totalTime) && !isNaN(existingPacket.totalTime)) {
+    res.totalTime = existingPacket.totalTime;
+  }
+
+  if (!isNaN(res.waitingTime) && !isNaN(existingPacket.waitingTime)) {
     res.waitingTime = existingPacket.waitingTime;
   }
 
