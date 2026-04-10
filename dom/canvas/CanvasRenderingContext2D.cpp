@@ -880,6 +880,8 @@ NS_IMPL_CYCLE_COLLECTING_RELEASE(CanvasRenderingContext2D)
 NS_IMPL_CYCLE_COLLECTION_WRAPPERCACHE_CLASS(CanvasRenderingContext2D)
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(CanvasRenderingContext2D)
+  tmp->RemoveShutdownObserver();
+  tmp->OnShutdown();
   // Make sure we remove ourselves from the list of demotable contexts (raw
   // pointers), since we're logically destructed at this point.
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mCanvasElement)

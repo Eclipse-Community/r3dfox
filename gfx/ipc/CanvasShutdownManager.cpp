@@ -31,10 +31,21 @@ CanvasShutdownManager::CanvasShutdownManager(StrongWorkerRef* aWorkerRef)
 CanvasShutdownManager::CanvasShutdownManager() = default;
 CanvasShutdownManager::~CanvasShutdownManager() = default;
 
+std::vector<RefPtr<CanvasRenderingContext2D>>
+CanvasShutdownManager::RefActiveCanvas() const {
+  std::vector<RefPtr<CanvasRenderingContext2D>> activeCanvas;
+  activeCanvas.reserve(mActiveCanvas.size());
+  for (const auto& canvas : mActiveCanvas) {
+    activeCanvas.emplace_back(canvas);
+  }
+  return activeCanvas;
+}
+
 void CanvasShutdownManager::Destroy() {
-  std::set<CanvasRenderingContext2D*> activeCanvas = std::move(mActiveCanvas);
-  for (const auto& i : activeCanvas) {
-    i->OnShutdown();
+  auto activeCanvas = RefActiveCanvas();
+  mActiveCanvas.clear();
+  for (const auto& canvas : activeCanvas) {
+    canvas->OnShutdown();
   }
 
   CanvasManagerChild::Shutdown();
@@ -121,17 +132,13 @@ void CanvasShutdownManager::RemoveShutdownObserver(
 }
 
 void CanvasShutdownManager::OnRemoteCanvasLost() {
-  // Note that the canvas cannot do anything that mutates our state. It will
-  // dispatch for anything that risks re-entrancy.
-  for (const auto& canvas : mActiveCanvas) {
+  for (const auto& canvas : RefActiveCanvas()) {
     canvas->OnRemoteCanvasLost();
   }
 }
 
 void CanvasShutdownManager::OnRemoteCanvasRestored() {
-  // Note that the canvas cannot do anything that mutates our state. It will
-  // dispatch for anything that risks re-entrancy.
-  for (const auto& canvas : mActiveCanvas) {
+  for (const auto& canvas : RefActiveCanvas()) {
     canvas->OnRemoteCanvasRestored();
   }
 }
@@ -142,7 +149,7 @@ void CanvasShutdownManager::OnRemoteCanvasReset(
     return;
   }
 
-  for (const auto& canvas : mActiveCanvas) {
+  for (const auto& canvas : RefActiveCanvas()) {
     auto* bufferProvider = canvas->GetBufferProvider();
     if (!bufferProvider) {
       continue;
