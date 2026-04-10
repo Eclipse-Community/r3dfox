@@ -195,7 +195,7 @@ bool ReadNextNumberFromCharString(ots::Buffer *char_string,
       return OTS_FAILURE();
     }
     result += v;
-    *out_number = result;
+    *out_number = static_cast<int16_t>(result);
   } else if (v <= 31) {
     *out_number = v;
     *out_is_operator = true;

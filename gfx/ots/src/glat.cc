@@ -223,7 +223,7 @@ bool OpenTypeGLAT_v3::Parse(const uint8_t* data, size_t length,
           table.remaining(),  // input buffer size (input size + padding)
           reinterpret_cast<char*>(decompressed.get()),
           decompressed_size,  // target output size
-          &outputSize);  // return output size
+          &outputSize);  // output buffer size
       if (!ret || outputSize != decompressed_size) {
         return DropGraphite("Decompression failed");
       }
