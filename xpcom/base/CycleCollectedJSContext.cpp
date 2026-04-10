@@ -828,18 +828,40 @@ class FinalizationRegistryCleanup::CleanupRunnable
     : public DiscardableRunnable {
  public:
   explicit CleanupRunnable(FinalizationRegistryCleanup* aCleanupWork)
-      : DiscardableRunnable("CleanupRunnable"), mCleanupWork(aCleanupWork) {}
+      : DiscardableRunnable("CleanupRunnable"), mCleanupWork(aCleanupWork) {
+    MOZ_ASSERT(aCleanupWork);
+  }
+
+  virtual ~CleanupRunnable() {
+    if (mCleanupWork) {
+      clearPendingRunnable();
+    }
+  }
 
   // MOZ_CAN_RUN_SCRIPT_BOUNDARY until Runnable::Run is MOZ_CAN_RUN_SCRIPT.  See
   // bug 1535398.
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
   NS_IMETHOD Run() override {
+    if (!mCleanupWork) {
+      // The FinalizationRegistryCleanup has been destroyed.
+      return NS_OK;
+    }
+
+    clearPendingRunnable();
+
     mCleanupWork->DoCleanup();
+    mCleanupWork = nullptr;
     return NS_OK;
+  }
+
+  void clearPendingRunnable() {
+    MOZ_ASSERT(mCleanupWork->mPendingRunnable == this);
+    mCleanupWork->mPendingRunnable = nullptr;
   }
 
  private:
   FinalizationRegistryCleanup* mCleanupWork;
+  friend class FinalizationRegistryCleanup;
 };
 
 FinalizationRegistryCleanup::FinalizationRegistryCleanup(
@@ -849,6 +871,10 @@ FinalizationRegistryCleanup::FinalizationRegistryCleanup(
 void FinalizationRegistryCleanup::Destroy() {
   // This must happen before the CycleCollectedJSContext destructor calls
   // JS_DestroyContext().
+  if (mPendingRunnable) {
+    MOZ_ASSERT(mPendingRunnable->mCleanupWork == this);
+    mPendingRunnable->mCleanupWork = nullptr;
+  }
   mCallbacks.reset();
 }
 
@@ -869,13 +895,13 @@ void FinalizationRegistryCleanup::QueueCallback(JSFunction* aDoCleanup,
 
 void FinalizationRegistryCleanup::QueueCallback(JSFunction* aDoCleanup,
                                                 JSObject* aIncumbentGlobal) {
-  bool firstCallback = mCallbacks.empty();
+  MOZ_ASSERT_IF(!mCallbacks.empty(), mPendingRunnable);
 
   MOZ_ALWAYS_TRUE(mCallbacks.append(Callback{aDoCleanup, aIncumbentGlobal}));
 
-  if (firstCallback) {
-    RefPtr<CleanupRunnable> cleanup = new CleanupRunnable(this);
-    NS_DispatchToCurrentThread(cleanup.forget());
+  if (!mPendingRunnable) {
+    mPendingRunnable = new CleanupRunnable(this);
+    NS_DispatchToCurrentThread(mPendingRunnable);
   }
 }
 
