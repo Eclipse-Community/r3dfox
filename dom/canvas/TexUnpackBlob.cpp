@@ -855,9 +855,14 @@ bool TexUnpackImage::TexOrSubImage(bool isSubImage, bool needsRespec,
                                : dom::PredefinedColorSpace::Srgb;
   bool sameColorSpace = (srcColorSpace == dstColorSpace);
 
-  const auto reason = BlitPreventReason(
+  const char* reason = nullptr;
+  if (!webgl->IsUploadableSdType(sd)) {
+    reason = "Unsupported surface descriptor type";
+  } else {
+    reason = BlitPreventReason(
       level, {xOffset, yOffset, zOffset}, dui->internalFormat, pi, mDesc,
       webgl->mOptionalRenderableFormatBits, sameColorSpace);
+  }
   if (reason) {
     webgl->GeneratePerfWarning(
         "Failed to hit GPU-copy fast-path."
