@@ -1866,6 +1866,10 @@ cairo_cff_font_subset_fontdict (cairo_cff_font_t  *font)
 	}
 
         fd = font->fdselect[gid];
+        if (fd < 0 || (unsigned int) fd >= font->num_fontdicts) {
+            free (reverse_map);
+            return CAIRO_INT_STATUS_UNSUPPORTED;
+        }
         if (reverse_map[fd] < 0) {
             font->fd_subset_map[font->num_subset_fontdicts] = fd;
             reverse_map[fd] = font->num_subset_fontdicts++;
