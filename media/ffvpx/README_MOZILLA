@@ -128,6 +128,10 @@ might need to be reapplied or extended to other files including `time.h`. The
 issue being that it's included instead of the system header, causing all sorts
 of issues.
 
+Additionally, `jni.h` and `jni.c` in ffmpeg sources need to be renamed to
+`fffjni.h` and `fffjni.c`, and `#include` to those files need to be updated.
+This is because there are header collisions with the JDK.
+ 
 `moz.build` files might need to be modified as well, in light of compilation
 and link errors.
 
@@ -141,3 +145,4 @@ Finally, apply the patches:
   stdio.h function, that causes bug 1879740 issue on Windows.
 - opusenc-dtx.patch to allow enabling DTX in the opus encoder.
 - libaomenc-svc.patch to allow configuring SVC in the libaom encoder.
+- vp9-get-format-rollback.patch to fix a VP9 decoder error handling issue.
