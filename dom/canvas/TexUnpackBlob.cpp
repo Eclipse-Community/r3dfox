@@ -855,9 +855,9 @@ bool TexUnpackImage::TexOrSubImage(bool isSubImage, bool needsRespec,
                                : dom::PredefinedColorSpace::Srgb;
   bool sameColorSpace = (srcColorSpace == dstColorSpace);
 
-  const char* reason = nullptr;
+  Maybe<std::string> reason;
   if (!webgl->IsUploadableSdType(sd)) {
-    reason = "Unsupported surface descriptor type";
+    reason = Some(std::string("Unsupported surface descriptor type"));
   } else {
     reason = BlitPreventReason(
       level, {xOffset, yOffset, zOffset}, dui->internalFormat, pi, mDesc,
