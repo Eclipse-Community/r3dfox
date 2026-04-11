@@ -136,6 +136,7 @@ void StreamList::NoteClosedAll() {
 
 void StreamList::CloseAll() {
   NS_ASSERT_OWNINGTHREAD(StreamList);
+  SafeRefPtr<StreamList> kungFuDeathGrip = SafeRefPtrFromThis();
 
   if (mStreamControl && mStreamControl->CanSend()) {
     // CloseAll will kick off everything needed for shutdown.
@@ -194,12 +195,12 @@ StreamList::~StreamList() {
   NS_ASSERT_OWNINGTHREAD(StreamList);
   MOZ_DIAGNOSTIC_ASSERT(!mStreamControl);
   if (mActivated) {
+    mContext->RemoveActivity(*this);
     mManager->RemoveStreamList(*this);
     for (uint32_t i = 0; i < mList.Length(); ++i) {
       mManager->ReleaseBodyId(mList[i].mId);
     }
     mManager->ReleaseCacheId(mCacheId);
-    mContext->RemoveActivity(*this);
   }
 }
 
