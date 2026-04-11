@@ -907,6 +907,9 @@ bool GLBlitHelper::BlitSdToFramebuffer(const layers::SurfaceDescriptor& asd,
     case layers::SurfaceDescriptor::TSurfaceDescriptorDMABuf: {
       const auto& sd = asd.get_SurfaceDescriptorDMABuf();
       RefPtr<DMABufSurface> surface = DMABufSurface::CreateDMABufSurface(sd);
+      if (!surface) {
+        return false;
+      }
       return Blit(surface, destSize, destOrigin);
     }
 #endif
