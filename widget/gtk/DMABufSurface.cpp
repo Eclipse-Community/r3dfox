@@ -915,32 +915,19 @@ bool DMABufSurfaceRGBA::Create(
   return true;
 }
 
-static bool CheckSurfaceDescriptor(const SurfaceDescriptorDMABuf& aDesc) {
-  auto bufferPlaneCount = aDesc.fds().Length();
-  MOZ_RELEASE_ASSERT(bufferPlaneCount <= DMABUF_BUFFER_PLANES);
-  if (bufferPlaneCount <= 0 ||
-      aDesc.width().Length() < (uint32_t)bufferPlaneCount ||
-      aDesc.height().Length() < (uint32_t)bufferPlaneCount ||
-      aDesc.widthAligned().Length() < (uint32_t)bufferPlaneCount ||
-      aDesc.heightAligned().Length() < (uint32_t)bufferPlaneCount ||
-      aDesc.format().Length() < (uint32_t)bufferPlaneCount ||
-      aDesc.modifier().Length() < (uint32_t)bufferPlaneCount ||
-      aDesc.strides().Length() < (uint32_t)bufferPlaneCount ||
-      aDesc.offsets().Length() < (uint32_t)bufferPlaneCount) {
-    return false;
-  }
-  return true;
-}
-
 bool DMABufSurfaceRGBA::ImportSurfaceDescriptor(
     const SurfaceDescriptor& aDesc) {
   const SurfaceDescriptorDMABuf& desc = aDesc.get_SurfaceDescriptorDMABuf();
 
-  if (!CheckSurfaceDescriptor(desc)) {
+  mBufferPlaneCount = desc.fds().Length();
+
+  MOZ_RELEASE_ASSERT(mBufferPlaneCount <= DMABUF_BUFFER_PLANES);
+  if (mBufferPlaneCount <= 0 || desc.width().Length() == 0 ||
+      desc.height().Length() == 0 || desc.modifier().Length() == 0 ||
+      desc.strides().Length() < (uint32_t)mBufferPlaneCount ||
+      desc.offsets().Length() < (uint32_t)mBufferPlaneCount) {
     return false;
   }
-
-  mBufferPlaneCount = desc.fds().Length();
 
   mFOURCCFormat = desc.fourccFormat();
   mWidth = desc.width()[0];
@@ -1818,11 +1805,20 @@ bool DMABufSurfaceYUV::Create(const SurfaceDescriptor& aDesc) {
 
 bool DMABufSurfaceYUV::ImportSurfaceDescriptor(
     const SurfaceDescriptorDMABuf& aDesc) {
-  if (!CheckSurfaceDescriptor(aDesc)) {
+  mBufferPlaneCount = aDesc.fds().Length();
+  MOZ_RELEASE_ASSERT(mBufferPlaneCount <= DMABUF_BUFFER_PLANES);
+  if (mBufferPlaneCount <= 0 ||
+      aDesc.width().Length() < (uint32_t)mBufferPlaneCount ||
+      aDesc.height().Length() < (uint32_t)mBufferPlaneCount ||
+      aDesc.widthAligned().Length() < (uint32_t)mBufferPlaneCount ||
+      aDesc.heightAligned().Length() < (uint32_t)mBufferPlaneCount ||
+      aDesc.format().Length() < (uint32_t)mBufferPlaneCount ||
+      aDesc.modifier().Length() < (uint32_t)mBufferPlaneCount ||
+      aDesc.strides().Length() < (uint32_t)mBufferPlaneCount ||
+      aDesc.offsets().Length() < (uint32_t)mBufferPlaneCount) {
     return false;
   }
 
-  mBufferPlaneCount = aDesc.fds().Length();
   mSurfaceType = SURFACE_YUV;
   mFOURCCFormat = aDesc.fourccFormat();
   mColorSpace = aDesc.yUVColorSpace();
