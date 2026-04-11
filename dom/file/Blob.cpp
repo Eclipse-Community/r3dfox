@@ -8,6 +8,7 @@
 #include "EmptyBlobImpl.h"
 #include "File.h"
 #include "MemoryBlobImpl.h"
+#include "js/Object.h"
 #include "mozilla/dom/BlobBinding.h"
 #include "mozilla/dom/ReadableStream.h"
 #include "mozilla/dom/WorkerCommon.h"
@@ -120,6 +121,16 @@ Blob::Blob(nsIGlobalObject* aGlobal, BlobImpl* aImpl)
 }
 
 Blob::~Blob() = default;
+
+already_AddRefed<Blob> Blob::Clone() const {
+  RefPtr<Blob> clone = Create(GetParentObject(), Impl());
+  return clone.forget();
+}
+
+bool Blob::HasExpandos() const {
+  const JSObject* wrapper = GetWrapperPreserveColor();
+  return wrapper && JS::NativeObjectHasOwnProperties(wrapper);
+}
 
 bool Blob::IsFile() const { return mImpl->IsFile(); }
 

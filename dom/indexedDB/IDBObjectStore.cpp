@@ -454,9 +454,15 @@ JSObject* CopyingStructuredCloneReadCallback(
         RefPtr<Blob> blob = fileChild.BlobPtr();
         MOZ_ASSERT(blob->IsFile());
 
-        RefPtr<File> file = blob->ToFile();
+        RefPtr<File> file;
+        if (blob->HasExpandos()) {
+          const RefPtr<Blob> clonedBlob = blob->Clone();
+          file = clonedBlob->ToFile();
+        } else {
+          file = blob->ToFile();
+        }
         if (!file) {
-          MOZ_ASSERT(false, "Could not convert blob to file!");
+          MOZ_ASSERT(false, "Could not create file!");
 
           return nullptr;
         }
@@ -489,11 +495,29 @@ JSObject* CopyingStructuredCloneReadCallback(
     StructuredCloneFileChild& file = cloneInfo->mFiles[aData];
 
     switch (static_cast<StructuredCloneTags>(aTag)) {
-      case SCTAG_DOM_BLOB:
+      case SCTAG_DOM_BLOB: {
         MOZ_ASSERT(file.Type() == StructuredCloneFileBase::eBlob);
         MOZ_ASSERT(!file.Blob().IsFile());
 
-        return WrapAsJSObject(aCx, file.MutableBlob());
+        JS::Rooted<JSObject*> result(aCx);
+        if (file.Blob().HasExpandos()) {
+          const RefPtr<Blob> newBlob = file.Blob().Clone();
+          MOZ_ASSERT(newBlob);
+
+          if (!WrapAsJSObject(aCx, newBlob, &result)) {
+            return nullptr;
+          }
+        } else {
+          // If the blob has no expandos, we can return the existing wrapper
+          // directly. This is an optimization over step 10 of
+          // https://w3c.github.io/IndexedDB/#add-or-put since the result is
+          // observably equivalent when there are no user-added properties.
+          if (!WrapAsJSObject(aCx, file.MutableBlob(), &result)) {
+            return nullptr;
+          }
+        }
+        return result;
+      }
 
       case SCTAG_DOM_FILE: {
         MOZ_ASSERT(file.Type() == StructuredCloneFileBase::eBlob);
@@ -502,15 +526,30 @@ JSObject* CopyingStructuredCloneReadCallback(
 
         {
           // Create a scope so ~RefPtr fires before returning an unwrapped
-          // JS::Value.
+          // JSObject*. Otherwise ~JS::Rooted will unroot the object, then
+          // ~RefPtr will trigger GC before the value is returned and rooted
+          // again by the caller.
+          // See bug 1480640 for details.
           const RefPtr<Blob> blob = file.BlobPtr();
           MOZ_ASSERT(blob->IsFile());
 
-          const RefPtr<File> file = blob->ToFile();
-          MOZ_ASSERT(file);
+          // Same logic as blob above: clone only if necessary
+          if (blob->HasExpandos()) {
+            const RefPtr<Blob> clonedBlob = blob->Clone();
+            MOZ_ASSERT(clonedBlob);
+            const RefPtr<File> file = clonedBlob->ToFile();
+            MOZ_ASSERT(file);
 
-          if (!WrapAsJSObject(aCx, file, &result)) {
-            return nullptr;
+            if (!WrapAsJSObject(aCx, file, &result)) {
+              return nullptr;
+            }
+          } else {
+            const RefPtr<File> file = blob->ToFile();
+            MOZ_ASSERT(file);
+
+            if (!WrapAsJSObject(aCx, file, &result)) {
+              return nullptr;
+            }
           }
         }
 
