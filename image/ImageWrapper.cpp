@@ -235,7 +235,8 @@ ImageWrapper::RequestDiscard() { return mInnerImage->RequestDiscard(); }
 
 NS_IMETHODIMP_(void)
 ImageWrapper::RequestRefresh(const TimeStamp& aTime) {
-  return mInnerImage->RequestRefresh(aTime);
+  RefPtr<Image> inner = mInnerImage;
+  return inner->RequestRefresh(aTime);
 }
 
 NS_IMETHODIMP
