@@ -92,8 +92,10 @@ class RemotePrintJobParent final : public PRemotePrintJobParent {
   UniquePtr<PrintTranslator> mPrintTranslator;
   nsCOMArray<nsIWebProgressListener> mPrintProgressListeners;
   PRFileDescStream mCurrentPageStream;
-  bool mIsDoingPrinting;
   nsresult mStatus;
+  bool mIsDoingPrinting = false;
+  bool mInitializeReceived =
+      false;  // True after RecvInitializePrint is called.
 };
 
 }  // namespace layout
