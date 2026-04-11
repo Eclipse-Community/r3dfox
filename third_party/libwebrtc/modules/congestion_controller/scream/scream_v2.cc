@@ -43,6 +43,15 @@ DataSize DataUnitsAckedAndNotMarked(const TransportPacketsFeedback& msg) {
   return acked_not_marked;
 }
 
+bool HasCeMarking(const TransportPacketsFeedback& msg) {
+  for (const auto& packet : msg.PacketsWithFeedback()) {
+    if (packet.ecn == EcnMarking::kCe) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool HasLostPackets(const TransportPacketsFeedback& msg) {
   for (const auto& packet : msg.PacketsWithFeedback()) {
     if (!packet.IsReceived()) {
@@ -107,7 +116,7 @@ void ScreamV2::UpdateRefWindow(const TransportPacketsFeedback& msg) {
   max_data_in_flight_this_rtt_ =
       std::max(max_data_in_flight_this_rtt_, msg.data_in_flight);
 
-  bool is_ce = msg.HasPacketWithEcnCe();
+  bool is_ce = HasCeMarking(msg);
   bool is_loss = HasLostPackets(msg);
   bool is_virtual_ce = false;
   if (delay_based_congestion_control_.ShouldReduceReferenceWindow()) {

@@ -48,6 +48,7 @@
 #include "logging/rtc_event_log/events/rtc_event_route_change.h"
 #include "modules/congestion_controller/rtp/congestion_controller_feedback_stats.h"
 #include "modules/congestion_controller/rtp/control_handler.h"
+#include "modules/congestion_controller/scream/scream_network_controller.h"
 #include "modules/pacing/packet_router.h"
 #include "modules/rtp_rtcp/include/report_block_data.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
@@ -121,6 +122,8 @@ RtpTransportControllerSend::RtpTransportControllerSend(
           "WebRTC-AddPacingToCongestionWindowPushback")),
       reset_bwe_on_adapter_id_change_(
           env_.field_trials().IsEnabled("WebRTC-Bwe-ResetOnAdapterIdChange")),
+      prefer_bwe_using_scream_(
+          env_.field_trials().IsEnabled("WebRTC-Bwe-ScreamV2")),
       relay_bandwidth_cap_("relay_cap", DataRate::PlusInfinity()),
       transport_overhead_bytes_per_packet_(0),
       network_available_(false),
@@ -755,10 +758,6 @@ void RtpTransportControllerSend::ComputeStatsFromCongestionControlFeedback(
 
 void RtpTransportControllerSend::HandleTransportPacketsFeedback(
     const TransportPacketsFeedback& feedback) {
-  feedback_demuxer_.OnTransportFeedback(feedback);
-  if (controller_) {
-    PostUpdates(controller_->OnTransportPacketsFeedback(feedback));
-  }
   if (sending_packets_as_ect1_) {
     bool congestion_controller_support_ecn =
         controller_ && controller_->SupportsEcnAdaptation();
@@ -777,6 +776,10 @@ void RtpTransportControllerSend::HandleTransportPacketsFeedback(
                        << "support ECN. Stop sending ECT(1).";
     }
   }
+
+  feedback_demuxer_.OnTransportFeedback(feedback);
+  if (controller_)
+    PostUpdates(controller_->OnTransportPacketsFeedback(feedback));
 
   // Only update outstanding data if any packet is first time acked.
   UpdateCongestedState();
@@ -805,10 +808,14 @@ void RtpTransportControllerSend::MaybeCreateControllers() {
     RTC_LOG(LS_INFO) << "Creating overridden congestion controller";
     controller_ = controller_factory_override_->Create(initial_config_);
     process_interval_ = controller_factory_override_->GetProcessInterval();
+  } else if (prefer_bwe_using_scream_ && rfc_8888_feedback_negotiated_) {
+    RTC_LOG(LS_INFO) << "Creating Scream congestion controller.";
+    controller_ = std::make_unique<ScreamNetworkController>(initial_config_);
+    // No need for periodic processing.
+    process_interval_ = TimeDelta::PlusInfinity();
   } else {
-    RTC_LOG(LS_INFO) << "Creating Goog CC Factory.";
-    GoogCcNetworkControllerFactory factory(GoogCcFactoryConfig(
-        {.rfc_8888_feedback_negotiated = rfc_8888_feedback_negotiated_}));
+    RTC_LOG(LS_INFO) << "Creating Goog CC.";
+    GoogCcNetworkControllerFactory factory;
     controller_ = factory.Create(initial_config_);
     process_interval_ = factory.GetProcessInterval();
   }

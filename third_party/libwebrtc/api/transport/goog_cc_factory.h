@@ -21,7 +21,6 @@
 namespace webrtc {
 
 struct GoogCcFactoryConfig {
-  bool rfc_8888_feedback_negotiated = false;
   std::unique_ptr<NetworkStateEstimatorFactory> network_state_estimator_factory;
   NetworkStatePredictorFactoryInterface* network_state_predictor_factory =
       nullptr;
