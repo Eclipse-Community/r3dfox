@@ -524,22 +524,27 @@ StorageAccessAPIHelper::CompleteAllowAccessForOnParentProcess(
                                                                 __func__);
   }
 
+  RefPtr<dom::BrowsingContext> parentBC = aParentContext;
   auto storePermission =
-      [aParentContext, aTopLevelWindowId, trackingOrigin, trackingPrincipal,
+      [parentBC, aTopLevelWindowId, trackingOrigin, trackingPrincipal,
        aCookieBehavior,
        aReason](int aAllowMode) -> RefPtr<StorageAccessPermissionGrantPromise> {
+    if (parentBC->IsDiscarded()) {
+      return StorageAccessPermissionGrantPromise::CreateAndReject(false,
+                                                                  __func__);
+    }
     // We don't have the window, send an IPC to the content process that
     // owns the parent window. But there is a special case, for window.open,
     // we'll return to the content process we need to inform when this
     // function is done. So we don't need to create an extra IPC for the case.
     if (aReason != ContentBlockingNotifier::eOpener) {
-      dom::ContentParent* cp = aParentContext->Canonical()->GetContentParent();
+      dom::ContentParent* cp = parentBC->Canonical()->GetContentParent();
       if (!cp) {
         return StorageAccessPermissionGrantPromise::CreateAndReject(false,
                                                                     __func__);
       }
 
-      Unused << cp->SendOnAllowAccessFor(aParentContext, trackingOrigin,
+      Unused << cp->SendOnAllowAccessFor(parentBC, trackingOrigin,
                                          aCookieBehavior, aReason);
     }
 
@@ -547,7 +552,7 @@ StorageAccessAPIHelper::CompleteAllowAccessForOnParentProcess(
         reportReason;
     // We can directly report here if we can know the origin of the top.
     ContentBlockingNotifier::ReportUnblockingToConsole(
-        aParentContext, NS_ConvertUTF8toUTF16(trackingOrigin), aReason);
+        parentBC, NS_ConvertUTF8toUTF16(trackingOrigin), aReason);
     // Set the report reason to nothing if we've already reported.
     reportReason = Nothing();
 
@@ -555,9 +560,9 @@ StorageAccessAPIHelper::CompleteAllowAccessForOnParentProcess(
     bool frameOnly = StaticPrefs::dom_storage_access_frame_only() &&
                      aReason == ContentBlockingNotifier::eStorageAccessAPI;
 
-    uint64_t innerWindowId = aParentContext->GetCurrentInnerWindowId();
+    uint64_t innerWindowId = parentBC->GetCurrentInnerWindowId();
 
-    return SaveAccessForOriginOnParentProcess(aTopLevelWindowId, aParentContext,
+    return SaveAccessForOriginOnParentProcess(aTopLevelWindowId, parentBC,
                                               trackingPrincipal, aAllowMode,
                                               frameOnly)
         ->Then(GetCurrentSerialEventTarget(), __func__,
@@ -746,21 +751,26 @@ StorageAccessAPIHelper::CompleteAllowAccessForOnChildProcess(
                                                                 __func__);
   }
 
+  RefPtr<dom::BrowsingContext> parentBC = aParentContext;
   auto storePermission =
-      [aParentContext, aTopLevelWindowId, trackingOrigin, trackingPrincipal,
+      [parentBC, aTopLevelWindowId, trackingOrigin, trackingPrincipal,
        aCookieBehavior,
        aReason](int aAllowMode) -> RefPtr<StorageAccessPermissionGrantPromise> {
+    if (parentBC->IsDiscarded()) {
+      return StorageAccessPermissionGrantPromise::CreateAndReject(false,
+                                                                  __func__);
+    }
     // Inform the window we granted permission for. This has to be done in the
     // window's process. As a child this is always the case.
-    StorageAccessAPIHelper::OnAllowAccessFor(aParentContext, trackingOrigin,
+    StorageAccessAPIHelper::OnAllowAccessFor(parentBC, trackingOrigin,
                                              aCookieBehavior, aReason);
 
     Maybe<ContentBlockingNotifier::StorageAccessPermissionGrantedReason>
         reportReason;
     // We can directly report here if we can know the origin of the top.
-    if (aParentContext->Top()->IsInProcess()) {
+    if (parentBC->Top()->IsInProcess()) {
       ContentBlockingNotifier::ReportUnblockingToConsole(
-          aParentContext, NS_ConvertUTF8toUTF16(trackingOrigin), aReason);
+          parentBC, NS_ConvertUTF8toUTF16(trackingOrigin), aReason);
 
       // Set the report reason to nothing if we've already reported.
       reportReason = Nothing();
@@ -783,12 +793,12 @@ StorageAccessAPIHelper::CompleteAllowAccessForOnChildProcess(
     bool frameOnly = StaticPrefs::dom_storage_access_frame_only() &&
                      aReason == ContentBlockingNotifier::eStorageAccessAPI;
 
-    uint64_t innerWindowId = aParentContext->GetCurrentInnerWindowId();
+    uint64_t innerWindowId = parentBC->GetCurrentInnerWindowId();
 
     return cc
         ->SendStorageAccessPermissionGrantedForOrigin(
-            aTopLevelWindowId, aParentContext, trackingPrincipal,
-            trackingOrigin, aAllowMode, reportReason, frameOnly)
+            aTopLevelWindowId, parentBC, trackingPrincipal, trackingOrigin,
+            aAllowMode, reportReason, frameOnly)
         ->Then(
             GetCurrentSerialEventTarget(), __func__,
             [aReason, trackingPrincipal,
