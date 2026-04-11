@@ -17,6 +17,7 @@
 #ifndef mozilla_image_RasterImage_h
 #define mozilla_image_RasterImage_h
 
+#include "mozilla/Atomics.h"
 #include "Image.h"
 #include "nsCOMPtr.h"
 #include "imgIContainer.h"
@@ -381,6 +382,8 @@ class RasterImage final : public ImageResource,
   // How many times we've decoded this image.
   // This is currently only used for statistics
   int32_t mDecodeCount;
+
+  Atomic<bool> mIsBeingDestroyed{false};
 
 #ifdef DEBUG
   uint32_t mFramesNotified;
