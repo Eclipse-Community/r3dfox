@@ -42,7 +42,7 @@ class AccIterable {
  */
 class AccIterator : public AccIterable {
  public:
-  AccIterator(const LocalAccessible* aRoot, filters::FilterFuncPtr aFilterFunc);
+  AccIterator(LocalAccessible* aRoot, filters::FilterFuncPtr aFilterFunc);
   virtual ~AccIterator();
 
   /**
@@ -57,10 +57,10 @@ class AccIterator : public AccIterable {
   AccIterator& operator=(const AccIterator&);
 
   struct IteratorState {
-    explicit IteratorState(const LocalAccessible* aParent,
+    explicit IteratorState(LocalAccessible* aParent,
                            IteratorState* mParentState = nullptr);
 
-    const LocalAccessible* mParent;
+    RefPtr<LocalAccessible> mParent;
     int32_t mIndex;
     IteratorState* mParentState;
   };

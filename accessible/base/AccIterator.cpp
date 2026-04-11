@@ -23,7 +23,7 @@ using namespace mozilla::a11y;
 // AccIterator
 ////////////////////////////////////////////////////////////////////////////////
 
-AccIterator::AccIterator(const LocalAccessible* aAccessible,
+AccIterator::AccIterator(LocalAccessible* aAccessible,
                          filters::FilterFuncPtr aFilterFunc)
     : mFilterFunc(aFilterFunc) {
   mState = new IteratorState(aAccessible);
@@ -63,7 +63,7 @@ LocalAccessible* AccIterator::Next() {
 ////////////////////////////////////////////////////////////////////////////////
 // nsAccIterator::IteratorState
 
-AccIterator::IteratorState::IteratorState(const LocalAccessible* aParent,
+AccIterator::IteratorState::IteratorState(LocalAccessible* aParent,
                                           IteratorState* mParentState)
     : mParent(aParent), mIndex(0), mParentState(mParentState) {}
 
