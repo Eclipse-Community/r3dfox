@@ -18,6 +18,7 @@
 #include "nsIThreadRetargetableStreamListener.h"
 #include "nsITransportSecurityInfo.h"
 #include "nsNetUtil.h"
+#include "nsProxyRelease.h"
 #include "nsQueryObject.h"
 #include "nsSerializationHelper.h"
 #include "nsStreamUtils.h"
@@ -35,11 +36,31 @@ NS_INTERFACE_MAP_END
 
 NS_IMETHODIMP_(MozExternalRefCountType) HttpTransactionParent::Release(void) {
   MOZ_ASSERT(int32_t(mRefCnt) > 0, "dup release");
+
+  if (!NS_IsMainThread()) {
+    // Use DecrementWithLimit to atomically decrement only while count > 2.
+    // This ensures a background thread never drops the count to 1 or 0,
+    // avoiding the race where the main thread frees the object (via
+    // ActorDisconnected) between our decrement and the count==1 handling.
+    auto [success, count] = mRefCnt.DecrementWithLimit<2>();
+    if (success) {
+      NS_LOG_RELEASE(this, count, "HttpTransactionParent");
+      return count;
+    }
+    // mRefCnt <= 2: the next decrement could trigger Send__delete__ or
+    // deletion, both of which must happen on the main thread. Transfer
+    // our reference there without decrementing.
+    NS_ProxyRelease("HttpTransactionParent::Release",
+                    GetMainThreadSerialEventTarget(),
+                    dont_AddRef(static_cast<nsIRequest*>(this)));
+    return 1;
+  }
+
   nsrefcnt count = --mRefCnt;
   NS_LOG_RELEASE(this, count, "HttpTransactionParent");
   if (count == 0) {
     mRefCnt = 1; /* stabilize */
-    delete (this);
+    delete this;
     return 0;
   }
 
@@ -47,17 +68,7 @@ NS_IMETHODIMP_(MozExternalRefCountType) HttpTransactionParent::Release(void) {
   // we are done with this transaction. We should send a delete message
   // to delete the transaction child in socket process.
   if (count == 1 && CanSend()) {
-    if (!NS_IsMainThread()) {
-      RefPtr<HttpTransactionParent> self = this;
-      MOZ_ALWAYS_SUCCEEDS(NS_DispatchToMainThread(
-          NS_NewRunnableFunction("HttpTransactionParent::Release", [self]() {
-            mozilla::Unused << self->Send__delete__(self);
-            // Make sure we can not send IPC after Send__delete__().
-            MOZ_ASSERT(!self->CanSend());
-          })));
-    } else {
-      mozilla::Unused << Send__delete__(this);
-    }
+    mozilla::Unused << Send__delete__(this);
     return 1;
   }
   return count;
