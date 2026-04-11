@@ -982,6 +982,9 @@ nsresult nsHtml5TreeOperation::Perform(nsHtml5TreeOpExecutor* aBuilder,
       nsIContent* table = *(aOperation.mTable);
       nsIContent* stackParent = *(aOperation.mStackParent);
       nsIContent* fosterParent = GetFosterParent(table, stackParent);
+      if (fosterParent) {
+        mBuilder->HoldElement(do_AddRef(fosterParent));
+      }
       *aOperation.mParentHandle = fosterParent;
       return NS_OK;
     }
