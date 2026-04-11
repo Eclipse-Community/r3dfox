@@ -228,6 +228,11 @@ mozilla::ipc::IPCResult DocAccessibleParent::ProcessShowEvent(
 
 RemoteAccessible* DocAccessibleParent::CreateAcc(
     const AccessibleData& aAccData) {
+  if (aAccData.ID() == 0) {
+    MOZ_ASSERT_UNREACHABLE("An ID of 0 is reserved for the document itself");
+    return nullptr;
+  }
+
   RemoteAccessible* newProxy;
   if ((newProxy = GetAccessible(aAccData.ID()))) {
     // This is a move. Reuse the Accessible; don't destroy it.
