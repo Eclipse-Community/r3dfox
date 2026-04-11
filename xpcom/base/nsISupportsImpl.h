@@ -20,6 +20,7 @@
 #include "nsXPCOM.h"
 #include <atomic>
 #include <type_traits>
+#include <utility>
 #include "mozilla/Attributes.h"
 #include "mozilla/Assertions.h"
 #include "mozilla/Atomics.h"
@@ -415,6 +416,31 @@ class ThreadSafeAutoRefCnt {
     // doing.
     mValue.store(aValue, std::memory_order_release);
     return aValue;
+  }
+  // Atomically decrements the refcount if it is strictly above Limit.
+  // Returns the pair of {success, new value}.
+  template <nsrefcnt Limit>
+  MOZ_ALWAYS_INLINE std::pair<bool, nsrefcnt> DecrementWithLimit() {
+    // This ensures we can never release the final reference on this thread.
+    // Callers which want to do that should use operator--() which adds the
+    // appropriate fencing.
+    static_assert(Limit > 0,
+                  "DecrementWithLimit cannot release the final reference");
+    nsrefcnt count = mValue.load(std::memory_order_relaxed);
+    while (count > Limit) {
+      // Since this may be the last release on this thread, we need
+      // release semantics on success so that prior writes on this thread
+      // are visible to the thread that destroys the object when it reads
+      // mValue with acquire semantics.
+      // On failure, this thread still owns a reference to the object,
+      // so no synchronization is required.
+      if (mValue.compare_exchange_weak(count, count - 1,
+                                       std::memory_order_release,
+                                       std::memory_order_relaxed)) {
+        return {true, count - 1};
+      }
+    }
+    return {false, count};
   }
   MOZ_ALWAYS_INLINE operator nsrefcnt() const { return get(); }
   MOZ_ALWAYS_INLINE nsrefcnt get() const {
