@@ -153,6 +153,8 @@ class GDIFontEntry final : public gfxFontEntry {
                                        StretchRange aStretch,
                                        gfxUserFontData* aUserFontData);
 
+  FontTableCache* GetFontTableCache(bool aCreate) override { return nullptr; }
+
   gfxWindowsFontType mFontType;
   bool mForceGDI;
 
