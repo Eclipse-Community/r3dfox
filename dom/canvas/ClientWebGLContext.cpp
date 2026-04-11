@@ -4522,6 +4522,14 @@ void ClientWebGLContext::TexImage(uint8_t funcDims, GLenum imageTarget,
                 std::string{"gpuProcessTextureId works only in GPU process."});
           }
         } break;
+        case layers::SurfaceDescriptor::TSurfaceDescriptorDXGIYCbCr: {
+          MOZ_ASSERT(desc->image);
+          keepAliveImage = desc->image;
+        } break;
+        case layers::SurfaceDescriptor::TSurfaceDescriptorMacIOSurface: {
+          MOZ_ASSERT(desc->image);
+          keepAliveImage = desc->image;
+        } break;
         case layers::SurfaceDescriptor::TSurfaceDescriptorGPUVideo: {
           const auto& inProcess = mNotLost->inProcess;
           MOZ_ASSERT(desc->image);
