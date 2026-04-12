@@ -60,6 +60,12 @@ class Blob : public nsSupportsWeakReference, public nsWrapperCache {
                                                  uint64_t aLength,
                                                  const nsAString& aContentType);
 
+  // This clones the current Blob
+  already_AddRefed<Blob> Clone() const;
+
+  // Returns true if the blob's JS wrapper has user-added properties (expandos).
+  bool HasExpandos() const;
+
   BlobImpl* Impl() const { return mImpl; }
 
   bool IsFile() const;
