@@ -290,25 +290,27 @@ bool GPUChild::SendRequestMemoryReport(const uint32_t& aGeneration,
                                        const Maybe<FileDescriptor>& aDMDFile) {
   mMemoryReportRequest = MakeUnique<MemoryReportRequestHost>(aGeneration);
 
-  PGPUChild::SendRequestMemoryReport(
-      aGeneration, aAnonymize, aMinimizeMemoryUsage, aDMDFile,
-      [&](const uint32_t& aGeneration2) {
-        if (GPUProcessManager* gpm = GPUProcessManager::Get()) {
-          if (GPUChild* child = gpm->GetGPUChild()) {
-            if (child->mMemoryReportRequest) {
-              child->mMemoryReportRequest->Finish(aGeneration2);
-              child->mMemoryReportRequest = nullptr;
+  PGPUChild::SendRequestMemoryReport(aGeneration, aAnonymize,
+                                     aMinimizeMemoryUsage, aDMDFile)
+      ->Then(
+          GetCurrentSerialEventTarget(), __func__,
+          [](uint32_t aGeneration2) {
+            if (GPUProcessManager* gpm = GPUProcessManager::Get()) {
+              if (GPUChild* child = gpm->GetGPUChild()) {
+                if (child->mMemoryReportRequest) {
+                  child->mMemoryReportRequest->Finish(aGeneration2);
+                  child->mMemoryReportRequest = nullptr;
+                }
+              }
             }
-          }
-        }
-      },
-      [&](mozilla::ipc::ResponseRejectReason) {
-        if (GPUProcessManager* gpm = GPUProcessManager::Get()) {
-          if (GPUChild* child = gpm->GetGPUChild()) {
-            child->mMemoryReportRequest = nullptr;
-          }
-        }
-      });
+          },
+          [](mozilla::ipc::ResponseRejectReason) {
+            if (GPUProcessManager* gpm = GPUProcessManager::Get()) {
+              if (GPUChild* child = gpm->GetGPUChild()) {
+                child->mMemoryReportRequest = nullptr;
+              }
+            }
+          });
 
   return true;
 }

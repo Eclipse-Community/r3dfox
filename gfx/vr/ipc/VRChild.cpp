@@ -169,25 +169,27 @@ bool VRChild::SendRequestMemoryReport(const uint32_t& aGeneration,
                                       const Maybe<FileDescriptor>& aDMDFile) {
   mMemoryReportRequest = MakeUnique<MemoryReportRequestHost>(aGeneration);
 
-  PVRChild::SendRequestMemoryReport(
-      aGeneration, aAnonymize, aMinimizeMemoryUsage, aDMDFile,
-      [&](const uint32_t& aGeneration2) {
-        if (VRProcessManager* vpm = VRProcessManager::Get()) {
-          if (VRChild* child = vpm->GetVRChild()) {
-            if (child->mMemoryReportRequest) {
-              child->mMemoryReportRequest->Finish(aGeneration2);
-              child->mMemoryReportRequest = nullptr;
+  PVRChild::SendRequestMemoryReport(aGeneration, aAnonymize,
+                                    aMinimizeMemoryUsage, aDMDFile)
+      ->Then(
+          GetCurrentSerialEventTarget(), __func__,
+          [](uint32_t aGeneration2) {
+            if (VRProcessManager* vpm = VRProcessManager::Get()) {
+              if (VRChild* child = vpm->GetVRChild()) {
+                if (child->mMemoryReportRequest) {
+                  child->mMemoryReportRequest->Finish(aGeneration2);
+                  child->mMemoryReportRequest = nullptr;
+                }
+              }
             }
-          }
-        }
-      },
-      [&](mozilla::ipc::ResponseRejectReason) {
-        if (VRProcessManager* vpm = VRProcessManager::Get()) {
-          if (VRChild* child = vpm->GetVRChild()) {
-            child->mMemoryReportRequest = nullptr;
-          }
-        }
-      });
+          },
+          [](mozilla::ipc::ResponseRejectReason) {
+            if (VRProcessManager* vpm = VRProcessManager::Get()) {
+              if (VRChild* child = vpm->GetVRChild()) {
+                child->mMemoryReportRequest = nullptr;
+              }
+            }
+          });
 
   return true;
 }

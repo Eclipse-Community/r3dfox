@@ -99,33 +99,37 @@ bool SocketProcessParent::SendRequestMemoryReport(
     const Maybe<ipc::FileDescriptor>& aDMDFile) {
   mMemoryReportRequest = MakeUnique<dom::MemoryReportRequestHost>(aGeneration);
 
-  PSocketProcessParent::SendRequestMemoryReport(
-      aGeneration, aAnonymize, aMinimizeMemoryUsage, aDMDFile,
-      [&](const uint32_t& aGeneration2) {
-        MOZ_ASSERT(gIOService);
-        if (!gIOService->SocketProcess()) {
-          return;
-        }
-        SocketProcessParent* actor = gIOService->SocketProcess()->GetActor();
-        if (!actor) {
-          return;
-        }
-        if (actor->mMemoryReportRequest) {
-          actor->mMemoryReportRequest->Finish(aGeneration2);
-          actor->mMemoryReportRequest = nullptr;
-        }
-      },
-      [&](mozilla::ipc::ResponseRejectReason) {
-        MOZ_ASSERT(gIOService);
-        if (!gIOService->SocketProcess()) {
-          return;
-        }
-        SocketProcessParent* actor = gIOService->SocketProcess()->GetActor();
-        if (!actor) {
-          return;
-        }
-        actor->mMemoryReportRequest = nullptr;
-      });
+  PSocketProcessParent::SendRequestMemoryReport(aGeneration, aAnonymize,
+                                                aMinimizeMemoryUsage, aDMDFile)
+      ->Then(
+          GetCurrentSerialEventTarget(), __func__,
+          [](uint32_t aGeneration2) {
+            MOZ_ASSERT(gIOService);
+            if (!gIOService->SocketProcess()) {
+              return;
+            }
+            SocketProcessParent* actor =
+                gIOService->SocketProcess()->GetActor();
+            if (!actor) {
+              return;
+            }
+            if (actor->mMemoryReportRequest) {
+              actor->mMemoryReportRequest->Finish(aGeneration2);
+              actor->mMemoryReportRequest = nullptr;
+            }
+          },
+          [](mozilla::ipc::ResponseRejectReason) {
+            MOZ_ASSERT(gIOService);
+            if (!gIOService->SocketProcess()) {
+              return;
+            }
+            SocketProcessParent* actor =
+                gIOService->SocketProcess()->GetActor();
+            if (!actor) {
+              return;
+            }
+            actor->mMemoryReportRequest = nullptr;
+          });
 
   return true;
 }

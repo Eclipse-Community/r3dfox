@@ -86,25 +86,27 @@ bool RDDChild::SendRequestMemoryReport(const uint32_t& aGeneration,
                                        const Maybe<FileDescriptor>& aDMDFile) {
   mMemoryReportRequest = MakeUnique<MemoryReportRequestHost>(aGeneration);
 
-  PRDDChild::SendRequestMemoryReport(
-      aGeneration, aAnonymize, aMinimizeMemoryUsage, aDMDFile,
-      [&](const uint32_t& aGeneration2) {
-        if (RDDProcessManager* rddpm = RDDProcessManager::Get()) {
-          if (RDDChild* child = rddpm->GetRDDChild()) {
-            if (child->mMemoryReportRequest) {
-              child->mMemoryReportRequest->Finish(aGeneration2);
-              child->mMemoryReportRequest = nullptr;
+  PRDDChild::SendRequestMemoryReport(aGeneration, aAnonymize,
+                                     aMinimizeMemoryUsage, aDMDFile)
+      ->Then(
+          GetCurrentSerialEventTarget(), __func__,
+          [](uint32_t aGeneration2) {
+            if (RDDProcessManager* rddpm = RDDProcessManager::Get()) {
+              if (RDDChild* child = rddpm->GetRDDChild()) {
+                if (child->mMemoryReportRequest) {
+                  child->mMemoryReportRequest->Finish(aGeneration2);
+                  child->mMemoryReportRequest = nullptr;
+                }
+              }
             }
-          }
-        }
-      },
-      [&](mozilla::ipc::ResponseRejectReason) {
-        if (RDDProcessManager* rddpm = RDDProcessManager::Get()) {
-          if (RDDChild* child = rddpm->GetRDDChild()) {
-            child->mMemoryReportRequest = nullptr;
-          }
-        }
-      });
+          },
+          [](mozilla::ipc::ResponseRejectReason) {
+            if (RDDProcessManager* rddpm = RDDProcessManager::Get()) {
+              if (RDDChild* child = rddpm->GetRDDChild()) {
+                child->mMemoryReportRequest = nullptr;
+              }
+            }
+          });
 
   return true;
 }
