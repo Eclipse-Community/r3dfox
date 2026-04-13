@@ -203,6 +203,7 @@ void TextTrackManager::AddCues(TextTrack* aTextTrack) {
     for (uint32_t i = 0; i < cueList->Length(); ++i) {
       mNewCues->AddCue(*cueList->IndexedGetter(i, dummy));
     }
+    RefPtr<TextTrackManager> kungFuDeathGrip(this);
     MaybeRunTimeMarchesOn();
   }
 }
@@ -227,6 +228,7 @@ void TextTrackManager::RemoveTextTrack(TextTrack* aTextTrack,
     for (uint32_t i = 0; i < removeCueList->Length(); ++i) {
       mNewCues->RemoveCue(*((*removeCueList)[i]));
     }
+    RefPtr<TextTrackManager> kungFuDeathGrip(this);
     MaybeRunTimeMarchesOn();
   }
 }
@@ -289,6 +291,7 @@ void TextTrackManager::NotifyCueAdded(TextTrackCue& aCue) {
   if (mNewCues) {
     mNewCues->AddCue(aCue);
   }
+  RefPtr<TextTrackManager> kungFuDeathGrip(this);
   MaybeRunTimeMarchesOn();
 }
 
@@ -297,6 +300,7 @@ void TextTrackManager::NotifyCueRemoved(TextTrackCue& aCue) {
   if (mNewCues) {
     mNewCues->RemoveCue(aCue);
   }
+  RefPtr<TextTrackManager> kungFuDeathGrip(this);
   MaybeRunTimeMarchesOn();
   DispatchUpdateCueDisplay();
 }
@@ -832,6 +836,7 @@ void TextTrackManager::TimeMarchesOn() {
 void TextTrackManager::NotifyCueUpdated(TextTrackCue* aCue) {
   // TODO: Add/Reorder the cue to mNewCues if we have some optimization?
   WEBVTT_LOG("NotifyCueUpdated, cue=%p", aCue);
+  RefPtr<TextTrackManager> kungFuDeathGrip(this);
   MaybeRunTimeMarchesOn();
   // For the case "Texttrack.mode = hidden/showing", if the mode
   // changing between showing and hidden, TimeMarchesOn
