@@ -263,21 +263,8 @@ class MOZ_STACK_CLASS AutoWebRenderBridgeParentAsyncMessageSender final {
     mWebRenderBridgeParent->SendPendingAsyncMessages();
     if (mActorsToDestroy) {
       // Destroy the actors after sending the async messages because the latter
-      // may contain references to some actors. De-duplicate the array to avoid
-      // destroying the same texture parent actor twice.
-      nsTHashSet<PTextureParent*> seenTextureParents;
-      for (const auto& op : *mActorsToDestroy) {
-        // Peek inside the op (as DestroyActor does) to see if we are about
-        // to destroy a PTextureParent.
-        if (op.type() == OpDestroy::TPTexture) {
-          PTextureParent* textureParent = op.get_PTexture().AsParent();
-          if (!seenTextureParents.EnsureInserted(textureParent)) {
-            // Already seen, so skip this one.
-            continue;
-          }
-        }
-        mWebRenderBridgeParent->DestroyActor(op);
-      }
+      // may contain references to some actors.
+      mWebRenderBridgeParent->DestroyActors(*mActorsToDestroy);
     }
   }
 
@@ -1186,9 +1173,7 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvSetDisplayList(
     const TimeStamp& aTxnStartTime, const nsACString& aTxnURL,
     const TimeStamp& aFwdTime, nsTArray<CompositionPayload>&& aPayloads) {
   if (mDestroyed) {
-    for (const auto& op : aToDestroy) {
-      DestroyActor(op);
-    }
+    DestroyActors(aToDestroy);
     wr::IpcResourceUpdateQueue::ReleaseShmems(this, aDisplayList.mSmallShmems);
     wr::IpcResourceUpdateQueue::ReleaseShmems(this, aDisplayList.mLargeShmems);
     return IPC_OK();
@@ -1322,9 +1307,7 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvEmptyTransaction(
     const TimeStamp& aTxnStartTime, const nsACString& aTxnURL,
     const TimeStamp& aFwdTime, nsTArray<CompositionPayload>&& aPayloads) {
   if (mDestroyed) {
-    for (const auto& op : aToDestroy) {
-      DestroyActor(op);
-    }
+    DestroyActors(aToDestroy);
     if (aTransactionData) {
       wr::IpcResourceUpdateQueue::ReleaseShmems(this,
                                                 aTransactionData->mSmallShmems);
