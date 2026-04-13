@@ -7,6 +7,7 @@
 #include "mozilla/dom/ReportingHeader.h"
 
 #include "js/Array.h"  // JS::GetArrayLength, JS::IsArrayObject
+#include "js/GCAPI.h"
 #include "js/JSON.h"
 #include "js/PropertyAndElement.h"  // JS_GetElement
 #include "mozilla/dom/ReportingBinding.h"
@@ -232,7 +233,7 @@ void ReportingHeader::ReportingFromChannel(nsIHttpChannel* aChannel) {
     return nullptr;
   }
 
-  dom::ReportingHeaderValue data;
+  RootedDictionary<dom::ReportingHeaderValue> data(cx);
   if (!data.Init(cx, jsonValue)) {
     LogToConsoleInvalidJSON(aChannel, aURI);
     return nullptr;
