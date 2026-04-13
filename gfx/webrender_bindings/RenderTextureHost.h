@@ -182,6 +182,11 @@ class RenderTextureHost {
   virtual RefPtr<RenderTextureHostUsageInfo> GetTextureHostUsageInfo(
       const MutexAutoLock& aProofOfMapLock);
 
+  void SetDestroyedCallback(std::function<void()>&& aDestroyedCallback) {
+    MOZ_ASSERT(!mDestroyedCallback);
+    mDestroyedCallback = std::move(aDestroyedCallback);
+  }
+
  protected:
   virtual ~RenderTextureHost();
 
@@ -189,6 +194,7 @@ class RenderTextureHost {
 
   // protected by RenderThread::mRenderTextureMapLock
   RefPtr<RenderTextureHostUsageInfo> mRenderTextureHostUsageInfo;
+  std::function<void()> mDestroyedCallback;
 
   friend class RenderTextureHostWrapper;
 };
