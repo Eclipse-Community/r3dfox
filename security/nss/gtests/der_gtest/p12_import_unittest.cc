@@ -231,6 +231,13 @@ static const uint8_t cert_p12[] = {
     0x51, 0x04, 0x08, 0xa1, 0x52, 0xdd, 0x64, 0x46, 0xe9, 0x9e, 0x3e, 0x02,
     0x02, 0x08, 0x00};
 
+unsigned char leak_p12[] = {
+    0x30, 0x82, 0x20, 0x20, 0x02, 0x01, 0xff, 0x30, 0x82, 0x09, 0x20, 0x06,
+    0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x07, 0x02, 0xa0, 0x50,
+    0x30, 0x3f, 0x02, 0x01, 0x20, 0x31, 0x0d, 0x30, 0x0b, 0x06, 0x09, 0x60,
+    0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x04, 0x30, 0x20, 0x06, 0x09,
+    0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x07, 0x01};
+
 class PK12ImportTest : public ::testing::Test {};
 
 TEST_F(PK12ImportTest, ImportPK12With2P7) {
@@ -245,6 +252,22 @@ TEST_F(PK12ImportTest, ImportPK12With2P7) {
   ASSERT_EQ(SECSuccess, rv);
   rv = SEC_PKCS12DecoderVerify(dcx.get());
   // NSS can't properly decode this P12. But it shouldn't crash.
+  ASSERT_EQ(SECFailure, rv);
+}
+
+TEST_F(PK12ImportTest, FailsToImportButShouldNotLeak) {
+  SECItem password = {siBuffer, nullptr, 0};
+  ScopedPK11SlotInfo slot(PK11_GetInternalSlot());
+  ScopedSEC_PKCS12DecoderContext dcx(
+      SEC_PKCS12DecoderStart(&password, slot.get(), nullptr, nullptr, nullptr,
+                             nullptr, nullptr, nullptr));
+  ASSERT_TRUE(dcx);
+  SECStatus rv = SEC_PKCS12DecoderUpdate(
+      dcx.get(), const_cast<uint8_t *>(leak_p12), sizeof(leak_p12));
+  ASSERT_EQ(SECSuccess, rv);
+  rv = SEC_PKCS12DecoderVerify(dcx.get());
+  // This is not a valid PKCS12 file, so a failing return value is expected.
+  // However, the implementation shouldn't leak memory as a result.
   ASSERT_EQ(SECFailure, rv);
 }
 

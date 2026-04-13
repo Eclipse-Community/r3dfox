@@ -1045,10 +1045,15 @@ CERT_FindSMimeProfile(CERTCertificate *cert)
         nssSMIMEProfile *stanProfile;
         stanProfile = nssCryptoContext_FindSMIMEProfileForCertificate(cc, c);
         if (stanProfile) {
-            rvItem =
-                SECITEM_AllocItem(NULL, NULL, stanProfile->profileData->size);
-            if (rvItem) {
-                rvItem->data = stanProfile->profileData->data;
+            if (stanProfile->profileData) {
+                rvItem =
+                    SECITEM_AllocItem(NULL, NULL,
+                                      stanProfile->profileData->size);
+                if (rvItem) {
+                    PORT_Memcpy(rvItem->data,
+                                stanProfile->profileData->data,
+                                stanProfile->profileData->size);
+                }
             }
             nssSMIMEProfile_Destroy(stanProfile);
         }

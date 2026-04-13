@@ -272,6 +272,25 @@ static SECStatus SimpleXorWithDifferentValueDecode(const SECItem* input,
   return SECSuccess;
 }
 
+/* Decode function that does NOT check input->len != outputLen (unlike
+ * SimpleXorCertCompDecode). It always sets receivedOutputLen = outputLen and
+ * returns SECSuccess, bypassing the actualCertLen != decodedCertLen fallback
+ * so that only the explicit uncompressed_length bounds check blocks an
+ * oversized allocation. */
+static int called_count = 0;
+static SECStatus PermissiveXorCertCompDecode(const SECItem* input,
+                                             uint8_t* output, size_t outputLen,
+                                             size_t* receivedOutputLen) {
+  called_count++;
+  size_t copy = PR_MIN(input->len, outputLen);
+  PORT_Memcpy(output, input->data, copy);
+  for (size_t i = 0; i < copy; i++) {
+    output[i] ^= 0x55;
+  }
+  *receivedOutputLen = outputLen;
+  return SECSuccess;
+}
+
 /* These tests are checking the behaviour
  * using the different compression algorithms.
  *
@@ -499,8 +518,6 @@ TEST_F(TlsConnectStreamTls13,
   Connect();
 
   EXPECT_TRUE(SSLInt_ExtensionNegotiated(server_->ssl_fd(),
-                                         ssl_certificate_compression_xtn));
-  EXPECT_TRUE(SSLInt_ExtensionNegotiated(client_->ssl_fd(),
                                          ssl_certificate_compression_xtn));
 
   uint16_t certCompressionAlg = filterExtension->getCertCompressionAlg();
@@ -964,6 +981,56 @@ static SECStatus SimpleXorCertCompEncode_returns_buffer_size_0(
  * } CompressedCertificate;
  */
 
+/* Overwrites the uncompressed_length field of a CompressedCertificate message
+ * with an arbitrary uint24 value, enabling precise boundary-value testing. */
+class TLSCompressedCertUncompressedLenSetter : public TlsRecordFilter {
+ public:
+  TLSCompressedCertUncompressedLenSetter(const std::shared_ptr<TlsAgent>& a,
+                                         uint32_t len)
+      : TlsRecordFilter(a), len_(len) {
+    EnableDecryption();
+  }
+
+ protected:
+  PacketFilter::Action FilterRecord(const TlsRecordHeader& header,
+                                    const DataBuffer& record, size_t* offset,
+                                    DataBuffer* output) override {
+    uint8_t inner_content_type;
+    DataBuffer plaintext;
+    uint16_t protection_epoch = 0;
+    TlsRecordHeader out_header(header);
+
+    if (!Unprotect(header, record, &protection_epoch, &inner_content_type,
+                   &plaintext, &out_header)) {
+      return KEEP;
+    }
+
+    uint64_t skip =
+        findPointerToHandshakeType(plaintext, ssl_hs_compressed_certificate);
+    if (skip >= plaintext.len() ||
+        plaintext.data()[skip] != ssl_hs_compressed_certificate) {
+      return KEEP;
+    }
+
+    /* uncompressed_length is a uint24 at offset 6 from the HandshakeType byte.
+     */
+    plaintext.Write(skip + 6, len_, 3);
+
+    DataBuffer ciphertext;
+    bool ok = Protect(spec(protection_epoch), out_header, inner_content_type,
+                      plaintext, &ciphertext, &out_header);
+    EXPECT_TRUE(ok);
+    if (!ok) {
+      return KEEP;
+    }
+    *offset = out_header.Write(output, *offset, ciphertext);
+    return CHANGE;
+  }
+
+ private:
+  uint32_t len_;
+};
+
 TEST_F(TlsConnectStreamTls13,
        CertificateCompression_CompressionFunctionCreatesABufferOfSize0) {
   ConfigureVersion(SSL_LIBRARY_VERSION_TLS_1_3);
@@ -1214,6 +1281,47 @@ TEST_F(TlsConnectStreamTls13,
   client_->CheckErrorCode(SSL_ERROR_RX_MALFORMED_CERTIFICATE);
 }
 
+/* Boundary test for the 100KB uncompressed_length cap.
+ * At limit (100KB): passes bounds check, Certificate parser sees trailing
+ * zeros and fires illegal_parameter (tls13con.c:4362) — proves the bounds
+ * check did not trigger.
+ * One over (100KB+1): caught by the bounds check (tls13con.c:4220) and fires
+ * bad_certificate. */
+TEST_F(TlsConnectStreamTls13, CertificateCompression_UncompressedLenBoundary) {
+  SSLCertificateCompressionAlgorithm t = {0xff01, "test function",
+                                          SimpleXorCertCompEncode,
+                                          PermissiveXorCertCompDecode};
+
+  auto run = [&](uint32_t len, uint8_t expected_alert, bool expect_decoded) {
+    called_count = 0;
+    Reset();
+    EnsureTlsSetup();
+    MakeTlsFilter<TLSCompressedCertUncompressedLenSetter>(server_, len);
+    EXPECT_EQ(SECSuccess,
+              SSLExp_SetCertificateCompressionAlgorithm(server_->ssl_fd(), t));
+    EXPECT_EQ(SECSuccess,
+              SSLExp_SetCertificateCompressionAlgorithm(client_->ssl_fd(), t));
+    ExpectAlert(client_, expected_alert);
+    StartConnect();
+    client_->SetServerKeyBits(server_->server_key_bits());
+    client_->Handshake();
+    server_->Handshake();
+    ASSERT_TRUE_WAIT((client_->state() != TlsAgent::STATE_CONNECTING), 5000);
+    ASSERT_EQ(TlsAgent::STATE_ERROR, client_->state());
+    client_->ExpectSendAlert(kTlsAlertCloseNotify);
+    server_->ExpectReceiveAlert(kTlsAlertCloseNotify);
+    client_->CheckErrorCode(SSL_ERROR_RX_MALFORMED_CERTIFICATE);
+    if (expect_decoded) {
+      EXPECT_EQ(called_count, 1);
+    } else {
+      EXPECT_EQ(0, called_count);
+    }
+  };
+
+  run(100 * 1024, kTlsAlertIllegalParameter, true);
+  run(100 * 1024 + 1, kTlsAlertBadCertificate, false);
+}
+
 TEST_F(TlsConnectStreamTls13,
        CertificateCompression_ReceivedCertificateTooLong) {
   EnsureTlsSetup();
@@ -1391,8 +1499,6 @@ TEST_F(TlsConnectStreamTls13, CertificateCompression_PostAuth) {
   server_->ReadBytes(50);
 
   EXPECT_EQ(1U, called);
-  EXPECT_TRUE(SSLInt_ExtensionNegotiated(client_->ssl_fd(),
-                                         ssl_certificate_compression_xtn));
 
   SendReceive(60);
   client_->CheckClientAuthCompleted();
@@ -1469,8 +1575,6 @@ TEST_F(TlsConnectStreamTls13,
   server_->ReadBytes(50);
 
   EXPECT_EQ(1U, called);
-  EXPECT_TRUE(SSLInt_ExtensionNegotiated(client_->ssl_fd(),
-                                         ssl_certificate_compression_xtn));
 
   SendReceive(60);
   client_->CheckClientAuthCompleted();

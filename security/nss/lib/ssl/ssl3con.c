@@ -14266,6 +14266,7 @@ ssl3_DestroySSL3Info(sslSocket *ss)
     SECITEM_FreeItem(&ss->ssl3.hs.newSessionTicket.ticket, PR_FALSE);
     SECITEM_FreeItem(&ss->ssl3.hs.srvVirtName, PR_FALSE);
     SECITEM_FreeItem(&ss->ssl3.hs.fakeSid, PR_FALSE);
+    SECITEM_FreeItem(&ss->ssl3.hs.cookie, PR_FALSE);
 
     /* Destroy the DTLS data */
     if (IS_DTLS(ss)) {

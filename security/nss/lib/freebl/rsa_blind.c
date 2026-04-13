@@ -200,7 +200,8 @@ RSABlinding_Blind(HASH_HashType hashAlg, PRUint8* blindedMsg, size_t blindedMsgL
         goto cleanup;
     }
 
-    rv = RSA_EMSAEncodePSS(encoded_msg, pkS->modulus.len, bit_len_n, msgHash, hashAlg, hashAlg, salt, saltLen);
+    rv = RSA_EMSAEncodePSS(encoded_msg, pkS->modulus.len, bit_len_n, msgHash,
+                           sizeof(msgHash), hashAlg, hashAlg, salt, saltLen);
 
     /* 2. If EMSA-PSS-ENCODE raises an error, raise the error and stop. */
     if (rv != SECSuccess) {

@@ -1,0 +1,52 @@
+.. _mozilla_projects_nss_nss_3_112_4_release_notes:
+
+NSS 3.112.4 release notes
+========================
+
+`Introduction <#introduction>`__
+--------------------------------
+
+.. container::
+
+   Network Security Services (NSS) 3.112.4 was released on *13 April 2026**.
+
+`Distribution Information <#distribution_information>`__
+--------------------------------------------------------
+
+.. container::
+
+   The HG tag is NSS_3_112_4_RTM. NSS 3.112.4 requires NSPR 4.36 or newer.
+
+   NSS 3.112.4 source distributions are available on ftp.mozilla.org for secure HTTPS download:
+
+   -  Source tarballs:
+      https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_112_4_RTM/src/
+
+   Other releases are available :ref:`mozilla_projects_nss_releases`.
+
+.. _changes_in_nss_3.112.4:
+
+`Changes in NSS 3.112.4 <#changes_in_nss_3.112.4>`__
+------------------------------------------------------------------
+
+.. container::
+
+   -  Bug 2030135 - improve error handling in PK11_ImportPrivateKeyInfoAndReturnKey.
+   -  Bug 2029752 - Improving the allocation of S/MIME DecryptSymKey.
+   -  Bug 2029462 - store email on subject cache_entry in NSS trust domain.
+   -  Bug 2029425 - Heap use-after-free in cert_VerifyCertChainOld via dangling certsList[] entry on NameConstraints violation.
+   -  Bug 2029323 - Improve size calculations in CMS content buffering.
+   -  Bug 2028001 - avoid integer overflow while escaping RFC822 Names.
+   -  Bug 2027378 - Reject excessively large ASN.1 SEQUENCE OF in quickder.
+   -  Bug 2027365 - Deep copy profile data in CERT_FindSMimeProfile.
+   -  Bug 2027345 - Improve input validation in DSAU signature decoding.
+   -  Bug 2026311 - avoid integer overflow in RSA_EMSAEncodePSS.
+   -  Bug 2019357 - RSA_EMSAEncodePSS should validate the length of mHash.
+   -  Bug 2026156 - Add a maximum cert uncompressed len and tests.
+   -  Bug 2026089 - Clarify extension negotiation mechanism for TLS Handshakes.
+   -  Bug 2023209 - ensure permittedSubtrees don't match wildcards that could be outside the permitted tree.
+   -  Bug 2023207 - Fix integer underflow in tls13_AEAD when ciphertext is shorter than tag.
+   -  Bug 2019224 - Remove invalid PORT_Free().
+   -  Bug 1964722 - free digest objects in SEC_PKCS7DecoderFinish if they haven't already been freed.
+   -  Bug 1935995 - make ss->ssl3.hs.cookie an owned-copy of the cookie.
+

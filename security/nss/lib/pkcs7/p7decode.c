@@ -230,6 +230,8 @@ sec_pkcs7_decoder_start_digests(SEC_PKCS7DecoderContext *p7dcx, int depth,
 {
     int i, digcnt;
 
+    p7dcx->worker.digcnt = 0;
+
     if (digestalgs == NULL)
         return SECSuccess;
 
@@ -257,7 +259,6 @@ sec_pkcs7_decoder_start_digests(SEC_PKCS7DecoderContext *p7dcx, int depth,
     }
 
     p7dcx->worker.depth = depth;
-    p7dcx->worker.digcnt = 0;
 
     /*
      * Create a digest context for each algorithm.
@@ -277,7 +278,6 @@ sec_pkcs7_decoder_start_digests(SEC_PKCS7DecoderContext *p7dcx, int depth,
          * but we cannot know that until later.
          */
         if (digobj == NULL) {
-            p7dcx->worker.digcnt--;
             continue;
         }
 
@@ -306,25 +306,19 @@ sec_pkcs7_decoder_finish_digests(SEC_PKCS7DecoderContext *p7dcx,
                                  PLArenaPool *poolp,
                                  SECItem ***digestsp)
 {
-    struct sec_pkcs7_decoder_worker *worker;
-    const SECHashObject *digobj;
-    void *digcx;
-    SECItem **digests, *digest;
-    int i;
-    void *mark;
-
     /*
      * XXX Handling nested contents would mean that there is a chain
      * of workers -- one per each level of content.  The following
      * would want to find the last worker in the chain.
      */
-    worker = &(p7dcx->worker);
+    struct sec_pkcs7_decoder_worker *worker = &(p7dcx->worker);
 
     /*
      * If no digests, then we have nothing to do.
      */
-    if (worker->digcnt == 0)
+    if (worker->digcnt == 0) {
         return SECSuccess;
+    }
 
     /*
      * No matter what happens after this, we want to stop filtering.
@@ -340,46 +334,46 @@ sec_pkcs7_decoder_finish_digests(SEC_PKCS7DecoderContext *p7dcx,
      * was digested.
      */
     if (!worker->saw_contents) {
-        for (i = 0; i < worker->digcnt; i++) {
-            digcx = worker->digcxs[i];
-            digobj = worker->digobjs[i];
+        for (int i = 0; i < worker->digcnt; i++) {
+            void *digcx = worker->digcxs[i];
+            const SECHashObject *digobj = worker->digobjs[i];
             (*digobj->destroy)(digcx, PR_TRUE);
         }
+        worker->digcnt = 0;
         return SECSuccess;
     }
 
-    mark = PORT_ArenaMark(poolp);
+    void *mark = PORT_ArenaMark(poolp);
 
     /*
      * Close out each digest context, saving digest away.
      */
-    digests =
-        (SECItem **)PORT_ArenaAlloc(poolp, (worker->digcnt + 1) * sizeof(SECItem *));
-    digest = (SECItem *)PORT_ArenaAlloc(poolp, worker->digcnt * sizeof(SECItem));
-    if (digests == NULL || digest == NULL) {
+    SECItem **digests =
+        (SECItem **)PORT_ArenaZAlloc(poolp, (worker->digcnt + 1) * sizeof(SECItem *));
+    if (digests == NULL) {
         p7dcx->error = PORT_GetError();
         PORT_ArenaRelease(poolp, mark);
         return SECFailure;
     }
 
-    for (i = 0; i < worker->digcnt; i++, digest++) {
-        digcx = worker->digcxs[i];
-        digobj = worker->digobjs[i];
-
-        digest->data = (unsigned char *)PORT_ArenaAlloc(poolp, digobj->length);
-        if (digest->data == NULL) {
+    for (int i = 0; i < worker->digcnt; i++) {
+        const SECHashObject *digobj = worker->digobjs[i];
+        digests[i] = SECITEM_AllocItem(poolp, NULL, digobj->length);
+        if (!digests[i]) {
             p7dcx->error = PORT_GetError();
             PORT_ArenaRelease(poolp, mark);
             return SECFailure;
         }
-
-        digest->len = digobj->length;
-        (*digobj->end)(digcx, digest->data, &(digest->len), digest->len);
-        (*digobj->destroy)(digcx, PR_TRUE);
-
-        digests[i] = digest;
     }
-    digests[i] = NULL;
+
+    for (int i = 0; i < worker->digcnt; i++) {
+        void *digcx = worker->digcxs[i];
+        const SECHashObject *digobj = worker->digobjs[i];
+
+        (*digobj->end)(digcx, digests[i]->data, &(digests[i]->len), digests[i]->len);
+        (*digobj->destroy)(digcx, PR_TRUE);
+    }
+    worker->digcnt = 0;
     *digestsp = digests;
 
     PORT_ArenaUnmark(poolp, mark);
@@ -1084,6 +1078,13 @@ SEC_PKCS7DecoderFinish(SEC_PKCS7DecoderContext *p7dcx)
     if (p7dcx->worker.decryptobj) {
         sec_PKCS7DestroyDecryptObject(p7dcx->worker.decryptobj);
     }
+    for (int i = 0; i < p7dcx->worker.digcnt; i++) {
+        void *digcx = p7dcx->worker.digcxs[i];
+        const SECHashObject *digobj = p7dcx->worker.digobjs[i];
+        (*digobj->destroy)(digcx, PR_TRUE);
+    }
+    p7dcx->worker.digcnt = 0;
+
     PORT_FreeArena(p7dcx->tmp_poolp, PR_FALSE);
     PORT_Free(p7dcx);
     return cinfo;

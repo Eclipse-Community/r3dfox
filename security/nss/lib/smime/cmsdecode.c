@@ -322,7 +322,6 @@ nss_cms_before_data(NSSCMSDecoderContext *p7dcx)
 loser:
     if (mark)
         PORT_ArenaRelease(poolp, mark);
-    PORT_Free(childp7dcx);
     p7dcx->childp7dcx = NULL;
     return SECFailure;
 }
@@ -555,8 +554,19 @@ nss_cms_decoder_work_data(NSSCMSDecoderContext *p7dcx,
         SECItem *dataItem = &decoderData->data;
 
         offset = dataItem->len;
+        /* Reject if accumulated size would exceed unsigned int storage. */
+        if (len > (unsigned long)(PR_UINT32_MAX - dataItem->len)) {
+            p7dcx->error = SEC_ERROR_INPUT_LEN;
+            goto loser;
+        }
         if (dataItem->len + len > decoderData->totalBufferSize) {
-            int needLen = (dataItem->len + len) * 2;
+            /* Use size_t to avoid truncating the 64-bit sum to int.
+             * Double to amortize repeated reallocations across chunks. */
+            size_t needLen = (size_t)dataItem->len + len;
+            /* Only double if the result still fits in unsigned int. */
+            if (needLen <= PR_UINT32_MAX / 2) {
+                needLen *= 2;
+            }
             dest = (unsigned char *)
                 PORT_ArenaAlloc(p7dcx->cmsg->poolp, needLen);
             if (dest == NULL) {
@@ -567,7 +577,7 @@ nss_cms_decoder_work_data(NSSCMSDecoderContext *p7dcx,
             if (dataItem->len) {
                 PORT_Memcpy(dest, dataItem->data, dataItem->len);
             }
-            decoderData->totalBufferSize = needLen;
+            decoderData->totalBufferSize = (unsigned int)needLen;
             dataItem->data = dest;
         }
 

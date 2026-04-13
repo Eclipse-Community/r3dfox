@@ -2132,6 +2132,45 @@ static const NameConstraintParams NAME_CONSTRAINT_PARAMS[] =
     Result::ERROR_BAD_DER, Result::ERROR_BAD_DER
   },
 
+  // Wildcard SANs have subtle outcomes.
+  { ByteString(), DNSName("*.example.com"),
+    GeneralSubtree(DNSName(".example.com")),
+    Success,
+    Result::ERROR_CERT_NOT_IN_NAME_SPACE
+  },
+  { ByteString(), DNSName("*.example.com"),
+    GeneralSubtree(DNSName("example.com")),
+    Success,
+    Result::ERROR_CERT_NOT_IN_NAME_SPACE
+  },
+  // A certificate with a wildcard SAN entry like `*.example.com` can't be
+  // issued by a CA with a DNSName name constraint entry like `foo.example.com`
+  // in either the permitted or excluded subtrees. If in the permitted subtree,
+  // the certificate would be valid for `bar.example.com`, which would violate
+  // the constraint. If in the excluded subtree, the certificate would be valid
+  // for `foo.example.com`, which would violate the constraint.
+  { ByteString(), DNSName("*.example.com"),
+    GeneralSubtree(DNSName("foo.example.com")),
+    Result::ERROR_CERT_NOT_IN_NAME_SPACE,
+    Result::ERROR_CERT_NOT_IN_NAME_SPACE
+  },
+  { ByteString(), DNSName("*.foo.example.com"),
+    GeneralSubtree(DNSName("example.com")),
+    Success,
+    Result::ERROR_CERT_NOT_IN_NAME_SPACE
+  },
+  { ByteString(), DNSName("*.example.com"),
+    GeneralSubtree(DNSName("foo.example.org")),
+    Result::ERROR_CERT_NOT_IN_NAME_SPACE,
+    Success
+  },
+  // `*invalid.example.com` is an invalid presented DNSID.
+  { ByteString(), DNSName("*invalid.example.com"),
+    GeneralSubtree(DNSName("invalid.example.com")),
+    Result::ERROR_BAD_DER,
+    Result::ERROR_BAD_DER
+  },
+
   /////////////////////////////////////////////////////////////////////////////
   // Basic IP Address constraints (non-CN-ID)
 

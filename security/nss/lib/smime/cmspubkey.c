@@ -566,6 +566,7 @@ NSS_CMSUtil_DecryptSymKey_ECDH(SECKEYPrivateKey *privkey, SECItem *encKey,
     SECStatus rv;
 
     PORT_Memset(&keyWrapAlg, 0, sizeof(SECAlgorithmID));
+    PORT_Memset(&originatorpublickey, 0, sizeof(SECKEYPublicKey));
 
     PORT_Assert(bulkalgtag != SEC_OID_UNKNOWN);
     target = PK11_AlgtagToMechanism(bulkalgtag);

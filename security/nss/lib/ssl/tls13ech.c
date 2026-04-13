@@ -2442,7 +2442,7 @@ tls13_MaybeHandleEchSignal(sslSocket *ss, const PRUint8 *sh, PRUint32 shLen, PRB
             PORT_SetError(SSL_ERROR_BAD_2ND_CLIENT_HELLO);
             return SECFailure;
         }
-        ss->xtnData.negotiated[ss->xtnData.numNegotiated++] = ssl_tls13_encrypted_client_hello_xtn;
+        ssl3_RecordExtensionNegotiated(ss, &ss->xtnData, ssl_tls13_encrypted_client_hello_xtn);
 
         /* Only overwrite client_random with client_inner_random if CHInner was
          *  succesfully used for handshake (NOT if HRR is received). */
