@@ -790,6 +790,14 @@ bool TParseContext::checkIsAtGlobalLevel(const TSourceLoc &line, const char *tok
     return true;
 }
 
+void TParseContext::checkIsValidExpressionStatement(const TSourceLoc &line, TIntermTyped *expr)
+{
+    if (expr->isInterfaceBlock())
+    {
+        error(line, "expression statement is not allowed for interface blocks", "");
+    }
+}
+
 // ESSL 3.00.5 sections 3.8 and 3.9.
 // If it starts "gl_" or contains two consecutive underscores, it's reserved.
 // Also checks for "webgl_" and "_webgl_" reserved identifiers if parsing a webgl shader.
@@ -947,6 +955,13 @@ bool TParseContext::checkConstructorArguments(const TSourceLoc &line,
             if (argTyped->getBasicType() == EbtStruct)
             {
                 error(line, "a struct cannot be used as a constructor argument for this type",
+                      "constructor");
+                return false;
+            }
+            if (argTyped->getBasicType() == EbtInterfaceBlock)
+            {
+                error(line,
+                      "an interface block cannot be used as a constructor argument for this type",
                       "constructor");
                 return false;
             }
@@ -1335,9 +1350,6 @@ bool TParseContext::declareVariable(const TSourceLoc &line,
 
     (*variable) = new TVariable(&symbolTable, identifier, type, symbolType);
 
-    ASSERT(type->getLayoutQualifier().index == -1 ||
-           (isExtensionEnabled(TExtension::EXT_blend_func_extended) &&
-            mShaderType == GL_FRAGMENT_SHADER && mShaderVersion >= 300));
     if (type->getQualifier() == EvqFragmentOut)
     {
         if (type->getLayoutQualifier().index != -1 && type->getLayoutQualifier().location == -1)
@@ -3377,7 +3389,10 @@ TIntermGlobalQualifierDeclaration *TParseContext::parseGlobalQualifierDeclaratio
                                     typeQualifier.line);
     checkMemoryQualifierIsNotSpecified(typeQualifier.memoryQualifier, typeQualifier.line);
 
-    symbolTable.addInvariantVarying(*variable);
+    if (typeQualifier.invariant)
+    {
+        symbolTable.addInvariantVarying(*variable);
+    }
 
     TIntermSymbol *intermSymbol = new TIntermSymbol(variable);
     intermSymbol->setLine(identifierLoc);
@@ -4458,6 +4473,11 @@ bool TParseContext::checkUnsizedArrayConstructorArgumentDimensionality(
     {
         const TIntermTyped *element = arg->getAsTyped();
         ASSERT(element);
+        if (element->getType().isUnsizedArray())
+        {
+            error(line, "constructing from an unsized array", "constructor");
+            return false;
+        }
         size_t dimensionalityFromElement = element->getType().getNumArraySizes() + 1u;
         if (dimensionalityFromElement > type.getNumArraySizes())
         {
@@ -5197,14 +5217,12 @@ TIntermTyped *TParseContext::addIndexExpression(TIntermTyped *baseExpression,
 int TParseContext::checkIndexLessThan(bool outOfRangeIndexIsError,
                                       const TSourceLoc &location,
                                       int index,
-                                      int arraySize,
+                                      unsigned int arraySize,
                                       const char *reason)
 {
-    // Should not reach here with an unsized / runtime-sized array.
-    ASSERT(arraySize > 0);
     // A negative index should already have been checked.
     ASSERT(index >= 0);
-    if (index >= arraySize)
+    if (static_cast<unsigned int>(index) >= arraySize)
     {
         std::stringstream reasonStream = sh::InitializeStream<std::stringstream>();
         reasonStream << reason << " '" << index << "'";
@@ -6396,6 +6414,11 @@ bool TParseContext::binaryOpCommonCheck(TOperator op,
                                         TIntermTyped *right,
                                         const TSourceLoc &loc)
 {
+    if (left->getBasicType() == EbtVoid || right->getBasicType() == EbtVoid)
+    {
+        error(loc, "operation with void operands", GetOperatorString(op));
+        return false;
+    }
     // Check opaque types are not allowed to be operands in expressions other than array indexing
     // and structure member selection.
     if (IsOpaqueType(left->getBasicType()) || IsOpaqueType(right->getBasicType()))
@@ -6841,6 +6864,10 @@ TIntermTyped *TParseContext::addComma(TIntermTyped *left,
         error(loc,
               "sequence operator is not allowed for void, arrays, or structs containing arrays",
               ",");
+    }
+    if (left->isInterfaceBlock() || right->isInterfaceBlock())
+    {
+        error(loc, "sequence operator is not allowed for interface blocks", ",");
     }
 
     TIntermBinary *commaNode = TIntermBinary::CreateComma(left, right, mShaderVersion);
@@ -7345,8 +7372,8 @@ TIntermTyped *TParseContext::addMethod(TFunctionLookup *fnCall, const TSourceLoc
     return CreateZeroNode(TType(EbtInt, EbpUndefined, EvqConst));
 }
 
-TIntermTyped *TParseContext::addNonConstructorFunctionCall(TFunctionLookup *fnCall,
-                                                           const TSourceLoc &loc)
+TIntermTyped *TParseContext::addNonConstructorFunctionCallImpl(TFunctionLookup *fnCall,
+                                                               const TSourceLoc &loc)
 {
     // First check whether the function has been hidden by a variable name or struct typename by
     // using the symbol looked up in the lexical phase. If the function is not hidden, look for one
@@ -7408,10 +7435,7 @@ TIntermTyped *TParseContext::addNonConstructorFunctionCall(TFunctionLookup *fnCa
             {
                 // Treat it like a built-in unary operator.
                 TIntermNode *unaryParamNode = fnCall->arguments().front();
-                TIntermTyped *callNode =
-                    createUnaryMath(op, unaryParamNode->getAsTyped(), loc, fnCandidate);
-                ASSERT(callNode != nullptr);
-                return callNode;
+                return createUnaryMath(op, unaryParamNode->getAsTyped(), loc, fnCandidate);
             }
 
             TIntermAggregate *callNode =
@@ -7436,7 +7460,17 @@ TIntermTyped *TParseContext::addNonConstructorFunctionCall(TFunctionLookup *fnCa
             error(loc, "no matching overloaded function found", fnCall->name());
         }
     }
+    return nullptr;
+}
 
+TIntermTyped *TParseContext::addNonConstructorFunctionCall(TFunctionLookup *fnCall,
+                                                           const TSourceLoc &loc)
+{
+    TIntermTyped *result = addNonConstructorFunctionCallImpl(fnCall, loc);
+    if (result != nullptr)
+    {
+        return result;
+    }
     // Error message was already written. Put on an unused node for error recovery.
     return CreateZeroNode(TType(EbtFloat, EbpMedium, EvqConst));
 }

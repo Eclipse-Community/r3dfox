@@ -129,6 +129,7 @@ class TParseContext : angle::NonCopyable
 
     // Check functions - the ones that return bool return false if an error was generated.
 
+    void checkIsValidExpressionStatement(const TSourceLoc &line, TIntermTyped *expr);
     bool checkIsNotReserved(const TSourceLoc &line, const ImmutableString &identifier);
     void checkPrecisionSpecified(const TSourceLoc &line, TPrecision precision, TBasicType type);
     bool checkCanBeLValue(const TSourceLoc &line, const char *op, TIntermTyped *node);
@@ -538,7 +539,7 @@ class TParseContext : angle::NonCopyable
     int checkIndexLessThan(bool outOfRangeIndexIsError,
                            const TSourceLoc &location,
                            int index,
-                           int arraySize,
+                           unsigned int arraySize,
                            const char *reason);
 
     bool declareVariable(const TSourceLoc &line,
@@ -651,6 +652,7 @@ class TParseContext : angle::NonCopyable
 
     TIntermTyped *addMethod(TFunctionLookup *fnCall, const TSourceLoc &loc);
     TIntermTyped *addConstructor(TFunctionLookup *fnCall, const TSourceLoc &line);
+    TIntermTyped *addNonConstructorFunctionCallImpl(TFunctionLookup *fnCall, const TSourceLoc &loc);
     TIntermTyped *addNonConstructorFunctionCall(TFunctionLookup *fnCall, const TSourceLoc &loc);
 
     // Return either the original expression or the folded version of the expression in case the
