@@ -11,6 +11,32 @@
 namespace mozilla {
 namespace layers {
 
+AsyncImagePipelineOp::AsyncImagePipelineOp(
+    Tag aTag, AsyncImagePipelineManager* aAsyncImageManager,
+    const wr::PipelineId& aPipelineId, TextureHost* aTextureHost)
+    : mTag(aTag),
+      mAsyncImageManager(aAsyncImageManager),
+      mPipelineId(aPipelineId),
+      mTextureHost(aTextureHost) {
+  MOZ_ASSERT(mTag == Tag::ApplyAsyncImageForPipeline);
+}
+
+AsyncImagePipelineOp::AsyncImagePipelineOp(
+    Tag aTag, AsyncImagePipelineManager* aAsyncImageManager,
+    const wr::PipelineId& aPipelineId)
+    : mTag(aTag),
+      mAsyncImageManager(aAsyncImageManager),
+      mPipelineId(aPipelineId) {
+  MOZ_ASSERT(mTag == Tag::RemoveAsyncImagePipeline);
+}
+
+AsyncImagePipelineOp::~AsyncImagePipelineOp() = default;
+AsyncImagePipelineOp::AsyncImagePipelineOp(AsyncImagePipelineOp&&) = default;
+AsyncImagePipelineOp::AsyncImagePipelineOp(const AsyncImagePipelineOp&) =
+    default;
+
+AsyncImagePipelineOps::~AsyncImagePipelineOps() = default;
+
 void AsyncImagePipelineOps::HandleOps(wr::TransactionBuilder& aTxn) {
   MOZ_ASSERT(!mList.empty());
 
@@ -18,7 +44,7 @@ void AsyncImagePipelineOps::HandleOps(wr::TransactionBuilder& aTxn) {
     auto& frontOp = mList.front();
     switch (frontOp.mTag) {
       case AsyncImagePipelineOp::Tag::ApplyAsyncImageForPipeline: {
-        auto* manager = frontOp.mAsyncImageManager;
+        AsyncImagePipelineManager* manager = frontOp.mAsyncImageManager.get();
         const auto& pipelineId = frontOp.mPipelineId;
         const auto& textureHost = frontOp.mTextureHost;
 
@@ -26,7 +52,7 @@ void AsyncImagePipelineOps::HandleOps(wr::TransactionBuilder& aTxn) {
         break;
       }
       case AsyncImagePipelineOp::Tag::RemoveAsyncImagePipeline: {
-        auto* manager = frontOp.mAsyncImageManager;
+        AsyncImagePipelineManager* manager = frontOp.mAsyncImageManager.get();
         const auto& pipelineId = frontOp.mPipelineId;
         manager->RemoveAsyncImagePipeline(pipelineId, /* aPendingOps */ nullptr,
                                           aTxn);
