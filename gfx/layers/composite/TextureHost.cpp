@@ -123,9 +123,12 @@ PTextureParent* TextureHost::CreateIPDLActor(
     ReadLockDescriptor&& aReadLock, LayersBackend aLayersBackend,
     TextureFlags aFlags, const dom::ContentParentId& aContentId,
     uint64_t aSerial, const wr::MaybeExternalImageId& aExternalImageId) {
+  MOZ_ASSERT(!(aFlags & TextureFlags::DEALLOCATE_CLIENT));
+
+  TextureFlags flags = aFlags & ~TextureFlags::DEALLOCATE_CLIENT;
   TextureParent* actor =
       new TextureParent(aAllocator, aContentId, aSerial, aExternalImageId);
-  if (!actor->Init(aSharedData, std::move(aReadLock), aLayersBackend, aFlags)) {
+  if (!actor->Init(aSharedData, std::move(aReadLock), aLayersBackend, flags)) {
     actor->ActorDestroy(ipc::IProtocol::ActorDestroyReason::FailedConstructor);
     delete actor;
     return nullptr;
@@ -734,6 +737,8 @@ ShmemTextureHost::ShmemTextureHost(const ipc::Shmem& aShmem,
                                    ISurfaceAllocator* aDeallocator,
                                    TextureFlags aFlags)
     : BufferTextureHost(aDesc, aFlags), mDeallocator(aDeallocator) {
+  MOZ_ASSERT(!(mFlags & TextureFlags::DEALLOCATE_CLIENT));
+
   if (aShmem.IsReadable()) {
     mShmem = MakeUnique<ipc::Shmem>(aShmem);
   } else {
@@ -750,8 +755,7 @@ ShmemTextureHost::ShmemTextureHost(const ipc::Shmem& aShmem,
 }
 
 ShmemTextureHost::~ShmemTextureHost() {
-  MOZ_ASSERT(!mShmem || (mFlags & TextureFlags::DEALLOCATE_CLIENT),
-             "Leaking our buffer");
+  MOZ_ASSERT(!mShmem, "Leaking our buffer");
   DeallocateDeviceData();
   MOZ_COUNT_DTOR(ShmemTextureHost);
 }
