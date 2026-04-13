@@ -1831,7 +1831,8 @@ class InitializeFamilyRunnable : public mozilla::Runnable {
         mLoadCmaps(aLoadCmaps) {}
 
   NS_IMETHOD Run() override {
-    auto list = gfxPlatformFontList::PlatformFontList()->SharedFontList();
+    auto* pfl = gfxPlatformFontList::PlatformFontList();
+    auto* list = pfl->SharedFontList();
     if (!list) {
       return NS_OK;
     }
@@ -1840,8 +1841,12 @@ class InitializeFamilyRunnable : public mozilla::Runnable {
       // was posted - just ignore it.
       return NS_OK;
     }
-    dom::ContentChild::GetSingleton()->SendInitializeFamily(
-        list->GetGeneration(), mIndex, mLoadCmaps);
+    auto& family = list->Families()[mIndex];
+    if (mLoadCmaps ? family.IsFullyInitialized() : family.IsInitialized()) {
+      // Some other runnable initialized this or somesuch.
+      return NS_OK;
+    }
+    (void)pfl->InitializeFamily(&family, mLoadCmaps);
     return NS_OK;
   }
 
@@ -1854,21 +1859,21 @@ bool gfxPlatformFontList::InitializeFamily(fontlist::Family* aFamily,
                                            bool aLoadCmaps) {
   MOZ_ASSERT(SharedFontList());
   auto list = SharedFontList();
+  auto* families = list->Families();
+  if (!families) {
+    return false;
+  }
+  uint32_t index = aFamily - families;
+  if (index >= list->NumFamilies()) {
+    return false;
+  }
+  if (!NS_IsMainThread() && (!sInitFontListThread || !IsInitFontListThread())) {
+    NS_DispatchToMainThread(new InitializeFamilyRunnable(index, aLoadCmaps));
+    return aFamily->IsInitialized();
+  }
   if (!XRE_IsParentProcess()) {
-    auto* families = list->Families();
-    if (!families) {
-      return false;
-    }
-    uint32_t index = aFamily - families;
-    if (index >= list->NumFamilies()) {
-      return false;
-    }
-    if (NS_IsMainThread()) {
-      dom::ContentChild::GetSingleton()->SendInitializeFamily(
-          list->GetGeneration(), index, aLoadCmaps);
-    } else {
-      NS_DispatchToMainThread(new InitializeFamilyRunnable(index, aLoadCmaps));
-    }
+    dom::ContentChild::GetSingleton()->SendInitializeFamily(
+        list->GetGeneration(), index, aLoadCmaps);
     return aFamily->IsInitialized();
   }
 
@@ -1884,8 +1889,7 @@ bool gfxPlatformFontList::InitializeFamily(fontlist::Family* aFamily,
     // all the cmaps at once and reduce IPC traffic (and content-process file
     // access overhead, which is crippling for DirectWrite on Windows).
     if (aLoadCmaps) {
-      auto* faces = aFamily->Faces(list);
-      if (faces) {
+      if (auto* faces = aFamily->Faces(list)) {
         for (size_t i = 0; i < aFamily->NumFaces(); i++) {
           auto* face = faces[i].ToPtr<fontlist::Face>(list);
           if (face && face->mCharacterMap.IsNull()) {

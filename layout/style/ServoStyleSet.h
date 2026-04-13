@@ -425,7 +425,7 @@ class ServoStyleSet {
     // synchronization measures.
     AssertIsMainThreadOrServoFontMetricsLocked();
 
-    mPostTraversalTasks.AppendElement(aTask);
+    mPostTraversalTasks.AppendElement(std::move(aTask));
   }
 
   // Returns true if a restyle of the document is needed due to cloning

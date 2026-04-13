@@ -394,18 +394,18 @@ void FontFaceSet::DispatchLoadingEventAndReplaceReadyPromise() {
     // refcounting.  (Also, the Promise object creation must be done on
     // the main thread.)
     set->AppendTask(
-        PostTraversalTask::DispatchLoadingEventAndReplaceReadyPromise(this));
+        PostTraversalTask::DispatchLoadingEventAndReplaceReadyPromise(
+            do_AddRef(mImpl)));
     return;
   }
 
   (new AsyncEventDispatcher(this, u"loading"_ns, CanBubble::eNo))
       ->PostDOMEvent();
 
-  if (mReady && mReady->State() != Promise::PromiseState::Pending) {
-    if (GetParentObject()) {
-      ErrorResult rv;
-      mReady = Promise::Create(GetParentObject(), rv);
-    }
+  if (mReady && mReady->State() != Promise::PromiseState::Pending &&
+      GetParentObject()) {
+    IgnoredErrorResult rv;
+    mReady = Promise::Create(GetParentObject(), rv);
   }
 
   // We may previously have been in a state where all fonts had finished

@@ -18,26 +18,28 @@ namespace mozilla {
 
 using namespace dom;
 
+PostTraversalTask::~PostTraversalTask() {
+  if (!mTarget) {
+    return;
+  }
+  switch (mType) {
+    case Type::DispatchLoadingEventAndReplaceReadyPromise:
+      static_cast<dom::FontFaceSetImpl*>(mTarget)->Release();
+      break;
+    case Type::LoadFontEntry:
+      static_cast<gfxUserFontEntry*>(mTarget)->Release();
+      break;
+  }
+}
+
 void PostTraversalTask::Run() {
   switch (mType) {
     case Type::DispatchLoadingEventAndReplaceReadyPromise:
-      static_cast<FontFaceSet*>(mTarget)
+      static_cast<dom::FontFaceSetImpl*>(mTarget)
           ->DispatchLoadingEventAndReplaceReadyPromise();
       break;
-
     case Type::LoadFontEntry:
       static_cast<gfxUserFontEntry*>(mTarget)->ContinueLoad();
-      break;
-
-    case Type::InitializeFamily:
-      Unused << gfxPlatformFontList::PlatformFontList()->InitializeFamily(
-          static_cast<fontlist::Family*>(mTarget));
-      break;
-
-    case Type::FontInfoUpdate:
-      if (auto* pc = static_cast<ServoStyleSet*>(mTarget)->GetPresContext()) {
-        pc->ForceReflowForFontInfoUpdateFromStyle();
-      }
       break;
   }
 }
