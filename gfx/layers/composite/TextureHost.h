@@ -904,11 +904,12 @@ class ShmemTextureHost : public BufferTextureHost {
     mozilla::ipc::Shmem* GetShmem() { return mShmem.get(); }
 
    protected:
+    virtual ~ShmemDeallocRunnable();
+
     RefPtr<ISurfaceAllocator> mDeallocator;
     UniquePtr<mozilla::ipc::Shmem> mShmem;
   };
 
-  UniquePtr<mozilla::ipc::Shmem> mShmem;
   RefPtr<ISurfaceAllocator> mDeallocator;
   RefPtr<ShmemDeallocRunnable> mShmemDeallocRunnable;
 };

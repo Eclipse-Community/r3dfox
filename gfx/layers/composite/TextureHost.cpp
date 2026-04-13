@@ -744,7 +744,9 @@ ShmemTextureHost::ShmemTextureHost(const ipc::Shmem& aShmem,
   MOZ_ASSERT(!(mFlags & TextureFlags::DEALLOCATE_CLIENT));
 
   if (aShmem.IsReadable()) {
-    mShmem = MakeUnique<ipc::Shmem>(aShmem);
+    UniquePtr<mozilla::ipc::Shmem> shmem = MakeUnique<ipc::Shmem>(aShmem);
+    mShmemDeallocRunnable =
+        new ShmemDeallocRunnable(mDeallocator, std::move(shmem));
   } else {
     // This can happen if we failed to map the shmem on this process, perhaps
     // because it was big and we didn't have enough contiguous address space
@@ -759,27 +761,15 @@ ShmemTextureHost::ShmemTextureHost(const ipc::Shmem& aShmem,
 }
 
 ShmemTextureHost::~ShmemTextureHost() {
-  MOZ_ASSERT(!mShmem, "Leaking our buffer");
   DeallocateDeviceData();
   MOZ_COUNT_DTOR(ShmemTextureHost);
 }
 
-void ShmemTextureHost::DeallocateSharedData() {
-  if (mShmem) {
-    MOZ_ASSERT(mDeallocator,
-               "Shared memory would leak without a ISurfaceAllocator");
-    mDeallocator->AsShmemAllocator()->DeallocShmem(*mShmem);
-    mShmem = nullptr;
-  }
-}
+void ShmemTextureHost::DeallocateSharedData() {}
 
-void ShmemTextureHost::ForgetSharedData() {
-  if (mShmem) {
-    mShmem = nullptr;
-  }
-}
+void ShmemTextureHost::ForgetSharedData() {}
 
-void ShmemTextureHost::OnShutdown() { mShmem = nullptr; }
+void ShmemTextureHost::OnShutdown() { mShmemDeallocRunnable = nullptr; }
 
 ShmemTextureHost::ShmemDeallocRunnable::ShmemDeallocRunnable(
     ISurfaceAllocator* aDeallocator, UniquePtr<mozilla::ipc::Shmem>&& aShmem)
@@ -788,23 +778,31 @@ ShmemTextureHost::ShmemDeallocRunnable::ShmemDeallocRunnable(
       mShmem(std::move(aShmem)) {}
 
 nsresult ShmemTextureHost::ShmemDeallocRunnable::Run() {
+  if (!mDeallocator || !mShmem) {
+    return NS_OK;
+  }
   mDeallocator->AsShmemAllocator()->DeallocShmem(*mShmem);
   mShmem = nullptr;
   return NS_OK;
+}
+
+ShmemTextureHost::ShmemDeallocRunnable::~ShmemDeallocRunnable() {
+  if (!mDeallocator || !mShmem) {
+    return;
+  }
+  mDeallocator->AsShmemAllocator()->DeallocShmem(*mShmem);
 }
 
 void ShmemTextureHost::OnRenderTextureCreated(
     wr::RenderTextureHost* aRenderTexture) {
   MOZ_ASSERT(aRenderTexture);
 
-  if (!mShmem || (GetFlags() & TextureFlags::DEALLOCATE_CLIENT)) {
+  if (!mShmemDeallocRunnable || !mShmemDeallocRunnable->GetShmem()) {
     return;
   }
 
   RefPtr<nsISerialEventTarget> eventTarget = GetCurrentSerialEventTarget();
-  RefPtr<ShmemDeallocRunnable> runnable =
-      new ShmemDeallocRunnable(mDeallocator, std::move(mShmem));
-  mShmemDeallocRunnable = runnable;
+  RefPtr<ShmemDeallocRunnable> runnable = mShmemDeallocRunnable;
 
   auto destroyedCallback = [eventTarget = std::move(eventTarget),
                             runnable = std::move(runnable)]() mutable {
@@ -815,9 +813,6 @@ void ShmemTextureHost::OnRenderTextureCreated(
 }
 
 uint8_t* ShmemTextureHost::GetBuffer() {
-  if (mShmem) {
-    return mShmem->get<uint8_t>();
-  }
   if (mShmemDeallocRunnable && mShmemDeallocRunnable->GetShmem()) {
     return mShmemDeallocRunnable->GetShmem()->get<uint8_t>();
   }
@@ -825,9 +820,6 @@ uint8_t* ShmemTextureHost::GetBuffer() {
 }
 
 size_t ShmemTextureHost::GetBufferSize() {
-  if (mShmem) {
-    return mShmem->Size<uint8_t>();
-  }
   if (mShmemDeallocRunnable && mShmemDeallocRunnable->GetShmem()) {
     return mShmemDeallocRunnable->GetShmem()->Size<uint8_t>();
   }
