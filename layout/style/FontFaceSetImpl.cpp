@@ -803,7 +803,7 @@ void FontFaceSetImpl::CheckLoadingStarted() {
                          [self = RefPtr{this}]() { self->OnLoadingStarted(); });
 }
 
-void FontFaceSetImpl::OnLoadingStarted() {
+void FontFaceSetImpl::DispatchLoadingEventAndReplaceReadyPromise() {
   RecursiveMutexAutoLock lock(mMutex);
   if (mOwner) {
     mOwner->DispatchLoadingEventAndReplaceReadyPromise();

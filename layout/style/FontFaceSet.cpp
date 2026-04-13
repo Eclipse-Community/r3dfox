@@ -395,7 +395,8 @@ void FontFaceSet::DispatchLoadingEventAndReplaceReadyPromise() {
     // refcounting.  (Also, the Promise object creation must be done on
     // the main thread.)
     set->AppendTask(
-        PostTraversalTask::DispatchLoadingEventAndReplaceReadyPromise(this));
+        PostTraversalTask::DispatchLoadingEventAndReplaceReadyPromise(
+            do_AddRef(mImpl)));
     return;
   }
 

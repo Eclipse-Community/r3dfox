@@ -540,7 +540,7 @@ void gfxUserFontEntry::DoLoadNextSrc(bool aIsContinue) {
           // If we need to start a font load and we're on a style
           // worker thread, we have to defer it.
           SetLoadState(STATUS_LOAD_PENDING);
-          set->AppendTask(PostTraversalTask::LoadFontEntry(this));
+          set->AppendTask(PostTraversalTask::LoadFontEntry(do_AddRef(this)));
           return;
         }
 

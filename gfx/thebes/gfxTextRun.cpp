@@ -1990,17 +1990,8 @@ void gfxFontGroup::AddFamilyToFontList(gfxFontFamily* aFamily,
 void gfxFontGroup::AddFamilyToFontList(fontlist::Family* aFamily,
                                        StyleGenericFontFamily aGeneric) {
   gfxPlatformFontList* pfl = gfxPlatformFontList::PlatformFontList();
-  if (!aFamily->IsInitialized()) {
-    if (ServoStyleSet* set = gfxFontUtils::CurrentServoStyleSet()) {
-      // If we need to initialize a Family record, but we're on a style
-      // worker thread, we have to defer it.
-      set->AppendTask(PostTraversalTask::InitializeFamily(aFamily));
-      set->AppendTask(PostTraversalTask::FontInfoUpdate(set));
-      return;
-    }
-    if (!pfl->InitializeFamily(aFamily)) {
-      return;
-    }
+  if (!aFamily->IsInitialized() && !pfl->InitializeFamily(aFamily)) {
+    return;
   }
   AutoTArray<fontlist::Face*, 4> faceList;
   aFamily->FindAllFacesForStyle(pfl->SharedFontList(), mStyle, faceList);

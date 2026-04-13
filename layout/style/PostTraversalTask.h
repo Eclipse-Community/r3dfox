@@ -7,7 +7,7 @@
 #ifndef mozilla_PostTraversalTask_h
 #define mozilla_PostTraversalTask_h
 
-#include "nscore.h"
+#include "mozilla/AlreadyAddRefed.h"
 
 /* a task to be performed immediately after a Servo traversal */
 
@@ -36,55 +36,44 @@ namespace mozilla {
 class PostTraversalTask {
  public:
   static PostTraversalTask DispatchLoadingEventAndReplaceReadyPromise(
-      dom::FontFaceSet* aFontFaceSet) {
-    auto task =
-        PostTraversalTask(Type::DispatchLoadingEventAndReplaceReadyPromise);
-    task.mTarget = aFontFaceSet;
+      already_AddRefed<dom::FontFaceSetImpl> aFontFaceSetImpl) {
+    PostTraversalTask task(Type::DispatchLoadingEventAndReplaceReadyPromise);
+    task.mTarget = aFontFaceSetImpl.take();
     return task;
   }
 
-  static PostTraversalTask LoadFontEntry(gfxUserFontEntry* aFontEntry) {
-    auto task = PostTraversalTask(Type::LoadFontEntry);
-    task.mTarget = aFontEntry;
-    return task;
-  }
-
-  static PostTraversalTask InitializeFamily(fontlist::Family* aFamily) {
-    auto task = PostTraversalTask(Type::InitializeFamily);
-    task.mTarget = aFamily;
-    return task;
-  }
-
-  static PostTraversalTask FontInfoUpdate(ServoStyleSet* aSet) {
-    auto task = PostTraversalTask(Type::FontInfoUpdate);
-    task.mTarget = aSet;
+  static PostTraversalTask LoadFontEntry(
+      already_AddRefed<gfxUserFontEntry> aFontEntry) {
+    PostTraversalTask task(Type::LoadFontEntry);
+    task.mTarget = aFontEntry.take();
     return task;
   }
 
   void Run();
 
+  PostTraversalTask(const PostTraversalTask&) = delete;
+  PostTraversalTask(PostTraversalTask&& aOther)
+      : PostTraversalTask(aOther.mType) {
+    mTarget = aOther.mTarget;
+    aOther.mTarget = nullptr;
+  };
+
+  ~PostTraversalTask();
+
  private:
-  // For any new raw pointer type that we need to store in a PostTraversalTask,
-  // please add an assertion that class' destructor that we are not in a Servo
-  // traversal, to protect against the possibility of having dangling pointers.
   enum class Type {
-    // mTarget (FontFaceSet*)
+    // mTarget (FontFaceSetImpl*)
     DispatchLoadingEventAndReplaceReadyPromise,
 
     // mTarget (gfxUserFontEntry*)
     LoadFontEntry,
-
-    // mTarget (fontlist::Family*)
-    InitializeFamily,
-
-    // mTarget (ServoStyleSet*)
-    FontInfoUpdate,
   };
 
   explicit PostTraversalTask(Type aType)
       : mType(aType), mTarget(nullptr) {}
 
   const Type mType;
+  // Note that this is a strong reference of the relevant target
   void* mTarget = nullptr;
 };
 

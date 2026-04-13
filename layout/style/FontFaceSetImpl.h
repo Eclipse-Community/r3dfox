@@ -171,6 +171,7 @@ class FontFaceSetImpl : public nsISupports, public gfxUserFontSet {
                                      ErrorResult& aRv);
 
   virtual void DispatchCheckLoadingFinishedAfterDelay();
+  void DispatchLoadingEventAndReplaceReadyPromise();
 
  protected:
   ~FontFaceSetImpl() override;
@@ -200,7 +201,9 @@ class FontFaceSetImpl : public nsISupports, public gfxUserFontSet {
    */
   void CheckLoadingFinishedAfterDelay();
 
-  void OnLoadingStarted();
+  void OnLoadingStarted() {
+    DispatchLoadingEventAndReplaceReadyPromise();
+  }
   void OnLoadingFinished();
 
   // Note: if you add new cycle collected objects to FontFaceRecord,
