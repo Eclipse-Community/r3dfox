@@ -30,6 +30,9 @@ RenderTextureHost::RenderTextureHost() : mIsFromDRMSource(false) {
 RenderTextureHost::~RenderTextureHost() {
   MOZ_ASSERT(RenderThread::IsInRenderThread());
   MOZ_COUNT_DTOR(RenderTextureHost);
+  if (mDestroyedCallback) {
+    mDestroyedCallback();
+  }
 }
 
 wr::WrExternalImage RenderTextureHost::Lock(uint8_t aChannelIndex,

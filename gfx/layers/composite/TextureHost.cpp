@@ -510,6 +510,10 @@ void BufferTextureHost::CreateRenderTexture(
   } else {
     texture =
         new wr::RenderBufferTextureHost(GetBuffer(), GetBufferDescriptor());
+
+    if (auto* shmemTextureHost = AsShmemTextureHost()) {
+      shmemTextureHost->OnRenderTextureCreated(texture);
+    }
   }
 
   wr::RenderThread::Get()->RegisterExternalImage(aExternalImageId,
@@ -777,12 +781,57 @@ void ShmemTextureHost::ForgetSharedData() {
 
 void ShmemTextureHost::OnShutdown() { mShmem = nullptr; }
 
+ShmemTextureHost::ShmemDeallocRunnable::ShmemDeallocRunnable(
+    ISurfaceAllocator* aDeallocator, UniquePtr<mozilla::ipc::Shmem>&& aShmem)
+    : Runnable("ShmemDeallocRunnable"),
+      mDeallocator(aDeallocator),
+      mShmem(std::move(aShmem)) {}
+
+nsresult ShmemTextureHost::ShmemDeallocRunnable::Run() {
+  mDeallocator->AsShmemAllocator()->DeallocShmem(*mShmem);
+  mShmem = nullptr;
+  return NS_OK;
+}
+
+void ShmemTextureHost::OnRenderTextureCreated(
+    wr::RenderTextureHost* aRenderTexture) {
+  MOZ_ASSERT(aRenderTexture);
+
+  if (!mShmem || (GetFlags() & TextureFlags::DEALLOCATE_CLIENT)) {
+    return;
+  }
+
+  RefPtr<nsISerialEventTarget> eventTarget = GetCurrentSerialEventTarget();
+  RefPtr<ShmemDeallocRunnable> runnable =
+      new ShmemDeallocRunnable(mDeallocator, std::move(mShmem));
+  mShmemDeallocRunnable = runnable;
+
+  auto destroyedCallback = [eventTarget = std::move(eventTarget),
+                            runnable = std::move(runnable)]() mutable {
+    eventTarget->Dispatch(runnable.forget());
+  };
+
+  aRenderTexture->SetDestroyedCallback(destroyedCallback);
+}
+
 uint8_t* ShmemTextureHost::GetBuffer() {
-  return mShmem ? mShmem->get<uint8_t>() : nullptr;
+  if (mShmem) {
+    return mShmem->get<uint8_t>();
+  }
+  if (mShmemDeallocRunnable && mShmemDeallocRunnable->GetShmem()) {
+    return mShmemDeallocRunnable->GetShmem()->get<uint8_t>();
+  }
+  return nullptr;
 }
 
 size_t ShmemTextureHost::GetBufferSize() {
-  return mShmem ? mShmem->Size<uint8_t>() : 0;
+  if (mShmem) {
+    return mShmem->Size<uint8_t>();
+  }
+  if (mShmemDeallocRunnable && mShmemDeallocRunnable->GetShmem()) {
+    return mShmemDeallocRunnable->GetShmem()->Size<uint8_t>();
+  }
+  return 0;
 }
 
 MemoryTextureHost::MemoryTextureHost(uint8_t* aBuffer,
