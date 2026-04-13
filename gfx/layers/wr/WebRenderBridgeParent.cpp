@@ -1815,6 +1815,12 @@ void WebRenderBridgeParent::AddPipelineIdForCompositable(
     return;
   }
 
+  if (aPipelineId == mPipelineId) {
+    gfxCriticalNote << "Content attempted AddPipelineIdForCompositable on "
+                       "root pipeline";
+    return;
+  }
+
   MOZ_ASSERT(mAsyncCompositables.find(wr::AsUint64(aPipelineId)) ==
              mAsyncCompositables.end());
 
@@ -1868,6 +1874,12 @@ void WebRenderBridgeParent::RemovePipelineIdForCompositable(
     const wr::PipelineId& aPipelineId, AsyncImagePipelineOps* aPendingOps,
     wr::TransactionBuilder& aTxn) {
   if (mDestroyed) {
+    return;
+  }
+
+  if (aPipelineId == mPipelineId) {
+    gfxCriticalNote << "Content attempted RemovePipelineIdForCompositable on "
+                       "root pipeline";
     return;
   }
 
