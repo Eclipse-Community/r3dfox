@@ -2821,34 +2821,29 @@ bool VideoFrame::Resource::CopyTo(const Format::Plane& aPlane,
   };
 
   if (mImage->GetFormat() == ImageFormat::PLANAR_YCBCR) {
+    const auto* data = mImage->AsPlanarYCbCrImage()->GetData();
     switch (aPlane) {
       case Format::Plane::Y:
-        return copyPlane(mImage->AsPlanarYCbCrImage()->GetData()->mYChannel,
-                         Stride(aPlane));
+        return copyPlane(data->mYChannel, data->mYStride);
       case Format::Plane::U:
-        return copyPlane(mImage->AsPlanarYCbCrImage()->GetData()->mCbChannel,
-                         Stride(aPlane));
+        return copyPlane(data->mCbChannel, data->mCbCrStride);
       case Format::Plane::V:
-        return copyPlane(mImage->AsPlanarYCbCrImage()->GetData()->mCrChannel,
-                         Stride(aPlane));
+        return copyPlane(data->mCrChannel, data->mCbCrStride);
       case Format::Plane::A:
         MOZ_ASSERT(mFormat->PixelFormat() == VideoPixelFormat::I420A);
-        MOZ_ASSERT(mImage->AsPlanarYCbCrImage()->GetData()->mAlpha);
-        return copyPlane(
-            mImage->AsPlanarYCbCrImage()->GetData()->mAlpha->mChannel,
-            Stride(aPlane));
+        MOZ_ASSERT(data->mAlpha);
+        return copyPlane(data->mAlpha->mChannel, data->mYStride);
     }
     MOZ_ASSERT_UNREACHABLE("invalid plane");
   }
 
   if (mImage->GetFormat() == ImageFormat::NV_IMAGE) {
+    const auto* data = mImage->AsNVImage()->GetData();
     switch (aPlane) {
       case Format::Plane::Y:
-        return copyPlane(mImage->AsNVImage()->GetData()->mYChannel,
-                         Stride(aPlane));
+        return copyPlane(data->mYChannel, data->mYStride);
       case Format::Plane::UV:
-        return copyPlane(mImage->AsNVImage()->GetData()->mCbChannel,
-                         Stride(aPlane));
+        return copyPlane(data->mCbChannel, data->mCbCrStride);
       case Format::Plane::V:
       case Format::Plane::A:
         MOZ_ASSERT_UNREACHABLE("invalid plane");
