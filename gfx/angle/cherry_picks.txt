@@ -1,4 +1,10 @@
-commit 419cd2c3213b594f8e2488bf48034fed20ace81d
+commit b0098a1ebdb0400b515ff7a662685bda111e9e87
+Author: Emilio Cobos Álvarez <emilio@crisal.io>
+Date:   Thu Apr 9 15:03:30 2026 +0200
+
+    Add a missing change to 7918168436578718b234bfd56da152e34a85af1d that is in Gecko.
+
+commit 442302a3b7ae7cca7f85524e6bb3d774a10b6fbc
 Author: Shahbaz Youssefi <syoussefi@chromium.org>
 Date:   Mon Mar 27 13:05:36 2023 -0400
 
@@ -13,6 +19,198 @@ Date:   Mon Mar 27 13:05:36 2023 -0400
     Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/4375137
     Reviewed-by: Geoff Lang <geofflang@chromium.org>
     Reviewed-by: Kenneth Russell <kbr@chromium.org>
+    Commit-Queue: Shahbaz Youssefi <syoussefi@chromium.org>
+
+commit 4f5c3dbc01f70efbaaed41743893ed2c8a7653cd
+Author: Emilio Cobos Álvarez <emilio@crisal.io>
+Date:   Thu Apr 9 13:40:10 2026 +0200
+
+    Add missing codegen from #27.
+
+commit be5a7593658365659dfc6384a95c44406e4e5d9e
+Author: Kimmo Kinnunen <kkinnunen@apple.com>
+Date:   Thu Oct 24 11:46:54 2024 +0300
+
+    Disallow discarded uniform block references
+    
+    Uniform block instances cannot be used by themselves, as there
+    is no way to refer to their type. Disallow the only typeless
+    access pattern, discarding via expression statement:
+    
+      uniform MyBlock { int x;  } b;
+      void main() {
+        b;
+        0, b;
+      }
+    
+    Explained as disallowed in newer GLSL 300:
+    https://github.com/KhronosGroup/WebGL/issues/3644
+    
+    The comma expression form would ASSERT in CollectVariables.
+    
+    Bug: angleproject:42267026
+    Change-Id: I6c8b835482fd551bd97576c1bd24f005874da6af
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5961498
+    Reviewed-by: Alexey Knyazev <lexa.knyazev@gmail.com>
+    Reviewed-by: Geoff Lang <geofflang@chromium.org>
+    Reviewed-by: Shahbaz Youssefi <syoussefi@chromium.org>
+    Commit-Queue: Kimmo Kinnunen <kkinnunen@apple.com>
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+
+commit 329044148ea14623910a1b33a4f1fd81445fd21e
+Author: Scott Marcy <mscott@apple.com>
+Date:   Thu May 30 11:36:58 2024 -0600
+
+    Fix stack overflow crash by traversing a too-deep AST
+    
+    This simply moves the check for a too-deep AST before the first attempts
+    to traverse the AST (i.e., `validateAST()`).
+    
+    Bug: angleproject:343505104
+    Change-Id: Iafb658a30f74a666beab8c69745ca53d17d70dd3
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5585186
+    Reviewed-by: Shahbaz Youssefi <syoussefi@chromium.org>
+    Reviewed-by: Kimmo Kinnunen <kkinnunen@apple.com>
+    Commit-Queue: Kimmo Kinnunen <kkinnunen@apple.com>
+    Auto-Submit: Scott M <mscott@apple.com>
+
+commit 28669be7c0129fa7ed117f730484db302a39bcb2
+Author: Nisha Jain <nisha_jain@apple.com>
+Date:   Thu Mar 7 14:19:58 2024 +0200
+
+    Avoid asserts when const folding binary ops on void variables
+    
+    Fix asserts for example with / and % during constant folding when
+    the operands might be voids.
+    
+    Bug: angleproject:8592
+    Change-Id: I22275642dbcdf9066940d3a94114e8daa5cbbe41
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5416376
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+    Commit-Queue: Geoff Lang <geofflang@chromium.org>
+    Reviewed-by: Geoff Lang <geofflang@chromium.org>
+    Reviewed-by: Kimmo Kinnunen <kkinnunen@apple.com>
+
+commit ebaab5cd66b66183175f8c5d5f72210afcba38ca
+Author: Kimmo Kinnunen <kkinnunen@apple.com>
+Date:   Fri Mar 8 14:26:56 2024 +0200
+
+    Check array index against unsigned array size
+    
+    Fix an assert during GLSL parsing when a very
+    large array (~1U) type is indexed.
+    
+    Bug: angleproject:8596
+    Change-Id: I219ac5c8f3fa58aa4c7d679eade6f32b59eb1103
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5352653
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+    Reviewed-by: Shahbaz Youssefi <syoussefi@chromium.org>
+    Commit-Queue: Kimmo Kinnunen <kkinnunen@apple.com>
+
+commit 5a3f53d8bff0709e94e9b5c2a97684c9a012f6f6
+Author: Erica Li <lerica@apple.com>
+Date:   Fri Mar 8 12:40:09 2024 +0200
+
+    Avoid assert with multiple memory qualifiers
+    
+    Add missing qualifier strings.
+    
+    Bug: angleproject:8593
+    Change-Id: I484571c33effd85d52712b4876f6a3a5c73d8fde
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5352255
+    Reviewed-by: Shahbaz Youssefi <syoussefi@chromium.org>
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+    Commit-Queue: Shahbaz Youssefi <syoussefi@chromium.org>
+
+commit f95d411e7d0c5cfb4b0dfef2ecadb952cc92b06a
+Author: Kimmo Kinnunen <kkinnunen@apple.com>
+Date:   Tue Mar 5 21:42:32 2024 +0200
+
+    Ensure unary math op parse to an node on error
+    
+    Return the error node for ops like radians().
+    The math op parse can fail in multiple ways.
+    
+    Fixed: angleproject:8583
+    Change-Id: Ief7e150dffefe711f567d95c62d1023fc7fa1c91
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5344716
+    Reviewed-by: Kenneth Russell <kbr@chromium.org>
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+    Commit-Queue: Kenneth Russell <kbr@chromium.org>
+
+commit 386e3783a143a5268df86bdf93cd10892419f395
+Author: Kimmo Kinnunen <kkinnunen@apple.com>
+Date:   Mon Mar 4 14:43:10 2024 +0200
+
+    Fix layout(index=) parse assert on es 100 shaders
+    
+    Remove invalid assert about layout index qualifier being present only if
+    EXT_blend_func_extended is present.
+    
+    The layout qualifier gets parsed to support EXT_shader_framebuffer_fetch
+    in ES 100 shaders to support
+    "layout(incoherent) mediump vec4 gl_FragData[gl_MaxDrawBuffers]"
+    
+    Fixed: angleproject:8570
+    Change-Id: I0d0d99bcc882a0befd97c2510dec4a8ccf1690bd
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5340249
+    Reviewed-by: Kenneth Russell <kbr@chromium.org>
+    Commit-Queue: Kenneth Russell <kbr@chromium.org>
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+
+commit abe9de5edc89a3db4188c8ddf52e61f6820ecebd
+Author: Kimmo Kinnunen <kkinnunen@apple.com>
+Date:   Fri Feb 16 22:28:18 2024 +0200
+
+    Fix ASSERT in non-global precise var decls
+    
+    Precise was treated as invariant. Precise can be
+    declared for non-global variables.
+    
+    Bug: angleproject:8550
+    Change-Id: Ia0d00d67d0d1504b78294ee2256785fe3da3e399
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5300976
+    Commit-Queue: Shahbaz Youssefi <syoussefi@chromium.org>
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+    Reviewed-by: Shahbaz Youssefi <syoussefi@chromium.org>
+    Reviewed-by: Kenneth Russell <kbr@chromium.org>
+
+commit 718164d445a82bd24da61ff670deb5f1702fbfc3
+Author: Kimmo Kinnunen <kkinnunen@apple.com>
+Date:   Tue Feb 13 17:54:12 2024 +0200
+
+    Uniform block reference in constuctors crash
+    
+    Passing uniform block instance name to a built-in constructor would
+    cause type confusion. Block this by failing to parse.
+    
+    Bug: angleproject:8533
+    Change-Id: I5a676b41e2f3d766ece4ed472debc1c874753293
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5290897
+    Commit-Queue: Shahbaz Youssefi <syoussefi@chromium.org>
+    Reviewed-by: Shahbaz Youssefi <syoussefi@chromium.org>
+    Commit-Queue: Kimmo Kinnunen <kkinnunen@apple.com>
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+
+commit a7ce496eaa3ac8f108190ca544e00024edead840
+Author: Kimmo Kinnunen <kkinnunen@apple.com>
+Date:   Wed Feb 7 14:25:32 2024 +0200
+
+    Fix an assert on multidim array constructors
+    
+    Fail early instead of asserting when trying to parse a
+    multidimensional array constructor call with unsized
+    argument array argument.
+    
+    int A[];
+    int B[int[][](A)];
+    
+    Bug: angleproject:8519
+    Change-Id: Iee2c70318eebd2def57ffab8db709d1076692922
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/5272434
+    Reviewed-by: Shahbaz Youssefi <syoussefi@chromium.org>
+    Auto-Submit: Kimmo Kinnunen <kkinnunen@apple.com>
+    Commit-Queue: Kimmo Kinnunen <kkinnunen@apple.com>
     Commit-Queue: Shahbaz Youssefi <syoussefi@chromium.org>
 
 commit 7918168436578718b234bfd56da152e34a85af1d
