@@ -1129,11 +1129,10 @@ class MediaDecoderStateMachine::LoopingDecodingState
             OwnerThread(), __func__,
             [this, isAudio, master = RefPtr{mMaster}]() mutable -> void {
               AUTO_PROFILER_LABEL(
-                  nsPrintfCString(
-                      "LoopingDecodingState::RequestDataFromStartPosition(%s)::"
-                      "SeekResolved",
-                      isAudio ? "audio" : "video")
-                      .get(),
+                  isAudio ? "LoopingDecodingState::"
+                            "RequestDataFromStartPosition(audio)::SeekResolved"
+                          : "LoopingDecodingState::"
+                            "RequestDataFromStartPosition(video)::SeekResolved",
                   MEDIA_PLAYBACK);
               if (auto& state = master->mStateObj;
                   state &&
@@ -1168,11 +1167,10 @@ class MediaDecoderStateMachine::LoopingDecodingState
             [this, isAudio, master = RefPtr{mMaster}](
                 const SeekRejectValue& aReject) mutable -> void {
               AUTO_PROFILER_LABEL(
-                  nsPrintfCString("LoopingDecodingState::"
-                                  "RequestDataFromStartPosition(%s)::"
-                                  "SeekRejected",
-                                  isAudio ? "audio" : "video")
-                      .get(),
+                  isAudio ? "LoopingDecodingState::"
+                            "RequestDataFromStartPosition(audio)::SeekRejected"
+                          : "LoopingDecodingState::"
+                            "RequestDataFromStartPosition(video)::SeekRejected",
                   MEDIA_PLAYBACK);
               if (auto& state = master->mStateObj;
                   state &&
