@@ -21,8 +21,12 @@ const Color MAGENTA(255, 0, 255);
 const Color YELLOW(255, 255, 0);
 const Color WHITE(255, 255, 255);
 const Color CHOCOLATE(210, 105, 30);
-const std::array<Color, 9> COLOR_LIST = {BLACK,   BLUE,   GREEN, CYAN,     RED,
-                                         MAGENTA, YELLOW, WHITE, CHOCOLATE};
+const Color PERU(205, 133, 63);
+const Color ROSYBROWN(188, 143, 143);
+const Color STEELBLUE(70, 130, 180);
+const std::array<Color, 12> COLOR_LIST = {
+    BLACK,  BLUE,  GREEN,     CYAN, RED,       MAGENTA,
+    YELLOW, WHITE, CHOCOLATE, PERU, ROSYBROWN, STEELBLUE};
 
 Color RGB2YUV(const Color& aRGBColor) {
   const uint8_t& r = std::get<0>(aRGBColor);
@@ -236,6 +240,26 @@ std::unordered_map<uint32_t, std::array<Color, 3>> GetExpectedConvertedRGB() {
                                    Color(236, 111, 20),
                                    // gfx::YUVColorSpace::BT2020
                                    Color(229, 102, 20)});
+  map.emplace(Hash(PERU), std::array<Color, 3>{// gfx::YUVColorSpace::BT601
+                                               Color(219, 137, 58),
+                                               // gfx::YUVColorSpace::BT709
+                                               Color(228, 140, 58),
+                                               // gfx::YUVColorSpace::BT2020
+                                               Color(223, 134, 59)});
+  map.emplace(Hash(ROSYBROWN),
+              std::array<Color, 3>{// gfx::YUVColorSpace::BT601
+                                   Color(200, 147, 147),
+                                   // gfx::YUVColorSpace::BT709
+                                   Color(204, 152, 147),
+                                   // gfx::YUVColorSpace::BT2020
+                                   Color(201, 149, 147)});
+  map.emplace(Hash(STEELBLUE),
+              std::array<Color, 3>{// gfx::YUVColorSpace::BT601
+                                   Color(65, 133, 189),
+                                   // gfx::YUVColorSpace::BT709
+                                   Color(58, 129, 189),
+                                   // gfx::YUVColorSpace::BT2020
+                                   Color(62, 135, 189)});
   return map;
 }
 
@@ -355,4 +379,132 @@ TEST(YCbCrUtils, ConvertYCbCrToRGB32WithIdentityColorSpace)
     const Color expectation(v, y, u);
     IsColorMatched(expectation, RGBX.get(), bufferSize);
   }
+}
+
+// Fills a 4×4 Y plane and chroma planes for a frame whose luma is divided
+// into four 2×2 blocks. aColors[blockRow][blockCol] gives the color for each
+// block. Chroma plane dimensions depend on aSubsampling:
+//   FULL (YV24): 4×4 chroma, each pixel maps 1:1 to a luma pixel.
+//   HALF_WIDTH (YV16): 2×4 chroma, half-width but full height.
+//   HALF_WIDTH_AND_HEIGHT (YV12): 2×2 chroma.
+// Callers must provide at least 16 bytes for aUBuf/aVBuf to cover the FULL
+// case; smaller subsamplings use only a prefix of that.
+static void FillTwoByTwoFrame(const Color aColors[2][2],
+                              gfx::ChromaSubsampling aSubsampling,
+                              uint8_t* aYBuf, uint8_t* aUBuf, uint8_t* aVBuf) {
+  // Give each luma pixel a unique Y by adding a small per-pixel offset based
+  // on its position within its 2x2 chroma block: +0/+2/+4/+6 for
+  // (top-left/top-right/bottom-left/bottom-right). This makes luma sampling
+  // bugs detectable without meaningfully shifting the color.
+  for (int r = 0; r < 4; r++) {
+    for (int c = 0; c < 4; c++) {
+      uint8_t baseY = std::get<0>(RGB2YUV(aColors[r / 2][c / 2]));
+      aYBuf[r * 4 + c] = baseY + (r % 2) * 4 + (c % 2) * 2;
+    }
+  }
+  int chromaWidth = (aSubsampling == gfx::ChromaSubsampling::FULL) ? 4 : 2;
+  int chromaHeight =
+      (aSubsampling == gfx::ChromaSubsampling::HALF_WIDTH_AND_HEIGHT) ? 2 : 4;
+  for (int chromaRow = 0; chromaRow < chromaHeight; chromaRow++) {
+    int blockRow = chromaRow * 2 / chromaHeight;
+    for (int chromaCol = 0; chromaCol < chromaWidth; chromaCol++) {
+      int blockCol = chromaCol * 2 / chromaWidth;
+      aUBuf[chromaRow * chromaWidth + chromaCol] =
+          std::get<1>(RGB2YUV(aColors[blockRow][blockCol]));
+      aVBuf[chromaRow * chromaWidth + chromaCol] =
+          std::get<2>(RGB2YUV(aColors[blockRow][blockCol]));
+    }
+  }
+}
+
+// Fills and converts a 4×4 test frame, writing the result into aOutput.
+// aStride is in bytes. See FillTwoByTwoFrame for the aColors layout.
+static void ConvertTestFrame(const Color aColors[2][2],
+                             gfx::ChromaSubsampling aSubsampling,
+                             const gfx::IntRect& aPictureRect, uint8_t* aOutput,
+                             int32_t aStride) {
+  uint8_t yBuf[16], uBuf[16], vBuf[16];
+  FillTwoByTwoFrame(aColors, aSubsampling, yBuf, uBuf, vBuf);
+  layers::PlanarYCbCrData data;
+  data.mYChannel = yBuf;
+  data.mYStride = 4;
+  data.mYSkip = 0;
+  data.mCbChannel = uBuf;
+  data.mCrChannel = vBuf;
+  data.mCbCrStride = (aSubsampling == gfx::ChromaSubsampling::FULL) ? 4 : 2;
+  data.mCbSkip = 0;
+  data.mCrSkip = 0;
+  data.mChromaSubsampling = aSubsampling;
+  data.mYUVColorSpace = gfx::YUVColorSpace::BT709;
+  data.mColorRange = gfx::ColorRange::LIMITED;
+  data.mPictureRect = aPictureRect;
+  ConvertYCbCrToRGB32(data, gfx::SurfaceFormat::R8G8B8X8, aOutput, aStride,
+                      nullptr);
+}
+
+// Tests for odd pic_x / pic_y offsets in YV12, YV16, and YV24.
+//
+// The 4x4 frame has four 2x2 chroma blocks with distinct mid-range colors.
+// Within each block each luma pixel has a unique Y value (offset +0/+2/+4/+6),
+// so both chroma and luma misalignment are detectable. The reference is a full
+// even-aligned 4x4 conversion; each odd-crop output pixel is checked against
+// its corresponding source position in that reference.
+static const gfx::ChromaSubsampling kTestSubsamplings[] = {
+    gfx::ChromaSubsampling::HALF_WIDTH_AND_HEIGHT,
+    gfx::ChromaSubsampling::HALF_WIDTH, gfx::ChromaSubsampling::FULL};
+
+static void RunOddPicTest(const Color aColors[2][2],
+                          const gfx::IntRect& aRect) {
+  const int32_t stride = aRect.Width() * 4;
+  UniquePtr<uint8_t[]> output = MakeUnique<uint8_t[]>(aRect.Height() * stride);
+  auto exp = GetExpectedConvertedRGB();
+  const size_t bt709 = static_cast<size_t>(gfx::YUVColorSpace::BT709);
+
+  for (gfx::ChromaSubsampling subsampling : kTestSubsamplings) {
+    // fullRef: even-aligned 4x4 reference (no odd-offset ambiguity).
+    uint8_t fullRef[4 * 4 * 4];
+    ConvertTestFrame(aColors, subsampling, gfx::IntRect(0, 0, 4, 4), fullRef,
+                     4 * 4);
+
+    // Sanity-check the reference: top-left of each 2x2 block (Y offset 0)
+    // must match GetExpectedConvertedRGB; the other three pixels in the block
+    // must be distinct but close (Y delta ≤6 → channel delta ~2-7).
+    for (int br = 0; br < 2; br++) {
+      for (int bc = 0; bc < 2; bc++) {
+        uint8_t* base = fullRef + (br * 2) * 4 * 4 + (bc * 2) * 4;
+        IsColorMatched(exp[Hash(aColors[br][bc])][bt709], base, 4);
+        for (int dr = 0; dr < 2; dr++) {
+          for (int dc = 0; dc < 2; dc++) {
+            if (dr == 0 && dc == 0) continue;
+            uint8_t* other =
+                fullRef + (br * 2 + dr) * 4 * 4 + (bc * 2 + dc) * 4;
+            for (int ch = 0; ch < 3; ch++) {
+              ASSERT_NE(base[ch], other[ch]);
+              ASSERT_NEAR(base[ch], other[ch], 10);
+            }
+          }
+        }
+      }
+    }
+
+    // output: the odd-crop conversion under test.
+    ConvertTestFrame(aColors, subsampling, aRect, output.get(), stride);
+
+    // Each output pixel must match its source position in the full reference.
+    for (int row = 0; row < aRect.Height(); row++) {
+      for (int col = 0; col < aRect.Width(); col++) {
+        uint8_t* ref = fullRef + (aRect.y + row) * 4 * 4 + (aRect.x + col) * 4;
+        Color expected(ref[0], ref[1], ref[2]);
+        IsColorMatched(expected, output.get() + row * stride + col * 4, 4);
+      }
+    }
+  }
+}
+
+TEST(YCbCrUtils, ConvertYCbCrToRGB32OddPicOffset)
+{
+  const Color colors[2][2] = {{CHOCOLATE, PERU}, {ROSYBROWN, STEELBLUE}};
+  RunOddPicTest(colors, gfx::IntRect(1, 1, 3, 3));  // both odd
+  RunOddPicTest(colors, gfx::IntRect(1, 0, 3, 4));  // odd pic_x only
+  RunOddPicTest(colors, gfx::IntRect(0, 1, 4, 3));  // odd pic_y only
 }

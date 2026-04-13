@@ -177,6 +177,7 @@ ConvertYCbCrToRGB32(const uint8_t* y_buf,
     }
     case YV16: {
       src_y = y_buf + y_pitch * pic_y + pic_x;
+      // Only used when pic_x is even; odd pic_x is handled below.
       src_u = u_buf + uv_pitch * pic_y + pic_x / 2;
       src_v = v_buf + uv_pitch * pic_y + pic_x / 2;
 
@@ -185,8 +186,10 @@ ConvertYCbCrToRGB32(const uint8_t* y_buf,
     }
     case YV12: {
       src_y = y_buf + y_pitch * pic_y + pic_x;
-      src_u = u_buf + (uv_pitch * pic_y + pic_x) / 2;
-      src_v = v_buf + (uv_pitch * pic_y + pic_x) / 2;
+      // Only used when pic_x and pic_y are both even; odd values are handled
+      // below.
+      src_u = u_buf + uv_pitch * (pic_y / 2) + pic_x / 2;
+      src_v = v_buf + uv_pitch * (pic_y / 2) + pic_x / 2;
 
       fConvertYUVToARGB = libyuv::I420ToARGBMatrix;
       break;
@@ -210,6 +213,81 @@ ConvertYCbCrToRGB32(const uint8_t* y_buf,
 
   const uint8_t* u_channel = swap_uv? src_v : src_u;
   const uint8_t* v_channel = swap_uv? src_u : src_v;
+
+  // libyuv handles odd crop widths and heights correctly via its _Any_ row
+  // variants, but cannot handle an odd pic_x or pic_y for subsampled formats.
+  // For YV12/YV16 an odd pic_x means the Y plane starts at a position that
+  // doesn't align with a chroma column boundary; for YV12, odd pic_y has the
+  // same problem vertically. libyuv would then pair each Y sample with the
+  // wrong chroma, affecting every pixel in the image.
+  //
+  // Fix: split the output into up to 4 non-overlapping regions, each with
+  // even-aligned source coordinates. Integer division of an odd sx or sy by 2
+  // floors to the correct chroma index (both luma positions in a 2x2 block
+  // share one chroma sample), so all regions are correct.
+  //
+  // With dx = pic_x & 1 and dy = pic_y & 1 (each 0 or 1):
+  //
+  //   +------------+--------------------+
+  //   | dx x dy    | (W-dx) x dy        |  <- only when dy > 0
+  //   +------------+--------------------+
+  //   | dx x (H-dy)| (W-dx) x (H-dy)    |  <- left col only when dx > 0
+  //   +------------+--------------------+
+
+  // dx/dy: 1 if pic_x/pic_y is odd and the format has chroma subsampling in
+  // that axis, 0 otherwise.
+  int dx = (yuv_type == YV12 || yuv_type == YV16) ? (pic_x & 1) : 0;
+  int dy = (yuv_type == YV12) ? (pic_y & 1) : 0;
+  if (dx | dy) {
+    // Converts source sub-region (sx, sy, w, h) to the area at dst in rgb_buf.
+    auto convert = [&](int sx, int sy, int w, int h, uint8_t* dst) -> nsresult {
+      if (w <= 0 || h <= 0) {
+        return NS_OK;
+      }
+      const uint8_t* py = y_buf + sy * y_pitch + sx;
+      const uint8_t* pu;
+      const uint8_t* pv;
+      if (yuv_type == YV12) {
+        pu = u_buf + (sy / 2) * uv_pitch + sx / 2;
+        pv = v_buf + (sy / 2) * uv_pitch + sx / 2;
+      } else {  // YV16: full-height chroma planes, only horizontally subsampled.
+        pu = u_buf + sy * uv_pitch + sx / 2;
+        pv = v_buf + sy * uv_pitch + sx / 2;
+      }
+      const uint8_t* uc = swap_uv ? pv : pu;
+      const uint8_t* vc = swap_uv ? pu : pv;
+      return ToNSResult(fConvertYUVToARGB(py, y_pitch, uc, uv_pitch, vc, uv_pitch,
+                                          dst, rgb_pitch, yuv_constant, w, h));
+    };
+    if (dy) {
+      // First output row (source row pic_y is odd).
+      if (dx) {
+        // Corner pixel: source (pic_x, pic_y) → output top-left.
+        nsresult rv = convert(pic_x, pic_y, 1, 1, rgb_buf);
+        if (NS_FAILED(rv)) {
+          return rv;
+        }
+      }
+      // Remaining columns of first row; source x pic_x+dx is even.
+      nsresult rv = convert(pic_x + dx, pic_y, pic_width - dx, 1, rgb_buf + dx * 4);
+      if (NS_FAILED(rv)) {
+        return rv;
+      }
+    }
+    int sy = pic_y + dy;  // even-aligned source y for remaining output rows
+    int h = pic_height - dy;
+    if (dx) {
+      // Left column of remaining rows; width=1 handles the odd source x.
+      nsresult rv = convert(pic_x, sy, 1, h, rgb_buf + dy * rgb_pitch);
+      if (NS_FAILED(rv)) {
+        return rv;
+      }
+    }
+    // Main body: source (pic_x+dx, sy), both even-aligned.
+    return convert(pic_x + dx, sy, pic_width - dx, h,
+                   rgb_buf + dy * rgb_pitch + dx * 4);
+  }
+
   return ToNSResult(fConvertYUVToARGB(src_y, y_pitch, u_channel, uv_pitch,
                                       v_channel, uv_pitch, rgb_buf, rgb_pitch,
                                       yuv_constant, pic_width, pic_height));
