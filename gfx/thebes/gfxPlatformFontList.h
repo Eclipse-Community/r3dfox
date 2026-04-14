@@ -370,7 +370,7 @@ class gfxPlatformFontList : public gfxFontInfoLoader {
                                   const gfxFontStyle* aStyle);
 
   mozilla::fontlist::FontList* SharedFontList() const {
-    return mSharedFontList.get();
+    return mSharedFontList;
   }
 
   // Create a handle for a single shmem block (identified by index) ready to
@@ -665,7 +665,7 @@ class gfxPlatformFontList : public gfxFontInfoLoader {
   // existing references to shared font family or face objects and character
   // maps will no longer be valid.
   // (The legacy (non-shared) list just returns 0 here.)
-  uint32_t GetGeneration() const;
+  uint32_t GetGeneration() const { return mFontListGeneration; }
 
   // Sometimes we need to know if we're on the InitFontList startup thread.
   static bool IsInitFontListThread() {
@@ -1080,7 +1080,9 @@ class gfxPlatformFontList : public gfxFontInfoLoader {
   nsTArray<nsCString> mEnabledFontsList;
   nsTHashSet<nsCString> mIconFontsSet;
 
-  mozilla::UniquePtr<mozilla::fontlist::FontList> mSharedFontList;
+  // This is an owning reference; we are responsible to delete the FontList at
+  // appropriate times.
+  std::atomic<mozilla::fontlist::FontList*> mSharedFontList = nullptr;
 
   nsClassHashtable<nsCStringHashKey, mozilla::fontlist::AliasData> mAliasTable;
   nsTHashMap<nsCStringHashKey, mozilla::fontlist::LocalFaceRec::InitData>
@@ -1095,6 +1097,9 @@ class gfxPlatformFontList : public gfxFontInfoLoader {
 
   RefPtr<mozilla::CancelableRunnable> mLoadCmapsRunnable;
   uint32_t mStartedLoadingCmapsFrom MOZ_GUARDED_BY(mLock) = 0xffffffffu;
+
+  // Cached value of mSharedFontList->GetGeneration(), updated by InitFontList.
+  std::atomic<uint32_t> mFontListGeneration = 0;
 
   bool mFontFamilyWhitelistActive = false;
 
