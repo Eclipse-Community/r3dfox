@@ -1119,6 +1119,16 @@ void gfxUserFontSet::ForgetLocalFace(gfxUserFontFamily* aFontFamily) {
     // discard it as no longer valid.
     if (ufe->GetPlatformFontEntry() &&
         ufe->GetPlatformFontEntry()->IsLocalUserFont()) {
+      // Clear shmem pointers on the local-user-font entry: it is not tracked
+      // in gfxPlatformFontList::mFontEntries, so InitFontList()'s cleanup loop
+      // misses it.
+      gfxFontEntry* pfe = ufe->GetPlatformFontEntry();
+      {
+        AutoWriteLock lock(pfe->mLock);
+        pfe->mShmemCharacterMap = nullptr;
+        pfe->mShmemFace = nullptr;
+        pfe->mShmemFamily = nullptr;
+      }
       ufe->mPlatformFontEntry = nullptr;
     }
     // If the entry had a local source, we need to re-evaluate the source list
