@@ -859,16 +859,15 @@ void HyperTextAccessible::ReplaceText(const nsAString& aText) {
     return;
   }
 
+  RefPtr<EditorBase> editorBase = GetEditor();
+
   SetSelectionBoundsAt(TextLeafRange::kRemoveAllExistingSelectedRanges, 0,
                        CharacterCount());
 
-  RefPtr<EditorBase> editorBase = GetEditor();
-  if (!editorBase) {
-    return;
+  if (editorBase) {
+    DebugOnly<nsresult> rv = editorBase->InsertTextAsAction(aText);
+    NS_WARNING_ASSERTION(NS_SUCCEEDED(rv), "Failed to insert the new text");
   }
-
-  DebugOnly<nsresult> rv = editorBase->InsertTextAsAction(aText);
-  NS_WARNING_ASSERTION(NS_SUCCEEDED(rv), "Failed to insert the new text");
 }
 
 void HyperTextAccessible::InsertText(const nsAString& aText,
