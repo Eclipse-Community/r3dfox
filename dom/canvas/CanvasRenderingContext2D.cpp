@@ -5727,7 +5727,7 @@ void CanvasRenderingContext2D::DrawImage(const CanvasImageSource& aImage,
         HTMLVideoElement* video = HTMLVideoElement::FromNodeOrNull(element);
         if (video && mBufferProvider->IsAccelerated() &&
             mTarget->IsRecording() &&
-            !(!NeedToApplyFilter() && NeedToDrawShadow())) {
+            !(NeedToApplyFilter() || NeedToDrawShadow())) {
           res = nsLayoutUtils::SurfaceFromElement(
               video, sfeFlags, mTarget, /* aOptimizeSourceSurface */ false);
           surfaceDescriptor = MaybeGetSurfaceDescriptorForRemoteCanvas(res);
