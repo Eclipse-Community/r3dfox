@@ -5,6 +5,8 @@
 //! Glean telemetry integration.
 
 use crate::config::{buildid, Config};
+use crate::prefs_parser::find_bool_pref;
+use crate::std::path::Path;
 use glean::{ClientInfoMetrics, Configuration, ConfigurationBuilder};
 
 const APP_ID: &str = if cfg!(mock) {
@@ -18,6 +20,55 @@ const TELEMETRY_SERVER: &str = if cfg!(mock) {
 } else {
     "https://incoming.telemetry.mozilla.org"
 };
+const TELEMETRY_ENABLED_PREF_KEY: &str = "datareporting.healthreport.uploadEnabled";
+
+/// Parse the telemetry enablement pref from the prefs file.
+///
+/// For example:
+/// ```rust
+/// let input = r#"user_pref("datareporting.healthreport.uploadEnabled", false);"#;
+/// assert_eq!(parse_telemetry_enabled_pref(input), Some(false));
+/// let input = r#"user_pref("datareporting.healthreport.uploadEnabled", true);"#;
+/// assert_eq!(parse_telemetry_enabled_pref(input), Some(true));
+/// ```
+fn parse_telemetry_enabled_pref(prefs_content: &str) -> Option<bool> {
+    find_bool_pref(prefs_content, TELEMETRY_ENABLED_PREF_KEY)
+}
+
+/// Determine whether telemetry should be enabled based on the profile.
+fn determine_telemetry_enabled(profile_dir: Option<&Path>) -> bool {
+    // If there is no profile dir, we cannot determine whether telemetry is enabled or not. However,
+    // disabling telemetry in this case will cause us to entirely miss the class of crashes that
+    // occur before the profile is set up, so we leave it enabled.
+    let Some(profile_dir) = profile_dir else {
+        return true;
+    };
+
+    let prefs = profile_dir.join("prefs.js");
+
+    // If there is no pref file, default to true.
+    if !prefs.exists() {
+        return true;
+    }
+
+    match crate::std::fs::read_to_string(&prefs) {
+        Ok(prefs_contents) => {
+            parse_telemetry_enabled_pref(&prefs_contents)
+                // If there is no pref, default to true
+                .unwrap_or(true)
+        }
+        Err(e) => {
+            // Like the no-profile-dir case, if we can't read the prefs file, this might be the
+            // cause of some crash that we are trying to report. So disabling telemetry in this case
+            // would make us blind to the issue.
+            log::error!(
+                "failed to read prefs file at {} for disabling telemetry: {e}",
+                prefs.display()
+            );
+            true
+        }
+    }
+}
 
 /// Initialize glean based on the given configuration.
 ///
@@ -34,7 +85,8 @@ pub fn init(cfg: &Config) {
 }
 
 fn config(cfg: &Config) -> Configuration {
-    ConfigurationBuilder::new(true, glean_data_dir(cfg), APP_ID)
+    let upload_enabled = determine_telemetry_enabled(cfg.profile_dir.as_deref());
+    ConfigurationBuilder::new(upload_enabled, glean_data_dir(cfg), APP_ID)
         .with_server_endpoint(TELEMETRY_SERVER)
         .with_use_core_mps(false)
         .with_internal_pings(false)
@@ -153,6 +205,27 @@ mod test {
                 glean::ClientInfoMetrics::unknown(),
                 true,
             );
+        }
+    }
+
+    #[test]
+    fn test_telemetry_enable_pref() {
+        use crate::std::{
+            fs::{MockFS, MockFiles},
+            mock,
+            path::Path,
+        };
+
+        for pref_value in [false, true] {
+            let files = MockFiles::new();
+            files.add_dir("profile_dir").add_file(
+                "profile_dir/prefs.js",
+                format!(r#"user_pref("datareporting.healthreport.uploadEnabled", {pref_value});"#),
+            );
+            let result = mock::builder()
+                .set(MockFS, files)
+                .run(|| determine_telemetry_enabled(Some(Path::new("profile_dir"))));
+            assert_eq!(result, pref_value);
         }
     }
 }

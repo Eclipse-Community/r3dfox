@@ -247,25 +247,29 @@ impl GuiTest {
             ..
         } = self;
         let before_run = self.before_run.take();
-        let mut config = Arc::new(std::mem::take(config));
+        let mut test_config = Arc::new(std::mem::take(config));
 
         // Run the mock environment.
-        mock.run(move || {
+        let result = mock.run(|| {
             let _glean = if *enable_glean {
-                Some(glean::test_init(&config))
+                Some(glean::test_init(&test_config))
             } else {
                 None
             };
             gui_interact(
-                move || {
+                || {
                     if let Some(f) = before_run {
                         f();
                     }
-                    try_run(&mut config)
+                    try_run(&mut test_config)
                 },
                 interact,
             )
-        })
+        });
+
+        *config = Arc::into_inner(test_config).unwrap();
+
+        result
     }
 
     /// Run the test as configured, using the given function to interact with the GUI.
@@ -989,6 +993,87 @@ fn glean_ping_extra_stack_trace_fields() {
         interact.element("quit", |_style, b: &model::Button| b.click.fire(&()));
     });
     submitted_glean_ping.assert_one();
+}
+
+#[test]
+fn reads_profile_directory() {
+    let mut test = GuiTest::new();
+    let minidump_extra_contents = r#"{
+        "Vendor": "FooCorp",
+        "ProductName": "Bar",
+        "ProfileDirectory": "profile_dir",
+        "ReleaseChannel": "release",
+        "BuildID": "1234",
+        "AsyncShutdownTimeout": "{}",
+        "StackTraces": {
+            "status": "OK"
+        },
+        "Version": "100.0",
+        "ServerURL": "https://reports.example.com",
+        "TelemetryServerURL": "https://telemetry.example.com",
+        "TelemetryClientId": "telemetry_client",
+        "TelemetryProfileGroupId": "telemetry_profile_group",
+        "TelemetrySessionId": "telemetry_session",
+        "SomeNestedJson": { "foo": "bar" },
+        "URL": "https://url.example.com"
+    }"#;
+    test.files = {
+        let mock_files = MockFiles::new();
+        mock_files
+            .add_file_result(
+                "minidump.dmp",
+                Ok(MOCK_MINIDUMP_FILE.into()),
+                current_system_time(),
+            )
+            .add_file_result(
+                "minidump.extra",
+                Ok(minidump_extra_contents.into()),
+                current_system_time(),
+            )
+            .add_dir("profile_dir");
+        test.mock.set(MockFS, mock_files.clone());
+        mock_files
+    };
+    test.run(|interact| {
+        interact.element("quit", |_style, b: &model::Button| b.click.fire(&()));
+    });
+
+    assert_eq!(test.config.profile_dir, Some("profile_dir".into()));
+}
+
+#[test]
+#[ignore = "This test often passes, however it relies on Glean network scheduling, which has been
+    found to be unreliable for testing purposes. A more reliable unit test is in the glean module."]
+fn glean_ping_uses_pref() {
+    for pref_value in [false, true] {
+        let mut test = GuiTest::new();
+        test.enable_glean_pings();
+        // Set profile dir manually because glean is initialized earlier than the extra file is read
+        // in tests. We check that the profile dir is correctly read in another test.
+        test.config.profile_dir = Some("profile_dir".into());
+        test.files.add_dir("profile_dir").add_file(
+            "profile_dir/prefs.js",
+            format!(r#"user_pref("datareporting.healthreport.uploadEnabled", {pref_value});"#),
+        );
+
+        // Set a mock hook at the HTTP layer to check whether the ping is sent.
+        // test_before_next_send is called whether upload is enabled or not.
+        let submitted_glean_ping = Counter::new();
+        test.mock.set(
+            net::http::MockHttp,
+            Box::new(cc! { (submitted_glean_ping) move |_request, url| {
+                if url.starts_with("https://incoming.glean.example.com/submit/firefox-crashreporter-mock/crash") {
+                    submitted_glean_ping.inc();
+                }
+                Ok(Ok(vec!()))
+            }}),
+        );
+
+        test.run(|interact| {
+            interact.element("quit", |_style, b: &model::Button| b.click.fire(&()));
+        });
+        assert_eq!(submitted_glean_ping.count(), if pref_value { 1 } else { 0 });
+    }
 }
 
 #[test]

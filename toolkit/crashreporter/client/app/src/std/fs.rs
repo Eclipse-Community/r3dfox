@@ -524,6 +524,12 @@ pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<()> {
     })
 }
 
+pub fn read_to_string<P: AsRef<Path>>(path: P) -> Result<String> {
+    let mut s = String::new();
+    File::open(path.as_ref())?.read_to_string(&mut s)?;
+    Ok(s)
+}
+
 pub fn write<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Result<()> {
     File::create(path.as_ref())?.write_all(contents.as_ref())
 }
