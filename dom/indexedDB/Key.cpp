@@ -917,6 +917,12 @@ Result<Ok, nsresult> Key::EncodeBinary(
     return Err(NS_ERROR_DOM_INDEXEDDB_DATA_ERR);
   }
 
+  JSObject* obj = aArrayBufferOrView.asObjectUnbarriered();
+  if (JS::IsSharedArrayBufferObject(obj) ||
+      (JS_IsArrayBufferViewObject(obj) && JS::IsArrayBufferViewShared(obj))) {
+    return Err(NS_ERROR_DOM_INDEXEDDB_DATA_ERR);
+  }
+
   // 1. Let aData be the result of getting the bytes held by the buffer source
   //    input.
   // 2. Return a new key with type binary and value aData.
