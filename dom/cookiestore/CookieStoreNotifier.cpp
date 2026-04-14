@@ -196,10 +196,17 @@ void CookieStoreNotifier::DispatchEvent(const CookieListItem& aItem,
 void CookieStoreNotifier::FireDelayedDOMEvents() {
   MOZ_ASSERT(NS_IsMainThread());
 
+  RefPtr<CookieStoreNotifier> kungFuDeathGrip(this);
+
   nsTArray<RefPtr<Event>> delayedDOMEvents;
   delayedDOMEvents.SwapElements(mDelayedDOMEvents);
 
   for (Event* event : delayedDOMEvents) {
+    // mCookieStore is a raw pointer cleared by Disentangle().
+    if (!mCookieStore) {
+      break;
+    }
+
     mCookieStore->DispatchEvent(*event);
   }
 }
