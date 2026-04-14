@@ -87,7 +87,10 @@ bool GMPVideoEncodedFrameImpl::CheckFrameData(
     // libwebrtc (4), see webrtc::kMaxTemporalStreams.
     return false;
   }
-  return aFrameData.mSize() <= aBufferSize;
+  // 100 MB is far beyond any legitimate single encoded video frame.
+  static constexpr uint32_t kMaxFrameSize = 100u * 1024u * 1024u;
+  return aFrameData.mSize() <= aBufferSize &&
+         aFrameData.mSize() <= kMaxFrameSize;
 }
 
 void GMPVideoEncodedFrameImpl::RelinquishFrameData(
