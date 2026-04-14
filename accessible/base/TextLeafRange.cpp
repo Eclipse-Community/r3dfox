@@ -536,7 +536,7 @@ static dom::Selection* GetDOMSelection(const nsIContent* aStartContent,
   return startFrameSel ? &startFrameSel->NormalSelection() : nullptr;
 }
 
-std::pair<nsIContent*, uint32_t> TextLeafPoint::ToDOMPoint(
+std::pair<RefPtr<nsIContent>, uint32_t> TextLeafPoint::ToDOMPoint(
     bool aIncludeGenerated) const {
   if (!(*this) || !mAcc->IsLocal()) {
     MOZ_ASSERT_UNREACHABLE("Invalid point");
