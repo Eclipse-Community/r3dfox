@@ -1469,6 +1469,7 @@ class HTMLMediaElement : public nsGenericHTMLElement,
 
   // The currently selected video stream track.
   RefPtr<VideoStreamTrack> mSelectedVideoStreamTrack;
+  MediaTrackGraph* mSelectedVideoStreamTrackGraph = nullptr;
 
   const RefPtr<ShutdownObserver> mShutdownObserver;
 
