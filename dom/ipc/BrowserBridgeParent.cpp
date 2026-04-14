@@ -287,6 +287,9 @@ IPCResult BrowserBridgeParent::RecvSetEmbedderAccessible(
     return IPC_FAIL(this,
                     "Embedder doc shouldn't change from one doc to another");
   }
+  if (aDoc && aDoc->Manager() != Manager()) {
+    return IPC_FAIL(this, "Embedder doc not managed by our PBrowser");
+  }
   if (!aDoc && mEmbedderAccessibleDoc &&
       !mEmbedderAccessibleDoc->IsShutdown()) {
     // We're clearing the embedder doc, so remove the pending child doc addition
