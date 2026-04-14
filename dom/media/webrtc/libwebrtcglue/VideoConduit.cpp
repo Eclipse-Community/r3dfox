@@ -1385,13 +1385,13 @@ RefPtr<GenericPromise> WebrtcVideoConduit::Shutdown() {
         }
 
         mCall->UnregisterConduit(this);
-        mDecoderFactory->DisconnectAll();
-        mEncoderFactory->DisconnectAll();
         {
           MutexAutoLock lock(mMutex);
           DeleteSendStream();
           DeleteRecvStream();
         }
+        mDecoderFactory->DisconnectAll();
+        mEncoderFactory->DisconnectAll();
 
         return GenericPromise::CreateAndResolve(true, __func__);
       });
