@@ -44,9 +44,15 @@ class MOZ_STACK_CLASS StringWriter {
     size_t toCopy = strlen(aString);
     bool truncated = false;
 
-    if (toCopy > Available()) {
+    size_t availableBytes = Available();
+    if (availableBytes == 0) {
+      // Treat nothing written as truncated
+      return true;
+    }
+
+    if (toCopy >= availableBytes) {
       truncated = true;
-      toCopy = Available() - 1;
+      toCopy = availableBytes - 1;
     }
 
     memcpy(&(mMemory[mWriteIndex]), aString, toCopy);
@@ -59,7 +65,7 @@ class MOZ_STACK_CLASS StringWriter {
 
  private:
   size_t Available() {
-    MOZ_ASSERT(mLength > mWriteIndex);
+    MOZ_ASSERT(mLength >= mWriteIndex);
     return mLength - mWriteIndex;
   }
 
@@ -188,9 +194,10 @@ class AsyncLogger {
       msg->data.mTimestamp = TimeStamp::Now();
       msg->data.mDurationUs =
           (static_cast<double>(aFrames) / aSampleRate) * 1e6;
-      size_t len = std::min(strlen(aName), std::size(msg->data.mName));
-      memcpy(msg->data.mName, aName, len);
-      msg->data.mName[len] = 0;
+      StringWriter writer(msg->data.mName, std::size(msg->data.mName));
+      size_t unused;
+      // Unused since we don't need to know the location of the new index
+      writer.AppendCString(aName, &unused);
       mMessageQueueProfiler.Push(msg);
     }
   }
