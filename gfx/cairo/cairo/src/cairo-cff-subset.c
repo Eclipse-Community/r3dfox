@@ -930,6 +930,8 @@ cairo_cff_font_read_private_dict (cairo_cff_font_t   *font,
     if (operand) {
         decode_integer (operand, &offset);
         p = ptr + offset;
+        if (unlikely (p < font->data || p > font->data_end))
+            return CAIRO_INT_STATUS_UNSUPPORTED;
         status = cff_index_read (local_sub_index, &p, font->data_end);
 	if (unlikely (status))
 	    return status;
