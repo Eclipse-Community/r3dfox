@@ -3475,7 +3475,8 @@ uint32_t SpotLightSoftware::GetColor(uint32_t aLightColor,
     uint8_t colorC[4];
   };
 
-  Float dot = -aVectorToLight.DotProduct(mVectorFromFocusPointToLight);
+  Float dot = std::clamp(
+      -aVectorToLight.DotProduct(mVectorFromFocusPointToLight), 0.0f, 1.0f);
   if (!mPowCache.HasPowerTable()) {
     dot *= (dot >= mLimitingConeCos);
     color = aLightColor;
@@ -3484,7 +3485,7 @@ uint32_t SpotLightSoftware::GetColor(uint32_t aLightColor,
     colorC[B8G8R8A8_COMPONENT_BYTEOFFSET_B] *= dot;
   } else {
     color = aLightColor;
-    uint16_t doti = dot * (dot >= 0) * (1 << PowCache::sInputIntPrecisionBits);
+    uint16_t doti = dot * (1 << PowCache::sInputIntPrecisionBits);
     uint32_t tmp = mPowCache.Pow(doti) * (dot >= mLimitingConeCos);
     MOZ_ASSERT(tmp <= (1 << PowCache::sOutputIntPrecisionBits),
                "pow() result must not exceed 1.0");
@@ -3757,9 +3758,8 @@ uint32_t SpecularLightingSoftware::LightPixel(const Point3D& aNormal,
   if (halfwayLength > 0) {
     halfwayVector /= halfwayLength;
   }
-  Float dotNH = aNormal.DotProduct(halfwayVector);
-  uint16_t dotNHi =
-      uint16_t(dotNH * (dotNH >= 0) * (1 << PowCache::sInputIntPrecisionBits));
+  Float dotNH = std::clamp(aNormal.DotProduct(halfwayVector), 0.0f, 1.0f);
+  uint16_t dotNHi = uint16_t(dotNH * (1 << PowCache::sInputIntPrecisionBits));
   // The exponent for specular is in [1,128] range, so we don't need to check
   // and optimize for the "default power table" scenario here.
   MOZ_ASSERT(mPowCache.HasPowerTable());
