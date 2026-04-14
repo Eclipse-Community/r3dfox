@@ -567,10 +567,13 @@ bool mozTXTToHTMLConv::ItMatchesDelimited(const char16_t* aInString,
   }
 
   int32_t afterIndex = aRepLen + ignoreLen;
-  uint32_t textAfterPos = aInString[afterIndex];
-  if (aInLength > afterIndex + 1 &&
-      NS_IS_SURROGATE_PAIR(textAfterPos, aInString[afterIndex + 1])) {
-    textAfterPos = SURROGATE_TO_UCS4(textAfterPos, aInString[afterIndex + 1]);
+  uint32_t textAfterPos = 0;
+  if (afterIndex < aInLength) {
+    textAfterPos = aInString[afterIndex];
+    if (aInLength > afterIndex + 1 &&
+        NS_IS_SURROGATE_PAIR(textAfterPos, aInString[afterIndex + 1])) {
+      textAfterPos = SURROGATE_TO_UCS4(textAfterPos, aInString[afterIndex + 1]);
+    }
   }
 
   return !((before == LT_ALPHA && !IsAlpha(text0)) ||
