@@ -38,11 +38,13 @@ class TestShutdownPingsSucced(TelemetryTestCase):
             "new-profile": pingsender_version,
         }
 
-        # We don't need the browser after this, but the harness expects a
-        # running browser to clean up, so we `restart_browser` rather than
-        # `quit_browser`.
+        # You'd think we could just `quit_browser`, but the test needs a second
+        # session for the "main" ping to be sent and the harness needs it for
+        # cleanup, so we could `restart_browser`, but in bug 2012689 we found
+        # that Windows opt could restart the browser faster than invoking
+        # pingsender... so we `quit_browser` and then `start_browser`.
         pings = self.wait_for_pings(
-            self.restart_browser,
+            lambda: self.quit_browser() and self.start_browser(),
             lambda p: p["type"] in ping_types.keys(),
             len(ping_types),
         )
