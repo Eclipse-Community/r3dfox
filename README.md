@@ -25,8 +25,7 @@ SourceForge Downloads: ![SourceForge Downloads](https://img.shields.io/sourcefor
 - Windows theme version override, ability to use modern (Windows 10) theme on any OS, or enable (Windows 7) Aero theme on Windows 10!
 - Full portable mode that doesn't touch AppData at all!
 - Switchable Classic about:config page!
-- Less telemetry than regular Firefox!
-- No background tasks!
+- Less telemetry than regular Firefox! No installer ping and no background tasks!
 - Easier to notice red retry button for failed downloads!
 - JPEG XL support!
 - GPU/hardware acceleration in VMware Workstation 16 and above!
