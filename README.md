@@ -27,7 +27,7 @@ SourceForge Downloads: ![SourceForge Downloads](https://img.shields.io/sourcefor
 - Switchable Classic about:config page!
 - Less telemetry than regular Firefox! No installer ping and no background tasks!
 - Easier to notice red retry button for failed downloads!
-- JPEG XL support!
+- JPEG XL support! Including transparency and animation!
 - GPU/hardware acceleration in VMware Workstation 16 and above!
 - general.useragent.override.(website) is back!
 - Instant one off searches and classic one off search UI!
