@@ -119,6 +119,8 @@ static const DownMixMatrix gDownMixMatrices[CUSTOM_CHANNEL_LAYOUTS *
  * Given an array of input channels, downmix to aOutputChannelCount, and copy
  * the results to the channel buffers in aOutputChannels.  Don't call this with
  * input count <= output count.
+ * Each of aOutputChannels must be non-null.
+ * aInputChannels elements may be null.
  */
 template <typename SrcT, typename DstT>
 void AudioChannelsDownMix(Span<const SrcT* const> aInputChannels,
@@ -131,7 +133,11 @@ void AudioChannelsDownMix(Span<const SrcT* const> aInputChannels,
   if (inputChannelCount > 6) {
     // Just drop the unknown channels.
     for (uint32_t o = 0; o < outputChannelCount; ++o) {
-      ConvertAudioSamples(aInputChannels[o], aOutputChannels[o], aDuration);
+      if (aInputChannels[o]) {
+        ConvertAudioSamples(aInputChannels[o], aOutputChannels[o], aDuration);
+      } else {
+        std::fill_n(aOutputChannels[o], aDuration, static_cast<DstT>(0));
+      }
     }
     return;
   }
@@ -150,7 +156,7 @@ void AudioChannelsDownMix(Span<const SrcT* const> aInputChannels,
   }
   for (uint32_t c = 0; c < inputChannelCount; ++c) {
     uint32_t dstIndex = m.mInputDestination[c];
-    if (dstIndex == IGNORE) {
+    if (dstIndex == IGNORE || !aInputChannels[c]) {
       continue;
     }
     AddAudioSamplesWithScale(aInputChannels[c], aOutputChannels[dstIndex],
@@ -159,7 +165,7 @@ void AudioChannelsDownMix(Span<const SrcT* const> aInputChannels,
   // Utilize the fact that in every layout, C is the only channel that may
   // contribute to more than one output channel.
   uint32_t dstIndex = m.mCExtraDestination;
-  if (dstIndex != IGNORE) {
+  if (dstIndex != IGNORE && aInputChannels[SURROUND_C]) {
     AddAudioSamplesWithScale(aInputChannels[SURROUND_C],
                              aOutputChannels[dstIndex], aDuration,
                              m.mInputCoefficient[SURROUND_C]);
