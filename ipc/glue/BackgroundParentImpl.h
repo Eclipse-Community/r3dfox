@@ -212,12 +212,11 @@ class BackgroundParentImpl : public PBackgroundParent {
       const dom::cache::Namespace& aNamespace,
       const PrincipalInfo& aPrincipalInfo) override;
 
-  PUDPSocketParent* AllocPUDPSocketParent(const Maybe<PrincipalInfo>& pInfo,
-                                          const nsACString& aFilter) override;
+  already_AddRefed<PUDPSocketParent> AllocPUDPSocketParent(
+      const Maybe<PrincipalInfo>& pInfo, const nsACString& aFilter) override;
   mozilla::ipc::IPCResult RecvPUDPSocketConstructor(
       PUDPSocketParent*, const Maybe<PrincipalInfo>& aPrincipalInfo,
       const nsACString& aFilter) override;
-  bool DeallocPUDPSocketParent(PUDPSocketParent*) override;
 
   PMessagePortParent* AllocPMessagePortParent(
       const nsID& aUUID, const nsID& aDestinationUUID,

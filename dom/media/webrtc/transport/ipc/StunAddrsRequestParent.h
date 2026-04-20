@@ -15,10 +15,9 @@ class StunAddrsRequestParent : public PStunAddrsRequestParent {
   friend class PStunAddrsRequestParent;
 
  public:
-  StunAddrsRequestParent();
+  NS_INLINE_DECL_THREADSAFE_REFCOUNTING(StunAddrsRequestParent, override);
 
-  NS_IMETHOD_(MozExternalRefCountType) AddRef();
-  NS_IMETHOD_(MozExternalRefCountType) Release();
+  StunAddrsRequestParent();
 
   mozilla::ipc::IPCResult Recv__delete__() override;
 
@@ -45,9 +44,6 @@ class StunAddrsRequestParent : public PStunAddrsRequestParent {
 
   void OnQueryComplete_m(const nsACString& hostname,
                          const Maybe<nsCString>& address);
-
-  ThreadSafeAutoRefCnt mRefCnt;
-  NS_DECL_OWNINGTHREAD
 
  private:
   bool mIPCClosed;  // true if IPDL channel has been closed (child crash)

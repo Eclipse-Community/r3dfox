@@ -1423,9 +1423,6 @@ void NrUdpSocketIpc::create_i(const nsACString& host, const uint16_t port) {
   uint32_t minBuffSize = 0;
   RefPtr<dom::UDPSocketChild> socketChild = new dom::UDPSocketChild();
 
-  // This can spin the event loop; don't do that with the monitor held
-  socketChild->SetBackgroundSpinsEvents();
-
   ReentrantMonitorAutoEnter mon(monitor_);
   if (!socket_child_) {
     socket_child_ = socketChild;

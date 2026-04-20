@@ -671,10 +671,8 @@ bool BackgroundParentImpl::DeallocPCamerasParent(
 
 auto BackgroundParentImpl::AllocPUDPSocketParent(
     const Maybe<PrincipalInfo>& /* unused */, const nsACString& /* unused */)
-    -> PUDPSocketParent* {
-  RefPtr<UDPSocketParent> p = new UDPSocketParent(this);
-
-  return p.forget().take();
+    -> already_AddRefed<PUDPSocketParent> {
+  return do_AddRef(new UDPSocketParent(this));
 }
 
 mozilla::ipc::IPCResult BackgroundParentImpl::RecvPUDPSocketConstructor(
@@ -709,12 +707,6 @@ mozilla::ipc::IPCResult BackgroundParentImpl::RecvPUDPSocketConstructor(
   }
 
   return IPC_OK();
-}
-
-bool BackgroundParentImpl::DeallocPUDPSocketParent(PUDPSocketParent* actor) {
-  UDPSocketParent* p = static_cast<UDPSocketParent*>(actor);
-  p->Release();
-  return true;
 }
 
 mozilla::dom::PBroadcastChannelParent*

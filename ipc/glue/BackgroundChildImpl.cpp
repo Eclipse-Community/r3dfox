@@ -285,18 +285,6 @@ bool BackgroundChildImpl::DeallocPFileCreatorChild(PFileCreatorChild* aActor) {
   return true;
 }
 
-PUDPSocketChild* BackgroundChildImpl::AllocPUDPSocketChild(
-    const Maybe<PrincipalInfo>& aPrincipalInfo, const nsACString& aFilter) {
-  MOZ_CRASH("AllocPUDPSocket should not be called");
-  return nullptr;
-}
-
-bool BackgroundChildImpl::DeallocPUDPSocketChild(PUDPSocketChild* child) {
-  UDPSocketChild* p = static_cast<UDPSocketChild*>(child);
-  p->ReleaseIPDLReference();
-  return true;
-}
-
 // -----------------------------------------------------------------------------
 // BroadcastChannel API
 // -----------------------------------------------------------------------------

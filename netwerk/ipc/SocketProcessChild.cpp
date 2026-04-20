@@ -67,10 +67,6 @@
 
 #include "ChildProfilerController.h"
 
-#ifdef MOZ_WEBRTC
-#  include "mozilla/net/WebrtcTCPSocketChild.h"
-#endif
-
 #if defined(MOZ_SANDBOX) && defined(MOZ_DEBUG) && defined(ENABLE_TESTS)
 #  include "mozilla/SandboxTestingChild.h"
 #endif
@@ -400,25 +396,6 @@ void SocketProcessChild::DestroySocketProcessBridgeParent(ProcessId aId) {
   MOZ_ASSERT(NS_IsMainThread());
 
   mSocketProcessBridgeParentMap.Remove(aId);
-}
-
-PWebrtcTCPSocketChild* SocketProcessChild::AllocPWebrtcTCPSocketChild(
-    const Maybe<TabId>& tabId) {
-  // We don't allocate here: instead we always use IPDL constructor that takes
-  // an existing object
-  MOZ_ASSERT_UNREACHABLE(
-      "AllocPWebrtcTCPSocketChild should not be called on"
-      " socket child");
-  return nullptr;
-}
-
-bool SocketProcessChild::DeallocPWebrtcTCPSocketChild(
-    PWebrtcTCPSocketChild* aActor) {
-#ifdef MOZ_WEBRTC
-  WebrtcTCPSocketChild* child = static_cast<WebrtcTCPSocketChild*>(aActor);
-  child->ReleaseIPDLReference();
-#endif
-  return true;
 }
 
 already_AddRefed<PHttpTransactionChild>

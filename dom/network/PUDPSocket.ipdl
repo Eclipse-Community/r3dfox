@@ -38,7 +38,7 @@ namespace mozilla {
 namespace net {
 
 //-------------------------------------------------------------------
-[ManualDealloc, ChildImpl="mozilla::dom::UDPSocketChild", ParentImpl="mozilla::dom::UDPSocketParent"]
+[ChildImpl=virtual, ParentImpl=virtual]
 protocol PUDPSocket
 {
   manager PNecko or PBackground;

@@ -35,8 +35,9 @@ class UDPSocketParent : public mozilla::net::PUDPSocketParent,
                                    const bool& aAddressReuse,
                                    const bool& aLoopback,
                                    const uint32_t& recvBufferSize,
-                                   const uint32_t& sendBufferSize);
-  mozilla::ipc::IPCResult RecvConnect(const UDPAddressInfo& aAddressInfo);
+                                   const uint32_t& sendBufferSize) override;
+  mozilla::ipc::IPCResult RecvConnect(
+      const UDPAddressInfo& aAddressInfo) override;
   void DoSendConnectResponse(const UDPAddressInfo& aAddressInfo);
   void SendConnectResponse(const nsCOMPtr<nsIEventTarget>& aThread,
                            const UDPAddressInfo& aAddressInfo);
@@ -45,14 +46,16 @@ class UDPSocketParent : public mozilla::net::PUDPSocketParent,
                  const UDPAddressInfo& aAddressInfo);
 
   mozilla::ipc::IPCResult RecvOutgoingData(const UDPData& aData,
-                                           const UDPSocketAddr& aAddr);
+                                           const UDPSocketAddr& aAddr) override;
 
-  mozilla::ipc::IPCResult RecvClose();
-  mozilla::ipc::IPCResult RecvRequestDelete();
-  mozilla::ipc::IPCResult RecvJoinMulticast(const nsCString& aMulticastAddress,
-                                            const nsCString& aInterface);
-  mozilla::ipc::IPCResult RecvLeaveMulticast(const nsCString& aMulticastAddress,
-                                             const nsCString& aInterface);
+  mozilla::ipc::IPCResult RecvClose() override;
+  mozilla::ipc::IPCResult RecvRequestDelete() override;
+  mozilla::ipc::IPCResult RecvJoinMulticast(
+      const nsACString& aMulticastAddress,
+      const nsACString& aInterface) override;
+  mozilla::ipc::IPCResult RecvLeaveMulticast(
+      const nsACString& aMulticastAddress,
+      const nsACString& aInterface) override;
 
  private:
   virtual ~UDPSocketParent();
