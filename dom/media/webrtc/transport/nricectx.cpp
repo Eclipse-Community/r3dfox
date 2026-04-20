@@ -548,6 +548,8 @@ void NrIceCtx::InitializeGlobals(const GlobalConfig& aConfig) {
   // Initialize the crypto callbacks and logging stuff
   if (!initialized) {
     NR_reg_init(NR_REG_MODE_LOCAL);
+    // Registers the "stun" logger for r_log.
+    (void)nr_stun_startup();
     nr_crypto_vtbl = &nr_ice_crypto_nss_vtbl;
     initialized = true;
 
