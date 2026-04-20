@@ -1,0 +1,32 @@
+diff --git a/intl/icu/source/common/ustrcase.cpp b/intl/icu/source/common/ustrcase.cpp
+--- a/intl/icu/source/common/ustrcase.cpp
++++ b/intl/icu/source/common/ustrcase.cpp
+@@ -1713,8 +1713,10 @@
+                      * remember that this simulates bulk text replacement:
+                      * the decomposition would replace the entire code point
+                      */
+-                    --s2;
+-                    --m2;
+-                    c2=*(s2-1);
++                    if (start2<=(s2-2)) {
++                        --s2;
++                        --m2;
++                        c2=*(s2-1);
++                    }
+                 }
+             }
+
+@@ -1759,8 +1761,10 @@
+                      * remember that this simulates bulk text replacement:
+                      * the decomposition would replace the entire code point
+                      */
+-                    --s1;
+-                    --m2;
+-                    c1=*(s1-1);
++                    if (start1<=(s1-2)) {
++                        --s1;
++                        --m1;
++                        c1=*(s1-1);
++                    }
+                 }
+             }
