@@ -79,7 +79,8 @@ class ImageDecoder::SelectTrackMessage final
 NS_IMPL_CYCLE_COLLECTION_WRAPPERCACHE_CLASS(ImageDecoder)
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(ImageDecoder)
-  tmp->Destroy();
+  tmp->CloseWithoutRef(
+      MediaResult(NS_ERROR_DOM_ABORT_ERR, "Cycle-collected decoder"_ns));
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mParent)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mTracks)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mReadRequest)
@@ -118,40 +119,13 @@ ImageDecoder::ImageDecoder(nsCOMPtr<nsIGlobalObject>&& aParent,
 ImageDecoder::~ImageDecoder() {
   MOZ_LOG(gWebCodecsLog, LogLevel::Debug,
           ("ImageDecoder %p ~ImageDecoder", this));
-  Destroy();
+  CloseWithoutRef(MediaResult(NS_ERROR_DOM_ABORT_ERR, "Destroyed decoder"_ns));
 }
 
 JSObject* ImageDecoder::WrapObject(JSContext* aCx,
                                    JS::Handle<JSObject*> aGivenProto) {
   AssertIsOnOwningThread();
   return ImageDecoder_Binding::Wrap(aCx, this, aGivenProto);
-}
-
-void ImageDecoder::Destroy() {
-  MOZ_LOG(gWebCodecsLog, LogLevel::Debug, ("ImageDecoder %p Destroy", this));
-  MOZ_ASSERT(mOutstandingDecodes.IsEmpty());
-
-  if (mReadRequest) {
-    mReadRequest->Destroy(/* aCancel */ false);
-    mReadRequest = nullptr;
-  }
-
-  if (mDecoder) {
-    mDecoder->Destroy();
-  }
-
-  if (mTracks) {
-    mTracks->Destroy();
-  }
-
-  if (mShutdownWatcher) {
-    mShutdownWatcher->Destroy();
-    mShutdownWatcher = nullptr;
-  }
-
-  mSourceBuffer = nullptr;
-  mDecoder = nullptr;
-  mParent = nullptr;
 }
 
 void ImageDecoder::QueueConfigureMessage(
@@ -180,7 +154,7 @@ void ImageDecoder::ResumeControlMessageQueue() {
 }
 
 void ImageDecoder::ProcessControlMessageQueue() {
-  while (!mMessageQueueBlocked && !mControlMessageQueue.empty()) {
+  while (!mClosed && !mMessageQueueBlocked && !mControlMessageQueue.empty()) {
     auto& msg = mControlMessageQueue.front();
     auto result = MessageProcessedResult::Processed;
     if (auto* submsg = msg->AsConfigureMessage()) {
@@ -939,6 +913,7 @@ already_AddRefed<Promise> ImageDecoder::Decode(
   QueueDecodeFrameMessage();
 
   // 7. Process the control message queue.
+  RefPtr<ImageDecoder> kungFuDeathGrip(this);
   ProcessControlMessageQueue();
 
   // 8. Return promise.
@@ -985,8 +960,9 @@ void ImageDecoder::OnDecodeFramesFailed(const nsresult& aErr) {
   }
 }
 
-void ImageDecoder::Reset(const MediaResult& aResult) {
-  MOZ_LOG(gWebCodecsLog, LogLevel::Debug, ("ImageDecoder %p Reset", this));
+void ImageDecoder::ResetWithoutRef(const MediaResult& aResult) {
+  MOZ_LOG(gWebCodecsLog, LogLevel::Debug,
+          ("ImageDecoder %p Reset '%s'", this, aResult.Message().get()));
   // 10.2.5. Reset ImageDecoder (with exception)
 
   // 1. Signal [[codec implementation]] to abort any active decoding operation.
@@ -1007,18 +983,23 @@ void ImageDecoder::Reset(const MediaResult& aResult) {
 
 void ImageDecoder::Close(const MediaResult& aResult) {
   RefPtr<ImageDecoder> kungFuDeathGrip(this);
-  MOZ_LOG(gWebCodecsLog, LogLevel::Debug, ("ImageDecoder %p Close", this));
+  CloseWithoutRef(aResult);
+}
 
+void ImageDecoder::CloseWithoutRef(const MediaResult& aResult) {
   if (mClosed) {
     return;
   }
+
+  MOZ_LOG(gWebCodecsLog, LogLevel::Debug,
+          ("ImageDecoder %p Close '%s'", this, aResult.Message().get()));
 
   // 10.2.5. Algorithms - Close ImageDecoder (with exception)
   mClosed = true;
   mTypeNotSupported = aResult.Code() == NS_ERROR_DOM_NOT_SUPPORTED_ERR;
 
   // 1. Run the Reset ImageDecoder algorithm with exception.
-  Reset(aResult);
+  ResetWithoutRef(aResult);
 
   // 3. Clear [[codec implementation]] and release associated system resources.
   if (mDecoder) {
@@ -1042,7 +1023,9 @@ void ImageDecoder::Close(const MediaResult& aResult) {
   }
 
   if (!mComplete) {
-    aResult.RejectTo(mCompletePromise);
+    if (mCompletePromise) {
+      aResult.RejectTo(mCompletePromise);
+    }
     mComplete = true;
   }
 
@@ -1053,7 +1036,8 @@ void ImageDecoder::Close(const MediaResult& aResult) {
 }
 
 void ImageDecoder::Reset() {
-  Reset(MediaResult(NS_ERROR_DOM_ABORT_ERR, "Reset decoder"_ns));
+  RefPtr<ImageDecoder> kungFuDeathGrip(this);
+  ResetWithoutRef(MediaResult(NS_ERROR_DOM_ABORT_ERR, "Reset decoder"_ns));
 }
 
 void ImageDecoder::Close() {
