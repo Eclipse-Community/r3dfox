@@ -281,7 +281,7 @@ void AudioSegment::Mix(AudioMixer& aMixer, uint32_t aOutputChannels,
       // Up-mix.
       upMixChunk = c;
       AudioChannelsUpMix<void>(&upMixChunk.mChannelData, aOutputChannels,
-                               SilentChannel::gZeroChannel);
+                               nullptr);
       downMixInput = &upMixChunk;
     }
     downMixInput->DownMixTo(outChannelPtrs);
