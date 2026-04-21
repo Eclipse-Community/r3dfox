@@ -936,7 +936,14 @@ void nsInlineFrame::UpdateStyleOfOwnedAnonBoxesForIBSplit(
     }
 
     nsIFrame* nextInline = blockFrame->GetProperty(nsIFrame::IBSplitSibling());
-    MOZ_ASSERT(nextInline, "There is always a trailing inline in an IB split");
+    if (MOZ_UNLIKELY(!nextInline)) {
+      MOZ_ASSERT_UNREACHABLE("There should always a be trailing inline "
+                             "in an IB split");
+      // Gracefully bail so that nextInline usage below doesn't
+      // null-deref.  (We can stop worrying about this when we remove
+      // IB split siblings in bug 2031448.)
+      return;
+    }
 
     for (nsIFrame* cont = nextInline; cont;
          cont = cont->GetNextContinuation()) {
