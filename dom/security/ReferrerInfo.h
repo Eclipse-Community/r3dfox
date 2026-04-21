@@ -14,6 +14,11 @@
 #include "mozilla/HashFunctions.h"
 #include "mozilla/dom/ReferrerPolicyBinding.h"
 
+namespace IPC {
+class MessageReader;
+class MessageWriter;
+}  // namespace IPC
+
 #define REFERRERINFO_CONTRACTID "@mozilla.org/referrer-info;1"
 // 041a129f-10ce-4bda-a60d-e027a26d5ed0
 #define REFERRERINFO_CID \
@@ -73,6 +78,10 @@ class ReferrerInfo : public nsIReferrerInfo {
 
   // create an exact copy of the ReferrerInfo
   already_AddRefed<ReferrerInfo> Clone() const;
+
+  void Serialize(IPC::MessageWriter* aWriter) const;
+  static bool Deserialize(IPC::MessageReader* aReader,
+                          RefPtr<nsIReferrerInfo>* aResult);
 
   // create an copy of the ReferrerInfo with new referrer policy
   already_AddRefed<ReferrerInfo> CloneWithNewPolicy(

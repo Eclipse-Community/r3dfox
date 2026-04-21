@@ -22,13 +22,16 @@
 #include "nsStreamUtils.h"
 #include "ReferrerInfo.h"
 
+#include "ipc/IPCMessageUtilsSpecializations.h"
 #include "mozilla/BasePrincipal.h"
 #include "mozilla/ContentBlockingAllowList.h"
 #include "mozilla/net/CookieJarSettings.h"
 #include "mozilla/net/HttpBaseChannel.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/Element.h"
+#include "mozilla/dom/FetchIPCTypes.h"
 #include "mozilla/dom/RequestBinding.h"
+#include "mozilla/ipc/URIUtils.h"
 #include "mozilla/StaticPrefs_network.h"
 #include "mozilla/StorageAccess.h"
 #include "mozilla/StyleSheet.h"
@@ -987,6 +990,62 @@ ReferrerInfo::ReferrerInfo(const ReferrerInfo& rhs)
       mInitialized(rhs.mInitialized),
       mOverridePolicyByDefault(rhs.mOverridePolicyByDefault),
       mComputedReferrer(rhs.mComputedReferrer) {}
+
+void ReferrerInfo::Serialize(IPC::MessageWriter* aWriter) const {
+  MOZ_ASSERT(mInitialized);
+  nsCOMPtr<nsIURI> originalReferrer = mOriginalReferrer;
+  WriteParam(aWriter, originalReferrer.get());
+  WriteParam(aWriter, mPolicy);
+  WriteParam(aWriter, mOriginalPolicy);
+  WriteParam(aWriter, mSendReferrer);
+  WriteParam(aWriter, mOverridePolicyByDefault);
+  WriteParam(aWriter, mComputedReferrer);
+}
+
+// static
+bool ReferrerInfo::Deserialize(IPC::MessageReader* aReader,
+                               RefPtr<nsIReferrerInfo>* aResult) {
+  RefPtr<nsIURI> originalReferrer;
+  if (!ReadParam(aReader, &originalReferrer)) {
+    return false;
+  }
+
+  ReferrerPolicyEnum policy;
+  if (!ReadParam(aReader, &policy)) {
+    return false;
+  }
+
+  ReferrerPolicyEnum originalPolicy;
+  if (!ReadParam(aReader, &originalPolicy)) {
+    return false;
+  }
+
+  bool sendReferrer;
+  if (!ReadParam(aReader, &sendReferrer)) {
+    return false;
+  }
+
+  bool overridePolicyByDefault;
+  if (!ReadParam(aReader, &overridePolicyByDefault)) {
+    return false;
+  }
+
+  Maybe<nsCString> computedReferrer;
+  if (!ReadParam(aReader, &computedReferrer)) {
+    return false;
+  }
+
+  RefPtr<ReferrerInfo> info = new ReferrerInfo();
+  info->mOriginalReferrer = originalReferrer;
+  info->mPolicy = policy;
+  info->mOriginalPolicy = originalPolicy;
+  info->mSendReferrer = sendReferrer;
+  info->mInitialized = true;
+  info->mOverridePolicyByDefault = overridePolicyByDefault;
+  info->mComputedReferrer = std::move(computedReferrer);
+  *aResult = info.forget();
+  return true;
+}
 
 already_AddRefed<ReferrerInfo> ReferrerInfo::Clone() const {
   RefPtr<ReferrerInfo> copy(new ReferrerInfo(*this));
