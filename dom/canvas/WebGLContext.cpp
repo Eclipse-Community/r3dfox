@@ -2917,7 +2917,9 @@ webgl::ExplicitPixelPackingState::ForUseWith(
 
   const auto elemsPerRowStride = ElemsPerRowStride();
   const auto bytesPerRowStride = pii.bytesPerElement * elemsPerRowStride;
-  if (!bytesPerRowStride.isValid()) {
+  const auto maxBytesPerRow = StaticPrefs::webgl_max_bytes_per_row();
+  if (!bytesPerRowStride.isValid() ||
+      (maxBytesPerRow > 0 && bytesPerRowStride.value() > maxBytesPerRow)) {
     return Err("ROW_LENGTH or width too large for packing.");
   }
   metrics.bytesPerRowStride = bytesPerRowStride.value();
