@@ -165,7 +165,7 @@ ssl3_HandleServerNameXtn(const sslSocket *ss, TLSExtensionData *xtnData,
         ssl3_FreeSniNameArray(xtnData);
         xtnData->sniNameArr = names;
         xtnData->sniNameArrSize = 1;
-        xtnData->negotiated[xtnData->numNegotiated++] = ssl_server_name_xtn;
+        ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_server_name_xtn);
     }
     return SECSuccess;
 
@@ -345,7 +345,7 @@ ssl3_SelectAppProtocol(const sslSocket *ss, TLSExtensionData *xtnData,
     }
 
     xtnData->nextProtoState = SSL_NEXT_PROTO_NEGOTIATED;
-    xtnData->negotiated[xtnData->numNegotiated++] = extension;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, extension);
     return SECITEM_CopyItem(NULL, &xtnData->nextProto, &result);
 }
 
@@ -447,7 +447,7 @@ ssl3_ClientHandleAppProtoXtn(const sslSocket *ss, TLSExtensionData *xtnData,
 
     SECITEM_FreeItem(&xtnData->nextProto, PR_FALSE);
     xtnData->nextProtoState = SSL_NEXT_PROTO_SELECTED;
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_app_layer_protocol_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_app_layer_protocol_xtn);
     return SECITEM_CopyItem(NULL, &xtnData->nextProto, &protocol_name);
 }
 
@@ -528,7 +528,7 @@ ssl3_ServerHandleStatusRequestXtn(const sslSocket *ss, TLSExtensionData *xtnData
     PORT_Assert(ss->sec.isServer);
 
     /* remember that we got this extension. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_cert_status_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_cert_status_xtn);
 
     if (ss->version >= SSL_LIBRARY_VERSION_TLS_1_3) {
         sender = tls13_ServerSendStatusRequestXtn;
@@ -606,7 +606,7 @@ ssl3_ClientHandleStatusRequestXtn(const sslSocket *ss, TLSExtensionData *xtnData
     }
 
     /* Keep track of negotiated extensions. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_cert_status_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_cert_status_xtn);
     return SECSuccess;
 }
 
@@ -859,7 +859,7 @@ ssl3_ClientHandleSessionTicketXtn(const sslSocket *ss, TLSExtensionData *xtnData
     }
 
     /* Keep track of negotiated extensions. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_session_ticket_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_session_ticket_xtn);
     return SECSuccess;
 }
 
@@ -1309,7 +1309,7 @@ ssl3_ServerHandleSessionTicketXtn(const sslSocket *ss, TLSExtensionData *xtnData
     }
 
     /* Keep track of negotiated extensions. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_session_ticket_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_session_ticket_xtn);
 
     /* Parse the received ticket sent in by the client.  We are
      * lenient about some parse errors, falling back to a fullshake
@@ -1387,7 +1387,7 @@ ssl3_HandleRenegotiationInfoXtn(const sslSocket *ss, TLSExtensionData *xtnData,
     /* remember that we got this extension and it was correct. */
     CONST_CAST(sslSocket, ss)
         ->peerRequestedProtection = 1;
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_renegotiation_info_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_renegotiation_info_xtn);
     if (ss->sec.isServer) {
         /* prepare to send back the appropriate response */
         rv = ssl3_RegisterExtensionSender(ss, xtnData,
@@ -1522,7 +1522,7 @@ ssl3_ClientHandleUseSRTPXtn(const sslSocket *ss, TLSExtensionData *xtnData,
     }
 
     /* OK, this looks fine. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_use_srtp_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_use_srtp_xtn);
     xtnData->dtlsSRTPCipherSuite = cipher;
     return SECSuccess;
 }
@@ -1593,7 +1593,7 @@ ssl3_ServerHandleUseSRTPXtn(const sslSocket *ss, TLSExtensionData *xtnData,
 
     /* OK, we have a valid cipher and we've selected it */
     xtnData->dtlsSRTPCipherSuite = cipher;
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_use_srtp_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_use_srtp_xtn);
 
     return ssl3_RegisterExtensionSender(ss, xtnData,
                                         ssl_use_srtp_xtn,
@@ -1639,8 +1639,12 @@ ssl3_HandleSigAlgsXtn(const sslSocket *ss, TLSExtensionData *xtnData,
         return SECFailure;
     }
 
-    /* Keep track of negotiated extensions. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_signature_algorithms_xtn;
+    /* Keep track of negotiated extensions. Only the server consumes this
+     * entry; on the client, skipping prevents numNegotiated overflow
+     * during repeated post-handshake CertificateRequests. */
+    if (ss->sec.isServer) {
+        ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_signature_algorithms_xtn);
+    }
     return SECSuccess;
 }
 
@@ -1711,7 +1715,7 @@ ssl3_HandleExtendedMasterSecretXtn(const sslSocket *ss, TLSExtensionData *xtnDat
              SSL_GETPID(), ss->fd));
 
     /* Keep track of negotiated extensions. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_extended_master_secret_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_extended_master_secret_xtn);
 
     if (ss->sec.isServer) {
         return ssl3_RegisterExtensionSender(ss, xtnData,
@@ -1758,7 +1762,7 @@ ssl3_ClientHandleSignedCertTimestampXtn(const sslSocket *ss, TLSExtensionData *x
     }
     *scts = *data;
     /* Keep track of negotiated extensions. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_signed_cert_timestamp_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_signed_cert_timestamp_xtn);
     return SECSuccess;
 }
 
@@ -1794,7 +1798,7 @@ ssl3_ServerHandleSignedCertTimestampXtn(const sslSocket *ss,
         return SECFailure;
     }
 
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_signed_cert_timestamp_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_signed_cert_timestamp_xtn);
     PORT_Assert(ss->sec.isServer);
     return ssl3_RegisterExtensionSender(ss, xtnData,
                                         ssl_signed_cert_timestamp_xtn,
@@ -1934,7 +1938,7 @@ ssl_HandleSupportedGroupsXtn(const sslSocket *ss, TLSExtensionData *xtnData,
     }
 
     /* Remember that we negotiated this extension. */
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_supported_groups_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_supported_groups_xtn);
 
     return SECSuccess;
 }
@@ -1975,7 +1979,7 @@ ssl_HandleRecordSizeLimitXtn(const sslSocket *ss, TLSExtensionData *xtnData,
     /* We can't enforce the maximum on a server. But we do need to ensure
      * that we don't apply a limit that is too large. */
     xtnData->recordSizeLimit = PR_MIN(maxLimit, limit);
-    xtnData->negotiated[xtnData->numNegotiated++] = ssl_record_size_limit_xtn;
+    ssl3_RecordExtensionNegotiated(ss, xtnData, ssl_record_size_limit_xtn);
     return SECSuccess;
 }
 

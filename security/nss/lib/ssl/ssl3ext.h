@@ -175,6 +175,9 @@ void ssl3_ResetExtensionData(TLSExtensionData *xtnData, const sslSocket *ss);
 
 PRBool ssl3_ExtensionNegotiated(const sslSocket *ss, PRUint16 ex_type);
 PRBool ssl3_ExtensionAdvertised(const sslSocket *ss, PRUint16 ex_type);
+void ssl3_RecordExtensionNegotiated(const sslSocket *ss,
+                                    TLSExtensionData *xtnData,
+                                    PRUint16 ex_type);
 
 SECStatus ssl3_RegisterExtensionSender(const sslSocket *ss,
                                        TLSExtensionData *xtnData,
