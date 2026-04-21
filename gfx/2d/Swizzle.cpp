@@ -868,7 +868,7 @@ static void SwizzleChunkOpaqueUpdate(uint8_t*& aBuffer, int32_t aLength) {
 }
 
 template <uint32_t aDstAShift>
-static void SwizzleChunkOpaqueCopy(const uint8_t*& aSrc, uint8_t* aDst,
+static void SwizzleChunkOpaqueCopy(const uint8_t*& aSrc, uint8_t*& aDst,
                                    int32_t aLength) {
   const uint8_t* end = aSrc + 4 * aLength;
   do {
