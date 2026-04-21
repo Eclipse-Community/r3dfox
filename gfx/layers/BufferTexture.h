@@ -77,12 +77,14 @@ class BufferTextureData : public TextureData {
 
   virtual size_t GetBufferSize() = 0;
 
+  virtual void OnBorrowDrawTarget(gfx::DrawTarget* aDrawTarget) {}
+
  protected:
   static BufferTextureData* Create(
       gfx::IntSize aSize, gfx::SurfaceFormat aFormat,
       gfx::BackendType aMoz2DBackend, LayersBackend aLayersBackend,
       TextureFlags aFlags, TextureAllocationFlags aAllocFlags,
-      mozilla::ipc::IShmemAllocator* aAllocator, bool aIsSameProcess);
+      LayersIPCChannel* aAllocator, bool aIsSameProcess);
 
   static BufferTextureData* CreateInternal(LayersIPCChannel* aAllocator,
                                            const BufferDescriptor& aDesc,
