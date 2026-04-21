@@ -1865,10 +1865,14 @@ nsresult FetchEventOp::DispatchFetchEvent(JSContext* aCx,
             GetCurrentSerialEventTarget(), __func__,
             [self, globalObjectAsSupports](
                 SafeRefPtr<InternalResponse>&& aPreloadResponse) {
-              self->mPreloadResponse->MaybeResolve(
-                  MakeRefPtr<Response>(globalObjectAsSupports,
-                                       std::move(aPreloadResponse), nullptr));
+              // let's complete the promise holder before MaybeResolve
               self->mPreloadResponseAvailablePromiseRequestHolder.Complete();
+              RefPtr<Promise> preloadResponse = self->mPreloadResponse;
+              if (preloadResponse) {
+                preloadResponse->MaybeResolve(
+                    MakeRefPtr<Response>(globalObjectAsSupports,
+                                         std::move(aPreloadResponse), nullptr));
+              }
             },
             [self](int) {
               self->mPreloadResponseAvailablePromiseRequestHolder.Complete();
@@ -1907,10 +1911,14 @@ nsresult FetchEventOp::DispatchFetchEvent(JSContext* aCx,
         ->Then(
             GetCurrentSerialEventTarget(), __func__,
             [self, globalObjectAsSupports](ResponseEndArgs&& aArgs) {
-              if (aArgs.endReason() == FetchDriverObserver::eAborted) {
-                self->mPreloadResponse->MaybeReject(NS_ERROR_DOM_ABORT_ERR);
-              }
+              // let's complete the promise holder before MaybeReject
               self->mPreloadResponseEndPromiseRequestHolder.Complete();
+              if (aArgs.endReason() == FetchDriverObserver::eAborted) {
+                RefPtr<Promise> preloadResponse = self->mPreloadResponse;
+                if (preloadResponse) {
+                  preloadResponse->MaybeReject(NS_ERROR_DOM_ABORT_ERR);
+                }
+              }
             },
             [self](int) {
               self->mPreloadResponseEndPromiseRequestHolder.Complete();
