@@ -231,6 +231,7 @@ void ProcessValueWithADefaultPolicy(nsIGlobalObject& aGlobalObject,
 
   AutoTArray<JS::Value, kNumArgumentsForDetermineTrustedTypePolicyValue>
       arguments = {trustedTypeName, sink};
+  SequenceRooter<JS::Value> rooter(cx, &arguments);
 
   nsString policyValue;
   if constexpr (std::is_same_v<ExpectedTypeArg, TrustedHTML>) {
