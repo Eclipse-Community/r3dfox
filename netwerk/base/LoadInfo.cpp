@@ -337,8 +337,12 @@ LoadInfo::LoadInfo(
     if (nsMixedContentBlocker::IsUpgradableContentType(
             mInternalContentPolicyType, /* aConsiderPrefs */ false)) {
       // Check the load is within a secure context but ignore loopback URLs
-      if (mLoadingPrincipal->GetIsOriginPotentiallyTrustworthy() &&
-          !mLoadingPrincipal->GetIsLoopbackHost()) {
+      nsCOMPtr<nsIPrincipal> precursorPrincipal =
+          mLoadingPrincipal->GetPrecursorPrincipal();
+      nsCOMPtr<nsIPrincipal> requestingPrincipal =
+          precursorPrincipal ? precursorPrincipal : mLoadingPrincipal;
+      if (requestingPrincipal->GetIsOriginPotentiallyTrustworthy() &&
+          !requestingPrincipal->GetIsLoopbackHost()) {
         if (nsMixedContentBlocker::IsUpgradableContentType(
                 mInternalContentPolicyType, /* aConsiderPrefs */ true)) {
           mBrowserUpgradeInsecureRequests = true;
