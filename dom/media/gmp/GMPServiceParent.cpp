@@ -319,8 +319,9 @@ GeckoMediaPluginServiceParent::Observe(nsISupports* aSubject,
     // origin-pairs, if we try to open an origin-pair for non-PB mode, we'll get
     // the NodeId salt stored on-disk, and if we try to open a PB mode
     // origin-pair, we'll re-generate new salt.
-    mTempNodeIds.Clear();
-    mTempGMPStorage.Clear();
+    return GMPDispatch(NewRunnableMethod(
+        "gmp::GeckoMediaPluginServiceParent::ClearTemporaryStorage", this,
+        &GeckoMediaPluginServiceParent::ClearTemporaryStorage));
   } else if (!strcmp("browser:purge-session-history", aTopic)) {
     GMP_LOG_DEBUG(
         "Received 'browser:purge-session-history', clearing everything");
@@ -1837,6 +1838,14 @@ void GeckoMediaPluginServiceParent::ServiceUserDestroyed(
   MOZ_ASSERT(mServiceParents.Length() > 0);
   MOZ_ASSERT(mServiceParents.Contains(aServiceParent));
   mServiceParents.RemoveElement(aServiceParent);
+}
+
+void GeckoMediaPluginServiceParent::ClearTemporaryStorage() {
+  AssertOnGMPThread();
+  GMP_LOG_DEBUG("%s::%s", __CLASS__, __FUNCTION__);
+
+  mTempNodeIds.Clear();
+  mTempGMPStorage.Clear();
 }
 
 void GeckoMediaPluginServiceParent::ClearStorage() {

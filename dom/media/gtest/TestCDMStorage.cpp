@@ -201,6 +201,9 @@ static void SimulatePBModeExit() {
   NS_DispatchAndSpinEventLoopUntilComplete(
       "SimulatePBModeExit"_ns, GetMainThreadSerialEventTarget(),
       MakeAndAddRef<NotifyObserversTask>("last-pb-context-exited"));
+  nsCOMPtr<nsIThread> thread(GetGMPThread());
+  NS_DispatchAndSpinEventLoopUntilComplete(
+      "ClearedPBContext"_ns, thread, NS_NewRunnableFunction(__func__, [] {}));
 }
 
 class TestGetNodeIdCallback : public GetNodeIdCallback {
