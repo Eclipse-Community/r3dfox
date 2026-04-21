@@ -353,7 +353,7 @@ gcmHash_Update(gcmHashContext *ghash, const unsigned char *buf,
     unsigned int blocks;
     SECStatus rv;
 
-    ghash->cLen += (len * PR_BITS_PER_BYTE);
+    ghash->cLen += ((uint64_t)len * PR_BITS_PER_BYTE);
 
     /* first deal with the current buffer of data. Try to fill it out so
      * we can hash it */
