@@ -2642,14 +2642,18 @@ Connection::RemoveFunction(const nsACString& aFunctionName) {
   }
 
   SQLiteMutexAutoLock lockedScope(sharedDBMutex);
-  NS_ENSURE_TRUE(mFunctions.Get(aFunctionName, nullptr), NS_ERROR_FAILURE);
+  auto entry = mFunctions.Lookup(aFunctionName);
+  NS_ENSURE_TRUE(entry, NS_ERROR_FAILURE);
 
+  // SQLite allows to register the same function name with different number
+  // of arguments, thus to properly remove our function we must use the same
+  // nArg used at registration time.
   int srv = ::sqlite3_create_function(
-      mDBConn, nsPromiseFlatCString(aFunctionName).get(), 0, SQLITE_ANY,
-      nullptr, nullptr, nullptr, nullptr);
+      mDBConn, nsPromiseFlatCString(aFunctionName).get(), entry->numArgs,
+      SQLITE_ANY, nullptr, nullptr, nullptr, nullptr);
   if (srv != SQLITE_OK) return convertResultCode(srv);
 
-  mFunctions.Remove(aFunctionName);
+  entry.Remove();
 
   return NS_OK;
 }
