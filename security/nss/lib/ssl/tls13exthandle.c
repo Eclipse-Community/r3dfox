@@ -974,17 +974,24 @@ tls13_ClientHandleHrrCookie(const sslSocket *ss, TLSExtensionData *xtnData,
 
     PORT_Assert(ss->vrange.max >= SSL_LIBRARY_VERSION_TLS_1_3);
 
-    /* IMPORTANT: this is only valid while the HelloRetryRequest is still valid. */
+    SECItem cookie;
     rv = ssl3_ExtConsumeHandshakeVariable(
-        ss, &CONST_CAST(sslSocket, ss)->ssl3.hs.cookie, 2,
+        ss, &cookie, 2,
         &data->data, &data->len);
     if (rv != SECSuccess) {
         PORT_SetError(SSL_ERROR_RX_MALFORMED_HELLO_RETRY_REQUEST);
         return SECFailure;
     }
-    if (!ss->ssl3.hs.cookie.len || data->len) {
+    if (!cookie.len || data->len) {
         ssl3_ExtSendAlert(ss, alert_fatal, decode_error);
         PORT_SetError(SSL_ERROR_RX_MALFORMED_HELLO_RETRY_REQUEST);
+        return SECFailure;
+    }
+
+    PORT_Assert(!ss->ssl3.hs.cookie.data && !ss->ssl3.hs.cookie.len);
+    SECITEM_FreeItem(&CONST_CAST(sslSocket, ss)->ssl3.hs.cookie, PR_FALSE);
+    rv = SECITEM_CopyItem(NULL, &CONST_CAST(sslSocket, ss)->ssl3.hs.cookie, &cookie);
+    if (rv != SECSuccess) {
         return SECFailure;
     }
 

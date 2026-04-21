@@ -2926,6 +2926,7 @@ tls13_HandleHelloRetryRequest(sslSocket *ss, const PRUint8 *savedMsg,
     rv = ssl3_HandleParsedExtensions(ss, ssl_hs_hello_retry_request);
     ssl3_DestroyRemoteExtensions(&ss->ssl3.hs.remoteExtensions);
     if (rv != SECSuccess) {
+        SECITEM_FreeItem(&ss->ssl3.hs.cookie, PR_FALSE);
         return SECFailure; /* Error code set below */
     }
     rv = tls13_MaybeHandleEchSignal(ss, savedMsg, savedLength, PR_TRUE);
@@ -2959,10 +2960,12 @@ tls13_HandleHelloRetryRequest(sslSocket *ss, const PRUint8 *savedMsg,
     }
 
     ssl_ReleaseXmitBufLock(ss);
+    SECITEM_FreeItem(&ss->ssl3.hs.cookie, PR_FALSE);
     return SECSuccess;
 
 loser:
     ssl_ReleaseXmitBufLock(ss);
+    SECITEM_FreeItem(&ss->ssl3.hs.cookie, PR_FALSE);
     return SECFailure;
 }
 
