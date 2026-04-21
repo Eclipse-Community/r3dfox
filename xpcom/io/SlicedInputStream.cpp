@@ -43,6 +43,15 @@ NS_INTERFACE_MAP_BEGIN(SlicedInputStream)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIInputStream)
 NS_INTERFACE_MAP_END
 
+// It is highly unlikely for a stream to exceed INT64_MAX bytes in length, so we
+// clamp these values here to allow callers as well as SlicedInputStream to
+// avoid unnecessary integer overflow checks. Out of range start/length values
+// should behave as expected in all realistic situations.
+//
+// Some stream APIs use an int64_t (e.g. Tell), so we use INT64_MAX as the
+// maximum internal offset for start/end.
+static constexpr uint64_t kMaxStreamPos = INT64_MAX;
+
 SlicedInputStream::SlicedInputStream(
     already_AddRefed<nsIInputStream> aInputStream, uint64_t aStart,
     uint64_t aLength)
@@ -53,8 +62,8 @@ SlicedInputStream::SlicedInputStream(
       mWeakAsyncInputStream(nullptr),
       mWeakInputStreamLength(nullptr),
       mWeakAsyncInputStreamLength(nullptr),
-      mStart(aStart),
-      mLength(aLength),
+      mStart(std::clamp<uint64_t>(aStart, 0, kMaxStreamPos)),
+      mLength(std::clamp<uint64_t>(aLength, 0, kMaxStreamPos - mStart)),
       mCurPos(0),
       mClosed(false),
       mAsyncWaitFlags(0),
@@ -491,11 +500,11 @@ bool SlicedInputStream::Deserialize(
 
   const SlicedInputStreamParams& params = aParams.get_SlicedInputStreamParams();
 
-  auto end = CheckedUint64(params.start()) + params.length();
-  if (!end.isValid()) {
+  if (params.start() > kMaxStreamPos ||
+      params.length() > kMaxStreamPos - params.start()) {
     return false;
   }
-  if (params.curPos() > end.value()) {
+  if (params.curPos() > params.start() + params.length()) {
     return false;
   }
 

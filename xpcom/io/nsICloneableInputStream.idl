@@ -27,5 +27,12 @@ interface nsICloneableInputStream : nsISupports
 [scriptable, builtinclass, uuid(ece853c3-aded-4cef-8f51-0d1493d60bd5)]
 interface nsICloneableInputStreamWithRange : nsICloneableInputStream
 {
+  // Create a copy of the input stream, but with the data range reduced to a
+  // sub-slice. The copy will begin at `start` bytes, and extends for a maximum
+  // of `length` bytes. If the underlying stream contains more than `start`
+  // bytes, but fewer than `length` bytes, reading from the stream returns all
+  // remaining bytes.
+  //
+  // See SlicedInputStream's constructor for more details.
   nsIInputStream cloneWithRange(in uint64_t start, in uint64_t length);
 };
