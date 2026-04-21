@@ -307,6 +307,41 @@ TEST(TestSlicedInputStream, LengthBiggerThan)
   ASSERT_EQ((uint64_t)500, count);
 }
 
+// Like LengthBiggerThan, but for an overflowing aStart + aLength pair.
+TEST(TestSlicedInputStream, LengthMuchBiggerThan)
+{
+  nsCString buf;
+  RefPtr<SlicedInputStream> sis =
+      CreateNonSeekableStreams(500, 100, UINT64_MAX - 1, buf);
+
+  uint64_t length;
+  ASSERT_EQ(NS_OK, sis->Available(&length));
+  ASSERT_EQ((uint64_t)500 - 100, length);
+
+  char buf2[4096];
+  uint32_t count;
+  ASSERT_EQ(NS_OK, sis->Read(buf2, sizeof(buf2), &count));
+  ASSERT_EQ((uint64_t)(500 - 100), count);
+  ASSERT_EQ(Substring(buf, 100, count), Substring(buf2, count));
+}
+
+// Like LengthMuchBiggerThan, but with a massive aStart value.
+TEST(TestSlicedInputStream, StartMuchBiggerThan)
+{
+  nsCString buf;
+  RefPtr<SlicedInputStream> sis =
+      CreateNonSeekableStreams(500, UINT64_MAX - 1, 100, buf);
+
+  uint64_t length;
+  ASSERT_EQ(NS_OK, sis->Available(&length));
+  ASSERT_EQ((uint64_t)0, length);
+
+  char buf2[4096];
+  uint32_t count;
+  ASSERT_EQ(NS_OK, sis->Read(buf2, sizeof(buf2), &count));
+  ASSERT_EQ((uint64_t)0, count);
+}
+
 // What if the length is 0?
 TEST(TestSlicedInputStream, Length0)
 {
