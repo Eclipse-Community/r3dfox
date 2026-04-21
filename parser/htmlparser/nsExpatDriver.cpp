@@ -436,6 +436,8 @@ void nsExpatDriver::HandleStartElement(rlbox_sandbox_expat& aSandbox,
   tainted_expat<int> count =
       RLBOX_EXPAT_CALL(MOZ_XML_GetSpecifiedAttributeCount);
   MOZ_RELEASE_ASSERT_TAINTED(count >= 0, "Unexpected attribute count");
+  // aAttrs is an array of pairs, so it needs to have an even length.
+  MOZ_RELEASE_ASSERT_TAINTED(count % 2 == 0, "Attribute count must be even");
 
   tainted_expat<uint64_t> attrArrayLengthTainted;
   for (attrArrayLengthTainted = rlbox::sandbox_static_cast<uint64_t>(count);

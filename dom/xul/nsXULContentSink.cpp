@@ -322,7 +322,7 @@ XULContentSinkImpl::HandleStartElement(const char16_t* aName,
   // XXX Hopefully the parser will flag this before we get here. If
   // we're in the epilog, there should be no new elements
   MOZ_ASSERT(mState != eInEpilog, "tag in XUL doc epilog");
-  MOZ_ASSERT(aAttsCount % 2 == 0, "incorrect aAttsCount");
+  MOZ_RELEASE_ASSERT(aAttsCount % 2 == 0, "incorrect aAttsCount");
 
   // Adjust aAttsCount so it's the actual number of attributes
   aAttsCount /= 2;
