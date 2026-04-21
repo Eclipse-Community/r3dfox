@@ -6,6 +6,7 @@
 #include "mozilla/ModuleUtils.h"
 #include "mozilla/ClearOnShutdown.h"
 #include "mozilla/Omnijar.h"
+#include "nsThreadUtils.h"
 
 #include "MozSrcProtocolHandler.h"
 
@@ -19,16 +20,31 @@ NS_IMPL_QUERY_INTERFACE(MozSrcProtocolHandler, nsISubstitutingProtocolHandler,
 NS_IMPL_ADDREF_INHERITED(MozSrcProtocolHandler, SubstitutingProtocolHandler)
 NS_IMPL_RELEASE_INHERITED(MozSrcProtocolHandler, SubstitutingProtocolHandler)
 
+mozilla::StaticMutex MozSrcProtocolHandler::sMutex;
 mozilla::StaticRefPtr<MozSrcProtocolHandler> MozSrcProtocolHandler::sSingleton;
 
 already_AddRefed<MozSrcProtocolHandler> MozSrcProtocolHandler::GetSingleton() {
+  StaticMutexAutoLock lock(sMutex);
   if (!sSingleton) {
     RefPtr<MozSrcProtocolHandler> handler = new MozSrcProtocolHandler();
     if (NS_WARN_IF(NS_FAILED(handler->Init()))) {
       return nullptr;
     }
     sSingleton = handler;
-    ClearOnShutdown(&sSingleton);
+    auto prevent_shutdown_race = [] {
+      StaticMutexAutoLock lock(sMutex);
+      sSingleton = nullptr;
+    };
+    if (NS_IsMainThread()) {
+      RunOnShutdown(std::move(prevent_shutdown_race));
+    } else {
+      NS_DispatchToMainThread(NS_NewRunnableFunction(
+          "MozSrcProtocolHandler::RunOnShutdown",
+          [prevent_shutdown_race =
+               std::move(prevent_shutdown_race)]() mutable {
+            RunOnShutdown(std::move(prevent_shutdown_race));
+          }));
+    }
   }
   return do_AddRef(sSingleton);
 }
