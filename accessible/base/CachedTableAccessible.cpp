@@ -71,10 +71,14 @@ void CachedTableAccessible::Invalidate(Accessible* aAcc) {
     return;
   }
 
-  if (Accessible* table = nsAccUtils::TableFor(aAcc)) {
+  Accessible* table = nsAccUtils::TableFor(aAcc);
+  while (table && table->IsTable()) {
     // Destroy the instance (if any). We'll create a new one the next time it
-    // is requested.
+    // is requested. Climb up the heirarcy to invalidate parent tables as well.
     sCachedTables->Remove(table);
+    // The table may be a direct child of another table, invalidate that one as
+    // well.
+    table = table->Parent();
   }
 }
 
