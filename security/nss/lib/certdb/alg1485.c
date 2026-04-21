@@ -1401,13 +1401,13 @@ appendItemToBuf(char* dest, SECItem* src, PRUint32* pRemaining)
     if (dest && src && src->data && src->len && src->data[0]) {
         PRUint32 len = src->len;
         PRUint32 i;
-        PRUint32 reqLen = len + 1;
+        PRUint64 reqLen = (PRUint64)len + 1;
         /* are there any embedded control characters ? */
         for (i = 0; i < len; i++) {
             if (NEEDS_HEX_ESCAPE(src->data[i]))
                 reqLen += 2;
         }
-        if (*pRemaining > reqLen) {
+        if (*pRemaining >= reqLen) {
             for (i = 0; i < len; ++i) {
                 PRUint8 c = src->data[i];
                 if (NEEDS_HEX_ESCAPE(c)) {
@@ -1423,7 +1423,7 @@ appendItemToBuf(char* dest, SECItem* src, PRUint32* pRemaining)
                 }
             }
             *dest++ = '\0';
-            *pRemaining -= reqLen;
+            *pRemaining -= (PRUint32)reqLen;
         }
     }
     return dest;
@@ -1441,7 +1441,7 @@ cert_GetCertificateEmailAddresses(CERTCertificate* cert)
     char* pBuf = NULL;
     PORTCheapArenaPool tmpArena;
     PRUint32 maxLen = 0;
-    PRInt32 finalLen = 0;
+    PRUint32 finalLen = 0;
     SECStatus rv;
     SECItem subAltName;
 
