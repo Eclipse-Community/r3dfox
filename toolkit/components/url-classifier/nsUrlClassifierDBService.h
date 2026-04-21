@@ -138,8 +138,14 @@ class nsUrlClassifierDBService final : public nsIUrlClassifierDBService,
   // processed.
   bool mInUpdate;
 
+  // The mDisallowCompletionsTablesLock protects access to the
+  // mDisallowCompletionsTables array, which is populated from the main thread
+  // and read from the worker thread.
+  mozilla::Mutex mDisallowCompletionsTablesLock;
+
   // The list of tables that should never be hash completed.
-  nsTArray<nsCString> mDisallowCompletionsTables;
+  nsTArray<nsCString> mDisallowCompletionsTables
+      MOZ_GUARDED_BY(mDisallowCompletionsTablesLock);
 
   // Thread that we do the updates on.
   static nsIThread* gDbBackgroundThread;

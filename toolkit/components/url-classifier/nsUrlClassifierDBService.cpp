@@ -324,10 +324,10 @@ static Atomic<bool> gShuttingDownThread(false);
 NS_IMPL_ISUPPORTS(nsUrlClassifierDBServiceWorker, nsIUrlClassifierDBService)
 
 nsUrlClassifierDBServiceWorker::nsUrlClassifierDBServiceWorker()
-    : mUpdateObserverLock("nsUrlClassifierDBServerWorker.mUpdateObserverLock"),
+    : mUpdateObserverLock("nsUrlClassifierDBServerWorker::mUpdateObserverLock"),
       mInStream(false),
       mGethashNoise(0),
-      mPendingLookupLock("nsUrlClassifierDBServerWorker.mPendingLookupLock") {}
+      mPendingLookupLock("nsUrlClassifierDBServerWorker::mPendingLookupLock") {}
 
 nsUrlClassifierDBServiceWorker::~nsUrlClassifierDBServiceWorker() {
   NS_ASSERTION(!mClassifier,
@@ -1645,7 +1645,10 @@ nsUrlClassifierDBService::GetInstance(nsresult* result) {
   return do_AddRef(sUrlClassifierDBService);
 }
 
-nsUrlClassifierDBService::nsUrlClassifierDBService() : mInUpdate(false) {}
+nsUrlClassifierDBService::nsUrlClassifierDBService()
+    : mInUpdate(false),
+      mDisallowCompletionsTablesLock(
+          "nsUrlClassifierDBService::mDisallowCompletionsTables") {}
 
 nsUrlClassifierDBService::~nsUrlClassifierDBService() {
   sUrlClassifierDBService = nullptr;
@@ -1655,7 +1658,12 @@ nsresult nsUrlClassifierDBService::ReadDisallowCompletionsTablesFromPrefs() {
   nsAutoCString tables;
 
   Preferences::GetCString(DISALLOW_COMPLETION_TABLE_PREF, tables);
-  Classifier::SplitTables(tables, mDisallowCompletionsTables);
+
+  nsTArray<nsCString> parsed;
+  Classifier::SplitTables(tables, parsed);
+
+  MutexAutoLock lock(mDisallowCompletionsTablesLock);
+  mDisallowCompletionsTables = std::move(parsed);
 
   return NS_OK;
 }
@@ -2286,6 +2294,7 @@ nsresult nsUrlClassifierDBService::CacheCompletions(
 }
 
 bool nsUrlClassifierDBService::CanComplete(const nsACString& aTableName) {
+  MutexAutoLock lock(mDisallowCompletionsTablesLock);
   return !mDisallowCompletionsTables.Contains(aTableName);
 }
 
