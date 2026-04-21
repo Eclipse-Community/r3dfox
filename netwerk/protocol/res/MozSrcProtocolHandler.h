@@ -8,6 +8,7 @@
 
 #include "nsIProtocolHandler.h"
 #include "nsISubstitutingProtocolHandler.h"
+#include "mozilla/StaticMutex.h"
 #include "SubstitutingProtocolHandler.h"
 
 namespace mozilla {
@@ -37,7 +38,9 @@ class MozSrcProtocolHandler final : public nsISubstitutingProtocolHandler,
                                                  nsIURI** aResult) override;
 
  private:
-  static mozilla::StaticRefPtr<MozSrcProtocolHandler> sSingleton;
+  static mozilla::StaticMutex sMutex;
+  static mozilla::StaticRefPtr<MozSrcProtocolHandler> sSingleton
+      MOZ_GUARDED_BY(sMutex);
   nsresult Init();
 
   nsCString mGREURI;
