@@ -5329,14 +5329,39 @@ bool HttpBaseChannel::ShouldTaintReplacementChannelOrigin(
     return false;
   }
 
-  // If new channel is not of same origin we need to taint unless
-  // mURI <-> mOriginalURI/LoadingPrincipal are same origin.
+  // Fetch spec "compute redirect-taint":
+  // Taint if url's origin is not same-origin with lastURL's origin AND
+  // request's origin is not same-origin with lastURL's origin.
+  // Condition 1: same-origin redirect never taints.
   if (IsNewChannelSameOrigin(aNewChannel)) {
     return false;
   }
 
-  nsresult rv;
+  // Condition 2: cross-origin redirect — taint if the origin that initiated
+  // the request is not same-origin with the current URL (mURI).
+  //
+  // Bug 1965430: For top-level navigational loads (e.g., form POST),
+  // LoadingPrincipal is null. TriggeringPrincipal correctly represents the
+  // origin that initiated the request in all cases. The old code using
+  // LoadingPrincipal fell through to comparing mOriginalURI with mURI, which
+  // are equal for the first redirect, incorrectly skipping the taint.
+  if (StaticPrefs::network_http_origin_useTriggeringPrincipal()) {
+    nsIPrincipal* triggeringPrincipal = mLoadInfo->TriggeringPrincipal();
+    if (!triggeringPrincipal) {
+      return true;
+    }
+    bool sameOrigin = false;
+    nsresult rv = triggeringPrincipal->IsSameOrigin(mURI, &sameOrigin);
+    if (NS_FAILED(rv)) {
+      return true;
+    }
+    return !sameOrigin;
+  }
 
+  // Old code path (Bug 1965430): retained behind pref for safety.
+  // Uses LoadingPrincipal which is null for top-level navigations,
+  // falling back to mOriginalURI vs mURI comparison.
+  nsresult rv;
   if (mLoadInfo->GetLoadingPrincipal()) {
     bool sameOrigin = false;
     rv = mLoadInfo->GetLoadingPrincipal()->IsSameOrigin(mURI, &sameOrigin);

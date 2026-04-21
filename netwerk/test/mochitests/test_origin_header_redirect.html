@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/ -->
+<html>
+<head>
+    <title>Bug 1965430 - Test Origin Header on top-level navigational POST redirects</title>
+    <script src="/tests/SimpleTest/SimpleTest.js"></script>
+    <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css">
+</head>
+<body>
+
+<p><a target="_blank" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1965430">Mozilla Bug 1965430</a></p>
+
+<pre id="test">
+<script class="testbody" type="text/javascript">
+// Test page origin: http://mochi.test:8888 (A)
+// Cross-origin:     http://test1.mochi.test:8888 (B)
+// Cross-origin:     http://test2.mochi.test:8888 (C)
+
+const ORIGIN_A = "http://mochi.test:8888";
+/* eslint-disable @microsoft/sdl/no-insecure-url */
+const ORIGIN_B = "http://test1.mochi.test:8888";
+const ORIGIN_C = "http://test2.mochi.test:8888";
+/* eslint-enable @microsoft/sdl/no-insecure-url */
+
+const HELPER_PATH = "/tests/netwerk/test/mochitests/origin_header_form_post_redirect.html";
+const REDIRECT_PATH = "/tests/netwerk/test/mochitests/redirect_to.sjs";
+const RECORD_PATH = "/tests/netwerk/test/mochitests/origin_header.sjs";
+
+// Build a URL that opens the helper page, which auto-submits a form POST to
+// redirectURL, which then 308-redirects to the final origin_header.sjs.
+function buildHelperURL(formActionOrigin, redirectToOrigin) {
+    let finalDest = redirectToOrigin + RECORD_PATH;
+    let redirectURL = formActionOrigin + REDIRECT_PATH + "?" + finalDest;
+    return ORIGIN_A + HELPER_PATH + "?action=" + encodeURIComponent(redirectURL);
+}
+
+// Open a popup, wait for it to navigate through the redirect chain, and
+// read the Origin header recorded by origin_header.sjs.
+function testTopLevelRedirect(name, helperURL, expectedOrigin) {
+    return new Promise((resolve) => {
+        let popup = window.open(helperURL);
+        // The popup loads the helper, which auto-submits a form.
+        // After the redirect, origin_header.sjs displays the Origin header.
+        // We poll until the popup has navigated to the final page.
+        let interval = setInterval(() => {
+            try {
+                let content = SpecialPowers.wrap(popup).document.documentElement.textContent;
+                if (content && content.startsWith("Origin:")) {
+                    clearInterval(interval);
+                    is(content, expectedOrigin, name);
+                    popup.close();
+                    resolve();
+                }
+            } catch (e) {
+                // Cross-origin access error while navigating, keep polling.
+            }
+        }, 100);
+    });
+}
+
+// Fetch spec "compute redirect-taint" algorithm:
+//   Taint if currentURL.origin != locationURL.origin
+//   AND request.origin != currentURL.origin
+//
+// For top-level form POST navigations, LoadingPrincipal is null.
+// TriggeringPrincipal is the page that submitted the form (origin A).
+
+let tests = [
+    {
+        // A submits form to A, A redirects to B.
+        // currentURL=A, locationURL=B, request.origin=A
+        // Cond1: A!=B (yes), Cond2: A!=A (no) -> Don't taint
+        name: "top-level: same-origin POST redirected to cross-origin (A->A->B)",
+        url: buildHelperURL(ORIGIN_A, ORIGIN_B),
+        expected: "Origin: " + ORIGIN_A,
+    },
+    {
+        // A submits form to B, B redirects to A.
+        // currentURL=B, locationURL=A, request.origin=A
+        // Cond1: B!=A (yes), Cond2: A!=B (yes) -> Taint
+        name: "top-level: cross-origin POST redirected to same-origin (A->B->A)",
+        url: buildHelperURL(ORIGIN_B, ORIGIN_A),
+        expected: "Origin: null",
+    },
+    {
+        // A submits form to B, B redirects to C.
+        // currentURL=B, locationURL=C, request.origin=A
+        // Cond1: B!=C (yes), Cond2: A!=B (yes) -> Taint
+        // This is the exact scenario from the bug report.
+        name: "top-level: cross-origin POST redirected to different cross-origin (A->B->C)",
+        url: buildHelperURL(ORIGIN_B, ORIGIN_C),
+        expected: "Origin: null",
+    },
+    {
+        // A submits form to B, B redirects to B (same-origin redirect).
+        // currentURL=B, locationURL=B, request.origin=A
+        // Cond1: B!=B (no) -> Don't taint
+        name: "top-level: cross-origin POST redirected same-origin (A->B->B)",
+        url: buildHelperURL(ORIGIN_B, ORIGIN_B),
+        expected: "Origin: " + ORIGIN_A,
+    },
+];
+
+async function runTests() {
+    await SpecialPowers.pushPrefEnv({
+        "set": [
+            ["network.http.origin.useTriggeringPrincipal", true],
+            ["network.http.sendOriginHeader", 2],
+        ],
+    });
+
+    for (let test of tests) {
+        await testTopLevelRedirect(test.name, test.url, test.expected);
+    }
+
+    SimpleTest.finish();
+}
+
+SimpleTest.waitForExplicitFinish();
+SimpleTest.requestLongerTimeout(5);
+addLoadEvent(runTests);
+
+</script>
+</pre>
+</body>
+</html>

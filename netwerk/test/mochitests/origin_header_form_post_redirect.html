@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/ -->
+<html>
+<head>
+    <script>
+     function submitForm() {
+         // The form action is passed via the query string.
+         let params = new URLSearchParams(window.location.search);
+         let action = params.get("action");
+         if (action) {
+             document.getElementById("form").action = action;
+         }
+         document.getElementById("form").submit();
+     }
+    </script>
+</head>
+<body onload="submitForm()">
+    <form action=""
+          method="POST"
+          id="form">
+        <input type="submit" value="Submit POST">
+    </form>
+</body>
+</html>
