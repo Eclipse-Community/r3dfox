@@ -474,7 +474,7 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
   WebAuthnMakeCredentialInfo info(
       origin, NS_ConvertUTF8toUTF16(rpId), challenge, clientDataJSON,
       adjustedTimeout, excludeList, rpInfo, userInfo, coseAlgos, extensions,
-      authSelection, attestation, aOptions.mHints, context->Top()->Id());
+      authSelection, attestation, context->Top()->Id());
 
   // Set up the transaction state. Fallible operations should not be performed
   // below this line, as we must not leave the transaction state partially
@@ -653,7 +653,7 @@ already_AddRefed<Promise> WebAuthnManager::GetAssertion(
   WebAuthnGetAssertionInfo info(origin, NS_ConvertUTF8toUTF16(rpId), challenge,
                                 clientDataJSON, adjustedTimeout, allowList,
                                 extensions, aOptions.mUserVerification,
-                                aConditionallyMediated, aOptions.mHints, context->Top()->Id());
+                                aConditionallyMediated, context->Top()->Id());
 
   // Set up the transaction state. Fallible operations should not be performed
   // below this line, as we must not leave the transaction state partially

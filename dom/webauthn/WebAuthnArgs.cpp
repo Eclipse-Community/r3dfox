@@ -170,12 +170,6 @@ WebAuthnRegisterArgs::GetAttestationConveyancePreference(
   return NS_OK;
 }
 
-NS_IMETHODIMP
-WebAuthnRegisterArgs::GetHints(nsTArray<nsString>& aHints) {
-  aHints.Assign(mInfo.Hints());
-  return NS_OK;
-}
-
 NS_IMPL_ISUPPORTS(WebAuthnSignArgs, nsIWebAuthnSignArgs)
 
 NS_IMETHODIMP
@@ -268,12 +262,6 @@ WebAuthnSignArgs::GetTimeoutMS(uint32_t* aTimeoutMS) {
 NS_IMETHODIMP
 WebAuthnSignArgs::GetConditionallyMediated(bool* aConditionallyMediated) {
   *aConditionallyMediated = mInfo.ConditionallyMediated();
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-WebAuthnSignArgs::GetHints(nsTArray<nsString>& aHints) {
-  aHints.Assign(mInfo.Hints());
   return NS_OK;
 }
 

@@ -101,7 +101,6 @@ struct WebAuthnMakeCredentialInfo {
   WebAuthnAuthenticatorSelection AuthenticatorSelection;
   nsString attestationConveyancePreference;
   uint64_t BrowsingContextId;
-  nsString[] Hints;
 };
 
 struct WebAuthnMakeCredentialResult {
@@ -124,7 +123,6 @@ struct WebAuthnGetAssertionInfo {
   nsString userVerificationRequirement;
   bool ConditionallyMediated;
   uint64_t BrowsingContextId;
-  nsString[] Hints;
 };
 
 struct WebAuthnGetAssertionResult {
