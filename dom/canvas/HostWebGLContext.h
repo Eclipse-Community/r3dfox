@@ -10,6 +10,7 @@
 #include "mozilla/GfxMessageUtils.h"
 #include "ClientWebGLContext.h"
 #include "mozilla/Maybe.h"
+#include "mozilla/Mutex.h"
 #include "GLContext.h"
 #include "WebGLContext.h"
 #include "WebGL2Context.h"
