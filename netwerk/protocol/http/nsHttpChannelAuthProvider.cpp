@@ -1436,10 +1436,11 @@ NS_IMETHODIMP nsHttpChannelAuthProvider::OnAuthAvailable(
   nsCOMPtr<nsISupports> sessionStateGrip;
   if (entry) sessionStateGrip = entry->mMetaData;
 
-  nsAuthInformationHolder* holder =
-      static_cast<nsAuthInformationHolder*>(aAuthInfo);
-  *ident =
-      nsHttpAuthIdentity(holder->Domain(), holder->User(), holder->Password());
+  nsString domain, user, password;
+  aAuthInfo->GetDomain(domain);
+  aAuthInfo->GetUsername(user);
+  aAuthInfo->GetPassword(password);
+  *ident = nsHttpAuthIdentity(domain, user, password);
 
   nsAutoCString unused;
   nsCOMPtr<nsIHttpAuthenticator> auth;
