@@ -75,7 +75,7 @@ int nr_socket_destroy(nr_socket **sockp)
     if (sock->vtbl)
       sock->vtbl->destroy(&sock->obj);
 
-    RFREE(sock);
+    free(sock);
 
     return(0);
   }
@@ -176,7 +176,7 @@ int nr_socket_factory_destroy(nr_socket_factory **factorypp)
     factoryp = *factorypp;
     *factorypp = NULL;
     factoryp->vtbl->destroy(&factoryp->obj);
-    RFREE(factoryp);
+    free(factoryp);
     return (0);
   }
 

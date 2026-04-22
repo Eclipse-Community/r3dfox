@@ -245,7 +245,7 @@ NR_reg_get_child_registry(NR_registry parent, unsigned int i, NR_registry child)
 
     _status=0;
   abort:
-    RFREE(children);
+    free(children);
     return(_status);
 }
 
@@ -268,7 +268,7 @@ NR_reg_dump()
     return(_status);
 }
 
-// convenience methods, call RFREE on the returned data
+// convenience methods, call free on the returned data
 int
 NR_reg_alloc_data(NR_registry name, Data *data)
 {
@@ -280,7 +280,7 @@ NR_reg_alloc_data(NR_registry name, Data *data)
     if ((r=NR_reg_get_length(name, &length)))
       ABORT(r);
 
-    if (!(tmp = (void*)RMALLOC(length)))
+    if (!(tmp = (UCHAR*)malloc(length)))
       ABORT(R_NO_MEMORY);
 
     if ((r=NR_reg_get_bytes(name, tmp, length, &sanity_check)))
@@ -294,7 +294,7 @@ NR_reg_alloc_data(NR_registry name, Data *data)
     _status=0;
   abort:
     if (_status) {
-      if (tmp) RFREE(tmp);
+      if (tmp) free(tmp);
     }
     return(_status);
 }
@@ -309,7 +309,7 @@ NR_reg_alloc_string(NR_registry name, char **data)
     if ((r=NR_reg_get_length(name, &length)))
       ABORT(r);
 
-    if (!(tmp = (void*)RMALLOC(length+1)))
+    if (!(tmp = (char*)malloc(length+1)))
       ABORT(R_NO_MEMORY);
 
     if ((r=NR_reg_get_string(name, tmp, length+1)))
@@ -322,7 +322,7 @@ NR_reg_alloc_string(NR_registry name, char **data)
     _status=0;
   abort:
     if (_status) {
-      if (tmp) RFREE(tmp);
+      if (tmp) free(tmp);
     }
     return(_status);
 }

@@ -137,7 +137,7 @@ int NR_reg_get_children(NR_registry parent, NR_registry children[], size_t size,
 
 int NR_reg_dump(void);
 
-/* convenience methods, call RFREE on the returned data */
+/* convenience methods, call free on the returned data */
 int NR_reg_alloc_data(NR_registry name, Data *data);
 int NR_reg_alloc_string(NR_registry name, char **data);
 

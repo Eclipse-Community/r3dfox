@@ -66,7 +66,7 @@ int nr_interface_prioritizer_destroy(nr_interface_prioritizer **ifpp)
     ifp = *ifpp;
     *ifpp = 0;
     ifp->vtbl->destroy(&ifp->obj);
-    RFREE(ifp);
+    free(ifp);
     return(0);
   }
 

@@ -95,7 +95,7 @@ nr_stun_form_request_or_indication(int mode, int msg_type, nr_stun_message **msg
 
    _status=0;
  abort:
-   if (_status) RFREE(req);
+   if (_status) free(req);
    return _status;
 }
 

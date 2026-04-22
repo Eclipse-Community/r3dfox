@@ -160,8 +160,8 @@ int r_assoc_destroy(r_assoc **assocp)
     for(i=0;i<assoc->size;i++)
       destroy_assoc_chain(assoc->chains[i]);
 
-    RFREE(assoc->chains);
-    RFREE(*assocp);
+    free(assoc->chains);
+    free(*assocp);
 
     return(0);
   }
@@ -176,9 +176,9 @@ static int destroy_assoc_chain(r_assoc_el *chain)
       if(chain->destroy)
 	chain->destroy(chain->data);
 
-      RFREE(chain->key);
+      free(chain->key);
 
-      RFREE(chain);
+      free(chain);
       chain=nxt;
     }
 
@@ -220,7 +220,7 @@ static int copy_assoc_chain(r_assoc_el **knewp, r_assoc_el *old)
       else
 	ptr->data=old->data;
 
-      if(!(ptr->key=(char *)RMALLOC(old->key_len)))
+      if(!(ptr->key=(char *)malloc(old->key_len)))
 	ABORT(R_NO_MEMORY);
       memcpy(ptr->key,old->key,ptr->key_len=old->key_len);
     }
@@ -295,7 +295,7 @@ int r_assoc_insert(
 
       if(!(new_bucket=(r_assoc_el *)RCALLOC(sizeof(r_assoc_el))))
 	ABORT(R_NO_MEMORY);
-      if(!(new_bucket->key=(char *)RMALLOC(len)))
+      if(!(new_bucket->key=(char *)malloc(len)))
 	ABORT(R_NO_MEMORY);
       memcpy(new_bucket->key,key,len);
       new_bucket->key_len=len;
@@ -323,8 +323,8 @@ int r_assoc_insert(
     _status=0;
   abort:
     if(_status && new_bucket){
-      RFREE(new_bucket->key);
-      RFREE(new_bucket);
+      free(new_bucket->key);
+      free(new_bucket);
     }
     return(_status);
   }
@@ -357,8 +357,8 @@ int r_assoc_delete(r_assoc *assoc, char *key, int len)
     if(bucket->destroy)
       bucket->destroy(bucket->data);
 
-    RFREE(bucket->key);
-    RFREE(bucket);
+    free(bucket->key);
+    free(bucket);
     assoc->num_elements--;
 
     return(0);
@@ -479,8 +479,8 @@ int r_assoc_iter_delete(r_assoc_iterator *iter)
       iter->prev->destroy(iter->prev->data);
 
     iter->assoc->num_elements--;
-    RFREE(iter->prev->key);
-    RFREE(iter->prev);
+    free(iter->prev->key);
+    free(iter->prev);
     return(0);
   }
 

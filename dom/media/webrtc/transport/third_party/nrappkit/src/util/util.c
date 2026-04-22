@@ -62,7 +62,7 @@ int nr_get_filename(char *base, char *name, char **namep)
     char *ret=0;
     int _status;
 
-    if(!(ret=(char *)RMALLOC(len)))
+    if(!(ret=(char *)malloc(len)))
       ABORT(R_NO_MEMORY);
     if(base[strlen(base)-1]!='/'){
       sprintf(ret,"%s/%s",base,name);

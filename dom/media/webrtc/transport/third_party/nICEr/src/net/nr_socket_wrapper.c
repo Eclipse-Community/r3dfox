@@ -77,7 +77,7 @@ int nr_socket_wrapper_factory_destroy(nr_socket_wrapper_factory **wrapperp)
   if (wrapper->vtbl)
     wrapper->vtbl->destroy(&wrapper->obj);
 
-  RFREE(wrapper);
+  free(wrapper);
 
   return 0;
 }

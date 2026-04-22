@@ -66,7 +66,7 @@ static int nr_tcp_socket_ctx_destroy(nr_tcp_socket_ctx **objp)
 
     nr_socket_destroy(&sock->inner);
 
-    RFREE(sock);
+    free(sock);
 
     return(0);
   }
@@ -462,7 +462,7 @@ static int nr_socket_multi_tcp_destroy(void **objp)
       nr_tcp_socket_ctx_destroy(&tcpsock);
     }
 
-    RFREE(sock);
+    free(sock);
 
     return 0;
   }

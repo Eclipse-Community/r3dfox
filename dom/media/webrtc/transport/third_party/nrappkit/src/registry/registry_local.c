@@ -297,7 +297,7 @@ nr_reg_local_dump_print(void *ptr, r_assoc_iterator *iter, char *prefix, char *n
       else
         r_log(NR_LOG_REGISTRY, LOG_INFO, "%s: %s", name, data);
       if (freeit)
-        RFREE(data);
+        free(data);
     }
 
     _status=0;
@@ -309,7 +309,7 @@ nr_reg_local_dump_print(void *ptr, r_assoc_iterator *iter, char *prefix, char *n
 int
 nr_reg_rfree(void *ptr)
 {
-    RFREE(ptr);
+    free(ptr);
     return 0;
 }
 
@@ -378,7 +378,7 @@ nr_reg_insert_node(char *name, void *node)
              nr_reg_type_name(((nr_registry_node*)node)->type),
              (_status ? "FAILED" : "succeeded"), data);
       if (freeit)
-        RFREE(data);
+        free(data);
     }
     return(_status);
 }
@@ -409,7 +409,7 @@ nr_reg_change_node(char *name, void *node, void *old)
              nr_reg_type_name(((nr_registry_node*)node)->type),
              (_status ? "FAILED" : "succeeded"), data);
       if (freeit)
-        RFREE(data);
+        free(data);
     }
     return(_status);
 }
@@ -440,7 +440,7 @@ nr_reg_alloc_node_data(char *name, nr_registry_node *node, int *freeit)
     }
 
     if (alloc > 0) {
-      s = (void*)RMALLOC(alloc);
+      s = (char*)malloc(alloc);
       if (!s)
         return "";
 
@@ -517,7 +517,7 @@ nr_reg_get(char *name, int type, void *out)
 
     _status=0;
   abort:
-    if (free_node) RFREE(node);
+    if (free_node) free(node);
     return(_status);
 }
 
@@ -584,7 +584,7 @@ nr_reg_get_array(char *name, unsigned char type, unsigned char *out, size_t size
 
     _status=0;
   abort:
-    if (node && free_node) RFREE(node);
+    if (node && free_node) free(node);
     return(_status);
 }
 
@@ -661,7 +661,7 @@ nr_reg_set(char *name, int type, void *data)
     _status=0;
   abort:
     if (_status) {
-      if (node && free_node) RFREE(node);
+      if (node && free_node) free(node);
     }
     return(_status);
 }
@@ -735,7 +735,7 @@ nr_reg_set_parent_registries(char *name)
     char *parent = 0;
     char *dot = 0;
 
-    if ((parent = r_strdup(name)) == 0)
+    if ((parent = strdup(name)) == 0)
       ABORT(R_NO_MEMORY);
 
     if ((dot = strrchr(parent, '.')) != 0) {
@@ -746,7 +746,7 @@ nr_reg_set_parent_registries(char *name)
 
     _status=0;
   abort:
-    if (parent) RFREE(parent);
+    if (parent) free(parent);
     return(_status);
 }
 
@@ -896,7 +896,7 @@ nr_reg_local_get_registry(NR_registry name, NR_registry out)
 
     _status=0;
   abort:
-    if (free_node) RFREE(node);
+    if (free_node) free(node);
     return(_status);
 
 }

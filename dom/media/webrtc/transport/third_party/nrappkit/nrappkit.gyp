@@ -54,7 +54,6 @@
 #              './src/util/libekr/r_list.c',
 #              './src/util/libekr/r_list.h',
               './src/util/libekr/r_macros.h',
-              './src/util/libekr/r_memory.c',
               './src/util/libekr/r_memory.h',
               './src/util/libekr/r_replace.c',
               './src/util/libekr/r_thread.h',

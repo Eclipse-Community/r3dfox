@@ -102,7 +102,7 @@ nr_stun_message_destroy(nr_stun_message **msg)
             nr_stun_message_attribute_destroy(*msg, &attr);
         }
 
-        RFREE(*msg);
+        free(*msg);
 
         *msg = 0;
     }
@@ -141,7 +141,7 @@ nr_stun_message_attribute_destroy(nr_stun_message *msg, nr_stun_message_attribut
         a = *attr;
         TAILQ_REMOVE(&msg->attributes, a, entry);
 
-        RFREE(a);
+        free(a);
 
         *attr = 0;
     }

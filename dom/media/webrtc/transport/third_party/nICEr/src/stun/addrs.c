@@ -160,7 +160,7 @@ nr_stun_filter_addrs(nr_local_addr addrs[], int remove_loopback, int remove_link
     nr_local_addr *tmp = 0;
     int dest_index = 0;
 
-    tmp = RMALLOC(*count * sizeof(*tmp));
+    tmp = (nr_local_addr*)malloc(*count * sizeof(*tmp));
     if (!tmp)
         ABORT(R_NO_MEMORY);
 
@@ -187,7 +187,7 @@ nr_stun_filter_addrs(nr_local_addr addrs[], int remove_loopback, int remove_link
 
     _status = 0;
   abort:
-    RFREE(tmp);
+    free(tmp);
     return _status;
 }
 

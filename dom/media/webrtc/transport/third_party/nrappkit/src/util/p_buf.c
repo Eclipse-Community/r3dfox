@@ -78,7 +78,7 @@ int nr_p_buf_ctx_destroy(nr_p_buf_ctx **ctxp)
 
     nr_p_buf_destroy_chain(&ctx->free_list);
 
-    RFREE(ctx);
+    free(ctx);
     *ctxp=0;
 
     return(0);
@@ -97,7 +97,7 @@ int nr_p_buf_alloc(nr_p_buf_ctx *ctx, nr_p_buf **bufp)
     else {
       if(!(buf=(nr_p_buf *)RCALLOC(sizeof(nr_p_buf))))
         ABORT(R_NO_MEMORY);
-      if(!(buf->data=(UCHAR *)RMALLOC(ctx->buf_size)))
+      if(!(buf->data=(UCHAR *)malloc(ctx->buf_size)))
         ABORT(R_NO_MEMORY);
       buf->size=ctx->buf_size;
     }
@@ -195,8 +195,8 @@ static int nr_p_buf_destroy(nr_p_buf *buf)
     if(!buf)
       return(0);
 
-    RFREE(buf->data);
-    RFREE(buf);
+    free(buf->data);
+    free(buf);
 
     return(0);
   }

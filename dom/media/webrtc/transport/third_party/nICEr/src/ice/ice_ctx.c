@@ -104,7 +104,7 @@ int nr_ice_fetch_stun_servers(int ct, nr_ice_stun_server **out)
       if (r = nr_ip4_port_to_transport_addr(ntohl(addr_int), port, IPPROTO_UDP,
                                             &servers[i].addr))
         ABORT(r);
-      RFREE(addr);
+      free(addr);
       addr=0;
     }
 
@@ -112,8 +112,8 @@ int nr_ice_fetch_stun_servers(int ct, nr_ice_stun_server **out)
 
     _status=0;
   abort:
-    RFREE(addr);
-    if (_status) RFREE(servers);
+    free(addr);
+    if (_status) free(servers);
     return(_status);
   }
 
@@ -122,7 +122,7 @@ int nr_ice_ctx_set_stun_servers(nr_ice_ctx *ctx,nr_ice_stun_server *servers,int 
     int _status;
 
     if(ctx->stun_servers_cfg){
-      RFREE(ctx->stun_servers_cfg);
+      free(ctx->stun_servers_cfg);
       ctx->stun_servers_cfg=NULL;
       ctx->stun_server_ct_cfg=0;
     }
@@ -146,10 +146,10 @@ int nr_ice_ctx_set_turn_servers(nr_ice_ctx *ctx,nr_ice_turn_server *servers,int 
 
     if(ctx->turn_servers_cfg){
       for (int i = 0; i < ctx->turn_server_ct_cfg; i++) {
-        RFREE(ctx->turn_servers_cfg[i].username);
+        free(ctx->turn_servers_cfg[i].username);
         r_data_destroy(&ctx->turn_servers_cfg[i].password);
       }
-      RFREE(ctx->turn_servers_cfg);
+      free(ctx->turn_servers_cfg);
       ctx->turn_servers_cfg=NULL;
       ctx->turn_server_ct_cfg=0;
     }
@@ -177,7 +177,7 @@ int nr_ice_ctx_copy_turn_servers(nr_ice_ctx *ctx, nr_ice_turn_server *servers, i
 
     // make copies of the username and password so they aren't freed twice
     for (i = 0; i < ct; ++i) {
-      if (!(ctx->turn_servers_cfg[i].username = r_strdup(servers[i].username))) {
+      if (!(ctx->turn_servers_cfg[i].username = strdup(servers[i].username))) {
         ABORT(R_NO_MEMORY);
       }
       if (r = r_data_create(&ctx->turn_servers_cfg[i].password,
@@ -197,7 +197,7 @@ static int nr_ice_ctx_set_local_addrs(nr_ice_ctx *ctx,nr_local_addr *addrs,int c
     int _status,i,r;
 
     if(ctx->local_addrs) {
-      RFREE(ctx->local_addrs);
+      free(ctx->local_addrs);
       ctx->local_addr_ct=0;
       ctx->local_addrs=0;
     }
@@ -309,7 +309,7 @@ int nr_ice_fetch_turn_servers(int ct, nr_ice_turn_server **out)
         data.data=0;
       }
 
-      RFREE(addr);
+      free(addr);
       addr=0;
     }
 
@@ -317,9 +317,9 @@ int nr_ice_fetch_turn_servers(int ct, nr_ice_turn_server **out)
 
     _status=0;
   abort:
-    RFREE(data.data);
-    RFREE(addr);
-    if (_status) RFREE(servers);
+    free(data.data);
+    free(addr);
+    if (_status) free(servers);
     return(_status);
   }
 #endif /* USE_TURN */
@@ -339,7 +339,7 @@ int nr_ice_fetch_turn_servers(int ct, nr_ice_turn_server **out)
 
     ctx->flags=flags;
 
-    if(!(ctx->label=r_strdup(label)))
+    if(!(ctx->label=strdup(label)))
       ABORT(R_NO_MEMORY);
 
     ctx->gather_handler = gather_handler;
@@ -453,39 +453,39 @@ int nr_ice_fetch_turn_servers(int ct, nr_ice_turn_server **out)
       nr_ice_media_stream_destroy(&s1);
     }
 
-    RFREE(ctx->label);
+    free(ctx->label);
 
     ctx->gather_handler = 0;
 
-    RFREE(ctx->stun_servers_cfg);
+    free(ctx->stun_servers_cfg);
 
-    RFREE(ctx->local_addrs);
+    free(ctx->local_addrs);
 
-    RFREE(ctx->target_for_default_local_address_lookup);
+    free(ctx->target_for_default_local_address_lookup);
 
     for (i = 0; i < ctx->turn_server_ct_cfg; i++) {
-        RFREE(ctx->turn_servers_cfg[i].username);
+        free(ctx->turn_servers_cfg[i].username);
         r_data_destroy(&ctx->turn_servers_cfg[i].password);
     }
-    RFREE(ctx->turn_servers_cfg);
+    free(ctx->turn_servers_cfg);
 
     f1=STAILQ_FIRST(&ctx->foundations);
     while(f1){
       f2=STAILQ_NEXT(f1,entry);
-      RFREE(f1);
+      free(f1);
       f1=f2;
     }
 
     STAILQ_FOREACH_SAFE(id1, &ctx->ids, entry, id2){
       STAILQ_REMOVE(&ctx->ids,id1,nr_ice_stun_id_,entry);
-      RFREE(id1);
+      free(id1);
     }
 
     nr_resolver_destroy(&ctx->resolver);
     nr_interface_prioritizer_destroy(&ctx->interface_prioritizer);
     nr_socket_factory_destroy(&ctx->socket_factory);
 
-    RFREE(ctx);
+    free(ctx);
 
     *ctxp=0;
   }
@@ -843,7 +843,7 @@ int nr_ice_set_target_for_default_local_address_lookup(nr_ice_ctx *ctx, const ch
     int r,_status;
 
     if (ctx->target_for_default_local_address_lookup) {
-      RFREE(ctx->target_for_default_local_address_lookup);
+      free(ctx->target_for_default_local_address_lookup);
       ctx->target_for_default_local_address_lookup=0;
     }
 
@@ -851,7 +851,7 @@ int nr_ice_set_target_for_default_local_address_lookup(nr_ice_ctx *ctx, const ch
       ABORT(R_NO_MEMORY);
 
     if ((r=nr_str_port_to_transport_addr(target_ip, target_port, IPPROTO_UDP, ctx->target_for_default_local_address_lookup))) {
-      RFREE(ctx->target_for_default_local_address_lookup);
+      free(ctx->target_for_default_local_address_lookup);
       ctx->target_for_default_local_address_lookup=0;
       ABORT(r);
     }
@@ -1103,13 +1103,13 @@ int nr_ice_get_new_ice_ufrag(char** ufrag)
 
     if(r=nr_ice_random_string(buf,ICE_UFRAG_LEN))
       ABORT(r);
-    if(!(*ufrag=r_strdup(buf)))
+    if(!(*ufrag=strdup(buf)))
       ABORT(r);
 
     _status=0;
   abort:
     if(_status) {
-      RFREE(*ufrag);
+      free(*ufrag);
       *ufrag = 0;
     }
     return(_status);
@@ -1122,13 +1122,13 @@ int nr_ice_get_new_ice_pwd(char** pwd)
 
     if(r=nr_ice_random_string(buf,ICE_PWD_LEN))
       ABORT(r);
-    if(!(*pwd=r_strdup(buf)))
+    if(!(*pwd=strdup(buf)))
       ABORT(r);
 
     _status=0;
   abort:
     if(_status) {
-      RFREE(*pwd);
+      free(*pwd);
       *pwd = 0;
     }
     return(_status);

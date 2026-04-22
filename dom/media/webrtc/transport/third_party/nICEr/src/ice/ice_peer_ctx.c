@@ -56,7 +56,7 @@ int nr_ice_peer_ctx_create(nr_ice_ctx *ctx, nr_ice_handler *handler,char *label,
 
     pctx->state = NR_ICE_PEER_STATE_UNPAIRED;
 
-    if(!(pctx->label=r_strdup(label)))
+    if(!(pctx->label=strdup(label)))
       ABORT(R_NO_MEMORY);
 
     pctx->ctx=ctx;
@@ -187,7 +187,7 @@ static int nr_ice_ctx_parse_candidate(nr_ice_peer_ctx *pctx, nr_ice_media_stream
     cand->trickled = trickled;
 
     if (mdns_addr) {
-      cand->mdns_addr = r_strdup(mdns_addr);
+      cand->mdns_addr = strdup(mdns_addr);
       if (!cand->mdns_addr) {
         ABORT(R_NO_MEMORY);
       }
@@ -496,7 +496,7 @@ int nr_ice_peer_ctx_disable_component(nr_ice_peer_ctx *pctx, nr_ice_media_stream
     pctx->handler = 0;
 
     NR_async_timer_cancel(pctx->connected_cb_timer);
-    RFREE(pctx->label);
+    free(pctx->label);
 
     STAILQ_FOREACH_SAFE(str1, &pctx->peer_streams, entry, str2){
       STAILQ_REMOVE(&pctx->peer_streams,str1,nr_ice_media_stream_,entry);
@@ -511,7 +511,7 @@ int nr_ice_peer_ctx_disable_component(nr_ice_peer_ctx *pctx, nr_ice_media_stream
       pctx->trickle_grace_period_timer=0;
     }
 
-    RFREE(pctx);
+    free(pctx);
 
     *pctxp=0;
   }

@@ -75,7 +75,7 @@ static int nr_ice_pre_answer_request_create(nr_transport_addr *dst, nr_stun_serv
       ABORT(r);
     if (!nr_stun_message_has_attribute(par->req.request, NR_STUN_ATTR_USERNAME, &attr))
       ABORT(R_INTERNAL);
-    if (!(par->username = r_strdup(attr->u.username)))
+    if (!(par->username = strdup(attr->u.username)))
       ABORT(R_NO_MEMORY);
 
     *parp=par;
@@ -103,8 +103,8 @@ static int nr_ice_pre_answer_request_destroy(nr_ice_pre_answer_request **parp)
     nr_stun_message_destroy(&par->req.request);
     nr_stun_message_destroy(&par->req.response);
 
-    RFREE(par->username);
-    RFREE(par);
+    free(par->username);
+    free(par);
 
     return(0);
   }
@@ -174,7 +174,7 @@ int nr_ice_component_destroy(nr_ice_component **componentp)
       nr_ice_pre_answer_request_destroy(&r1);
     }
 
-    RFREE(component);
+    free(component);
     return(0);
   }
 
@@ -1683,7 +1683,7 @@ int nr_ice_component_select_pair(nr_ice_peer_ctx *pctx, nr_ice_component *comp)
 
     _status=0;
   abort:
-    RFREE(pairs);
+    free(pairs);
     return(_status);
   }
 
