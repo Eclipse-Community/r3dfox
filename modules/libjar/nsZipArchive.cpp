@@ -13,6 +13,7 @@
 #include "mozilla/MmapFaultHandler.h"
 #include "prio.h"
 #include "mozilla/Attributes.h"
+#include "mozilla/CheckedInt.h"
 #include "mozilla/Logging.h"
 #include "mozilla/MemUtils.h"
 #include "mozilla/UniquePtrExtensions.h"
@@ -322,18 +323,25 @@ nsresult nsZipHandle::findDataStart() {
     headerData += CRXIntSize;  // Skip magic number
     uint32_t version = xtolong(headerData);
     headerData += CRXIntSize;  // Skip version
-    uint32_t headerSize = CRXIntSize * 2;
+    mozilla::CheckedInt<uint32_t> checkedHeaderSize = CRXIntSize * 2;
     if (version == 3) {
       uint32_t subHeaderSize = xtolong(headerData);
-      headerSize += CRXIntSize + subHeaderSize;
+      checkedHeaderSize += CRXIntSize;
+      checkedHeaderSize += subHeaderSize;
     } else if (version < 3) {
       uint32_t pubKeyLength = xtolong(headerData);
       headerData += CRXIntSize;
       uint32_t sigLength = xtolong(headerData);
-      headerSize += CRXIntSize * 2 + pubKeyLength + sigLength;
+      checkedHeaderSize += CRXIntSize * 2;
+      checkedHeaderSize += pubKeyLength;
+      checkedHeaderSize += sigLength;
     } else {
       return NS_ERROR_FILE_CORRUPTED;
     }
+    if (!checkedHeaderSize.isValid()) {
+      return NS_ERROR_FILE_CORRUPTED;
+    }
+    uint32_t headerSize = checkedHeaderSize.value();
     if (mTotalLen > headerSize) {
       mLen = mTotalLen - headerSize;
       mFileData = mFileStart + headerSize;
