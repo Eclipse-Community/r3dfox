@@ -80,7 +80,7 @@ void SourceSurfaceSharedDataWrapper::Init(SourceSurfaceSharedData* aSurface) {
 bool SourceSurfaceSharedDataWrapper::EnsureMapped(size_t aLength) {
   MOZ_ASSERT(!GetData());
 
-  if (mBufHandle.Size() < aLength) {
+  if (mBuf->Size() < aLength) {
     return false;
   }
 
