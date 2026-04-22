@@ -22,6 +22,7 @@ vendoring:
     - 0003-audiounit-ios-compile-fixes.patch
     - 0004-disable-cubeb_one_duplex_one_input-macos10.15.patch
     - 0005-increase-aaudio-powersaving-buffering.patch
+    - frame-sample.patch
   skip-vendoring-steps:
     - update-moz-build
   exclude:
