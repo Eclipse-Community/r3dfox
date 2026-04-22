@@ -421,7 +421,7 @@ nr_stun_add_realm_and_nonce(int new_nonce, nr_stun_server_client *clnt, nr_stun_
 #ifdef USE_TURN
 assert(_status == 0); /* TODO: !nn! cleanup after I reimplmement TURN */
 #endif
-    RFREE(realm);
+    free(realm);
     return _status;
 }
 
@@ -510,8 +510,8 @@ nr_stun_receive_response_long_term_auth(nr_stun_message *res, nr_stun_client_ctx
         /* drop thru */
     case NR_STUN_MAGIC_COOKIE:
         if (nr_stun_message_has_attribute(res, NR_STUN_ATTR_REALM, &attr)) {
-            RFREE(ctx->realm);
-            ctx->realm = r_strdup(attr->u.realm);
+            free(ctx->realm);
+            ctx->realm = strdup(attr->u.realm);
             if (!ctx->realm)
                 ABORT(R_NO_MEMORY);
         }
@@ -521,8 +521,8 @@ nr_stun_receive_response_long_term_auth(nr_stun_message *res, nr_stun_client_ctx
         }
 
         if (nr_stun_message_has_attribute(res, NR_STUN_ATTR_NONCE, &attr)) {
-            RFREE(ctx->nonce);
-            ctx->nonce = r_strdup(attr->u.nonce);
+            free(ctx->nonce);
+            ctx->nonce = strdup(attr->u.nonce);
             if (!ctx->nonce)
                 ABORT(R_NO_MEMORY);
         }

@@ -516,10 +516,10 @@ std::vector<std::string> NrIceMediaStream::GetAttributes() const {
 
   for (int i = 0; i < attrct; i++) {
     ret.push_back(attrs[i]);
-    RFREE(attrs[i]);
+    free(attrs[i]);
   }
 
-  RFREE(attrs);
+  free(attrs);
 
   return ret;
 }

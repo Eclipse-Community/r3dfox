@@ -54,13 +54,13 @@ int nr_ice_media_stream_create(nr_ice_ctx *ctx,const char *label,const char *ufr
     if(!(stream=RCALLOC(sizeof(nr_ice_media_stream))))
       ABORT(R_NO_MEMORY);
 
-    if(!(stream->label=r_strdup(label)))
+    if(!(stream->label=strdup(label)))
       ABORT(R_NO_MEMORY);
 
-    if(!(stream->ufrag=r_strdup(ufrag)))
+    if(!(stream->ufrag=strdup(ufrag)))
       ABORT(R_NO_MEMORY);
 
-    if(!(stream->pwd=r_strdup(pwd)))
+    if(!(stream->pwd=strdup(pwd)))
       ABORT(R_NO_MEMORY);
 
     stream->ctx=ctx;
@@ -100,7 +100,7 @@ int nr_ice_media_stream_create(nr_ice_ctx *ctx,const char *label,const char *ufr
         nr_ice_turn_server *dst = &stream->turn_servers[i];
         nr_ice_turn_server *src = &ctx->turn_servers_cfg[i];
         memcpy(&dst->turn_server, &src->turn_server, sizeof(nr_ice_stun_server));
-        dst->username = r_strdup(src->username);
+        dst->username = strdup(src->username);
         r_data_create(&dst->password, src->password->data, src->password->len);
       }
       stream->turn_server_ct = ctx->turn_server_ct_cfg;
@@ -140,26 +140,26 @@ int nr_ice_media_stream_destroy(nr_ice_media_stream **streamp)
       nr_ice_candidate_pair_destroy(&p1);
     }
 
-    RFREE(stream->label);
+    free(stream->label);
 
-    RFREE(stream->ufrag);
-    RFREE(stream->pwd);
-    RFREE(stream->r2l_user);
-    RFREE(stream->l2r_user);
+    free(stream->ufrag);
+    free(stream->pwd);
+    free(stream->r2l_user);
+    free(stream->l2r_user);
     r_data_zfree(&stream->r2l_pass);
     r_data_zfree(&stream->l2r_pass);
 
-    RFREE(stream->stun_servers);
+    free(stream->stun_servers);
     for (int i = 0; i < stream->turn_server_ct; i++) {
-        RFREE(stream->turn_servers[i].username);
+        free(stream->turn_servers[i].username);
         r_data_destroy(&stream->turn_servers[i].password);
     }
-    RFREE(stream->turn_servers);
+    free(stream->turn_servers);
 
     if(stream->timer)
       NR_async_timer_cancel(stream->timer);
 
-    RFREE(stream);
+    free(stream);
 
     return(0);
   }
@@ -228,7 +228,7 @@ int nr_ice_media_stream_get_attributes(nr_ice_media_stream *stream, char ***attr
     if(!(attrs=RCALLOC(sizeof(char *)*attrct)))
       ABORT(R_NO_MEMORY);
     for(index=0;index<attrct;index++){
-      if(!(attrs[index]=RMALLOC(NR_ICE_MAX_ATTRIBUTE_SIZE)))
+      if(!(attrs[index]=(char*)malloc(NR_ICE_MAX_ATTRIBUTE_SIZE)))
         ABORT(R_NO_MEMORY);
     }
 
@@ -260,12 +260,12 @@ int nr_ice_media_stream_get_attributes(nr_ice_media_stream *stream, char ***attr
     }
 
     /* Now, ufrag and pwd */
-    if(!(tmp=RMALLOC(100)))
+    if(!(tmp=(char*)malloc(100)))
       ABORT(R_NO_MEMORY);
     snprintf(tmp,100,"ice-ufrag:%s",stream->ufrag);
     attrs[index++]=tmp;
 
-    if(!(tmp=RMALLOC(100)))
+    if(!(tmp=(char*)malloc(100)))
       ABORT(R_NO_MEMORY);
     snprintf(tmp,100,"ice-pwd:%s",stream->pwd);
     attrs[index++]=tmp;
@@ -278,9 +278,9 @@ int nr_ice_media_stream_get_attributes(nr_ice_media_stream *stream, char ***attr
     if(_status){
       if(attrs){
         for(index=0;index<attrct;index++){
-          RFREE(attrs[index]);
+          free(attrs[index]);
         }
-        RFREE(attrs);
+        free(attrs);
       }
     }
     return(_status);
@@ -366,7 +366,7 @@ int nr_ice_media_stream_service_pre_answer_requests(nr_ice_peer_ctx *pctx, nr_ic
 
     _status=0;
    abort:
-    RFREE(user);
+    free(user);
     return(_status);
   }
 

@@ -134,7 +134,7 @@ int nr_ice_candidate_pair_create(nr_ice_peer_ctx *pctx, nr_ice_candidate *lcand,
       lcand->osock,
       &rcand->addr,RTO,&pair->stun_client))
       ABORT(r);
-    if(!(pair->stun_client->params.ice_binding_request.username=r_strdup(rcand->stream->l2r_user)))
+    if(!(pair->stun_client->params.ice_binding_request.username=strdup(rcand->stream->l2r_user)))
       ABORT(R_NO_MEMORY);
     if(r=r_data_copy(&pair->stun_client->params.ice_binding_request.password,
       &rcand->stream->l2r_pass))
@@ -171,12 +171,12 @@ int nr_ice_candidate_pair_destroy(nr_ice_cand_pair **pairp)
       nr_accumulate_count(&(pair->local->ctx->stats.stun_retransmits), pair->stun_client->retransmit_ct);
     }
 
-    RFREE(pair->as_string);
-    RFREE(pair->foundation);
+    free(pair->as_string);
+    free(pair->foundation);
     nr_ice_socket_deregister(pair->local->isock,pair->stun_client_handle);
     if (pair->stun_client) {
-      RFREE(pair->stun_client->params.ice_binding_request.username);
-      RFREE(pair->stun_client->params.ice_binding_request.password.data);
+      free(pair->stun_client->params.ice_binding_request.username);
+      free(pair->stun_client->params.ice_binding_request.password.data);
       nr_stun_client_ctx_destroy(&pair->stun_client);
     }
 
@@ -184,7 +184,7 @@ int nr_ice_candidate_pair_destroy(nr_ice_cand_pair **pairp)
     NR_async_timer_cancel(pair->restart_role_change_cb_timer);
     NR_async_timer_cancel(pair->restart_nominated_cb_timer);
 
-    RFREE(pair);
+    free(pair);
     return(0);
   }
 

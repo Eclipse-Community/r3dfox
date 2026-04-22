@@ -116,7 +116,7 @@ abort:
 
 void nr_transport_addr_listnode_destroy(nr_transport_addr_listnode **listnode)
 {
-  RFREE(*listnode);
+  free(*listnode);
   *listnode = 0;
 }
 
@@ -179,8 +179,8 @@ static int nr_turn_stun_ctx_destroy(nr_turn_stun_ctx **ctxp)
   *ctxp = 0;
 
   nr_stun_client_ctx_destroy(&ctx->stun);
-  RFREE(ctx->realm);
-  RFREE(ctx->nonce);
+  free(ctx->realm);
+  free(ctx->nonce);
 
   while (!STAILQ_EMPTY(&ctx->addresses_tried)) {
     nr_transport_addr_listnode *listnode = STAILQ_FIRST(&ctx->addresses_tried);
@@ -188,7 +188,7 @@ static int nr_turn_stun_ctx_destroy(nr_turn_stun_ctx **ctxp)
     nr_transport_addr_listnode_destroy(&listnode);
   }
 
-  RFREE(ctx);
+  free(ctx);
 
   return 0;
 }
@@ -198,25 +198,25 @@ static int nr_turn_stun_set_auth_params(nr_turn_stun_ctx *ctx,
 {
   int _status;
 
-  RFREE(ctx->realm);
-  RFREE(ctx->nonce);
+  free(ctx->realm);
+  free(ctx->nonce);
 
   assert(realm);
   if (!realm)
     ABORT(R_BAD_ARGS);
-  ctx->realm=r_strdup(realm);
+  ctx->realm=strdup(realm);
   if (!ctx->realm)
     ABORT(R_NO_MEMORY);
 
   assert(nonce);
   if (!nonce)
     ABORT(R_BAD_ARGS);
-  ctx->nonce=r_strdup(nonce);
+  ctx->nonce=strdup(nonce);
   if (!ctx->nonce)
     ABORT(R_NO_MEMORY);
 
-  RFREE(ctx->stun->realm);
-  ctx->stun->realm = r_strdup(ctx->realm);
+  free(ctx->stun->realm);
+  ctx->stun->realm = strdup(ctx->realm);
   if (!ctx->stun->realm)
     ABORT(R_NO_MEMORY);
 
@@ -434,15 +434,15 @@ static void nr_turn_stun_ctx_cb(NR_SOCKET s, int how, void *arg)
       /* Save the realm and nonce */
       if (ctx->stun->realm && (!ctx->tctx->realm || strcmp(ctx->stun->realm,
                                                            ctx->tctx->realm))) {
-        RFREE(ctx->tctx->realm);
-        ctx->tctx->realm = r_strdup(ctx->stun->realm);
+        free(ctx->tctx->realm);
+        ctx->tctx->realm = strdup(ctx->stun->realm);
         if (!ctx->tctx->realm)
           ABORT(R_NO_MEMORY);
       }
       if (ctx->stun->nonce && (!ctx->tctx->nonce || strcmp(ctx->stun->nonce,
                                                            ctx->tctx->nonce))) {
-        RFREE(ctx->tctx->nonce);
-        ctx->tctx->nonce = r_strdup(ctx->stun->nonce);
+        free(ctx->tctx->nonce);
+        ctx->tctx->nonce = strdup(ctx->stun->nonce);
         if (!ctx->tctx->nonce)
           ABORT(R_NO_MEMORY);
       }
@@ -545,11 +545,11 @@ int nr_turn_client_ctx_create(const char* label, nr_socket* sock,
   STAILQ_INIT(&ctx->stun_ctxs);
   STAILQ_INIT(&ctx->permissions);
 
-  if(!(ctx->label=r_strdup(label)))
+  if(!(ctx->label=strdup(label)))
     ABORT(R_NO_MEMORY);
 
   ctx->sock=sock;
-  ctx->username = r_strdup(username);
+  ctx->username = strdup(username);
   if (!ctx->username)
     ABORT(R_NO_MEMORY);
 
@@ -595,17 +595,17 @@ nr_turn_client_ctx_destroy(nr_turn_client_ctx **ctxp)
   nr_turn_client_deallocate(ctx);
 
   /* Cancel frees the rest of our data */
-  RFREE(ctx->label);
+  free(ctx->label);
   ctx->label = 0;
 
   nr_turn_client_cancel(ctx);
 
-  RFREE(ctx->username);
+  free(ctx->username);
   ctx->username = 0;
   r_data_destroy(&ctx->password);
-  RFREE(ctx->nonce);
+  free(ctx->nonce);
   ctx->nonce = 0;
-  RFREE(ctx->realm);
+  free(ctx->realm);
   ctx->realm = 0;
 
   /* Destroy the STUN client ctxs */
@@ -622,7 +622,7 @@ nr_turn_client_ctx_destroy(nr_turn_client_ctx **ctxp)
     nr_turn_permission_destroy(&perm);
   }
 
-  RFREE(ctx);
+  free(ctx);
 
   return(0);
 }
@@ -1269,7 +1269,7 @@ static int nr_turn_permission_destroy(nr_turn_permission **permp)
   perm = *permp;
   *permp = 0;
 
-  RFREE(perm);
+  free(perm);
 
   return(0);
 }

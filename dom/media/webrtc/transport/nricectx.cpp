@@ -236,7 +236,7 @@ nsresult NrIceTurnServer::ToNicerTurnStruct(nr_ice_turn_server* server) const {
   nsresult rv = ToNicerStunStruct(&server->turn_server);
   if (NS_FAILED(rv)) return rv;
 
-  if (!(server->username = r_strdup(username_.c_str())))
+  if (!(server->username = strdup(username_.c_str())))
     return NS_ERROR_OUT_OF_MEMORY;
 
   // TODO(ekr@rtfm.com): handle non-ASCII passwords somehow?
@@ -249,7 +249,7 @@ nsresult NrIceTurnServer::ToNicerTurnStruct(nr_ice_turn_server* server) const {
   const UCHAR* data = password_.empty() ? nullptr : &password_[0];
   int r = r_data_create(&server->password, data, password_.size());
   if (r) {
-    RFREE(server->username);
+    free(server->username);
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
@@ -968,9 +968,9 @@ std::vector<std::string> NrIceCtx::GetGlobalAttributes() {
 
   for (int i = 0; i < attrct; i++) {
     ret.push_back(std::string(attrs[i]));
-    RFREE(attrs[i]);
+    free(attrs[i]);
   }
-  RFREE(attrs);
+  free(attrs);
 
   return ret;
 }
@@ -1102,7 +1102,7 @@ void NrIceCtx::GenerateObfuscatedAddress(nr_ice_candidate* candidate,
 
       obfuscated_host_addresses_[*actual_address] = *mdns_address;
     }
-    candidate->mdns_addr = r_strdup(mdns_address->c_str());
+    candidate->mdns_addr = strdup(mdns_address->c_str());
   }
 }
 

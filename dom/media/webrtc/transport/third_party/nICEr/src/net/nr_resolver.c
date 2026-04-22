@@ -65,7 +65,7 @@ int nr_resolver_destroy(nr_resolver **resolverp)
 
   resolver->vtbl->destroy(&resolver->obj);
 
-  RFREE(resolver);
+  free(resolver);
 
   return(0);
 }

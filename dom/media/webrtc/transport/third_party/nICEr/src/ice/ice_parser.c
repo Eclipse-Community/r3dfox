@@ -93,7 +93,7 @@ grab_token(char **str, char **out)
 
     len = c - *str;
 
-    tmp = RMALLOC(len + 1);
+    tmp = (char*)malloc(len + 1);
     if (!tmp) {
         *out = 0;
         ABORT(R_NO_MEMORY);
@@ -126,7 +126,7 @@ nr_ice_peer_candidate_from_attribute(nr_ice_ctx *ctx,char *orig,nr_ice_media_str
     if(!(cand=RCALLOC(sizeof(nr_ice_candidate))))
         ABORT(R_NO_MEMORY);
 
-    if(!(cand->label=r_strdup(orig)))
+    if(!(cand->label=strdup(orig)))
         ABORT(R_NO_MEMORY);
 
     cand->ctx=ctx;
@@ -358,8 +358,8 @@ nr_ice_peer_candidate_from_attribute(nr_ice_ctx *ctx,char *orig,nr_ice_media_str
         nr_ice_candidate_destroy(&cand);
     }
 
-    RFREE(connection_address);
-    RFREE(rel_addr);
+    free(connection_address);
+    free(rel_addr);
     return(_status);
 }
 
@@ -382,7 +382,7 @@ nr_ice_peer_ctx_parse_media_stream_attribute(nr_ice_peer_ctx *pctx, nr_ice_media
       if (*str == '\0')
         ABORT(R_BAD_DATA);
 
-      RFREE(stream->ufrag);
+      free(stream->ufrag);
       if ((r=grab_token(&str, &stream->ufrag)))
         ABORT(r);
     }
@@ -395,7 +395,7 @@ nr_ice_peer_ctx_parse_media_stream_attribute(nr_ice_peer_ctx *pctx, nr_ice_media
       if (*str == '\0')
         ABORT(R_BAD_DATA);
 
-      RFREE(stream->pwd);
+      free(stream->pwd);
       if ((r=grab_token(&str, &stream->pwd)))
         ABORT(r);
     }
@@ -488,7 +488,7 @@ nr_ice_peer_ctx_parse_global_attributes(nr_ice_peer_ctx *pctx, char **attrs, int
 #endif
 
                 component_id = 0;  /* prevent free */
-                RFREE(connection_address);
+                free(connection_address);
                 connection_address = 0;  /* prevent free */
             }
         }
@@ -532,7 +532,7 @@ nr_ice_peer_ctx_parse_global_attributes(nr_ice_peer_ctx *pctx, char **attrs, int
                 skip_whitespace(&str);
 
                 //TODO: for now, just throw away; later put somewhere
-                RFREE(ice_option_tag);
+                free(ice_option_tag);
 
                 ice_option_tag = 0;  /* prevent free */
             }
@@ -558,9 +558,9 @@ nr_ice_peer_ctx_parse_global_attributes(nr_ice_peer_ctx *pctx, char **attrs, int
         r_log(LOG_ICE,LOG_WARNING,"ICE-PEER(%s): Error parsing attribute: %s",pctx->label,orig);
     }
 
-    RFREE(connection_address);
-    RFREE(component_id);
-    RFREE(ice_option_tag);
+    free(connection_address);
+    free(component_id);
+    free(ice_option_tag);
     return(_status);
 }
 

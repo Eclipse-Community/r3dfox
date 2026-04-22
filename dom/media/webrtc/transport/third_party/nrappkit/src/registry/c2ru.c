@@ -170,33 +170,13 @@ abort:
   return (_status);
 }
 
-#define NRFREE(func, type) \
-int                                                                  \
-func(type *in)                                                       \
-{                                                                    \
-  if (in)                                                            \
-    RFREE(in);                                                       \
-  return 0;                                                          \
-}
-
-NRFREE(nr_c2ru_free_char,      char)
-NRFREE(nr_c2ru_free_uchar,     UCHAR)
-NRFREE(nr_c2ru_free_int2,      INT2)
-NRFREE(nr_c2ru_free_uint2,     UINT2)
-NRFREE(nr_c2ru_free_int4,      INT4)
-NRFREE(nr_c2ru_free_uint4,     UINT4)
-NRFREE(nr_c2ru_free_int8,      INT8)
-NRFREE(nr_c2ru_free_uint8,     UINT8)
-NRFREE(nr_c2ru_free_double,    double)
-
-
 int
 nr_c2ru_free_string(char **in)
 {
   if (*in)
-    RFREE(*in);
+    free(*in);
   if (in)
-    RFREE(in);
+    free(in);
   return 0;
 }
 

@@ -116,9 +116,9 @@ nr_reg_get_transport_addr(NR_registry prefix, int keep, nr_transport_addr *addr)
 
     _status=0;
   abort:
-    RFREE(protocol);
-    RFREE(ifname);
-    RFREE(address);
+    free(protocol);
+    free(ifname);
+    free(address);
     return(_status);
 }
 

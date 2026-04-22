@@ -181,7 +181,7 @@ nr_reg_register_callback(NR_registry name, char action, void (*cb)(void *cb_arg,
     r_log(NR_LOG_REGISTRY, LOG_DEBUG, "register callback %p on '%s' for '%s' %s", cb, name, nr_reg_action_name(action), (_status ? "FAILED" : "succeeded"));
 
     if (_status) {
-      if (create_info && info) RFREE(info);
+      if (create_info && info) free(info);
       if (create_assoc && assoc) nr_reg_assoc_destroy(&assoc);
     }
     return(_status);
@@ -274,7 +274,7 @@ nr_reg_assoc_destroy(void *ptr)
 int
 nr_reg_info_free(void *ptr)
 {
-  RFREE(ptr);
+  free(ptr);
   return 0;
 }
 
@@ -293,7 +293,7 @@ nr_reg_raise_event_recurse(char *name, char *tmp, int action)
     int count;
 
     if (tmp == 0) {
-      if (!(tmp = (char*)r_strdup(name)))
+      if (!(tmp = (char*)strdup(name)))
         ABORT(R_NO_MEMORY);
       free_tmp = 1;
     }
@@ -351,7 +351,7 @@ nr_reg_raise_event_recurse(char *name, char *tmp, int action)
 
     _status=0;
   abort:
-    if (free_tmp && tmp != 0) RFREE(tmp);
+    if (free_tmp && tmp != 0) free(tmp);
     return(_status);
 }
 

@@ -52,7 +52,7 @@ int nr_stun_server_ctx_create(char *label, nr_stun_server_ctx **ctxp)
     if(!(ctx=RCALLOC(sizeof(nr_stun_server_ctx))))
       ABORT(R_NO_MEMORY);
 
-    if(!(ctx->label=r_strdup(label)))
+    if(!(ctx->label=strdup(label)))
       ABORT(R_NO_MEMORY);
 
     STAILQ_INIT(&ctx->clients);
@@ -80,8 +80,8 @@ int nr_stun_server_ctx_destroy(nr_stun_server_ctx **ctxp)
 
     nr_stun_server_destroy_client(ctx->default_client);
 
-    RFREE(ctx->label);
-    RFREE(ctx);
+    free(ctx->label);
+    free(ctx);
 
     return(0);
   }
@@ -94,10 +94,10 @@ static int nr_stun_server_client_create(nr_stun_server_ctx *ctx, char *client_la
     if(!(clnt=RCALLOC(sizeof(nr_stun_server_client))))
       ABORT(R_NO_MEMORY);
 
-    if(!(clnt->label=r_strdup(client_label)))
+    if(!(clnt->label=strdup(client_label)))
       ABORT(R_NO_MEMORY);
 
-    if(!(clnt->username=r_strdup(user)))
+    if(!(clnt->username=strdup(user)))
       ABORT(R_NO_MEMORY);
 
     if(r=r_data_copy(&clnt->password,pass))
@@ -416,11 +416,11 @@ static int nr_stun_server_destroy_client(nr_stun_server_client *clnt)
     if (!clnt)
       return 0;
 
-    RFREE(clnt->label);
-    RFREE(clnt->username);
+    free(clnt->label);
+    free(clnt->username);
     r_data_zfree(&clnt->password);
 
-    RFREE(clnt);
+    free(clnt);
     return(0);
   }
 

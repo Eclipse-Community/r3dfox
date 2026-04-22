@@ -133,10 +133,10 @@ int r_list_destroy(listp)
         el->destroy(&el->data);
       el_t=el;
       el=el->next;
-      RFREE(el_t);
+      free(el_t);
     }
 
-    RFREE(list);
+    free(list);
     *listp=0;
 
     return(0);

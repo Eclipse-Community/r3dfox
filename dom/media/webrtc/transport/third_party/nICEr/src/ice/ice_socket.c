@@ -110,7 +110,7 @@ static void nr_ice_socket_readable_cb(NR_SOCKET s, int how, void *cb_arg)
           /* This has been deleted, prune... */
           case NR_ICE_STUN_NONE:
             TAILQ_REMOVE(&sock->stun_ctxs,sc1,entry);
-            RFREE(sc1);
+            free(sc1);
             break;
 
           case NR_ICE_STUN_CLIENT:
@@ -243,7 +243,7 @@ int nr_ice_socket_create(nr_ice_ctx *ctx,nr_ice_component *comp, nr_socket *nsoc
 
     _status=0;
   abort:
-    if(_status) RFREE(sock);
+    if(_status) free(sock);
     return(_status);
   }
 
@@ -268,10 +268,10 @@ int nr_ice_socket_destroy(nr_ice_socket **isockp)
     /* Now clean up the STUN ctxs */
     TAILQ_FOREACH_SAFE(s1, &isock->stun_ctxs, entry, s2){
       TAILQ_REMOVE(&isock->stun_ctxs, s1, entry);
-      RFREE(s1);
+      free(s1);
     }
 
-    RFREE(isock);
+    free(isock);
 
     return(0);
   }
