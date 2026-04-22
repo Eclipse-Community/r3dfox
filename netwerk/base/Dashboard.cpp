@@ -11,6 +11,7 @@
 #include "mozilla/net/HTTPSSVC.h"
 #include "mozilla/net/SocketProcessParent.h"
 #include "nsHttp.h"
+#include "nsHttpHandler.h"
 #include "nsICancelable.h"
 #include "nsIDNSListener.h"
 #include "nsIDNSService.h"
@@ -622,10 +623,15 @@ Dashboard::RequestHttpConnections(nsINetDashboardCallback* aCallback) {
     return NS_OK;
   }
 
-  gSocketTransportService->Dispatch(NewRunnableMethod<RefPtr<HttpData>>(
-                                        "net::Dashboard::GetHttpDispatch", this,
-                                        &Dashboard::GetHttpDispatch, httpData),
-                                    NS_DISPATCH_NORMAL);
+  nsCOMPtr<nsIEventTarget> target;
+  nsresult rv = gHttpHandler->GetSocketThreadTarget(getter_AddRefs(target));
+  if (NS_FAILED(rv) || !target) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+  target->Dispatch(NewRunnableMethod<RefPtr<HttpData>>(
+                       "net::Dashboard::GetHttpDispatch", this,
+                       &Dashboard::GetHttpDispatch, httpData),
+                   NS_DISPATCH_NORMAL);
   return NS_OK;
 }
 
@@ -743,11 +749,15 @@ Dashboard::RequestHttp3ConnectionStats(nsINetDashboardCallback* aCallback) {
     return NS_OK;
   }
 
-  gSocketTransportService->Dispatch(
-      NewRunnableMethod<RefPtr<Http3ConnectionStatsData>>(
-          "net::Dashboard::GetHttp3ConnectionStatsDispatch", this,
-          &Dashboard::GetHttp3ConnectionStatsDispatch, data),
-      NS_DISPATCH_NORMAL);
+  nsCOMPtr<nsIEventTarget> target;
+  nsresult rv = gHttpHandler->GetSocketThreadTarget(getter_AddRefs(target));
+  if (NS_FAILED(rv) || !target) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+  target->Dispatch(NewRunnableMethod<RefPtr<Http3ConnectionStatsData>>(
+                       "net::Dashboard::GetHttp3ConnectionStatsDispatch", this,
+                       &Dashboard::GetHttp3ConnectionStatsDispatch, data),
+                   NS_DISPATCH_NORMAL);
   return NS_OK;
 }
 
