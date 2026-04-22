@@ -517,10 +517,10 @@ WebSocketChannelChild::AsyncOpenNative(
           this, browserChild, IPC::SerializedLoadContext(this), mSerial)) {
     return NS_ERROR_UNEXPECTED;
   }
-  if (!SendAsyncOpen(uri, aOrigin, aOriginAttributes, aInnerWindowID, mProtocol,
-                     mEncrypted, mPingInterval, mClientSetPingInterval,
-                     mPingResponseTimeout, mClientSetPingTimeout, loadInfoArgs,
-                     transportProvider, mNegotiatedExtensions)) {
+  if (!SendAsyncOpen(uri, aInnerWindowID, mProtocol, mEncrypted, mPingInterval,
+                     mClientSetPingInterval, mPingResponseTimeout,
+                     mClientSetPingTimeout, loadInfoArgs, transportProvider,
+                     mNegotiatedExtensions)) {
     return NS_ERROR_UNEXPECTED;
   }
 

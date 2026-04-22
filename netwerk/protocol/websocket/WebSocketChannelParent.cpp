@@ -7,6 +7,8 @@
 #include "WebSocketLog.h"
 #include "WebSocketChannelParent.h"
 #include "nsIAuthPromptProvider.h"
+#include "nsIPrincipal.h"
+#include "nsICookieJarSettings.h"
 #include "mozilla/dom/ContentParent.h"
 #include "mozilla/ipc/InputStreamUtils.h"
 #include "mozilla/ipc/URIUtils.h"
@@ -51,12 +53,10 @@ mozilla::ipc::IPCResult WebSocketChannelParent::RecvDeleteSelf() {
 }
 
 mozilla::ipc::IPCResult WebSocketChannelParent::RecvAsyncOpen(
-    nsIURI* aURI, const nsCString& aOrigin,
-    const OriginAttributes& aOriginAttributes, const uint64_t& aInnerWindowID,
-    const nsCString& aProtocol, const bool& aSecure,
-    const uint32_t& aPingInterval, const bool& aClientSetPingInterval,
-    const uint32_t& aPingTimeout, const bool& aClientSetPingTimeout,
-    const LoadInfoArgs& aLoadInfoArgs,
+    nsIURI* aURI, const uint64_t& aInnerWindowID, const nsCString& aProtocol,
+    const bool& aSecure, const uint32_t& aPingInterval,
+    const bool& aClientSetPingInterval, const uint32_t& aPingTimeout,
+    const bool& aClientSetPingTimeout, const LoadInfoArgs& aLoadInfoArgs,
     const Maybe<PTransportProviderParent*>& aTransportProvider,
     const nsCString& aNegotiatedExtensions) {
   LOG(("WebSocketChannelParent::RecvAsyncOpen() %p\n", this));
@@ -64,6 +64,8 @@ mozilla::ipc::IPCResult WebSocketChannelParent::RecvAsyncOpen(
   nsresult rv;
   nsCOMPtr<nsILoadInfo> loadInfo;
   nsCOMPtr<nsIURI> uri;
+  nsCString origin;
+  OriginAttributes originAttributes;
 
   rv = LoadInfoArgsToLoadInfo(
       aLoadInfoArgs,
@@ -71,6 +73,25 @@ mozilla::ipc::IPCResult WebSocketChannelParent::RecvAsyncOpen(
       getter_AddRefs(loadInfo));
   if (NS_FAILED(rv)) {
     goto fail;
+  }
+
+  rv =
+      loadInfo->TriggeringPrincipal()->GetWebExposedOriginSerialization(origin);
+  if (NS_FAILED(rv)) {
+    origin.AssignLiteral("null");
+  }
+  ToLowerCase(origin);
+  originAttributes = loadInfo->GetOriginAttributes();
+  {
+    nsCOMPtr<nsICookieJarSettings> cjs;
+    (void)loadInfo->GetCookieJarSettings(getter_AddRefs(cjs));
+    if (cjs) {
+      nsAutoString partitionKey;
+      (void)cjs->GetPartitionKey(partitionKey);
+      if (!partitionKey.IsEmpty()) {
+        originAttributes.SetPartitionKey(partitionKey);
+      }
+    }
   }
 
   if (aSecure) {
@@ -126,8 +147,8 @@ mozilla::ipc::IPCResult WebSocketChannelParent::RecvAsyncOpen(
     MOZ_ASSERT(NS_SUCCEEDED(rv));
   }
 
-  rv = mChannel->AsyncOpenNative(uri, aOrigin, aOriginAttributes,
-                                 aInnerWindowID, this, nullptr);
+  rv = mChannel->AsyncOpenNative(uri, origin, originAttributes, aInnerWindowID,
+                                 this, nullptr);
   if (NS_FAILED(rv)) goto fail;
 
   return IPC_OK();
