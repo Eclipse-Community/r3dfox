@@ -16,6 +16,7 @@
 #include "mozilla/dom/MessageEvent.h"
 #include "mozilla/dom/MessageEventBinding.h"
 #include "mozilla/dom/ScriptSettings.h"
+#include "mozilla/dom/ServiceWorkerDescriptor.h"
 #include "mozilla/dom/WorkerPrivate.h"
 #include "mozilla/dom/WorkerRef.h"
 #include "mozilla/dom/WorkerRunnable.h"
@@ -244,6 +245,8 @@ class EventSourceImpl final : public nsIChannelEventSink,
   nsCOMPtr<nsIURI> mSrc;
   uint32_t mReconnectionTime;  // in ms
   nsCOMPtr<nsIPrincipal> mPrincipal;
+  Maybe<ClientInfo> mClientInfo;
+  Maybe<ServiceWorkerDescriptor> mController;
   nsString mOrigin;
   nsCOMPtr<nsITimer> mTimer;
   nsCOMPtr<nsIHttpChannel> mHttpChannel;
@@ -1035,6 +1038,17 @@ nsresult EventSourceImpl::InitChannelAndRequestEventSource(
                        nsIContentPolicy::TYPE_INTERNAL_EVENTSOURCE,
                        nullptr,  // aPerformanceStorage
                        loadGroup,
+                       nullptr,     // aCallbacks
+                       loadFlags);  // aLoadFlags
+  } else if (mClientInfo.isSome()) {
+    // Use the ClientInfo overload so the channel is associated with the
+    // correct client (e.g. the worker global that created this EventSource).
+    rv = NS_NewChannel(getter_AddRefs(channel), mSrc, mPrincipal,
+                       mClientInfo.ref(), mController, securityFlags,
+                       nsIContentPolicy::TYPE_INTERNAL_EVENTSOURCE,
+                       mCookieJarSettings,
+                       nullptr,     // aPerformanceStorage
+                       nullptr,     // loadGroup
                        nullptr,     // aCallbacks
                        loadFlags);  // aLoadFlags
   } else {
@@ -1987,6 +2001,10 @@ already_AddRefed<EventSource> EventSource::Constructor(
     MOZ_ASSERT(workerPrivate);
 
     eventSource->mESImpl->mInnerWindowID = workerPrivate->WindowID();
+    eventSource->mESImpl->mClientInfo =
+        workerPrivate->GlobalScope()->GetClientInfo();
+    eventSource->mESImpl->mController =
+        workerPrivate->GlobalScope()->GetController();
 
     eventSource->mESImpl->Init(nullptr, workerPrivate->GetPrincipal(), aURL,
                                aRv);
