@@ -12,6 +12,7 @@ use nix::{
 use std::{
     env,
     ffi::{CStr, CString},
+    os::unix::ffi::OsStringExt,
 };
 
 use crate::CrashHelperClient;
@@ -54,9 +55,14 @@ impl CrashHelperClient {
         let file_actions = PosixSpawnFileActions::init()?;
         let attr = PosixSpawnAttr::init()?;
 
-        let env: Vec<CString> = env::vars()
-            .map(|(key, value)| format!("{key}={value}"))
-            .map(|string| CString::new(string).unwrap())
+        let env: Vec<CString> = env::vars_os()
+            .map(|(key, value)| {
+                let mut s = key;
+                s.push("=");
+                s.push(value);
+                s
+            })
+            .filter_map(|string| CString::new(string.into_vec()).ok())
             .collect();
 
         let pid = posix_spawn(
