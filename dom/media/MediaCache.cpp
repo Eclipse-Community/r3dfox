@@ -870,8 +870,7 @@ nsresult MediaCache::ReadCacheFile(AutoLock&, int64_t aOffset, void* aData,
 
 // Allowed range is whatever can be accessed with an int32_t block index.
 static bool IsOffsetAllowed(int64_t aOffset) {
-  return aOffset < (int64_t(INT32_MAX) + 1) * MediaCache::BLOCK_SIZE &&
-         aOffset >= 0;
+  return MediaCacheStream::IsOffsetAllowed(aOffset);
 }
 
 // Convert 64-bit offset to 32-bit block index.

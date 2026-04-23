@@ -7,6 +7,8 @@
 #ifndef MediaCache_h_
 #define MediaCache_h_
 
+#include <limits>
+
 #include "DecoderDoctorLogger.h"
 #include "Intervals.h"
 #include "mozilla/Monitor.h"
@@ -197,6 +199,12 @@ class MediaCacheStream : public DecoderDoctorLifeLogger<MediaCacheStream> {
  public:
   // This needs to be a power of two
   static const int64_t BLOCK_SIZE = 32768;
+
+  static constexpr bool IsOffsetAllowed(int64_t aOffset) {
+    constexpr int64_t kMaxOffset =
+        (int64_t(std::numeric_limits<int32_t>::max()) + 1) * BLOCK_SIZE;
+    return aOffset >= 0 && aOffset < kMaxOffset;
+  }
 
   enum ReadMode { MODE_METADATA, MODE_PLAYBACK };
 
