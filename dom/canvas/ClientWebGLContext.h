@@ -775,6 +775,9 @@ class ClientWebGLContext final : public nsICanvasRenderingContextInternal,
   mutable webgl::LossStatus mLossStatus = webgl::LossStatus::Ready;
   mutable bool mAwaitingRestore = false;
   mutable webgl::ObjectId mLastId = 0;
+  // Buffer to accumulate JS warnings until it is safe to flush them.
+  mutable std::vector<std::string>* mDeferJsWarnings = nullptr;
+
 
  public:
   webgl::ObjectId NextId() const { return mLastId += 1; }

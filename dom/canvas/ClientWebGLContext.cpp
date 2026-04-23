@@ -222,6 +222,11 @@ ClientWebGLContext::~ClientWebGLContext() {
 }
 
 void ClientWebGLContext::JsWarning(const std::string& utf8) const {
+  if (mDeferJsWarnings) {
+    mDeferJsWarnings->push_back(utf8);
+    return;
+  }
+
   nsIGlobalObject* global = nullptr;
   if (mCanvasElement) {
     mozilla::dom::Document* doc = mCanvasElement->OwnerDoc();
@@ -454,9 +459,25 @@ void ClientWebGLContext::Run_WithDestArgTypes(
 
   const auto& inProcess = notLost->inProcess;
   if (inProcess) {
+    Maybe<LockInProcess> locked;
     if (methodInfo.flags & WebGLMethodInfo::LOCK_IN_PROCESS) {
-      LockInProcess locked;
+      locked.emplace();
+    }
+
+    if (noGc.has_value()) {
+      // JsWarning may trigger GC, so defer warning till after any args have
+      // been used.
+      std::vector<std::string> warnings;
+      mDeferJsWarnings = &warnings;
+
       (inProcess.get()->*method)(args...);
+
+      // Flush out any warnings, which may trigger GC.
+      mDeferJsWarnings = nullptr;
+      noGc.reset();
+      for (const auto& warning : warnings) {
+        JsWarning(warning);
+      }
       return;
     }
 
