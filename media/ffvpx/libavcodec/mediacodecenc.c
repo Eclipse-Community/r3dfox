@@ -37,7 +37,6 @@
 #include "encode.h"
 #include "hwconfig.h"
 #include "jni.h"
-#include "fffjni.h"
 #include "mediacodec.h"
 #include "mediacodec_wrapper.h"
 #include "mediacodecdec_common.h"

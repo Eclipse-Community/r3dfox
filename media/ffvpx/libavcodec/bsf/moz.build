@@ -11,7 +11,6 @@ if not CONFIG['MOZ_FFVPX_AUDIOONLY']:
     ]
 
 SOURCES += [
-    'aac_adtstoasc.c',
     'null.c',
 ]
 
