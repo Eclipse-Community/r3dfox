@@ -78,6 +78,10 @@ if not CONFIG['MOZ_FFVPX_AUDIOONLY']:
             'hwcontext_vaapi.c',
         ]
         USE_LIBS += ['mozva']
+    elif CONFIG["MOZ_WIDGET_TOOLKIT"] == "android":
+        SOURCES += [
+            'hwcontext_mediacodec.c',
+        ]
     elif CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
         SOURCES += [
             'hwcontext_d3d11va.c',
@@ -87,10 +91,18 @@ EXPORTS.ffvpx += [
     "tx.h"
 ]
 
+if CONFIG["MOZ_WIDGET_TOOLKIT"] == "android":
+    EXPORTS.ffvpx += [
+        "hwcontext_mediacodec.h"
+    ]
+
 if CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
     EXPORTS.ffvpx += [
         "hwcontext_d3d11va.h"
     ]
+
+if CONFIG["MOZ_WIDGET_TOOLKIT"] == "android":
+    OS_LIBS += ['android']
 
 SYMBOLS_FILE =  'avutil.symbols'
 NoVisibilityFlags()

@@ -63,3 +63,7 @@ ff_thread_progress_await
 ff_thread_progress_destroy
 ff_thread_progress_init
 ff_thread_progress_report
+#if defined(MOZ_WIDGET_ANDROID) && !defined(MOZ_FFVPX_AUDIOONLY)
+av_mediacodec_release_buffer
+moz_avcodec_mediacodec_is_eos
+#endif
