@@ -31,32 +31,30 @@
      CORE_FLAG(VFPV3)   |                       \
      CORE_FLAG(NEON))
 
-#if defined __linux__ || defined __ANDROID__ || HAVE_ELF_AUX_INFO
+#if defined __linux__ || defined __ANDROID__
 
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include "libavutil/avstring.h"
 
-#if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
+#if HAVE_GETAUXVAL
 #include <sys/auxv.h>
 #endif
 
-#ifndef AT_HWCAP
 #define AT_HWCAP        16
-#endif
 
 /* Relevant HWCAP values from kernel headers */
-#define HWCAP_ARM_VFP     (1 << 6)
-#define HWCAP_ARM_EDSP    (1 << 7)
-#define HWCAP_ARM_THUMBEE (1 << 11)
-#define HWCAP_ARM_NEON    (1 << 12)
-#define HWCAP_ARM_VFPv3   (1 << 13)
-#define HWCAP_ARM_TLS     (1 << 15)
+#define HWCAP_VFP       (1 << 6)
+#define HWCAP_EDSP      (1 << 7)
+#define HWCAP_THUMBEE   (1 << 11)
+#define HWCAP_NEON      (1 << 12)
+#define HWCAP_VFPv3     (1 << 13)
+#define HWCAP_TLS       (1 << 15)
 
 static int get_auxval(uint32_t *hwcap)
 {
-#if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
+#if HAVE_GETAUXVAL
     unsigned long ret = ff_getauxval(AT_HWCAP);
     if (ret == 0)
         return -1;
@@ -67,7 +65,6 @@ static int get_auxval(uint32_t *hwcap)
 #endif
 }
 
-#if defined __linux__ || defined __ANDROID__
 static int get_hwcap(uint32_t *hwcap)
 {
     struct { uint32_t a_type; uint32_t a_val; } auxv;
@@ -101,26 +98,25 @@ static int get_cpuinfo(uint32_t *hwcap)
     while (fgets(buf, sizeof(buf), f)) {
         if (av_strstart(buf, "Features", NULL)) {
             if (strstr(buf, " edsp "))
-                *hwcap |= HWCAP_ARM_EDSP;
+                *hwcap |= HWCAP_EDSP;
             if (strstr(buf, " tls "))
-                *hwcap |= HWCAP_ARM_TLS;
+                *hwcap |= HWCAP_TLS;
             if (strstr(buf, " thumbee "))
-                *hwcap |= HWCAP_ARM_THUMBEE;
+                *hwcap |= HWCAP_THUMBEE;
             if (strstr(buf, " vfp "))
-                *hwcap |= HWCAP_ARM_VFP;
+                *hwcap |= HWCAP_VFP;
             if (strstr(buf, " vfpv3 "))
-                *hwcap |= HWCAP_ARM_VFPv3;
+                *hwcap |= HWCAP_VFPv3;
             if (strstr(buf, " neon ") || strstr(buf, " asimd "))
-                *hwcap |= HWCAP_ARM_NEON;
+                *hwcap |= HWCAP_NEON;
             if (strstr(buf, " fp ")) // Listed on 64 bit ARMv8 kernels
-                *hwcap |= HWCAP_ARM_VFP | HWCAP_ARM_VFPv3;
+                *hwcap |= HWCAP_VFP | HWCAP_VFPv3;
             break;
         }
     }
     fclose(f);
     return 0;
 }
-#endif
 
 int ff_get_cpu_flags_arm(void)
 {
@@ -128,14 +124,12 @@ int ff_get_cpu_flags_arm(void)
     uint32_t hwcap;
 
     if (get_auxval(&hwcap) < 0)
-#if defined __linux__ || defined __ANDROID__
         if (get_hwcap(&hwcap) < 0)
             if (get_cpuinfo(&hwcap) < 0)
-#endif
                 return flags;
 
 #define check_cap(cap, flag) do {               \
-        if (hwcap & HWCAP_ARM_ ## cap)          \
+        if (hwcap & HWCAP_ ## cap)              \
             flags |= AV_CPU_FLAG_ ## flag;      \
     } while (0)
 

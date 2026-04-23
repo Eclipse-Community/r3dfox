@@ -18,7 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <string.h>
 #include <vorbis/vorbisenc.h>
 
 #include "avcodec.h"
@@ -36,8 +35,7 @@ typedef struct OggVorbisDecContext {
 
 static int oggvorbis_decode_close(AVCodecContext *avccontext);
 
-static av_cold int oggvorbis_decode_init(AVCodecContext *avccontext)
-{
+static int oggvorbis_decode_init(AVCodecContext *avccontext) {
     OggVorbisDecContext *context = avccontext->priv_data ;
     uint8_t *p= avccontext->extradata;
     int i, hsizes[3], ret;
@@ -115,17 +113,11 @@ static av_cold int oggvorbis_decode_init(AVCodecContext *avccontext)
         }
     }
 
-    if (context->vi.rate <= 0 || context->vi.rate > INT_MAX) {
-        av_log(avccontext, AV_LOG_ERROR, "vorbis rate is invalid\n");
-        ret = AVERROR_INVALIDDATA;
-        goto error;
-    }
-
     av_channel_layout_uninit(&avccontext->ch_layout);
     avccontext->ch_layout.order       = AV_CHANNEL_ORDER_UNSPEC;
     avccontext->ch_layout.nb_channels = context->vi.channels;
     avccontext->sample_rate = context->vi.rate;
-    avccontext->sample_fmt = AV_SAMPLE_FMT_FLTP;
+    avccontext->sample_fmt = AV_SAMPLE_FMT_S16;
     avccontext->time_base= (AVRational){1, avccontext->sample_rate};
 
     vorbis_synthesis_init(&context->vd, &context->vi);
@@ -139,14 +131,33 @@ static av_cold int oggvorbis_decode_init(AVCodecContext *avccontext)
 }
 
 
+static inline int conv(int samples, float **pcm, char *buf, int channels) {
+    int i, j;
+    ogg_int16_t *ptr, *data = (ogg_int16_t*)buf ;
+    float *mono ;
+
+    for(i = 0 ; i < channels ; i++){
+        ptr = &data[i];
+        mono = pcm[i] ;
+
+        for(j = 0 ; j < samples ; j++) {
+            *ptr = av_clip_int16(mono[j] * 32767.f);
+            ptr += channels;
+        }
+    }
+
+    return 0 ;
+}
+
 static int oggvorbis_decode_frame(AVCodecContext *avccontext, AVFrame *frame,
                                   int *got_frame_ptr, AVPacket *avpkt)
 {
     OggVorbisDecContext *context = avccontext->priv_data ;
     float **pcm ;
     ogg_packet *op= &context->op;
-    int samples, total_samples;
+    int samples, total_samples, total_bytes;
     int ret;
+    int16_t *output;
 
     if(!avpkt->size){
     //FIXME flush
@@ -156,6 +167,8 @@ static int oggvorbis_decode_frame(AVCodecContext *avccontext, AVFrame *frame,
     frame->nb_samples = 8192*4;
     if ((ret = ff_get_buffer(avccontext, frame, 0)) < 0)
         return ret;
+    output = (int16_t *)frame->data[0];
+
 
     op->packet = avpkt->data;
     op->bytes  = avpkt->size;
@@ -170,10 +183,11 @@ static int oggvorbis_decode_frame(AVCodecContext *avccontext, AVFrame *frame,
         vorbis_synthesis_blockin(&context->vd, &context->vb) ;
 
     total_samples = 0 ;
+    total_bytes = 0 ;
 
     while((samples = vorbis_synthesis_pcmout(&context->vd, &pcm)) > 0) {
-        for (int ch = 0; ch < context->vi.channels; ch++)
-            memcpy((float *)frame->extended_data[ch] + total_samples, pcm[ch], samples * sizeof(float));
+        conv(samples, pcm, (char*)output + total_bytes, context->vi.channels) ;
+        total_bytes += samples * 2 * context->vi.channels ;
         total_samples += samples ;
         vorbis_synthesis_read(&context->vd, samples) ;
     }
@@ -184,8 +198,7 @@ static int oggvorbis_decode_frame(AVCodecContext *avccontext, AVFrame *frame,
 }
 
 
-static av_cold int oggvorbis_decode_close(AVCodecContext *avccontext)
-{
+static int oggvorbis_decode_close(AVCodecContext *avccontext) {
     OggVorbisDecContext *context = avccontext->priv_data ;
 
     vorbis_block_clear(&context->vb);

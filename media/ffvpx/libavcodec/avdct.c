@@ -18,7 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "libavutil/attributes.h"
 #include "libavutil/mem.h"
 #include "avcodec.h"
 #include "idctdsp.h"
@@ -69,12 +68,12 @@ static const AVClass avdct_class = {
     .version                 = LIBAVUTIL_VERSION_INT,
 };
 
-av_cold const AVClass *avcodec_dct_get_class(void)
+const AVClass *avcodec_dct_get_class(void)
 {
     return &avdct_class;
 }
 
-av_cold AVDCT *avcodec_dct_alloc(void)
+AVDCT *avcodec_dct_alloc(void)
 {
     AVDCT *dsp = av_mallocz(sizeof(AVDCT));
 
@@ -87,7 +86,7 @@ av_cold AVDCT *avcodec_dct_alloc(void)
     return dsp;
 }
 
-av_cold int avcodec_dct_init(AVDCT *dsp)
+int avcodec_dct_init(AVDCT *dsp)
 {
     AVCodecContext *avctx = avcodec_alloc_context3(NULL);
 
@@ -120,7 +119,7 @@ av_cold int avcodec_dct_init(AVDCT *dsp)
 #if CONFIG_PIXBLOCKDSP
     {
         PixblockDSPContext pdsp;
-        ff_pixblockdsp_init(&pdsp, dsp->bits_per_sample);
+        ff_pixblockdsp_init(&pdsp, avctx);
         COPY(pdsp, get_pixels);
         COPY(pdsp, get_pixels_unaligned);
     }

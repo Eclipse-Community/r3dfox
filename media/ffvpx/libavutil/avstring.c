@@ -142,7 +142,7 @@ end:
 
 char *av_get_token(const char **buf, const char *term)
 {
-    char *out     = av_realloc(NULL, strlen(*buf) + 1);
+    char *out     = av_malloc(strlen(*buf) + 1);
     char *ret     = out, *end = out;
     const char *p = *buf;
     if (!out)
@@ -172,8 +172,7 @@ char *av_get_token(const char **buf, const char *term)
 
     *buf = p;
 
-    char *small_ret = av_realloc(ret, out - ret + 2);
-    return small_ret ? small_ret : ret;
+    return ret;
 }
 
 char *av_strtok(char *s, const char *delim, char **saveptr)
@@ -453,12 +452,10 @@ int av_match_list(const char *name, const char *list, char separator)
                 if (k && (!p[k] || p[k] == separator))
                     return 1;
             q = strchr(q, separator);
-            if(q)
-                q++;
+            q += !!q;
         }
         p = strchr(p, separator);
-        if (p)
-            p++;
+        p += !!p;
     }
 
     return 0;

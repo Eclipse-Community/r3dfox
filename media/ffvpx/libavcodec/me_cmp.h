@@ -21,7 +21,12 @@
 
 #include <stdint.h>
 
+#include "libavutil/attributes_internal.h"
+
 #include "avcodec.h"
+
+extern const uint32_t attribute_visibility_hidden ff_square_tab[512];
+
 
 /* minimum alignment rules ;)
  * If you notice errors in the align stuff, need more alignment for some ASM code
@@ -36,13 +41,13 @@
  * !future video codecs might need functions with less strict alignment
  */
 
-typedef struct MPVEncContext MPVEncContext;
+struct MpegEncContext;
 /* Motion estimation:
  * h is limited to { width / 2, width, 2 * width },
  * but never larger than 16 and never smaller than 2.
  * Although currently h < 4 is not used as functions with
  * width < 8 are neither used nor implemented. */
-typedef int (*me_cmp_func)(MPVEncContext *c,
+typedef int (*me_cmp_func)(struct MpegEncContext *c,
                            const uint8_t *blk1 /* align width (8 or 16) */,
                            const uint8_t *blk2 /* align 1 */, ptrdiff_t stride,
                            int h);
@@ -71,6 +76,7 @@ typedef struct MECmpContext {
 
 void ff_me_cmp_init(MECmpContext *c, AVCodecContext *avctx);
 void ff_me_cmp_init_aarch64(MECmpContext *c, AVCodecContext *avctx);
+void ff_me_cmp_init_alpha(MECmpContext *c, AVCodecContext *avctx);
 void ff_me_cmp_init_arm(MECmpContext *c, AVCodecContext *avctx);
 void ff_me_cmp_init_ppc(MECmpContext *c, AVCodecContext *avctx);
 void ff_me_cmp_init_riscv(MECmpContext *c, AVCodecContext *avctx);
@@ -81,7 +87,7 @@ void ff_me_cmp_init_mips(MECmpContext *c, AVCodecContext *avctx);
  * Fill the function pointer array cmp[6] with me_cmp_funcs from
  * c based upon type. If mpvenc is not set, an error is returned
  * if the type of comparison functions requires an initialized
- * MPVEncContext.
+ * MpegEncContext.
  */
 int ff_set_cmp(const MECmpContext *c, me_cmp_func *cmp,
                int type, int mpvenc);

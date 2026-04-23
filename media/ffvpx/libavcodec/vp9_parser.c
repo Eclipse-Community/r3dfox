@@ -21,9 +21,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "avcodec.h"
-#include "get_bits.h"
-#include "parser_internal.h"
+#include "libavutil/intreadwrite.h"
+#include "libavcodec/get_bits.h"
+#include "parser.h"
 
 static int parse(AVCodecParserContext *ctx,
                  AVCodecContext *avctx,
@@ -64,7 +64,7 @@ static int parse(AVCodecParserContext *ctx,
     return size;
 }
 
-const FFCodecParser ff_vp9_parser = {
-    PARSER_CODEC_LIST(AV_CODEC_ID_VP9),
-    .parse          = parse,
+const AVCodecParser ff_vp9_parser = {
+    .codec_ids      = { AV_CODEC_ID_VP9 },
+    .parser_parse   = parse,
 };

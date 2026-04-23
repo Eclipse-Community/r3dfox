@@ -113,28 +113,28 @@ static void FUNCC(pred4x4_128_dc)(uint8_t *_src, const uint8_t *topright,
 
 
 #define LOAD_TOP_RIGHT_EDGE\
-    av_unused const unsigned t4 = topright[0];\
-    av_unused const unsigned t5 = topright[1];\
-    av_unused const unsigned t6 = topright[2];\
-    av_unused const unsigned t7 = topright[3];\
+    const unsigned av_unused t4 = topright[0];\
+    const unsigned av_unused t5 = topright[1];\
+    const unsigned av_unused t6 = topright[2];\
+    const unsigned av_unused t7 = topright[3];\
 
 #define LOAD_DOWN_LEFT_EDGE\
-    av_unused const unsigned l4 = src[-1+4*stride];\
-    av_unused const unsigned l5 = src[-1+5*stride];\
-    av_unused const unsigned l6 = src[-1+6*stride];\
-    av_unused const unsigned l7 = src[-1+7*stride];\
+    const unsigned av_unused l4 = src[-1+4*stride];\
+    const unsigned av_unused l5 = src[-1+5*stride];\
+    const unsigned av_unused l6 = src[-1+6*stride];\
+    const unsigned av_unused l7 = src[-1+7*stride];\
 
 #define LOAD_LEFT_EDGE\
-    av_unused const unsigned l0 = src[-1+0*stride];\
-    av_unused const unsigned l1 = src[-1+1*stride];\
-    av_unused const unsigned l2 = src[-1+2*stride];\
-    av_unused const unsigned l3 = src[-1+3*stride];\
+    const unsigned av_unused l0 = src[-1+0*stride];\
+    const unsigned av_unused l1 = src[-1+1*stride];\
+    const unsigned av_unused l2 = src[-1+2*stride];\
+    const unsigned av_unused l3 = src[-1+3*stride];\
 
 #define LOAD_TOP_EDGE\
-    av_unused const unsigned t0 = src[ 0-1*stride];\
-    av_unused const unsigned t1 = src[ 1-1*stride];\
-    av_unused const unsigned t2 = src[ 2-1*stride];\
-    av_unused const unsigned t3 = src[ 3-1*stride];\
+    const unsigned av_unused t0 = src[ 0-1*stride];\
+    const unsigned av_unused t1 = src[ 1-1*stride];\
+    const unsigned av_unused t2 = src[ 2-1*stride];\
+    const unsigned av_unused t3 = src[ 3-1*stride];\
 
 static void FUNCC(pred4x4_down_right)(uint8_t *_src, const uint8_t *topright,
                                       ptrdiff_t _stride)
@@ -414,6 +414,7 @@ static inline void FUNCC(pred16x16_plane_compat)(uint8_t *_src,
 {
   int i, j, k;
   int a;
+  INIT_CLIP
   pixel *src = (pixel*)_src;
   int stride = _stride>>(sizeof(pixel)-1);
   const pixel * const src0 = src +7-stride;
@@ -747,6 +748,7 @@ static void FUNCC(pred8x8_plane)(uint8_t *_src, ptrdiff_t _stride)
 {
   int j, k;
   int a;
+  INIT_CLIP
   pixel *src = (pixel*)_src;
   int stride = _stride>>(sizeof(pixel)-1);
   const pixel * const src0 = src +3-stride;
@@ -782,6 +784,7 @@ static void FUNCC(pred8x16_plane)(uint8_t *_src, ptrdiff_t _stride)
 {
   int j, k;
   int a;
+  INIT_CLIP
   pixel *src = (pixel*)_src;
   int stride = _stride>>(sizeof(pixel)-1);
   const pixel * const src0 = src +3-stride;
@@ -826,7 +829,7 @@ static void FUNCC(pred8x16_plane)(uint8_t *_src, ptrdiff_t _stride)
     const int l0 = ((has_topleft ? SRC(-1,-1) : SRC(-1,0)) \
                      + 2*SRC(-1,0) + SRC(-1,1) + 2) >> 2; \
     PL(1) PL(2) PL(3) PL(4) PL(5) PL(6) \
-    av_unused const int l7 = (SRC(-1,6) + 3*SRC(-1,7) + 2) >> 2
+    const int l7 av_unused = (SRC(-1,6) + 3*SRC(-1,7) + 2) >> 2
 
 #define PT(x) \
     const int t##x = (SRC(x-1,-1) + 2*SRC(x,-1) + SRC(x+1,-1) + 2) >> 2;
@@ -834,7 +837,7 @@ static void FUNCC(pred8x16_plane)(uint8_t *_src, ptrdiff_t _stride)
     const int t0 = ((has_topleft ? SRC(-1,-1) : SRC(0,-1)) \
                      + 2*SRC(0,-1) + SRC(1,-1) + 2) >> 2; \
     PT(1) PT(2) PT(3) PT(4) PT(5) PT(6) \
-    av_unused const int t7 = ((has_topright ? SRC(8,-1) : SRC(7,-1)) \
+    const int t7 av_unused = ((has_topright ? SRC(8,-1) : SRC(7,-1)) \
                      + 2*SRC(7,-1) + SRC(6,-1) + 2) >> 2
 
 #define PTR(x) \

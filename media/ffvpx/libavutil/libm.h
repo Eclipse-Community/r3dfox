@@ -28,9 +28,7 @@
 #include <math.h>
 #include "config.h"
 #include "attributes.h"
-#if !(HAVE_COPYSIGN && HAVE_HYPOT && HAVE_ISFINITE && HAVE_ISINF && HAVE_ISNAN)
 #include "intfloat.h"
-#endif
 #include "mathematics.h"
 
 #if HAVE_MIPSFPU && HAVE_INLINE_ASM

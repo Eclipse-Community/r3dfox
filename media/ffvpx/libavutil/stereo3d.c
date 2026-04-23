@@ -20,6 +20,7 @@
 
 #include <string.h>
 
+#include "avstring.h"
 #include "frame.h"
 #include "macros.h"
 #include "mem.h"
@@ -102,7 +103,7 @@ int av_stereo3d_from_name(const char *name)
     int i;
 
     for (i = 0; i < FF_ARRAY_ELEMS(stereo3d_type_names); i++) {
-        if (!strcmp(name, stereo3d_type_names[i]))
+        if (av_strstart(name, stereo3d_type_names[i], NULL))
             return i;
     }
 
@@ -122,7 +123,7 @@ int av_stereo3d_view_from_name(const char *name)
     int i;
 
     for (i = 0; i < FF_ARRAY_ELEMS(stereo3d_view_names); i++) {
-        if (!strcmp(name, stereo3d_view_names[i]))
+        if (av_strstart(name, stereo3d_view_names[i], NULL))
             return i;
     }
 
@@ -142,7 +143,7 @@ int av_stereo3d_primary_eye_from_name(const char *name)
     int i;
 
     for (i = 0; i < FF_ARRAY_ELEMS(stereo3d_primary_eye_names); i++) {
-        if (!strcmp(name, stereo3d_primary_eye_names[i]))
+        if (av_strstart(name, stereo3d_primary_eye_names[i], NULL))
             return i;
     }
 

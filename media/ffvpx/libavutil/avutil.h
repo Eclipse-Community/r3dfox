@@ -41,6 +41,7 @@
  * @li @ref lavd "libavdevice" special devices muxing/demuxing library
  * @li @ref lavu "libavutil" common utility library
  * @li @ref lswr "libswresample" audio resampling, format conversion and mixing
+ * @li @ref lpp  "libpostproc" post processing library
  * @li @ref libsws "libswscale" color conversion and scaling library
  *
  * @section ffmpeg_versioning Versioning and compatibility

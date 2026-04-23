@@ -29,13 +29,6 @@
 #include "defs.h"
 #include "packet.h"
 
-#ifndef CBS_PREFIX
-#define CBS_PREFIX cbs
-#endif
-
-#define CBS_FUNC_PREFIX_NAME(prefix, name) ff_ ## prefix ## _ ## name
-#define CBS_FUNC_NAME(prefix, name) CBS_FUNC_PREFIX_NAME(prefix, name)
-#define CBS_FUNC(name) CBS_FUNC_NAME(CBS_PREFIX, name)
 
 /*
  * This defines a framework for converting between a coded bitstream
@@ -301,24 +294,24 @@ typedef struct CodedBitstreamContext {
  *
  * Terminated by AV_CODEC_ID_NONE.
  */
-extern const enum AVCodecID CBS_FUNC(all_codec_ids)[];
+extern const enum AVCodecID ff_cbs_all_codec_ids[];
 
 
 /**
  * Create and initialise a new context for the given codec.
  */
-int CBS_FUNC(init)(CodedBitstreamContext **ctx,
+int ff_cbs_init(CodedBitstreamContext **ctx,
                 enum AVCodecID codec_id, void *log_ctx);
 
 /**
  * Reset all internal state in a context.
  */
-void CBS_FUNC(flush)(CodedBitstreamContext *ctx);
+void ff_cbs_flush(CodedBitstreamContext *ctx);
 
 /**
  * Close a context and free all internal state.
  */
-void CBS_FUNC(close)(CodedBitstreamContext **ctx);
+void ff_cbs_close(CodedBitstreamContext **ctx);
 
 
 /**
@@ -332,7 +325,7 @@ void CBS_FUNC(close)(CodedBitstreamContext **ctx);
  * The fragment must have been zeroed or reset via ff_cbs_fragment_reset
  * before use.
  */
-int CBS_FUNC(read_extradata)(CodedBitstreamContext *ctx,
+int ff_cbs_read_extradata(CodedBitstreamContext *ctx,
                           CodedBitstreamFragment *frag,
                           const AVCodecParameters *par);
 
@@ -343,11 +336,11 @@ int CBS_FUNC(read_extradata)(CodedBitstreamContext *ctx,
  * This acts identical to ff_cbs_read_extradata() for the case where
  * you already have a codec context.
  */
-int CBS_FUNC(read_extradata_from_codec)(CodedBitstreamContext *ctx,
+int ff_cbs_read_extradata_from_codec(CodedBitstreamContext *ctx,
                                      CodedBitstreamFragment *frag,
                                      const struct AVCodecContext *avctx);
 
-int CBS_FUNC(read_packet_side_data)(CodedBitstreamContext *ctx,
+int ff_cbs_read_packet_side_data(CodedBitstreamContext *ctx,
                                  CodedBitstreamFragment *frag,
                                  const AVPacket *pkt);
 
@@ -362,7 +355,7 @@ int CBS_FUNC(read_packet_side_data)(CodedBitstreamContext *ctx,
  * The fragment must have been zeroed or reset via ff_cbs_fragment_reset
  * before use.
  */
-int CBS_FUNC(read_packet)(CodedBitstreamContext *ctx,
+int ff_cbs_read_packet(CodedBitstreamContext *ctx,
                        CodedBitstreamFragment *frag,
                        const AVPacket *pkt);
 
@@ -377,9 +370,8 @@ int CBS_FUNC(read_packet)(CodedBitstreamContext *ctx,
  * The fragment must have been zeroed or reset via ff_cbs_fragment_reset
  * before use.
  */
-int CBS_FUNC(read)(CodedBitstreamContext *ctx,
+int ff_cbs_read(CodedBitstreamContext *ctx,
                 CodedBitstreamFragment *frag,
-                const AVBufferRef *buf,
                 const uint8_t *data, size_t size);
 
 
@@ -395,7 +387,7 @@ int CBS_FUNC(read)(CodedBitstreamContext *ctx,
  * with any persistent data from the fragment which may be required to
  * write following fragments (e.g. parameter sets).
  */
-int CBS_FUNC(write_fragment_data)(CodedBitstreamContext *ctx,
+int ff_cbs_write_fragment_data(CodedBitstreamContext *ctx,
                                CodedBitstreamFragment *frag);
 
 /**
@@ -404,7 +396,7 @@ int CBS_FUNC(write_fragment_data)(CodedBitstreamContext *ctx,
  * Modifies context and fragment as ff_cbs_write_fragment_data does and
  * replaces any existing extradata in the structure.
  */
-int CBS_FUNC(write_extradata)(CodedBitstreamContext *ctx,
+int ff_cbs_write_extradata(CodedBitstreamContext *ctx,
                            AVCodecParameters *par,
                            CodedBitstreamFragment *frag);
 
@@ -418,7 +410,7 @@ int CBS_FUNC(write_extradata)(CodedBitstreamContext *ctx,
  * fragment; other fields are not touched.  On failure, the packet is not
  * touched at all.
  */
-int CBS_FUNC(write_packet)(CodedBitstreamContext *ctx,
+int ff_cbs_write_packet(CodedBitstreamContext *ctx,
                         AVPacket *pkt,
                         CodedBitstreamFragment *frag);
 
@@ -427,20 +419,20 @@ int CBS_FUNC(write_packet)(CodedBitstreamContext *ctx,
  * Free the units contained in a fragment as well as the fragment's
  * own data buffer, but not the units array itself.
  */
-void CBS_FUNC(fragment_reset)(CodedBitstreamFragment *frag);
+void ff_cbs_fragment_reset(CodedBitstreamFragment *frag);
 
 /**
  * Free the units array of a fragment in addition to what
  * ff_cbs_fragment_reset does.
  */
-void CBS_FUNC(fragment_free)(CodedBitstreamFragment *frag);
+void ff_cbs_fragment_free(CodedBitstreamFragment *frag);
 
 /**
  * Allocate a new internal content buffer matching the type of the unit.
  *
  * The content will be zeroed.
  */
-int CBS_FUNC(alloc_unit_content)(CodedBitstreamContext *ctx,
+int ff_cbs_alloc_unit_content(CodedBitstreamContext *ctx,
                               CodedBitstreamUnit *unit);
 
 /**
@@ -451,7 +443,7 @@ int CBS_FUNC(alloc_unit_content)(CodedBitstreamContext *ctx,
  * The content structure continues to be owned by the caller if
  * content_ref is not supplied.
  */
-int CBS_FUNC(insert_unit_content)(CodedBitstreamFragment *frag,
+int ff_cbs_insert_unit_content(CodedBitstreamFragment *frag,
                                int position,
                                CodedBitstreamUnitType type,
                                void *content,
@@ -464,7 +456,7 @@ int CBS_FUNC(insert_unit_content)(CodedBitstreamFragment *frag,
  * av_malloc() and will on success become owned by the unit after this
  * call or freed on error.
  */
-int CBS_FUNC(append_unit_data)(CodedBitstreamFragment *frag,
+int ff_cbs_append_unit_data(CodedBitstreamFragment *frag,
                             CodedBitstreamUnitType type,
                             uint8_t *data, size_t data_size,
                             AVBufferRef *data_buf);
@@ -474,7 +466,7 @@ int CBS_FUNC(append_unit_data)(CodedBitstreamFragment *frag,
  *
  * Requires position to be >= 0 and < frag->nb_units.
  */
-void CBS_FUNC(delete_unit)(CodedBitstreamFragment *frag,
+void ff_cbs_delete_unit(CodedBitstreamFragment *frag,
                         int position);
 
 
@@ -487,7 +479,7 @@ void CBS_FUNC(delete_unit)(CodedBitstreamFragment *frag,
  * It is not valid to call this function on a unit which does not have
  * decomposed content.
  */
-int CBS_FUNC(make_unit_refcounted)(CodedBitstreamContext *ctx,
+int ff_cbs_make_unit_refcounted(CodedBitstreamContext *ctx,
                                 CodedBitstreamUnit *unit);
 
 /**
@@ -503,7 +495,7 @@ int CBS_FUNC(make_unit_refcounted)(CodedBitstreamContext *ctx,
  * It is not valid to call this function on a unit which does not have
  * decomposed content.
  */
-int CBS_FUNC(make_unit_writable)(CodedBitstreamContext *ctx,
+int ff_cbs_make_unit_writable(CodedBitstreamContext *ctx,
                               CodedBitstreamUnit *unit);
 
 enum CbsDiscardFlags {
@@ -516,9 +508,9 @@ enum CbsDiscardFlags {
 };
 
 /**
- * Discard units according to 'skip'.
+ * Discard units accroding to 'skip'.
  */
-void CBS_FUNC(discard_units)(CodedBitstreamContext *ctx,
+void ff_cbs_discard_units(CodedBitstreamContext *ctx,
                           CodedBitstreamFragment *frag,
                           enum AVDiscard skip,
                           int flags);
@@ -530,7 +522,7 @@ void CBS_FUNC(discard_units)(CodedBitstreamContext *ctx,
  *
  * Trace context should be set to the CodedBitstreamContext.
  */
-void CBS_FUNC(trace_read_log)(void *trace_context,
+void ff_cbs_trace_read_log(void *trace_context,
                            struct GetBitContext *gbc, int length,
                            const char *str, const int *subscripts,
                            int64_t value);
@@ -541,7 +533,7 @@ void CBS_FUNC(trace_read_log)(void *trace_context,
  *
  * Trace context should be set to the CodedBitstreamContext.
  */
-void CBS_FUNC(trace_write_log)(void *trace_context,
+void ff_cbs_trace_write_log(void *trace_context,
                             struct PutBitContext *pbc, int length,
                             const char *str, const int *subscripts,
                             int64_t value);

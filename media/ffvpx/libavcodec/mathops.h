@@ -32,9 +32,8 @@
 
 extern const uint32_t ff_inverse[257];
 extern const uint8_t ff_log2_run[41];
-EXTERN const uint32_t ff_square_tab[512];
 extern const uint8_t ff_sqrt_tab[256];
-EXTERN const uint8_t ff_crop_tab[256 + 2 * MAX_NEG_CROP];
+extern const uint8_t attribute_visibility_hidden ff_crop_tab[256 + 2 * MAX_NEG_CROP];
 extern const uint8_t ff_zigzag_direct[64];
 extern const uint8_t ff_zigzag_scan[16+1];
 
@@ -44,8 +43,6 @@ extern const uint8_t ff_zigzag_scan[16+1];
 #   include "mips/mathops.h"
 #elif ARCH_PPC
 #   include "ppc/mathops.h"
-#elif ARCH_RISCV
-#   include "riscv/mathops.h"
 #elif ARCH_X86
 #   include "x86/mathops.h"
 #endif
@@ -95,24 +92,23 @@ static av_always_inline unsigned UMULH(unsigned a, unsigned b){
 #endif
 
 /* median of 3 */
-static inline av_const int median3_c(int a, int b, int c)
-{
-    int max2, min2, m;
-
-    if (a >= b) {
-        max2 = a;
-        min2 = b;
-    } else {
-        max2 = b;
-        min2 = a;
-    }
-    m = (c >= max2) ? max2 : c;
-
-    return (m >= min2) ? m : min2;
-}
-
 #ifndef mid_pred
-#define mid_pred median3_c
+#define mid_pred mid_pred
+static inline av_const int mid_pred(int a, int b, int c)
+{
+    if(a>b){
+        if(c>b){
+            if(c>a) b=a;
+            else    b=c;
+        }
+    }else{
+        if(b>c){
+            if(c>a) b=c;
+            else    b=a;
+        }
+    }
+    return b;
+}
 #endif
 
 #ifndef median4

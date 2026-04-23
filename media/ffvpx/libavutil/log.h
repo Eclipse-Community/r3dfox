@@ -37,7 +37,6 @@ typedef enum {
     AV_CLASS_CATEGORY_BITSTREAM_FILTER,
     AV_CLASS_CATEGORY_SWSCALER,
     AV_CLASS_CATEGORY_SWRESAMPLER,
-    AV_CLASS_CATEGORY_HWDEVICE,
     AV_CLASS_CATEGORY_DEVICE_VIDEO_OUTPUT = 40,
     AV_CLASS_CATEGORY_DEVICE_VIDEO_INPUT,
     AV_CLASS_CATEGORY_DEVICE_AUDIO_OUTPUT,
@@ -277,9 +276,9 @@ void av_log(void *avcl, int level, const char *fmt, ...) av_printf_format(3, 4);
  * @param avcl A pointer to an arbitrary struct of which the first field is a
  *        pointer to an AVClass struct or NULL if general log.
  * @param initial_level importance level of the message expressed using a @ref
- *        lavu_log_constants "Logging Constant" for the first occurrence.
+ *        lavu_log_constants "Logging Constant" for the first occurance.
  * @param subsequent_level importance level of the message expressed using a @ref
- *        lavu_log_constants "Logging Constant" after the first occurrence.
+ *        lavu_log_constants "Logging Constant" after the first occurance.
  * @param fmt The format string (printf-compatible) that specifies how
  *        subsequent arguments are converted to output.
  * @param state a variable to keep trak of if a message has already been printed
@@ -406,16 +405,6 @@ int av_log_format_line2(void *ptr, int level, const char *fmt, va_list vl,
  * [rawvideo @ 0xDEADBEEF] [error] encode did not produce valid pts
  */
 #define AV_LOG_PRINT_LEVEL 2
-
-/**
- * Include system time in log output.
- */
-#define AV_LOG_PRINT_TIME 4
-
-/**
- * Include system date and time in log output.
- */
-#define AV_LOG_PRINT_DATETIME 8
 
 void av_log_set_flags(int arg);
 int av_log_get_flags(void);

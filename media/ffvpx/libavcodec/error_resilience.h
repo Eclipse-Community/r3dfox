@@ -23,8 +23,9 @@
 #include <stdatomic.h>
 
 #include "avcodec.h"
+#include "me_cmp.h"
 
-/// current MB is the first after a resync marker
+///< current MB is the first after a resync marker
 #define VP_START               1
 #define ER_AC_ERROR            2
 #define ER_DC_ERROR            4
@@ -35,8 +36,6 @@
 
 #define ER_MB_ERROR (ER_AC_ERROR|ER_DC_ERROR|ER_MV_ERROR)
 #define ER_MB_END   (ER_AC_END|ER_DC_END|ER_MV_END)
-
-typedef struct MPVEncContext MPVEncContext;
 
 typedef struct ERPicture {
     AVFrame *f;
@@ -54,8 +53,8 @@ typedef struct ERPicture {
 typedef struct ERContext {
     AVCodecContext *avctx;
 
-    int (*sad)(MPVEncContext *unused, const uint8_t *blk1,
-               const uint8_t *blk2, ptrdiff_t stride, int h);
+    me_cmp_func sad;
+    int mecc_inited;
 
     int *mb_index2xy;
     int mb_num;
@@ -89,8 +88,6 @@ typedef struct ERContext {
                       int mb_x, int mb_y, int mb_intra, int mb_skipped);
     void *opaque;
 } ERContext;
-
-int ff_er_init(ERContext *const s);
 
 void ff_er_frame_start(ERContext *s);
 

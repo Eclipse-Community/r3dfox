@@ -100,9 +100,13 @@ do {                                                    \
 
 static inline int get_rl_index(const RLTable *rl, int last, int run, int level)
 {
+    int index;
+    index = rl->index_run[last][run];
+    if (index >= rl->n)
+        return rl->n;
     if (level > rl->max_level[last][run])
         return rl->n;
-    return rl->index_run[last][run] + level - 1;
+    return index + level - 1;
 }
 
 #endif /* AVCODEC_RL_H */
