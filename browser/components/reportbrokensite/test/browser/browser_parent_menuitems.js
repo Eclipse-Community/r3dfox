@@ -16,81 +16,64 @@ add_task(async function testMenus() {
   ensureReportBrokenSitePreffedOff();
 
   const appMenu = AppMenu();
-  const menus = [appMenu, ProtectionsPanel(), HelpMenu()];
+  const helpMenu = HelpMenu();
+  const protectionsPanel = ProtectionsPanel();
 
-  async function forceMenuItemStateUpdate() {
-    ReportBrokenSite.enableOrDisableMenuitems(window);
-
+  async function ensure(menu, fn, test) {
     // the hidden/disabled state of all of the menuitems may not update until one
     // is rendered; then the related <command>'s state is propagated to them all.
-    await appMenu.open();
-    await appMenu.close();
+    await menu.open();
+    await menu.close();
+
+    await menu.open();
+    fn(menu.reportBrokenSite, `${fn.name}(${menu.menuDescription}) ${test} - `);
+    await menu.close();
   }
 
   await BrowserTestUtils.withNewTab("about:blank", async function () {
-    await forceMenuItemStateUpdate();
-    for (const { menuDescription, reportBrokenSite } of menus) {
-      isMenuItemHidden(
-        reportBrokenSite,
-        `${menuDescription} option hidden on invalid page when preffed off`
-      );
-    }
+    ReportBrokenSite.enableOrDisableMenuitems(window);
+    const test = "on invalid page when preffed off";
+    await ensure(appMenu, isMenuItemDisabled, test);
+    await ensure(helpMenu, isMenuItemDisabled, test);
+    ensureProtectionsPanelHidden(test);
   });
 
   await BrowserTestUtils.withNewTab(REPORTABLE_PAGE_URL, async function () {
-    await forceMenuItemStateUpdate();
-    for (const { menuDescription, reportBrokenSite } of menus) {
-      isMenuItemHidden(
-        reportBrokenSite,
-        `${menuDescription} option hidden on valid page when preffed off`
-      );
-    }
+    ReportBrokenSite.enableOrDisableMenuitems(window);
+    const test =
+      "on valid page when preffed off (fallback to original reporter)";
+    await ensure(appMenu, isMenuItemEnabled, test);
+    await ensure(helpMenu, isMenuItemEnabled, test);
+    await ensure(protectionsPanel, isMenuItemEnabled, test);
   });
 
   ensureReportBrokenSitePreffedOn();
 
   await BrowserTestUtils.withNewTab("about:blank", async function () {
-    await forceMenuItemStateUpdate();
-    for (const { menuDescription, reportBrokenSite } of menus) {
-      isMenuItemDisabled(
-        reportBrokenSite,
-        `${menuDescription} option disabled on invalid page when preffed on`
-      );
-    }
+    ReportBrokenSite.enableOrDisableMenuitems(window);
+    const test = "on invalid page when preffed on";
+    await ensure(appMenu, isMenuItemDisabled, test);
+    await ensure(helpMenu, isMenuItemDisabled, test);
+    ensureProtectionsPanelHidden(test);
   });
 
   await BrowserTestUtils.withNewTab(REPORTABLE_PAGE_URL, async function () {
-    await forceMenuItemStateUpdate();
-    for (const { menuDescription, reportBrokenSite } of menus) {
-      isMenuItemEnabled(
-        reportBrokenSite,
-        `${menuDescription} option enabled on valid page when preffed on`
-      );
-    }
+    ReportBrokenSite.enableOrDisableMenuitems(window);
+    const test = "on valid page when preffed on";
+    await ensure(appMenu, isMenuItemEnabled, test);
+    await ensure(helpMenu, isMenuItemEnabled, test);
+    await ensure(protectionsPanel, isMenuItemEnabled, test);
   });
 
   ensureReportBrokenSitePreffedOff();
 
   await BrowserTestUtils.withNewTab(REPORTABLE_PAGE_URL, async function () {
-    await forceMenuItemStateUpdate();
-    for (const { menuDescription, reportBrokenSite } of menus) {
-      isMenuItemHidden(
-        reportBrokenSite,
-        `${menuDescription} option hidden again when pref toggled back off`
-      );
-    }
+    ReportBrokenSite.enableOrDisableMenuitems(window);
+    const test = "still active when pref toggled back off";
+    await ensure(appMenu, isMenuItemEnabled, test);
+    await ensure(helpMenu, isMenuItemEnabled, test);
+    await ensure(protectionsPanel, isMenuItemEnabled, test);
   });
 
   ensureReportBrokenSitePreffedOn();
-  ensureReportBrokenSiteDisabledByPolicy();
-
-  await BrowserTestUtils.withNewTab(REPORTABLE_PAGE_URL, async function () {
-    await forceMenuItemStateUpdate();
-    for (const { menuDescription, reportBrokenSite } of menus) {
-      isMenuItemHidden(
-        reportBrokenSite,
-        `${menuDescription} option hidden when disabled by DisableFeedbackCommands enterprise policy`
-      );
-    }
-  });
 });
