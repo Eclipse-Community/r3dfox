@@ -43,7 +43,7 @@
 #include "libavutil/common.h"
 #include "libavutil/internal.h"
 #include "libavutil/mem.h"
-#include "libavutil/time.h"
+#include "libavutil/fftime.h"
 #include "libavutil/wchar_filename.h"
 
 typedef struct w32pthread_t {

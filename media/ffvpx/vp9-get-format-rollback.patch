@@ -14,3 +14,4 @@ diff --git a/media/ffvpx/libavcodec/vp9.c b/media/ffvpx/libavcodec/vp9.c
 
          avctx->pix_fmt = ret;
          s->gf_fmt  = s->pix_fmt;
+
