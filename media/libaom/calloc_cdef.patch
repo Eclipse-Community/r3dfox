@@ -1,0 +1,12 @@
+diff --git a/av1/encoder/pickcdef.c b/av1/encoder/pickcdef.c
+--- a/av1/encoder/pickcdef.c
++++ b/av1/encoder/pickcdef.c
+@@ -874,7 +874,7 @@ void av1_cdef_search(AV1_COMP *cpi) {
+
+   if (!cpi->cdef_search_ctx)
+     CHECK_MEM_ERROR(cm, cpi->cdef_search_ctx,
+-                    aom_malloc(sizeof(*cpi->cdef_search_ctx)));
++                    aom_calloc(1, sizeof(*cpi->cdef_search_ctx)));
+   CdefSearchCtx *cdef_search_ctx = cpi->cdef_search_ctx;
+
+   // Initialize parameters related to CDEF search context.

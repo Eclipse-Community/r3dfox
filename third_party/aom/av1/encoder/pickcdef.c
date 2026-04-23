@@ -867,7 +867,7 @@ void av1_cdef_search(AV1_COMP *cpi) {
 
   if (!cpi->cdef_search_ctx)
     CHECK_MEM_ERROR(cm, cpi->cdef_search_ctx,
-                    aom_malloc(sizeof(*cpi->cdef_search_ctx)));
+                    aom_calloc(1, sizeof(*cpi->cdef_search_ctx)));
   CdefSearchCtx *cdef_search_ctx = cpi->cdef_search_ctx;
 
   // Initialize parameters related to CDEF search context.
