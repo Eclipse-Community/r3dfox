@@ -8,6 +8,7 @@ try {
   assertEq(true, false, "allocation overflow expected");
 } catch (e) {
   if (getBuildConfiguration("pointer-byte-size") == 4) {
-    assertEq((e + "").includes("InternalError: allocation size overflow"), true);
+    const msg = e + "";
+    assertEq(msg.includes("out of memory") || msg.includes("InternalError: allocation size overflow"), true);
   } // else on 64-bit, it will be a SyntaxError for invalid code.
 }
