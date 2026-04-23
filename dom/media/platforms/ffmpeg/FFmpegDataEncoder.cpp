@@ -286,12 +286,8 @@ void FFmpegDataEncoder<LIBAV_VER>::ShutdownInternal() {
   DestroyFrame();
 
   if (mCodecContext) {
-#if LIBAVCODEC_VERSION_MAJOR >= 62
-    mLib->avcodec_free_context(&mCodecContext);
-#else
     CloseCodecContext();
     mLib->av_freep(&mCodecContext);
-#endif
     mCodecContext = nullptr;
   }
 }
