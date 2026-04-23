@@ -32,8 +32,6 @@ const kAllowedPrefs = new Set([
   "reader.custom_colors.unvisited-links",
   "reader.custom_colors.visited-links",
   "reader.custom_colors.selection-highlight",
-
-  "security.tls.version.enable-deprecated",
 ]);
 
 const kPrefTypeMap = new Map([
