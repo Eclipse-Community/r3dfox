@@ -84,6 +84,9 @@ int ff_encode_encode_cb(AVCodecContext *avctx, AVPacket *avpkt,
  */
 AVCPBProperties *ff_encode_add_cpb_side_data(AVCodecContext *avctx);
 
+int ff_encode_add_stats_side_data(AVPacket *pkt, int quality, const int64_t error[],
+                                  int error_count, enum AVPictureType pict_type);
+
 /**
  * Rescale from sample rate to AVCodecContext.time_base.
  */
@@ -95,5 +98,26 @@ static av_always_inline int64_t ff_samples_to_time_base(const AVCodecContext *av
     return av_rescale_q(samples, (AVRational){ 1, avctx->sample_rate },
                         avctx->time_base);
 }
+
+/**
+ * Rescale from time base to AVCodecContext.sample_rate.
+ */
+static av_always_inline int64_t ff_samples_from_time_base(const AVCodecContext *avctx,
+                                                          int64_t duration)
+{
+    if (!duration)
+        return duration;
+    return av_rescale_q(duration, avctx->time_base,
+                        (AVRational){ 1, avctx->sample_rate });
+}
+
+/**
+ * Check if the elements of codec context matrices (intra_matrix, inter_matrix or
+ * chroma_intra_matrix) are within the specified range.
+ */
+#define FF_MATRIX_TYPE_INTRA        (1U << 0)
+#define FF_MATRIX_TYPE_INTER        (1U << 1)
+#define FF_MATRIX_TYPE_CHROMA_INTRA (1U << 2)
+int ff_check_codec_matrices(AVCodecContext *avctx, unsigned types, uint16_t min, uint16_t max);
 
 #endif /* AVCODEC_ENCODE_H */

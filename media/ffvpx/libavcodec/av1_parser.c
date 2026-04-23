@@ -20,12 +20,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include "libavutil/attributes.h"
 #include "libavutil/avassert.h"
 
 #include "av1_parse.h"
+#include "avcodec.h"
 #include "cbs.h"
 #include "cbs_av1.h"
-#include "parser.h"
+#include "parser_internal.h"
 
 typedef struct AV1ParseContext {
     CodedBitstreamContext *cbc;
@@ -82,7 +84,7 @@ static int av1_parser_parse(AVCodecParserContext *ctx,
         ff_cbs_fragment_reset(td);
     }
 
-    ret = ff_cbs_read(s->cbc, td, data, size);
+    ret = ff_cbs_read(s->cbc, td, NULL, data, size);
     if (ret < 0) {
         av_log(avctx, AV_LOG_ERROR, "Failed to parse temporal unit.\n");
         goto end;
@@ -132,6 +134,13 @@ static int av1_parser_parse(AVCodecParserContext *ctx,
             break;
         }
         ctx->picture_structure = AV_PICTURE_STRUCTURE_FRAME;
+
+        /* Extract SAR from render_height_minus_1 & render_width_minus_1 */
+        av_reduce(&avctx->sample_aspect_ratio.num,
+                  &avctx->sample_aspect_ratio.den,
+                  (int64_t)ctx->height * (frame->render_width_minus_1  + 1),
+                  (int64_t)ctx->width  * (frame->render_height_minus_1 + 1),
+                  INT_MAX);
     }
 
     switch (av1->bit_depth) {
@@ -183,6 +192,7 @@ static const CodedBitstreamUnitType decompose_unit_types[] = {
     AV1_OBU_FRAME_HEADER,
     AV1_OBU_TILE_GROUP,
     AV1_OBU_FRAME,
+    AV1_OBU_REDUNDANT_FRAME_HEADER,
 };
 
 static av_cold int av1_parser_init(AVCodecParserContext *ctx)
@@ -200,7 +210,7 @@ static av_cold int av1_parser_init(AVCodecParserContext *ctx)
     return 0;
 }
 
-static void av1_parser_close(AVCodecParserContext *ctx)
+static av_cold void av1_parser_close(AVCodecParserContext *ctx)
 {
     AV1ParseContext *s = ctx->priv_data;
 
@@ -208,10 +218,10 @@ static void av1_parser_close(AVCodecParserContext *ctx)
     ff_cbs_close(&s->cbc);
 }
 
-const AVCodecParser ff_av1_parser = {
-    .codec_ids      = { AV_CODEC_ID_AV1 },
+const FFCodecParser ff_av1_parser = {
+    PARSER_CODEC_LIST(AV_CODEC_ID_AV1),
     .priv_data_size = sizeof(AV1ParseContext),
-    .parser_init    = av1_parser_init,
-    .parser_close   = av1_parser_close,
-    .parser_parse   = av1_parser_parse,
+    .init           = av1_parser_init,
+    .close          = av1_parser_close,
+    .parse          = av1_parser_parse,
 };

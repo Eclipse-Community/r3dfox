@@ -142,7 +142,7 @@ enum AVPacketSideDataType {
     AV_PKT_DATA_CPB_PROPERTIES,
 
     /**
-     * Recommmends skipping the specified number of samples
+     * Recommends skipping the specified number of samples
      * @code
      * u32le number of samples to skip from start of this packet
      * u32le number of samples to skip from end of this packet
@@ -346,6 +346,29 @@ enum AVPacketSideDataType {
     AV_PKT_DATA_LCEVC,
 
     /**
+     * This side data contains information about the reference display width(s)
+     * and reference viewing distance(s) as well as information about the
+     * corresponding reference stereo pair(s), i.e., the pair(s) of views to be
+     * displayed for the viewer's left and right eyes on the reference display
+     * at the reference viewing distance.
+     * The payload is the AV3DReferenceDisplaysInfo struct defined in
+     * libavutil/tdrdi.h.
+     */
+    AV_PKT_DATA_3D_REFERENCE_DISPLAYS,
+
+    /**
+     * Contains the last received RTCP SR (Sender Report) information
+     * in the form of the AVRTCPSenderReport struct.
+     */
+    AV_PKT_DATA_RTCP_SR,
+
+    /**
+     * Extensible image file format metadata. The payload is a buffer containing
+     * EXIF metadata, starting with either 49 49 2a 00, or 4d 4d 00 2a.
+     */
+     AV_PKT_DATA_EXIF,
+
+    /**
      * The number of side data types.
      * This is not part of the public API/ABI in the sense that it may
      * change when new side data types are added.
@@ -355,10 +378,6 @@ enum AVPacketSideDataType {
      */
     AV_PKT_DATA_NB
 };
-
-#if FF_API_QUALITY_FACTOR
-#define AV_PKT_DATA_QUALITY_FACTOR AV_PKT_DATA_QUALITY_STATS //DEPRECATED
-#endif
 
 /**
  * This structure stores auxiliary information for decoding, presenting, or
@@ -469,6 +488,36 @@ void av_packet_side_data_remove(AVPacketSideData *sd, int *nb_sd,
  *              the array. Will be set to 0 upon return.
  */
 void av_packet_side_data_free(AVPacketSideData **sd, int *nb_sd);
+
+struct AVFrameSideData;
+
+/**
+ * Add a new packet side data entry to an array based on existing frame
+ * side data, if a matching type exists for packet side data.
+ *
+ * @param flags              Currently unused. Must be 0.
+ * @retval >= 0              Success
+ * @retval AVERROR(EINVAL)   The frame side data type does not have a matching
+ *                           packet side data type.
+ * @retval AVERROR(ENOMEM)   Failed to add a side data entry to the array, or
+ *                           similar.
+ */
+int av_packet_side_data_from_frame(AVPacketSideData **sd, int *nb_sd,
+                                   const struct AVFrameSideData *src, unsigned int flags);
+/**
+ * Add a new frame side data entry to an array based on existing packet
+ * side data, if a matching type exists for frame side data.
+ *
+ * @param flags              Some combination of AV_FRAME_SIDE_DATA_FLAG_* flags,
+ *                           or 0.
+ * @retval >= 0              Success
+ * @retval AVERROR(EINVAL)   The packet side data type does not have a matching
+ *                           frame side data type.
+ * @retval AVERROR(ENOMEM)   Failed to add a side data entry to the array, or
+ *                           similar.
+ */
+int av_packet_side_data_to_frame(struct AVFrameSideData ***sd, int *nb_sd,
+                                 const AVPacketSideData *src, unsigned int flags);
 
 const char *av_packet_side_data_name(enum AVPacketSideDataType type);
 
@@ -581,6 +630,15 @@ typedef struct AVPacket {
      * or muxers.
      */
     AVRational time_base;
+
+    /**
+     * Mozilla extensions to manage AMediaCryptoInfo for encrypted packets on
+     * Android. Must provide all parameters if any are given.
+     */
+    void* moz_ndk_crypto_info;
+    void* moz_crypto_info;
+    void (*moz_crypto_info_addref)(void*);
+    void (*moz_crypto_info_release)(void*);
 } AVPacket;
 
 #if FF_API_INIT_PACKET

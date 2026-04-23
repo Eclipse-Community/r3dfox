@@ -119,8 +119,8 @@ index 0f7571ee7a1ba..a116989b1f4bc 100644
  #if AOM_ENCODER_ABI_VERSION >= 23
      {
          const AVDictionaryEntry *en = NULL;
-@@ -1310,6 +1385,25 @@ FF_ENABLE_DEPRECATION_WARNINGS
- 
+@@ -1395,6 +1395,25 @@
+
          if (frame->pict_type == AV_PICTURE_TYPE_I)
              flags |= AOM_EFLAG_FORCE_KF;
 +
@@ -142,9 +142,9 @@ index 0f7571ee7a1ba..a116989b1f4bc 100644
 +                return res;
 +            }
 +        }
-     }
- 
-     res = aom_codec_encode(&ctx->encoder, rawimg, timestamp, duration, flags);
+
+         res = add_hdr_plus(avctx, rawimg, frame);
+         if (res < 0)
 @@ -1538,6 +1632,7 @@ static const AVOption options[] = {
      { "enable-masked-comp",           "Enable masked compound",                            OFFSET(enable_masked_comp),           AV_OPT_TYPE_BOOL, {.i64 = -1}, -1, 1, VE},
      { "enable-interintra-comp",       "Enable interintra compound",                        OFFSET(enable_interintra_comp),       AV_OPT_TYPE_BOOL, {.i64 = -1}, -1, 1, VE},

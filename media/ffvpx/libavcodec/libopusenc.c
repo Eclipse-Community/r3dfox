@@ -519,7 +519,7 @@ static int libopus_encode(AVCodecContext *avctx, AVPacket *avpkt,
     ff_af_queue_remove(&opus->afq, opus->opts.packet_size,
                        &avpkt->pts, &avpkt->duration);
 
-    discard_padding = opus->opts.packet_size - avpkt->duration;
+    discard_padding = opus->opts.packet_size - ff_samples_from_time_base(avctx, avpkt->duration);
     // Check if subtraction resulted in an overflow
     if ((discard_padding < opus->opts.packet_size) != (avpkt->duration > 0))
         return AVERROR(EINVAL);
@@ -601,10 +601,8 @@ const FFCodec ff_libopus_encoder = {
     .init            = libopus_encode_init,
     FF_CODEC_ENCODE_CB(libopus_encode),
     .close           = libopus_encode_close,
-    .p.sample_fmts   = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_S16,
-                                                      AV_SAMPLE_FMT_FLT,
-                                                      AV_SAMPLE_FMT_NONE },
-    .p.supported_samplerates = libopus_sample_rates,
+    CODEC_SAMPLEFMTS(AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_FLT),
+    CODEC_SAMPLERATES_ARRAY(libopus_sample_rates),
     .p.priv_class    = &libopus_class,
     .defaults        = libopus_defaults,
     .p.wrapper_name  = "libopus",

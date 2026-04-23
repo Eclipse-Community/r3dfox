@@ -41,6 +41,7 @@
 #include "profiles.h"
 
 typedef struct VPxDecoderContext {
+    const struct vpx_codec_iface *iface;
     struct vpx_codec_ctx decoder;
     struct vpx_codec_ctx decoder_alpha;
     AVBufferPool *pool;
@@ -84,9 +85,9 @@ static int release_frame_buffer(void *priv, vpx_codec_frame_buffer_t *fb)
 }
 
 static av_cold int vpx_init(AVCodecContext *avctx,
-                            struct vpx_codec_ctx* decoder,
-                            const struct vpx_codec_iface *iface)
+                            struct vpx_codec_ctx* decoder)
 {
+    VPxContext *ctx = avctx->priv_data;
     struct vpx_codec_dec_cfg deccfg = {
         .threads = FFMIN(avctx->thread_count ? avctx->thread_count : av_cpu_count(), MAX_VPX_THREADS)
     };
@@ -94,15 +95,20 @@ static av_cold int vpx_init(AVCodecContext *avctx,
     av_log(avctx, AV_LOG_INFO, "%s\n", vpx_codec_version_str());
     av_log(avctx, AV_LOG_VERBOSE, "%s\n", vpx_codec_build_config());
 
-    if (vpx_codec_dec_init(decoder, iface, &deccfg, 0) != VPX_CODEC_OK) {
+    if (vpx_codec_dec_init(decoder, ctx->iface, &deccfg, 0) != VPX_CODEC_OK) {
         const char *error = vpx_codec_error(decoder);
         av_log(avctx, AV_LOG_ERROR, "Failed to initialize decoder: %s\n",
                error);
         return AVERROR(EINVAL);
     }
 
-    if (avctx->codec_id == AV_CODEC_ID_VP9)
-        vpx_codec_set_frame_buffer_functions(decoder, get_frame_buffer, release_frame_buffer, avctx->priv_data);
+    if (vpx_codec_get_caps(ctx->iface) & VPX_CODEC_CAP_EXTERNAL_FRAME_BUFFER) {
+        if (vpx_codec_set_frame_buffer_functions(decoder, get_frame_buffer, release_frame_buffer, avctx->priv_data)) {
+            vpx_codec_destroy(decoder);
+            av_log(avctx, AV_LOG_ERROR, "Failed to set frame buffer.\n");
+            return AVERROR_EXTERNAL;
+        }
+    }
 
     return 0;
 }
@@ -134,23 +140,28 @@ static int set_pix_fmt(AVCodecContext *avctx, struct vpx_image *img,
 #if CONFIG_LIBVPX_VP9_DECODER
     case VPX_IMG_FMT_I422:
         avctx->profile = AV_PROFILE_VP9_1;
-        avctx->pix_fmt = AV_PIX_FMT_YUV422P;
+        avctx->pix_fmt =
+            has_alpha_channel ? AV_PIX_FMT_YUVA422P : AV_PIX_FMT_YUV422P;
         return 0;
     case VPX_IMG_FMT_I440:
+        //TODO: Add alpha support once the pixel format becomes available
         avctx->profile = AV_PROFILE_VP9_1;
         avctx->pix_fmt = AV_PIX_FMT_YUV440P;
         return 0;
     case VPX_IMG_FMT_I444:
         avctx->profile = AV_PROFILE_VP9_1;
         avctx->pix_fmt = avctx->colorspace == AVCOL_SPC_RGB ?
-                         AV_PIX_FMT_GBRP : AV_PIX_FMT_YUV444P;
+                         (has_alpha_channel ? AV_PIX_FMT_GBRAP : AV_PIX_FMT_GBRP) :
+                         (has_alpha_channel ? AV_PIX_FMT_YUVA444P : AV_PIX_FMT_YUV444P);
         return 0;
     case VPX_IMG_FMT_I42016:
         avctx->profile = AV_PROFILE_VP9_2;
         if (img->bit_depth == 10) {
-            avctx->pix_fmt = AV_PIX_FMT_YUV420P10;
+            avctx->pix_fmt =
+                has_alpha_channel ? AV_PIX_FMT_YUVA420P10 : AV_PIX_FMT_YUV420P10;
             return 0;
         } else if (img->bit_depth == 12) {
+            //TODO: Add alpha support once the pixel format becomes available
             avctx->pix_fmt = AV_PIX_FMT_YUV420P12;
             return 0;
         } else {
@@ -159,15 +170,18 @@ static int set_pix_fmt(AVCodecContext *avctx, struct vpx_image *img,
     case VPX_IMG_FMT_I42216:
         avctx->profile = AV_PROFILE_VP9_3;
         if (img->bit_depth == 10) {
-            avctx->pix_fmt = AV_PIX_FMT_YUV422P10;
+            avctx->pix_fmt =
+                has_alpha_channel ? AV_PIX_FMT_YUVA422P10 : AV_PIX_FMT_YUV422P10;
             return 0;
         } else if (img->bit_depth == 12) {
+            //TODO: Add alpha support once the pixel format becomes available
             avctx->pix_fmt = AV_PIX_FMT_YUV422P12;
             return 0;
         } else {
             return AVERROR_INVALIDDATA;
         }
     case VPX_IMG_FMT_I44016:
+        //TODO: Add alpha support once the pixel format becomes available
         avctx->profile = AV_PROFILE_VP9_3;
         if (img->bit_depth == 10) {
             avctx->pix_fmt = AV_PIX_FMT_YUV440P10;
@@ -182,11 +196,13 @@ static int set_pix_fmt(AVCodecContext *avctx, struct vpx_image *img,
         avctx->profile = AV_PROFILE_VP9_3;
         if (img->bit_depth == 10) {
             avctx->pix_fmt = avctx->colorspace == AVCOL_SPC_RGB ?
-                             AV_PIX_FMT_GBRP10 : AV_PIX_FMT_YUV444P10;
+                             (has_alpha_channel ? AV_PIX_FMT_GBRAP10 : AV_PIX_FMT_GBRP10) :
+                             (has_alpha_channel ? AV_PIX_FMT_YUVA444P10 : AV_PIX_FMT_YUV444P10);
             return 0;
         } else if (img->bit_depth == 12) {
             avctx->pix_fmt = avctx->colorspace == AVCOL_SPC_RGB ?
-                             AV_PIX_FMT_GBRP12 : AV_PIX_FMT_YUV444P12;
+                             (has_alpha_channel ? AV_PIX_FMT_GBRAP12 : AV_PIX_FMT_GBRP12) :
+                             (has_alpha_channel ? AV_PIX_FMT_YUVA444P12 : AV_PIX_FMT_YUV444P12);
             return 0;
         } else {
             return AVERROR_INVALIDDATA;
@@ -239,17 +255,7 @@ static int vpx_decode(AVCodecContext *avctx, AVFrame *picture,
         if (additional_id == 1) {  // 1 stands for alpha channel data.
             if (!ctx->has_alpha_channel) {
                 ctx->has_alpha_channel = 1;
-                ret = vpx_init(avctx,
-                               &ctx->decoder_alpha,
-#if CONFIG_LIBVPX_VP8_DECODER && CONFIG_LIBVPX_VP9_DECODER
-                               (avctx->codec_id == AV_CODEC_ID_VP8) ?
-                               vpx_codec_vp8_dx() : vpx_codec_vp9_dx()
-#elif CONFIG_LIBVPX_VP8_DECODER
-                               vpx_codec_vp8_dx()
-#else
-                               vpx_codec_vp9_dx()
-#endif
-                               );
+                ret = vpx_init(avctx, &ctx->decoder_alpha);
                 if (ret)
                     return ret;
             }
@@ -308,7 +314,7 @@ static int vpx_decode(AVCodecContext *avctx, AVFrame *picture,
         linesizes[3] =
             ctx->has_alpha_channel ? img_alpha->stride[VPX_PLANE_Y] : 0;
 
-        if (img->fb_priv && (!ctx->has_alpha_channel || img_alpha->fb_priv)) {
+        if (vpx_codec_get_caps(ctx->iface) & VPX_CODEC_CAP_EXTERNAL_FRAME_BUFFER) {
             ret = ff_decode_frame_props(avctx, picture);
             if (ret < 0)
                 return ret;
@@ -349,7 +355,8 @@ static av_cold int vpx_free(AVCodecContext *avctx)
 static av_cold int vp8_init(AVCodecContext *avctx)
 {
     VPxContext *ctx = avctx->priv_data;
-    return vpx_init(avctx, &ctx->decoder, vpx_codec_vp8_dx());
+    ctx->iface = vpx_codec_vp8_dx();
+    return vpx_init(avctx, &ctx->decoder);
 }
 
 const FFCodec ff_libvpx_vp8_decoder = {
@@ -372,7 +379,8 @@ const FFCodec ff_libvpx_vp8_decoder = {
 static av_cold int vp9_init(AVCodecContext *avctx)
 {
     VPxContext *ctx = avctx->priv_data;
-    return vpx_init(avctx, &ctx->decoder, vpx_codec_vp9_dx());
+    ctx->iface = vpx_codec_vp9_dx();
+    return vpx_init(avctx, &ctx->decoder);
 }
 
 const FFCodec ff_libvpx_vp9_decoder = {

@@ -24,7 +24,6 @@
 #include "libavutil/avassert.h"
 #include "libavutil/avutil.h"
 #include "libavutil/container_fifo.h"
-#include "libavutil/intreadwrite.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/mem.h"
 #include "libavutil/rational.h"
@@ -308,6 +307,9 @@ const char *av_packet_side_data_name(enum AVPacketSideDataType type)
     case AV_PKT_DATA_IAMF_RECON_GAIN_INFO_PARAM: return "IAMF Recon Gain Info Parameter Data";
     case AV_PKT_DATA_FRAME_CROPPING:             return "Frame Cropping";
     case AV_PKT_DATA_LCEVC:                      return "LCEVC NAL data";
+    case AV_PKT_DATA_3D_REFERENCE_DISPLAYS:      return "3D Reference Displays Info";
+    case AV_PKT_DATA_RTCP_SR:                    return "RTCP Sender Report";
+    case AV_PKT_DATA_EXIF:                       return "EXIF metadata";
     }
     return NULL;
 }
@@ -390,6 +392,32 @@ int av_packet_shrink_side_data(AVPacket *pkt, enum AVPacketSideDataType type,
     return AVERROR(ENOENT);
 }
 
+static void av_packet_free_moz_crypto_info(AVPacket *pkt) {
+  if (pkt->moz_crypto_info_release && pkt->moz_crypto_info) {
+    (*pkt->moz_crypto_info_release)(pkt->moz_crypto_info);
+  }
+  pkt->moz_ndk_crypto_info        = NULL;
+  pkt->moz_crypto_info            = NULL;
+  pkt->moz_crypto_info_addref     = NULL;
+  pkt->moz_crypto_info_release    = NULL;
+}
+
+static int av_packet_copy_moz_crypto_info(AVPacket *dst, const AVPacket *src) {
+  av_packet_free_moz_crypto_info(dst);
+  if (!src->moz_ndk_crypto_info) {
+    return 0;
+  }
+  if (!src->moz_crypto_info || !src->moz_crypto_info_addref || !src->moz_crypto_info_release) {
+    return AVERROR(EINVAL);
+  }
+  dst->moz_ndk_crypto_info        = src->moz_ndk_crypto_info;
+  dst->moz_crypto_info            = src->moz_crypto_info;
+  dst->moz_crypto_info_addref     = src->moz_crypto_info_addref;
+  dst->moz_crypto_info_release    = src->moz_crypto_info_release;
+  (*dst->moz_crypto_info_addref)(dst->moz_crypto_info);
+  return 0;
+}
+
 int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
 {
     int i, ret;
@@ -406,9 +434,15 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
     dst->side_data            = NULL;
     dst->side_data_elems      = 0;
 
-    ret = av_buffer_replace(&dst->opaque_ref, src->opaque_ref);
+    ret = av_packet_copy_moz_crypto_info(dst, src);
     if (ret < 0)
         return ret;
+
+    ret = av_buffer_replace(&dst->opaque_ref, src->opaque_ref);
+    if (ret < 0) {
+        av_packet_free_moz_crypto_info(dst);
+        return ret;
+    }
 
     for (i = 0; i < src->side_data_elems; i++) {
         enum AVPacketSideDataType type = src->side_data[i].type;
@@ -417,6 +451,7 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
         uint8_t *dst_data = av_packet_new_side_data(dst, type, size);
 
         if (!dst_data) {
+            av_packet_free_moz_crypto_info(dst);
             av_buffer_unref(&dst->opaque_ref);
             av_packet_free_side_data(dst);
             return AVERROR(ENOMEM);
@@ -429,6 +464,7 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
 
 void av_packet_unref(AVPacket *pkt)
 {
+    av_packet_free_moz_crypto_info(pkt);
     av_packet_free_side_data(pkt);
     av_buffer_unref(&pkt->opaque_ref);
     av_buffer_unref(&pkt->buf);
@@ -547,6 +583,7 @@ int avpriv_packet_list_put(PacketList *packet_buffer,
                            int flags)
 {
     PacketListEntry *pktl = av_malloc(sizeof(*pktl));
+    unsigned int update_end_point = 1;
     int ret;
 
     if (!pktl)
@@ -570,13 +607,22 @@ int avpriv_packet_list_put(PacketList *packet_buffer,
 
     pktl->next = NULL;
 
-    if (packet_buffer->head)
-        packet_buffer->tail->next = pktl;
-    else
+    if (packet_buffer->head) {
+        if (flags & FF_PACKETLIST_FLAG_PREPEND) {
+            pktl->next = packet_buffer->head;
+            packet_buffer->head = pktl;
+            update_end_point = 0;
+        } else {
+            packet_buffer->tail->next = pktl;
+        }
+    } else
         packet_buffer->head = pktl;
 
-    /* Add the packet in the buffered packet list. */
-    packet_buffer->tail = pktl;
+    if (update_end_point) {
+        /* Add the packet in the buffered packet list. */
+        packet_buffer->tail = pktl;
+    }
+
     return 0;
 }
 
@@ -605,31 +651,6 @@ void avpriv_packet_list_free(PacketList *pkt_buf)
         av_freep(&pktl);
     }
     pkt_buf->head = pkt_buf->tail = NULL;
-}
-
-int ff_side_data_set_encoder_stats(AVPacket *pkt, int quality, int64_t *error, int error_count, int pict_type)
-{
-    uint8_t *side_data;
-    size_t side_data_size;
-    int i;
-
-    side_data = av_packet_get_side_data(pkt, AV_PKT_DATA_QUALITY_STATS, &side_data_size);
-    if (!side_data) {
-        side_data_size = 4+4+8*error_count;
-        side_data = av_packet_new_side_data(pkt, AV_PKT_DATA_QUALITY_STATS,
-                                            side_data_size);
-    }
-
-    if (!side_data || side_data_size < 4+4+8*error_count)
-        return AVERROR(ENOMEM);
-
-    AV_WL32(side_data   , quality  );
-    side_data[4] = pict_type;
-    side_data[5] = error_count;
-    for (i = 0; i<error_count; i++)
-        AV_WL64(side_data+8 + 8*i , error[i]);
-
-    return 0;
 }
 
 int ff_side_data_set_prft(AVPacket *pkt, int64_t timestamp)

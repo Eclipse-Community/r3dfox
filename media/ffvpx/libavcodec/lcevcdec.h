@@ -1,33 +1,53 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* vim:set ts=2 sw=2 sts=2 et cindent: */
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/*
+ * This file is part of FFmpeg.
+ *
+ * FFmpeg is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * FFmpeg is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with FFmpeg; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
-/* Stubs for lcevcdec.{c,h} */
 #ifndef AVCODEC_LCEVCDEC_H
 #define AVCODEC_LCEVCDEC_H
 
-#include "config_components.h"
+#include "config.h"
 
 #include <stdint.h>
+#if CONFIG_LIBLCEVC_DEC
+#include <LCEVC/lcevc_dec.h>
+#else
 typedef uintptr_t LCEVC_DecoderHandle;
+#endif
+
+struct CodedBitstreamContext;
+struct CodedBitstreamFragment;
 
 typedef struct FFLCEVCContext {
     LCEVC_DecoderHandle decoder;
+    struct CodedBitstreamContext *cbc;
+    struct CodedBitstreamFragment *frag;
     int initialized;
 } FFLCEVCContext;
 
 struct AVFrame;
 
-static int ff_lcevc_alloc(FFLCEVCContext **plcevc) {
-    return 0;
-}
+typedef struct FFLCEVCFrame {
+    FFLCEVCContext *lcevc;
+    struct AVFrame *frame;
+} FFLCEVCFrame;
 
-static int ff_lcevc_process(void *logctx, struct AVFrame *frame) {
-    return 0;
-}
-
-static void ff_lcevc_unref(void *opaque) {}
-
+int ff_lcevc_alloc(FFLCEVCContext **plcevc, void *logctx);
+int ff_lcevc_process(void *logctx, struct AVFrame *frame);
+int ff_lcevc_parse_frame(FFLCEVCContext *lcevc, const struct AVFrame *frame,
+                         enum AVPixelFormat *format, int *width, int *height, void *logctx);
+void ff_lcevc_unref(void *opaque);
 #endif /* AVCODEC_LCEVCDEC_H */

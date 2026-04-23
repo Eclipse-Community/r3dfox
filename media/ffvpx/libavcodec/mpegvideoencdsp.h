@@ -30,6 +30,9 @@
 #define EDGE_BOTTOM 2
 
 typedef struct MpegvideoEncDSPContext {
+    void (*denoise_dct)(int16_t block[64], int dct_error_sum[64],
+                        const uint16_t dct_offset[64]);
+
     int (*try_8x8basis)(const int16_t rem[64], const int16_t weight[64],
                         const int16_t basis[64], int scale);
     void (*add_8x8basis)(int16_t rem[64], const int16_t basis[64], int scale);
@@ -37,8 +40,9 @@ typedef struct MpegvideoEncDSPContext {
     int (*pix_sum)(const uint8_t *pix, ptrdiff_t line_size);
     int (*pix_norm1)(const uint8_t *pix, ptrdiff_t line_size);
 
-    void (*shrink[4])(uint8_t *dst, ptrdiff_t dst_wrap, const uint8_t *src,
-                      ptrdiff_t src_wrap, int width, int height);
+    void (*shrink[4])(uint8_t *restrict dst, ptrdiff_t dst_wrap,
+                      const uint8_t *restrict src, ptrdiff_t src_wrap,
+                      int width, int height);
 
     void (*draw_edges)(uint8_t *buf, ptrdiff_t wrap, int width, int height,
                        int w, int h, int sides);
