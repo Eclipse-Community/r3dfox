@@ -14,6 +14,7 @@
 #include "nsIRunnable.h"
 
 class nsIAsyncInputStream;
+class nsICloneableInputStream;
 class nsIOutputStream;
 class nsIInputStreamCallback;
 class nsIOutputStreamCallback;
@@ -279,6 +280,26 @@ extern nsresult NS_FillArray(FallibleTArray<char>& aDest,
  * Return true if the given stream can be directly cloned.
  */
 extern bool NS_InputStreamIsCloneable(nsIInputStream* aSource);
+
+/**
+ * Ensure the provided source stream would pass NS_InputStreamIsCloneable().
+ * Returns a nsICloneableInputStream with GetCloneable() == true. If aSource
+ * does not implement nsICloneableInputStream, or its cloneable attribute is
+ * false, then a fallback clone is provided by copying the source to a pipe. In
+ * this case the caller must replace the source stream with the resulting
+ * replacement stream (aReplacementOut).
+ *
+ * @param aSource         The input stream to clone.
+ * @param aCloneableOut   Required out parameter to hold the QI result.
+ * @param aReplacementOut Optional out parameter to hold stream to replace
+ *                        aSource if it was not cloneable. If not provided then
+ *                        the fallback clone process is not supported, and a
+ *                        non-cloneable source will result in failure.
+ *                        Replacement streams are non-blocking.
+ */
+extern nsresult NS_EnsureInputStreamIsCloneable(
+    nsIInputStream* aSource, nsICloneableInputStream** aCloneableOut,
+    nsIInputStream** aReplacementOut = nullptr);
 
 /**
  * Clone the provided source stream in the most efficient way possible.  This

@@ -12,6 +12,7 @@
 #include "nsIObserver.h"
 
 class nsIInputStream;
+class nsICloneableInputStream;
 struct nsID;
 
 namespace mozilla {
@@ -65,7 +66,7 @@ class RemoteLazyInputStreamStorage final : public nsIObserver {
   nsCOMPtr<nsISerialEventTarget> mTaskQueue;
 
   struct StreamData {
-    nsCOMPtr<nsIInputStream> mInputStream;
+    nsCOMPtr<nsICloneableInputStream> mInputStream;
     RefPtr<RemoteLazyInputStreamParentCallback> mCallback;
     size_t mActorCount = 0;
   };

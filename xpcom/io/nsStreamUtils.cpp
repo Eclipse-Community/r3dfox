@@ -850,39 +850,33 @@ bool NS_InputStreamIsCloneable(nsIInputStream* aSource) {
   return cloneable && cloneable->GetCloneable();
 }
 
-nsresult NS_CloneInputStream(nsIInputStream* aSource,
-                             nsIInputStream** aCloneOut,
-                             nsIInputStream** aReplacementOut) {
+nsresult NS_EnsureInputStreamIsCloneable(
+    nsIInputStream* aSource, nsICloneableInputStream** aCloneableOut,
+    nsIInputStream** aReplacementOut) {
+  *aCloneableOut = nullptr;
+  if (aReplacementOut) {
+    *aReplacementOut = nullptr;
+  }
+
   if (NS_WARN_IF(!aSource)) {
     return NS_ERROR_FAILURE;
   }
 
-  // Attempt to perform the clone directly on the source stream
   nsCOMPtr<nsICloneableInputStream> cloneable = do_QueryInterface(aSource);
   if (cloneable && cloneable->GetCloneable()) {
-    if (aReplacementOut) {
-      *aReplacementOut = nullptr;
-    }
-    return cloneable->Clone(aCloneOut);
+    cloneable.forget(aCloneableOut);
+    return NS_OK;
   }
 
-  // If we failed the clone and the caller does not want to replace their
-  // original stream, then we are done.  Return error.
+  // If !GetCloneable() and the caller does not want to replace their original
+  // stream, then we are done.  Return error.
   if (!aReplacementOut) {
     return NS_ERROR_FAILURE;
   }
 
-  // The caller has opted-in to the fallback clone support that replaces
-  // the original stream.  Copy the data to a pipe and return two cloned
-  // input streams.
-
   nsCOMPtr<nsIInputStream> reader;
-  nsCOMPtr<nsIInputStream> readerClone;
   nsCOMPtr<nsIOutputStream> writer;
-
-  NS_NewPipe(getter_AddRefs(reader), getter_AddRefs(writer), 0,
-             0,            // default segment size and max size
-             true, true);  // non-blocking
+  NS_NewPipe(getter_AddRefs(reader), getter_AddRefs(writer), 0, 0, true, true);
 
   // Propagate length information provided by nsIInputStreamLength. We don't use
   // InputStreamLengthHelper::GetSyncLength to avoid the risk of blocking when
@@ -894,14 +888,7 @@ nsresult NS_CloneInputStream(nsIInputStream* aSource,
     reader = new mozilla::InputStreamLengthWrapper(reader.forget(), length);
   }
 
-  cloneable = do_QueryInterface(reader);
-  MOZ_ASSERT(cloneable && cloneable->GetCloneable());
-
-  nsresult rv = cloneable->Clone(getter_AddRefs(readerClone));
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
+  nsresult rv;
   nsCOMPtr<nsIEventTarget> target =
       do_GetService(NS_STREAMTRANSPORTSERVICE_CONTRACTID, &rv);
   if (NS_WARN_IF(NS_FAILED(rv))) {
@@ -913,10 +900,30 @@ nsresult NS_CloneInputStream(nsIInputStream* aSource,
     return rv;
   }
 
-  readerClone.forget(aCloneOut);
+  cloneable = do_QueryInterface(reader);
+  MOZ_DIAGNOSTIC_ASSERT(cloneable && cloneable->GetCloneable(),
+                        "Pipes and pipes wrapped in InputStreamLengthWrapper "
+                        "are always cloneable");
+
+  cloneable.forget(aCloneableOut);
   reader.forget(aReplacementOut);
 
-  return NS_OK;
+  return rv;
+}
+
+nsresult NS_CloneInputStream(nsIInputStream* aSource,
+                             nsIInputStream** aCloneOut,
+                             nsIInputStream** aReplacementOut) {
+  nsCOMPtr<nsICloneableInputStream> cloneable;
+  nsresult rv = NS_EnsureInputStreamIsCloneable(
+      aSource, getter_AddRefs(cloneable), aReplacementOut);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  MOZ_DIAGNOSTIC_ASSERT(cloneable && cloneable->GetCloneable(),
+                        "NS_EnsureInputStreamIsCloneable lied");
+  return cloneable->Clone(aCloneOut);
 }
 
 nsresult NS_MakeAsyncNonBlockingInputStream(
