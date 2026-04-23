@@ -26,7 +26,7 @@ namespace mozilla {
 
 class SandboxBrokerCommon {
  public:
-  enum Operation {
+  enum class Operation : unsigned {
     SANDBOX_FILE_OPEN,
     SANDBOX_FILE_ACCESS,
     SANDBOX_FILE_STAT,
@@ -40,9 +40,38 @@ class SandboxBrokerCommon {
     SANDBOX_FILE_READLINK,
     SANDBOX_SOCKET_CONNECT,
     SANDBOX_SOCKET_CONNECT_ABSTRACT,
+    SANDBOX_OP_MAX_VALUE = SANDBOX_SOCKET_CONNECT_ABSTRACT
   };
-  // String versions of the above
-  static const char* OperationDescription[];
+#ifdef __cpp_using_enum
+  using enum Operation;
+#else
+  // We can get rid of this once we desupport older compilers like GCC 10
+  // (probably when we move to C++23: bug 1880762).
+#  define USING_OP(NAME) static constexpr auto NAME = Operation::NAME
+  USING_OP(SANDBOX_FILE_OPEN);
+  USING_OP(SANDBOX_FILE_ACCESS);
+  USING_OP(SANDBOX_FILE_STAT);
+  USING_OP(SANDBOX_FILE_CHMOD);
+  USING_OP(SANDBOX_FILE_LINK);
+  USING_OP(SANDBOX_FILE_SYMLINK);
+  USING_OP(SANDBOX_FILE_MKDIR);
+  USING_OP(SANDBOX_FILE_RENAME);
+  USING_OP(SANDBOX_FILE_RMDIR);
+  USING_OP(SANDBOX_FILE_UNLINK);
+  USING_OP(SANDBOX_FILE_READLINK);
+  USING_OP(SANDBOX_SOCKET_CONNECT);
+  USING_OP(SANDBOX_SOCKET_CONNECT_ABSTRACT);
+  USING_OP(SANDBOX_OP_MAX_VALUE);
+#  undef USING_OP
+#endif
+
+  static bool OperationIsValid(Operation aOp) {
+    return static_cast<unsigned>(aOp) <=
+           static_cast<unsigned>(SANDBOX_OP_MAX_VALUE);
+  }
+
+  static unsigned OperationToInt(Operation);
+  static const char* OperationDescription(Operation);
 
   struct Request {
     Operation mOp;

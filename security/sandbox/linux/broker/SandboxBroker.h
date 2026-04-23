@@ -154,9 +154,9 @@ class SandboxBroker final : private SandboxBrokerCommon,
   ~SandboxBroker() override;
 
   void ThreadMain(void) override;
-  void AuditPermissive(int aOp, int aFlags, uint64_t aId, int aPerms,
+  void AuditPermissive(Operation aOp, int aFlags, uint64_t aId, int aPerms,
                        const char* aPath);
-  void AuditDenial(int aOp, int aFlags, uint64_t aId, int aPerms,
+  void AuditDenial(Operation aOp, int aFlags, uint64_t aId, int aPerms,
                    const char* aPath);
   // Remap relative paths to absolute paths.
   size_t ConvertRelativePath(char* aPath, size_t aBufSize, size_t aPathLen);

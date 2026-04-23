@@ -709,6 +709,11 @@ void SandboxBroker::ThreadMain(void) {
       shutdown(mFileDesc, SHUT_RD);
       break;
     }
+    if (!OperationIsValid(req.mOp)) {
+      SANDBOX_LOG("invalid op %d", static_cast<unsigned>(req.mOp));
+      shutdown(mFileDesc, SHUT_RD);
+      break;
+    }
 
     // Initialize the response with the default failure.
     memset(&resp, 0, sizeof(resp));
@@ -986,6 +991,8 @@ void SandboxBroker::ThreadMain(void) {
             AuditDenial(req.mOp, req.mFlags, req.mId, perms, pathBuf);
           }
           break;
+        default:
+          MOZ_CRASH("unreachable");
       }
     } else {
       MOZ_ASSERT(perms == 0);
@@ -1027,7 +1034,7 @@ void SandboxBroker::ThreadMain(void) {
   }
 }
 
-void SandboxBroker::AuditPermissive(int aOp, int aFlags, uint64_t aId,
+void SandboxBroker::AuditPermissive(Operation aOp, int aFlags, uint64_t aId,
                                     int aPerms, const char* aPath) {
   MOZ_RELEASE_ASSERT(SandboxInfo::Get().Test(SandboxInfo::kPermissive));
 
@@ -1041,21 +1048,21 @@ void SandboxBroker::AuditPermissive(int aOp, int aFlags, uint64_t aId,
   SANDBOX_LOG_ERRNO(
       "SandboxBroker: would have denied op=%s rflags=%o perms=%d path=%s for "
       "pid=%d permissive=1; real status",
-      OperationDescription[aOp], aFlags, aPerms, aPath, mChildPid);
+      OperationDescription(aOp), aFlags, aPerms, aPath, mChildPid);
   SandboxProfiler::ReportAudit("SandboxBroker::AuditPermissive",
-                               OperationDescription[aOp], aFlags, aId, aPerms,
+                               OperationDescription(aOp), aFlags, aId, aPerms,
                                aPath, mChildPid);
 }
 
-void SandboxBroker::AuditDenial(int aOp, int aFlags, uint64_t aId, int aPerms,
-                                const char* aPath) {
+void SandboxBroker::AuditDenial(Operation aOp, int aFlags, uint64_t aId,
+                                int aPerms, const char* aPath) {
   if (SandboxInfo::Get().Test(SandboxInfo::kVerbose)) {
     SANDBOX_LOG(
         "SandboxBroker: denied op=%s rflags=%o perms=%d path=%s for pid=%d",
-        OperationDescription[aOp], aFlags, aPerms, aPath, mChildPid);
+        OperationDescription(aOp), aFlags, aPerms, aPath, mChildPid);
   }
   SandboxProfiler::ReportAudit("SandboxBroker::AuditDenial",
-                               OperationDescription[aOp], aFlags, aId, aPerms,
+                               OperationDescription(aOp), aFlags, aId, aPerms,
                                aPath, mChildPid);
 }
 

@@ -16,6 +16,7 @@
 #  define AUTO_PROFILER_THREAD_SLEEP
 #endif
 
+#include <array>  // for std::size
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -38,21 +39,36 @@
 
 namespace mozilla {
 
-const char* SandboxBrokerCommon::OperationDescription[] = {
-    "open",
-    "access",
-    "stat",
-    "chmod",
-    "link",
-    "symlink",
-    "mkdir",
-    "rename",
-    "rmdir",
-    "unlink",
-    "readlink",
-    "connect",
-    "connect-abstract",
-};
+// static
+unsigned SandboxBrokerCommon::OperationToInt(Operation aOp) {
+  MOZ_RELEASE_ASSERT(OperationIsValid(aOp));
+  return static_cast<unsigned>(aOp);
+}
+
+// static
+const char* SandboxBrokerCommon::OperationDescription(Operation aOp) {
+  static constexpr const char* kNames[] = {
+      "open",
+      "access",
+      "stat",
+      "chmod",
+      "link",
+      "symlink",
+      "mkdir",
+      "rename",
+      "rmdir",
+      "unlink",
+      "readlink",
+      "connect",
+      "connect-abstract",
+  };
+
+  static_assert(
+      std::size(kNames) == static_cast<size_t>(SANDBOX_OP_MAX_VALUE) + 1,
+      "each Operation needs a name");
+
+  return kNames[OperationToInt(aOp)];
+}
 
 /* static */
 ssize_t SandboxBrokerCommon::RecvWithFd(int aFd, const iovec* aIO,
