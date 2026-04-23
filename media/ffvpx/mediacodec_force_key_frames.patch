@@ -92,11 +92,9 @@ diff --git a/media/ffvpx/libavcodec/mediacodecenc.c b/media/ffvpx/libavcodec/med
 +
 +        if (frame->pict_type == AV_PICTURE_TYPE_I) {
 +            FFAMediaFormat *format = ff_AMediaFormat_new(s->use_ndk_codec);
-+            if (format) {
-+                ff_AMediaFormat_setInt32(format, "request-sync", 0);
-+                ff_AMediaCodec_setParameters(codec, format);
-+                ff_AMediaFormat_delete(format);
-+            }
++            ff_AMediaFormat_setInt32(format, "request-sync", 0);
++            ff_AMediaCodec_setParameters(codec, format);
++            ff_AMediaFormat_delete(format);
 +        }
      } else {
          flags |= ff_AMediaCodec_getBufferFlagEndOfStream(codec);

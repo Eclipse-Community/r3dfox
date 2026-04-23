@@ -205,7 +205,6 @@ struct FFAMediaCodec {
     int (*delete)(FFAMediaCodec* codec);
 
     int (*configure)(FFAMediaCodec* codec, const FFAMediaFormat* format, FFANativeWindow* surface, void *crypto, uint32_t flags);
-    int (*setParameters)(FFAMediaCodec* codec, const FFAMediaFormat* format);
     int (*start)(FFAMediaCodec* codec);
     int (*stop)(FFAMediaCodec* codec);
     int (*flush)(FFAMediaCodec* codec);
@@ -258,12 +257,6 @@ static inline int ff_AMediaCodec_configure(FFAMediaCodec *codec,
                                            void *crypto, uint32_t flags)
 {
     return codec->configure(codec, format, surface, crypto, flags);
-}
-
-static inline int ff_AMediaCodec_setParameters(FFAMediaCodec *codec,
-                                               const FFAMediaFormat *format)
-{
-    return codec->setParameters(codec, format);
 }
 
 static inline int ff_AMediaCodec_start(FFAMediaCodec* codec)
