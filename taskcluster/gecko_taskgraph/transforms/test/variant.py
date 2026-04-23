@@ -56,7 +56,9 @@ def split_variants(config, tasks):
             return []
 
         if "esr" in config.params.get("release_type", ""):
-            return []
+            # Bug 2005068 - ioi tests are tier 3 and permafailing on some
+            # suites on ESR140, don't waste resources running them.
+            return ["inc-origin-init", "privatebrowsing-inc-origin-init"]
 
         today = datetime.datetime.today()
         for variant in variants:
