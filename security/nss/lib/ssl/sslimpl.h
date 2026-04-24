@@ -760,6 +760,8 @@ typedef struct SSL3HandshakeStateStr {
                                            * on server.*/
     PRBool helloRetry;                    /* True if HelloRetryRequest has been sent
                                            * or received. */
+    PRBool dtlsReceivedHVR;               /* True if a DTLS HelloVerifyRequest was
+                                           * received. */
     PRBool receivedCcs;                   /* A server received ChangeCipherSpec
                                            * before the handshake started. */
     PRBool rejectCcs;                     /* Excessive ChangeCipherSpecs are rejected. */

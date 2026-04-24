@@ -1135,18 +1135,6 @@ dtls_HandleHelloVerifyRequest(sslSocket *ss, PRUint8 *b, PRUint32 length)
         goto loser; /* alert has been sent */
     }
 
-    /* HelloVerifyRequest is a DTLS 1.2 (and earlier) mechanism; DTLS 1.3 uses
-     * a cookie extension in HelloRetryRequest instead. Reject an HVR that
-     * claims a version newer than DTLS 1.2 and cap the negotiable version.
-     */
-    if (version > SSL_LIBRARY_VERSION_TLS_1_2) {
-        desc = illegal_parameter;
-        goto alert_loser;
-    }
-    if (ss->vrange.max > SSL_LIBRARY_VERSION_TLS_1_2) {
-        ss->vrange.max = SSL_LIBRARY_VERSION_TLS_1_2;
-    }
-
     /* Read the cookie. */
     SECItem cookie;
     rv = ssl3_ConsumeHandshakeVariable(ss, &cookie, 1, &b, &length);
@@ -1163,6 +1151,8 @@ dtls_HandleHelloVerifyRequest(sslSocket *ss, PRUint8 *b, PRUint32 length)
     if (rv != SECSuccess) {
         goto loser;
     }
+
+    ss->ssl3.hs.dtlsReceivedHVR = PR_TRUE;
 
     ssl_GetXmitBufLock(ss); /*******************************/
 
