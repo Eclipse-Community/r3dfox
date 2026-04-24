@@ -1528,10 +1528,11 @@ tainted_boolean_hint gfxFont::SpaceMayParticipateInShaping(
     }
   }
 
-  if (FontCanSupportGraphite()) {
-    if (gfxPlatform::GetPlatform()->UseGraphiteShaping()) {
-      return mFontEntry->HasGraphiteSpaceContextuals();
-    }
+  // Note that Graphite shaping is only available on the main thread.
+  // `UseGraphiteShaping` will always be false in workers.
+  if (gfxPlatform::GetPlatform()->UseGraphiteShaping() &&
+      FontCanSupportGraphite()) {
+    return mFontEntry->HasGraphiteSpaceContextuals();
   }
 
   // We record the presence of space-dependent features in the font entry
@@ -1566,6 +1567,9 @@ tainted_boolean_hint gfxFont::SpaceMayParticipateInShaping(
 }
 
 bool gfxFont::SupportsFeature(Script aScript, uint32_t aFeatureTag) {
+  // mGraphiteShaper may be observed non-null on a worker thread, but workers
+  // shape via harfbuzz regardless, because graphite shaping is only available
+  // on the main thread.
   if (mGraphiteShaper && gfxPlatform::GetPlatform()->UseGraphiteShaping()) {
     return GetFontEntry()->SupportsGraphiteFeature(aFeatureTag);
   }
@@ -3448,23 +3452,23 @@ bool gfxFont::ShapeText(DrawTarget* aDrawTarget, const char16_t* aText,
   // XXX Currently, we do all vertical shaping through harfbuzz.
   // Vertical graphite support may be wanted as a future enhancement.
   // XXX Graphite shaping currently only supported on the main thread!
-  // Worker-thread shaping (offscreen canvas) will always go via harfbuzz.
-  if (FontCanSupportGraphite() && !aVertical && NS_IsMainThread()) {
-    if (gfxPlatform::GetPlatform()->UseGraphiteShaping()) {
-      gfxGraphiteShaper* shaper = mGraphiteShaper;
-      if (!shaper) {
-        shaper = new gfxGraphiteShaper(this);
-        if (!mGraphiteShaper.compareExchange(nullptr, shaper)) {
-          delete shaper;
-          shaper = mGraphiteShaper;
-        }
+  // On workers (offscreen canvas), `UseGraphiteShaping` always returns false,
+  // and shaping uses harfbuzz.
+  if (gfxPlatform::GetPlatform()->UseGraphiteShaping() &&
+      FontCanSupportGraphite() && !aVertical) {
+    gfxGraphiteShaper* shaper = mGraphiteShaper;
+    if (!shaper) {
+      shaper = new gfxGraphiteShaper(this);
+      if (!mGraphiteShaper.compareExchange(nullptr, shaper)) {
+        delete shaper;
+        shaper = mGraphiteShaper;
       }
-      if (shaper->ShapeText(aDrawTarget, aText, aOffset, aLength, aScript,
-                            aLanguage, aVertical, aRounding, aShapedText)) {
-        PostShapingFixup(aDrawTarget, aText, aOffset, aLength, aVertical,
-                         aShapedText);
-        return true;
-      }
+    }
+    if (shaper->ShapeText(aDrawTarget, aText, aOffset, aLength, aScript,
+                          aLanguage, aVertical, aRounding, aShapedText)) {
+      PostShapingFixup(aDrawTarget, aText, aOffset, aLength, aVertical,
+                       aShapedText);
+      return true;
     }
   }
 
