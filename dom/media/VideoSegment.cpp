@@ -8,6 +8,7 @@
 #include "gfx2DGlue.h"
 #include "ImageContainer.h"
 #include "VideoUtils.h"
+#include "mozilla/CheckedInt.h"
 #include "mozilla/UniquePtr.h"
 
 namespace mozilla {
@@ -51,9 +52,21 @@ already_AddRefed<Image> VideoFrame::CreateBlackImage(
     return nullptr;
   }
 
-  gfx::IntSize cbcrSize((aSize.width + 1) / 2, (aSize.height + 1) / 2);
-  int yLen = aSize.width * aSize.height;
-  int cbcrLen = cbcrSize.width * cbcrSize.height;
+  if (aSize.width <= 0 || aSize.height <= 0) {
+    return nullptr;
+  }
+  auto checkedYLen = CheckedInt32(aSize.width) * aSize.height;
+  if (!checkedYLen.isValid()) {
+    return nullptr;
+  }
+  auto checkedCbCrWidth = (CheckedInt32(aSize.width) + 1) / 2;
+  auto checkedCbCrHeight = (CheckedInt32(aSize.height) + 1) / 2;
+  auto checkedCbCrLen = checkedCbCrWidth * checkedCbCrHeight;
+  if (!checkedCbCrLen.isValid()) {
+    return nullptr;
+  }
+  int yLen = checkedYLen.value();
+  int cbcrLen = checkedCbCrLen.value();
 
   // Generate a black image.
   auto frame = MakeUnique<uint8_t[]>(yLen + 2 * cbcrLen);
@@ -65,7 +78,7 @@ already_AddRefed<Image> VideoFrame::CreateBlackImage(
   layers::PlanarYCbCrData data;
   data.mYChannel = frame.get();
   data.mYStride = aSize.width;
-  data.mCbCrStride = cbcrSize.width;
+  data.mCbCrStride = checkedCbCrWidth.value();
   data.mCbChannel = frame.get() + yLen;
   data.mCrChannel = data.mCbChannel + cbcrLen;
   data.mPictureRect = gfx::IntRect(0, 0, aSize.width, aSize.height);
