@@ -7201,6 +7201,15 @@ ssl3_HandleServerHello(sslSocket *ss, PRUint8 *b, PRUint32 length)
         goto alert_loser;
     }
 
+    /* A server that sent HelloVerifyRequest is DTLS 1.2 or earlier;
+     * reject a subsequent TLS 1.3 ServerHello as illegal. */
+    if (ss->ssl3.hs.dtlsReceivedHVR &&
+        ss->version >= SSL_LIBRARY_VERSION_TLS_1_3) {
+        desc = illegal_parameter;
+        errCode = SSL_ERROR_RX_MALFORMED_SERVER_HELLO;
+        goto alert_loser;
+    }
+
     /* There are three situations in which the server must pick
      * TLS 1.3.
      *
@@ -13917,6 +13926,8 @@ ssl3_InitState(sslSocket *ss)
                 sizeof(ss->ssl3.hs.newSessionTicket));
 
     ss->ssl3.hs.zeroRttState = ssl_0rtt_none;
+
+    ss->ssl3.hs.dtlsReceivedHVR = PR_FALSE;
     return SECSuccess;
 }
 
