@@ -42,8 +42,7 @@ NS_INTERFACE_MAP_END
 RTCEncodedFrameBase::RTCEncodedFrameBase(
     nsIGlobalObject* aGlobal,
     std::unique_ptr<webrtc::TransformableFrameInterface> aFrame,
-    uint64_t aCounter,
-    RTCRtpScriptTransformer* aOwner)
+    uint64_t aCounter, RTCRtpScriptTransformer* aOwner)
     : mGlobal(aGlobal),
       mFrame(std::move(aFrame)),
       mCounter(aCounter),
@@ -109,6 +108,13 @@ std::unique_ptr<webrtc::TransformableFrameInterface>
 RTCEncodedFrameBase::TakeFrame() {
   DetachData();
   return std::move(mFrame);
+}
+
+size_t RTCEncodedFrameBase::Size() const {
+  if (!mFrame) {
+    return 0;
+  }
+  return mFrame->GetData().size();
 }
 
 }  // namespace mozilla::dom

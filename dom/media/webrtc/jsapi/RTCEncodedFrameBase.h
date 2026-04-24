@@ -24,8 +24,7 @@ class RTCEncodedFrameBase : public nsISupports, public nsWrapperCache {
   explicit RTCEncodedFrameBase(
       nsIGlobalObject* aGlobal,
       std::unique_ptr<webrtc::TransformableFrameInterface> aFrame,
-      uint64_t aCounter,
-      RTCRtpScriptTransformer* aOwner);
+      uint64_t aCounter, RTCRtpScriptTransformer* aOwner);
 
   // nsISupports
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
@@ -41,6 +40,8 @@ class RTCEncodedFrameBase : public nsISupports, public nsWrapperCache {
   void GetData(JSContext* aCx, JS::Rooted<JSObject*>* aObj);
 
   uint64_t GetCounter() const;
+
+  size_t Size() const;
 
   virtual bool CheckOwner(RTCRtpScriptTransformer* aOwner) const = 0;
 
