@@ -70,6 +70,11 @@ git = "https://github.com/hsivonen/chardetng_c"
 rev = "ed8a4c6f900a90d4dbc1d64b856e61490a1c3570"
 replace-with = "vendored-sources"
 
+[source."git+https://github.com/hsivonen/encoding_rs?rev=1236d1bc423e6ba35a06485f74a6304db2d703b5"]
+git = "https://github.com/hsivonen/encoding_rs"
+rev = "1236d1bc423e6ba35a06485f74a6304db2d703b5"
+replace-with = "vendored-sources"
+
 [source."git+https://github.com/jfkthame/mapped_hyph.git?rev=eff105f6ad7ec9b79816cfc1985a28e5340ad14b"]
 git = "https://github.com/jfkthame/mapped_hyph.git"
 rev = "eff105f6ad7ec9b79816cfc1985a28e5340ad14b"

@@ -260,6 +260,8 @@ midir = { git = "https://github.com/mozilla/midir.git", rev = "85156e360a37d8517
 malloc_size_of_derive = { path = "xpcom/rust/malloc_size_of_derive" }
 # Use the in-tree code instead of pulling it in. It matches the crates.io version
 wr_malloc_size_of = { path = "gfx/wr/wr_malloc_size_of" }
+# Make --enable-rust-simd compatible with Rust 1.95
+encoding_rs = { git = "https://github.com/hsivonen/encoding_rs", rev = "1236d1bc423e6ba35a06485f74a6304db2d703b5" }
 
 # objc 0.2.7 + fa7ca43b862861dd1cd000d7ad01e6e0266cda13
 objc = { git = "https://github.com/glandium/rust-objc", rev = "4de89f5aa9851ceca4d40e7ac1e2759410c04324" }

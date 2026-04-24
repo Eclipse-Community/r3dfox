@@ -59,6 +59,10 @@ notes = "This is a pinned version of the upstream code. This can be removed when
 audit-as-crates-io = true
 notes = "This is a pinned version of the upstream code. This can be removed when new version gets published."
 
+[policy.encoding_rs]
+audit-as-crates-io = true
+notes = "This is upstream plus a build fix for bug 2033279."
+
 [policy.firefox-on-glean]
 audit-as-crates-io = false
 notes = "The crates.io version of this is just a placeholder to allow public crates to depend on firefox-on-glean."
