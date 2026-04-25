@@ -661,8 +661,8 @@ ipc::IPCResult CamerasParent::RecvGetCaptureDevice(
   using Promise = MozPromise<Data, bool, true>;
   InvokeAsync(mVideoCaptureThread, __func__,
               [this, self = RefPtr(this), aCapEngine, aDeviceIndex] {
-                char deviceName[MediaEngineSource::kMaxDeviceNameLength];
-                char deviceUniqueId[MediaEngineSource::kMaxUniqueIdLength];
+                char deviceName[MediaEngineSource::kMaxDeviceNameLength] = {};
+                char deviceUniqueId[MediaEngineSource::kMaxUniqueIdLength] = {};
                 nsCString name;
                 nsCString uniqueId;
                 pid_t devicePid = 0;
