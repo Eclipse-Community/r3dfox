@@ -316,21 +316,21 @@ TextOverflow::TextOverflow(nsDisplayListBuilder* aBuilder,
 }
 
 /* static */
-Maybe<TextOverflow> TextOverflow::WillProcessLines(
+UniquePtr<TextOverflow> TextOverflow::WillProcessLines(
     nsDisplayListBuilder* aBuilder, nsBlockFrame* aBlockFrame) {
   // Ignore text-overflow and -webkit-line-clamp for event and frame visibility
   // processing.
   if (aBuilder->IsForEventDelivery() || aBuilder->IsForFrameVisibility() ||
       !CanHaveOverflowMarkers(aBlockFrame)) {
-    return Nothing();
+    return nullptr;
   }
   ScrollContainerFrame* scrollContainerFrame =
       nsLayoutUtils::GetScrollContainerFrameFor(aBlockFrame);
   if (scrollContainerFrame && scrollContainerFrame->IsTransformingByAPZ()) {
     // If the APZ is actively scrolling this, don't bother with markers.
-    return Nothing();
+    return nullptr;
   }
-  return Some(TextOverflow(aBuilder, aBlockFrame));
+  return UniquePtr<TextOverflow>(new TextOverflow(aBuilder, aBlockFrame));
 }
 
 void TextOverflow::ExamineFrameSubtree(nsIFrame* aFrame,
