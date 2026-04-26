@@ -115,6 +115,9 @@ bool FFmpegRuntimeLinker::Init() {
             case 61:
               FFmpegDecoderModule<61>::Init(&sLibAV);
               break;
+            case 62:
+              FFmpegDecoderModule<62>::Init(&sLibAV);
+              break;
           }
           return true;
         case FFmpegLibWrapper::LinkResult::NoProvidedLib:
@@ -205,6 +208,9 @@ already_AddRefed<PlatformDecoderModule> FFmpegRuntimeLinker::CreateDecoder() {
     case 61:
       module = FFmpegDecoderModule<61>::Create(&sLibAV);
       break;
+    case 62:
+      module = FFmpegDecoderModule<62>::Create(&sLibAV);
+      break;
     default:
       module = nullptr;
   }
@@ -242,6 +248,9 @@ already_AddRefed<PlatformEncoderModule> FFmpegRuntimeLinker::CreateEncoder() {
       break;
     case 61:
       module = FFmpegEncoderModule<61>::Create(&sLibAV);
+      break;
+    case 62:
+      module = FFmpegEncoderModule<62>::Create(&sLibAV);
       break;
     default:
       module = nullptr;
