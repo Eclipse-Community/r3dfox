@@ -827,6 +827,15 @@ static int mediacodec_send(AVCodecContext *avctx,
         copy_frame_to_buffer(avctx, frame, input_buf, input_size);
 
         pts = av_rescale_q(frame->pts, avctx->time_base, AV_TIME_BASE_Q);
+
+        if (frame->pict_type == AV_PICTURE_TYPE_I) {
+            FFAMediaFormat *format = ff_AMediaFormat_new(s->use_ndk_codec);
+            if (format) {
+                ff_AMediaFormat_setInt32(format, "request-sync", 0);
+                ff_AMediaCodec_setParameters(codec, format);
+                ff_AMediaFormat_delete(format);
+            }
+        }
     } else {
         flags |= ff_AMediaCodec_getBufferFlagEndOfStream(codec);
         s->eof_sent = 1;

@@ -1411,6 +1411,12 @@ fail:
     return ret;
 }
 
+static int mediacodec_jni_setParameters(FFAMediaCodec *ctx,
+                                        const FFAMediaFormat* format_ctx)
+{
+    return AVERROR_PATCHWELCOME;
+}
+
 static int mediacodec_jni_start(FFAMediaCodec* ctx)
 {
     int ret = 0;
@@ -1802,6 +1808,7 @@ static const FFAMediaCodec media_codec_jni = {
     .delete = mediacodec_jni_delete,
 
     .configure = mediacodec_jni_configure,
+    .setParameters = mediacodec_jni_setParameters,
     .start = mediacodec_jni_start,
     .stop = mediacodec_jni_stop,
     .flush = mediacodec_jni_flush,
@@ -2219,6 +2226,27 @@ static int mediacodec_ndk_configure(FFAMediaCodec* ctx,
     return 0;
 }
 
+static int mediacodec_ndk_setParameters(FFAMediaCodec *ctx,
+                                        const FFAMediaFormat* format_ctx)
+{
+    FFAMediaCodecNdk *codec = (FFAMediaCodecNdk *)ctx;
+    FFAMediaFormatNdk *format = (FFAMediaFormatNdk *)format_ctx;
+    media_status_t status;
+
+    if (format_ctx->class != &amediaformat_ndk_class) {
+        av_log(ctx, AV_LOG_ERROR, "invalid media format\n");
+        return AVERROR(EINVAL);
+    }
+
+    status = AMediaCodec_setParameters(codec->impl, format->impl);
+    if (status != AMEDIA_OK) {
+        av_log(codec, AV_LOG_ERROR, "setParameters failed, %d\n", status);
+        return AVERROR_EXTERNAL;
+    }
+
+    return 0;
+}
+
 #define MEDIACODEC_NDK_WRAPPER(method)                                   \
 static int mediacodec_ndk_ ## method(FFAMediaCodec* ctx)                 \
 {                                                                        \
@@ -2498,6 +2526,7 @@ static const FFAMediaCodec media_codec_ndk = {
     .delete = mediacodec_ndk_delete,
 
     .configure = mediacodec_ndk_configure,
+    .setParameters = mediacodec_ndk_setParameters,
     .start = mediacodec_ndk_start,
     .stop = mediacodec_ndk_stop,
     .flush = mediacodec_ndk_flush,

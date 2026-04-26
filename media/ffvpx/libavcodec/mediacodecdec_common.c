@@ -29,7 +29,7 @@
 #include "libavutil/mem.h"
 #include "libavutil/log.h"
 #include "libavutil/pixfmt.h"
-#include "libavutil/time.h"
+#include "libavutil/fftime.h"
 #include "libavutil/timestamp.h"
 #include "libavutil/channel_layout.h"
 
@@ -85,7 +85,7 @@
 
 #define INPUT_DEQUEUE_TIMEOUT_US 8000
 #define OUTPUT_DEQUEUE_TIMEOUT_US 8000
-#define OUTPUT_DEQUEUE_BLOCK_TIMEOUT_US 1000000
+#define OUTPUT_DEQUEUE_BLOCK_TIMEOUT_US 8000
 
 enum {
     ENCODING_PCM_16BIT        = 0x00000002,

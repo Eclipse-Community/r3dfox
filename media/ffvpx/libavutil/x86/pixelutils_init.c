@@ -40,10 +40,6 @@ int ff_pixelutils_sad_u_32x32_sse2(const uint8_t *src1, ptrdiff_t stride1,
 
 int ff_pixelutils_sad_32x32_avx2(const uint8_t *src1, ptrdiff_t stride1,
                                  const uint8_t *src2, ptrdiff_t stride2);
-int ff_pixelutils_sad_a_32x32_avx2(const uint8_t *src1, ptrdiff_t stride1,
-                                   const uint8_t *src2, ptrdiff_t stride2);
-int ff_pixelutils_sad_u_32x32_avx2(const uint8_t *src1, ptrdiff_t stride1,
-                                   const uint8_t *src2, ptrdiff_t stride2);
 
 void ff_pixelutils_sad_init_x86(av_pixelutils_sad_fn *sad, int aligned)
 {
@@ -75,11 +71,9 @@ void ff_pixelutils_sad_init_x86(av_pixelutils_sad_fn *sad, int aligned)
         }
     }
 
+#if HAVE_AVX2_EXTERNAL
     if (EXTERNAL_AVX2_FAST(cpu_flags)) {
-        switch (aligned) {
-        case 0: sad[4] = ff_pixelutils_sad_32x32_avx2;   break; // src1 unaligned, src2 unaligned
-        case 1: sad[4] = ff_pixelutils_sad_u_32x32_avx2; break; // src1   aligned, src2 unaligned
-        case 2: sad[4] = ff_pixelutils_sad_a_32x32_avx2; break; // src1   aligned, src2   aligned
-        }
+        sad[4] = ff_pixelutils_sad_32x32_avx2;
     }
+#endif
 }

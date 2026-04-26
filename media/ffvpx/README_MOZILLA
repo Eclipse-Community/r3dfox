@@ -3,9 +3,9 @@
 This directory contains files used in gecko builds from FFmpeg
 (http://ffmpeg.org). The current files are from FFmpeg as of
 revision
-252fc2e047297697dea78e63aa908377b47c2136
+6c114bd6fa9fe006bed7dcdb88de4790510080d4
 git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
-git checkout 252fc2e047297697dea78e63aa908377b47c2136
+git checkout 6c114bd6fa9fe006bed7dcdb88de4790510080d4
 
 All source files match their path from the library's source archive.
 
