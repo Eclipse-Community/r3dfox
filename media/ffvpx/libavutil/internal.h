@@ -115,20 +115,6 @@ void avpriv_report_missing_feature(void *avc,
 void avpriv_request_sample(void *avc,
                            const char *msg, ...) av_printf_format(2, 3);
 
-#if HAVE_LIBC_MSVCRT
-#include <crtversion.h>
-#if defined(_VC_CRT_MAJOR_VERSION) && _VC_CRT_MAJOR_VERSION < 14
-#pragma comment(linker, "/include:" EXTERN_PREFIX "avpriv_strtod")
-#pragma comment(linker, "/include:" EXTERN_PREFIX "avpriv_snprintf")
-#endif
-
-#define PTRDIFF_SPECIFIER "Id"
-#define SIZE_SPECIFIER "Iu"
-#else
-#define PTRDIFF_SPECIFIER "td"
-#define SIZE_SPECIFIER "zu"
-#endif
-
 #ifdef DEBUG
 #   define ff_dlog(ctx, ...) av_log(ctx, AV_LOG_DEBUG, __VA_ARGS__)
 #else
@@ -141,7 +127,7 @@ void avpriv_request_sample(void *avc,
 #   define ff_tlog(ctx, ...) do { } while(0)
 #endif
 
-// For debuging we use signed operations so overflows can be detected (by ubsan)
+// For debugging we use signed operations so overflows can be detected (by ubsan)
 // For production we use unsigned so there are no undefined operations
 #ifdef CHECKED
 #define SUINT   int

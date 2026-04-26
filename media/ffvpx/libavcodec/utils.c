@@ -33,6 +33,7 @@
 #include "libavutil/pixdesc.h"
 #include "libavutil/imgutils.h"
 #include "libavutil/pixfmt.h"
+/* #include "libavutil/timecode_internal.h" */
 #include "avcodec.h"
 #include "codec.h"
 #include "codec_desc.h"
@@ -78,17 +79,13 @@ void av_fast_padded_mallocz(void *ptr, unsigned int *size, size_t min_size)
 int av_codec_is_encoder(const AVCodec *avcodec)
 {
     const FFCodec *const codec = ffcodec(avcodec);
-    return codec && (codec->cb_type == FF_CODEC_CB_TYPE_ENCODE     ||
-                     codec->cb_type == FF_CODEC_CB_TYPE_ENCODE_SUB ||
-                     codec->cb_type == FF_CODEC_CB_TYPE_RECEIVE_PACKET);
+    return codec && !codec->is_decoder;
 }
 
 int av_codec_is_decoder(const AVCodec *avcodec)
 {
     const FFCodec *const codec = ffcodec(avcodec);
-    return codec && (codec->cb_type == FF_CODEC_CB_TYPE_DECODE     ||
-                     codec->cb_type == FF_CODEC_CB_TYPE_DECODE_SUB ||
-                     codec->cb_type == FF_CODEC_CB_TYPE_RECEIVE_FRAME);
+    return codec && codec->is_decoder;
 }
 
 int ff_set_dimensions(AVCodecContext *s, int width, int height)
@@ -339,7 +336,7 @@ void avcodec_align_dimensions2(AVCodecContext *s, int *width, int *height,
 
         // H.264 uses edge emulation for out of frame motion vectors, for this
         // it requires a temporary area large enough to hold a 21x21 block,
-        // increasing witdth ensure that the temporary area is large enough,
+        // increasing width ensure that the temporary area is large enough,
         // the next rounded up width is 32
         *width = FFMAX(*width, 32);
     }
@@ -468,6 +465,7 @@ int av_get_exact_bits_per_sample(enum AVCodecID codec_id)
     case AV_CODEC_ID_ADPCM_IMA_APC:
     case AV_CODEC_ID_ADPCM_IMA_APM:
     case AV_CODEC_ID_ADPCM_IMA_EA_SEAD:
+    case AV_CODEC_ID_ADPCM_IMA_MAGIX:
     case AV_CODEC_ID_ADPCM_IMA_OKI:
     case AV_CODEC_ID_ADPCM_IMA_WS:
     case AV_CODEC_ID_ADPCM_IMA_SSI:
@@ -490,6 +488,7 @@ int av_get_exact_bits_per_sample(enum AVCodecID codec_id)
     case AV_CODEC_ID_CBD2_DPCM:
     case AV_CODEC_ID_DERF_DPCM:
     case AV_CODEC_ID_WADY_DPCM:
+    case AV_CODEC_ID_ADPCM_CIRCUS:
         return 8;
     case AV_CODEC_ID_PCM_S16BE:
     case AV_CODEC_ID_PCM_S16BE_PLANAR:
@@ -553,6 +552,7 @@ int av_get_bits_per_sample(enum AVCodecID codec_id)
     case AV_CODEC_ID_DFPWM:
         return 1;
     case AV_CODEC_ID_ADPCM_SBPRO_2:
+    case AV_CODEC_ID_G728:
         return 2;
     case AV_CODEC_ID_ADPCM_SBPRO_3:
         return 3;
@@ -641,16 +641,16 @@ static int get_audio_frame_duration(enum AVCodecID id, int sr, int ch, int ba,
 
     if (frame_bytes > 0) {
         /* calc from frame_bytes only */
-        if (id == AV_CODEC_ID_TRUESPEECH)
-            return 240 * (frame_bytes / 32);
-        if (id == AV_CODEC_ID_NELLYMOSER)
-            return 256 * (frame_bytes / 64);
-        if (id == AV_CODEC_ID_RA_144)
-            return 160 * (frame_bytes / 20);
-        if (id == AV_CODEC_ID_APTX)
-            return 4 * (frame_bytes / 4);
-        if (id == AV_CODEC_ID_APTX_HD)
-            return 4 * (frame_bytes / 6);
+        int64_t d = INT64_MIN;
+        switch(id) {
+        case AV_CODEC_ID_TRUESPEECH : d = 240LL * (frame_bytes / 32); break;
+        case AV_CODEC_ID_NELLYMOSER : d = 256LL * (frame_bytes / 64); break;
+        case AV_CODEC_ID_RA_144     : d = 160LL * (frame_bytes / 20); break;
+        case AV_CODEC_ID_APTX       : d =   4LL * (frame_bytes /  4); break;
+        case AV_CODEC_ID_APTX_HD    : d =   4LL * (frame_bytes /  6); break;
+        }
+        if (d > INT64_MIN)
+            return ((int)d == d && d > 0) ? d : 0;
 
         if (bps > 0) {
             /* calc from frame_bytes and bits_per_coded_sample */
@@ -667,16 +667,27 @@ static int get_audio_frame_duration(enum AVCodecID id, int sr, int ch, int ba,
                 return (frame_bytes - 4 * ch) / (128 * ch) * 256;
             case AV_CODEC_ID_ADPCM_AFC:
                 return frame_bytes / (9 * ch) * 16;
+            case AV_CODEC_ID_ADPCM_N64:
+                frame_bytes /= 9 * ch;
+                if (frame_bytes > INT_MAX / 16)
+                    return 0;
+                return frame_bytes * 16;
             case AV_CODEC_ID_ADPCM_PSX:
             case AV_CODEC_ID_ADPCM_DTK:
                 frame_bytes /= 16 * ch;
                 if (frame_bytes > INT_MAX / 28)
                     return 0;
                 return frame_bytes * 28;
+            case AV_CODEC_ID_ADPCM_PSXC:
+                frame_bytes = (frame_bytes - 1) / ch;
+                if (frame_bytes > INT_MAX / 2)
+                    return 0;
+                return frame_bytes * 2;
             case AV_CODEC_ID_ADPCM_4XM:
             case AV_CODEC_ID_ADPCM_IMA_ACORN:
             case AV_CODEC_ID_ADPCM_IMA_DAT4:
             case AV_CODEC_ID_ADPCM_IMA_ISS:
+            case AV_CODEC_ID_ADPCM_IMA_PDA:
                 return (frame_bytes - 4 * ch) * 2 / ch;
             case AV_CODEC_ID_ADPCM_IMA_SMJPEG:
                 return (frame_bytes - 4) * 2 / ch;
@@ -968,76 +979,12 @@ AVCPBProperties *av_cpb_properties_alloc(size_t *size)
     return props;
 }
 
-static unsigned bcd2uint(uint8_t bcd)
-{
-    unsigned low  = bcd & 0xf;
-    unsigned high = bcd >> 4;
-    if (low > 9 || high > 9)
-        return 0;
-    return low + 10*high;
-}
-
 int ff_alloc_timecode_sei(const AVFrame *frame, AVRational rate, size_t prefix_len,
                      void **data, size_t *sei_size)
 {
-    AVFrameSideData *sd = NULL;
-    uint8_t *sei_data;
-    PutBitContext pb;
-    uint32_t *tc;
-    int m;
-
-    if (frame)
-        sd = av_frame_get_side_data(frame, AV_FRAME_DATA_S12M_TIMECODE);
-
-    if (!sd) {
-        *data = NULL;
-        return 0;
-    }
-    tc =  (uint32_t*)sd->data;
-    m  = tc[0] & 3;
-
-    *sei_size = sizeof(uint32_t) * 4;
-    *data = av_mallocz(*sei_size + prefix_len);
-    if (!*data)
-        return AVERROR(ENOMEM);
-    sei_data = (uint8_t*)*data + prefix_len;
-
-    init_put_bits(&pb, sei_data, *sei_size);
-    put_bits(&pb, 2, m); // num_clock_ts
-
-    for (int j = 1; j <= m; j++) {
-        uint32_t tcsmpte = tc[j];
-        unsigned hh   = bcd2uint(tcsmpte     & 0x3f);    // 6-bit hours
-        unsigned mm   = bcd2uint(tcsmpte>>8  & 0x7f);    // 7-bit minutes
-        unsigned ss   = bcd2uint(tcsmpte>>16 & 0x7f);    // 7-bit seconds
-        unsigned ff   = bcd2uint(tcsmpte>>24 & 0x3f);    // 6-bit frames
-        unsigned drop = tcsmpte & 1<<30 && !0;  // 1-bit drop if not arbitrary bit
-
-        /* Calculate frame number of HEVC by SMPTE ST 12-1:2014 Sec 12.2 if rate > 30FPS */
-        if (av_cmp_q(rate, (AVRational) {30, 1}) == 1) {
-            unsigned pc;
-            ff *= 2;
-            if (av_cmp_q(rate, (AVRational) {50, 1}) == 0)
-                pc = !!(tcsmpte & 1 << 7);
-            else
-                pc = !!(tcsmpte & 1 << 23);
-            ff = (ff + pc) & 0x7f;
-        }
-
-        put_bits(&pb, 1, 1); // clock_timestamp_flag
-        put_bits(&pb, 1, 1); // units_field_based_flag
-        put_bits(&pb, 5, 0); // counting_type
-        put_bits(&pb, 1, 1); // full_timestamp_flag
-        put_bits(&pb, 1, 0); // discontinuity_flag
-        put_bits(&pb, 1, drop);
-        put_bits(&pb, 9, ff);
-        put_bits(&pb, 6, ss);
-        put_bits(&pb, 6, mm);
-        put_bits(&pb, 5, hh);
-        put_bits(&pb, 5, 0);
-    }
-    flush_put_bits(&pb);
-
+    // Stubbed: requires ff_timecode_set_smpte from libavutil internals,
+    // which cannot be called cross-library. Not used by any ffvpx codec.
+    *data = NULL;
     return 0;
 }
 

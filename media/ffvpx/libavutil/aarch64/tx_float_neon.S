@@ -119,13 +119,6 @@ endconst
 .endif
 .endm
 
-const shuf_4pt_x2, align=4
-        .byte   24, 25, 26, 27 // reg2, 3
-        .byte   12, 13, 14, 15 // reg1, 4
-        .byte    8,  9, 10, 11 // reg1, 3
-        .byte   28, 29, 30, 31 // reg2, 4
-endconst
-
 // Identical to FFT4, but does 2 transforms in parallel, with no deinterleaving
 .macro FFT4_X2 e0, o0, e1, o1, \
                t0=v16, t1=v17, t2=v18, t3=v19, t4=v20, t5=v21, t6=v22
@@ -135,18 +128,17 @@ endconst
         fsub            \e0\().4s, \e0\().4s, \o0\().4s                     // t1234
         fsub            \e1\().4s, \e1\().4s, \o1\().4s                     // t1234
 
-        movrel          x5, shuf_4pt_x2
-
         rev64           \t4\().4s, \e0\().4s
         rev64           \t5\().4s, \e1\().4s
 
-        zip2            \o0\().2d, \t0\().2d, \e0\().2d                     // t3,4 r3,4
-        zip2            \o1\().2d, \t2\().2d, \e1\().2d                     // t3,4 r3,4
+        zip2            \o0\().2d, \t0\().2d, \t4\().2d                     // t3,4 r3,4
+        zip2            \o1\().2d, \t2\().2d, \t5\().2d                     // t3,4 r3,4
 
-        ld1             { \t6\().16b }, [x5]
+        fneg            \t3\().4s, \t4\().4s
+        fneg            \t4\().4s, \t5\().4s
 
-        mov             \o0\().d[1], \t4\().d[1]
-        mov             \o1\().d[1], \t5\().d[1]
+        mov             \o0\().s[3], \t3\().s[3]
+        mov             \o1\().s[3], \t4\().s[3]
 
         zip1            \t1\().2d, \t0\().2d, \e0\().2d                     // t1,2 r1,2
         zip1            \t3\().2d, \t2\().2d, \e1\().2d                     // t1,2 r1,2
@@ -156,18 +148,10 @@ endconst
         fsub            \t2\().4s, \t3\().4s, \o1\().4s                     // a34 b32
         fadd            \t3\().4s, \t3\().4s, \o1\().4s                     // a12 b14
 
-        // TODO: experiment with movs instead of tables here
-        tbl             \o0\().16b, { \t4\().16b, \t5\().16b }, \t6\().16b  // b1234
-        tbl             \o1\().16b, { \t2\().16b, \t3\().16b }, \t6\().16b  // b1234
-
         zip1            \e0\().2d, \t5\().2d, \t4\().2d                     // a1234
-//        zip2            \o0\().2d, \t5\().2d, \t4\().2d                     // b1432
+        zip2            \o0\().2d, \t5\().2d, \t4\().2d                     // b1432
         zip1            \e1\().2d, \t3\().2d, \t2\().2d                     // a1234
-//        zip2            \o1\().2d, \t3\().2d, \t2\().2d                     // b1432
-//        rev64           \o0\().4s, \o0\().4s                                // b4123
-//        rev64           \o1\().4s, \o1\().4s                                // b4123
-//        ext             \o0\().16b, \o0\().16b, \o0\().16b, #4              // b1234
-//        ext             \o1\().16b, \o1\().16b, \o1\().16b, #4              // b1234
+        zip2            \o1\().2d, \t3\().2d, \t2\().2d                     // b1432
 .endm
 
 const tab_8pt, align=4
@@ -933,6 +917,7 @@ FFT32_FN ns_float, 1
 
 .macro SR_TRANSFORM_DEF len, next=0
 \len:
+        AARCH64_SIGN_LINK_REGISTER
         stp             x20, x30, [sp, #-16]!
         mov             w20, #(\len/4)
         mov             x5, #((\len*4) - (\len/1))
@@ -942,6 +927,7 @@ FFT32_FN ns_float, 1
         add             x1, x1, x5
         bl              32b
         ldp             x20, x30, [sp], #16
+        AARCH64_VALIDATE_LINK_REGISTER
         ldr             w5, =(\len*6 + \len/2)
         sub             x1, x1, x5
 
@@ -1077,6 +1063,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
         b.gt            128f
         ret
 128:
+        AARCH64_SIGN_LINK_REGISTER
         stp             x20, x30, [sp, #-16]!
         mov             w20, #32
         add             x1, x1, #16*32
@@ -1084,6 +1071,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
         add             x1, x1, #8*32
         bl              32b
         ldp             x20, x30, [sp], #16
+        AARCH64_VALIDATE_LINK_REGISTER
         sub             x1, x1, #24*32
 
         SETUP_SR_RECOMB 128, x7, x8, x9
@@ -1097,6 +1085,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
         b.gt            256f
         ret
 256:
+        AARCH64_SIGN_LINK_REGISTER
         stp             x20, x30, [sp, #-16]!
         mov             w20, #64
         add             x1, x1, #32*32
@@ -1104,6 +1093,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
         add             x1, x1, #16*32
         bl              32b
         ldp             x20, x30, [sp], #16
+        AARCH64_VALIDATE_LINK_REGISTER
         sub             x1, x1, #48*32
 
         SETUP_SR_RECOMB 256, x7, x8, x9
@@ -1118,6 +1108,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
         b.gt            512f
         ret
 512:
+        AARCH64_SIGN_LINK_REGISTER
         stp             x20, x30, [sp, #-16]!
         mov             w20, #128
         add             x1, x1, #64*32
@@ -1125,6 +1116,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
         add             x1, x1, #32*32
         bl              32b
         ldp             x20, x30, [sp], #16
+        AARCH64_VALIDATE_LINK_REGISTER
         sub             x1, x1, #96*32
 
         SETUP_SR_RECOMB 512, x7, x8, x9
@@ -1144,6 +1136,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
 
         ret
 1024:
+        AARCH64_SIGN_LINK_REGISTER
         stp             x20, x30, [sp, #-16]!
         mov             w20, #256
         add             x1, x1, #96*32
@@ -1151,6 +1144,7 @@ function ff_tx_fft_sr_\name\()_neon, export=1
         add             x1, x1, #64*32
         bl              32b
         ldp             x20, x30, [sp], #16
+        AARCH64_VALIDATE_LINK_REGISTER
         mov             x5, #192*32
         sub             x1, x1, x5
 

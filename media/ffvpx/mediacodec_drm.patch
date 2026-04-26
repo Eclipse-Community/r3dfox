@@ -1,0 +1,217 @@
+diff --git a/media/ffvpx/libavcodec/avcodec.h b/media/ffvpx/libavcodec/avcodec.h
+--- a/media/ffvpx/libavcodec/avcodec.h
++++ b/media/ffvpx/libavcodec/avcodec.h
+@@ -1942,6 +1942,8 @@ typedef struct AVCodecContext {
+      * - decoding: Set by libavcodec
+      */
+     enum AVAlphaMode alpha_mode;
++
++    void* moz_ndk_crypto;
+ } AVCodecContext;
+ 
+ /**
+diff --git a/media/ffvpx/libavcodec/mediacodec_wrapper.c b/media/ffvpx/libavcodec/mediacodec_wrapper.c
+--- a/media/ffvpx/libavcodec/mediacodec_wrapper.c
++++ b/media/ffvpx/libavcodec/mediacodec_wrapper.c
+@@ -1537,6 +1537,11 @@ fail:
+     return ret;
+ }
+ 
++static int mediacodec_jni_queueSecureInputBuffer(FFAMediaCodec* ctx, size_t idx, off_t offset, void* cryptoInfo, uint64_t time, uint32_t flags)
++{
++    return AVERROR_PATCHWELCOME;
++}
++
+ static ssize_t mediacodec_jni_dequeueOutputBuffer(FFAMediaCodec* ctx, FFAMediaCodecBufferInfo *info, int64_t timeoutUs)
+ {
+     int ret = 0;
+@@ -1811,6 +1816,7 @@ static const FFAMediaCodec media_codec_jni = {
+ 
+     .dequeueInputBuffer = mediacodec_jni_dequeueInputBuffer,
+     .queueInputBuffer = mediacodec_jni_queueInputBuffer,
++    .queueSecureInputBuffer = mediacodec_jni_queueSecureInputBuffer,
+ 
+     .dequeueOutputBuffer = mediacodec_jni_dequeueOutputBuffer,
+     .getOutputFormat = mediacodec_jni_getOutputFormat,
+@@ -2209,7 +2215,7 @@ static int mediacodec_ndk_configure(FFAMediaCodec* ctx,
+             return AVERROR_EXTERNAL;
+         }
+     } else {
+-        status = AMediaCodec_configure(codec->impl, format->impl, native_window, NULL, flags);
++        status = AMediaCodec_configure(codec->impl, format->impl, native_window, (AMediaCrypto*)crypto, flags);
+         if (status != AMEDIA_OK) {
+             av_log(codec, AV_LOG_ERROR, "Decoder configure failed, %d\n", status);
+             return AVERROR_EXTERNAL;
+@@ -2263,6 +2269,14 @@ static int mediacodec_ndk_queueInputBuffer(FFAMediaCodec *ctx, size_t idx,
+     return AMediaCodec_queueInputBuffer(codec->impl, idx, offset, size, time, flags);
+ }
+ 
++static int mediacodec_ndk_queueSecureInputBuffer(FFAMediaCodec *ctx, size_t idx,
++                                                 off_t offset, void* cryptoInfo,
++                                                 uint64_t time, uint32_t flags)
++{
++    FFAMediaCodecNdk *codec = (FFAMediaCodecNdk *)ctx;
++    return AMediaCodec_queueSecureInputBuffer(codec->impl, idx, offset, (AMediaCodecCryptoInfo*)cryptoInfo, time, flags);
++}
++
+ static ssize_t mediacodec_ndk_dequeueOutputBuffer(FFAMediaCodec* ctx, FFAMediaCodecBufferInfo *info, int64_t timeoutUs)
+ {
+     FFAMediaCodecNdk *codec = (FFAMediaCodecNdk *)ctx;
+@@ -2507,6 +2521,7 @@ static const FFAMediaCodec media_codec_ndk = {
+ 
+     .dequeueInputBuffer = mediacodec_ndk_dequeueInputBuffer,
+     .queueInputBuffer = mediacodec_ndk_queueInputBuffer,
++    .queueSecureInputBuffer = mediacodec_ndk_queueSecureInputBuffer,
+ 
+     .dequeueOutputBuffer = mediacodec_ndk_dequeueOutputBuffer,
+     .getOutputFormat = mediacodec_ndk_getOutputFormat,
+diff --git a/media/ffvpx/libavcodec/mediacodec_wrapper.h b/media/ffvpx/libavcodec/mediacodec_wrapper.h
+--- a/media/ffvpx/libavcodec/mediacodec_wrapper.h
++++ b/media/ffvpx/libavcodec/mediacodec_wrapper.h
+@@ -214,6 +214,7 @@ struct FFAMediaCodec {
+ 
+     ssize_t (*dequeueInputBuffer)(FFAMediaCodec* codec, int64_t timeoutUs);
+     int (*queueInputBuffer)(FFAMediaCodec* codec, size_t idx, off_t offset, size_t size, uint64_t time, uint32_t flags);
++    int (*queueSecureInputBuffer)(FFAMediaCodec* codec, size_t idx, off_t offset, void* cryptoInfo, uint64_t time, uint32_t flags);
+ 
+     ssize_t (*dequeueOutputBuffer)(FFAMediaCodec* codec, FFAMediaCodecBufferInfo *info, int64_t timeoutUs);
+     FFAMediaFormat* (*getOutputFormat)(FFAMediaCodec* codec);
+@@ -299,6 +300,11 @@ static inline int ff_AMediaCodec_queueInputBuffer(FFAMediaCodec *codec, size_t i
+     return codec->queueInputBuffer(codec, idx, offset, size, time, flags);
+ }
+ 
++static inline int ff_AMediaCodec_queueSecureInputBuffer(FFAMediaCodec *codec, size_t idx, off_t offset, void* cryptoInfo, uint64_t time, uint32_t flags)
++{
++    return codec->queueSecureInputBuffer(codec, idx, offset, cryptoInfo, time, flags);
++}
++
+ static inline ssize_t ff_AMediaCodec_dequeueOutputBuffer(FFAMediaCodec* codec, FFAMediaCodecBufferInfo *info, int64_t timeoutUs)
+ {
+     return codec->dequeueOutputBuffer(codec, info, timeoutUs);
+diff --git a/media/ffvpx/libavcodec/mediacodecdec_common.c b/media/ffvpx/libavcodec/mediacodecdec_common.c
+--- a/media/ffvpx/libavcodec/mediacodecdec_common.c
++++ b/media/ffvpx/libavcodec/mediacodecdec_common.c
+@@ -837,7 +837,7 @@ int ff_mediacodec_dec_init(AVCodecContext *avctx, MediaCodecDecContext *s,
+     if (ret < 0)
+         goto fail;
+ 
+-    status = ff_AMediaCodec_configure(s->codec, format, s->surface, NULL, 0);
++    status = ff_AMediaCodec_configure(s->codec, format, s->surface, avctx->moz_ndk_crypto, 0);
+     if (status < 0) {
+         char *desc = ff_AMediaFormat_toString(format);
+         av_log(avctx, AV_LOG_ERROR,
+@@ -943,7 +943,11 @@ int ff_mediacodec_dec_send(AVCodecContext *avctx, MediaCodecDecContext *s,
+ 
+             av_log(avctx, AV_LOG_DEBUG, "Sending End Of Stream signal\n");
+ 
+-            status = ff_AMediaCodec_queueInputBuffer(codec, index, 0, 0, pts, flags);
++            if (pkt->moz_ndk_crypto_info) {
++                status = ff_AMediaCodec_queueSecureInputBuffer(codec, index, 0, pkt->moz_ndk_crypto_info, pts, flags);
++            } else {
++                status = ff_AMediaCodec_queueInputBuffer(codec, index, 0, 0, pts, flags);
++            }
+             if (status < 0) {
+                 av_log(avctx, AV_LOG_ERROR, "Failed to queue input empty buffer (status = %d)\n", status);
+                 return AVERROR_EXTERNAL;
+@@ -960,7 +964,11 @@ int ff_mediacodec_dec_send(AVCodecContext *avctx, MediaCodecDecContext *s,
+         memcpy(data, pkt->data + offset, size);
+         offset += size;
+ 
+-        status = ff_AMediaCodec_queueInputBuffer(codec, index, 0, size, pts, 0);
++        if (pkt->moz_ndk_crypto_info) {
++            status = ff_AMediaCodec_queueSecureInputBuffer(codec, index, 0, pkt->moz_ndk_crypto_info, pts, 0);
++        } else {
++            status = ff_AMediaCodec_queueInputBuffer(codec, index, 0, size, pts, 0);
++        }
+         if (status < 0) {
+             av_log(avctx, AV_LOG_ERROR, "Failed to queue input buffer (status = %d)\n", status);
+             return AVERROR_EXTERNAL;
+diff --git a/media/ffvpx/libavcodec/packet.c b/media/ffvpx/libavcodec/packet.c
+--- a/media/ffvpx/libavcodec/packet.c
++++ b/media/ffvpx/libavcodec/packet.c
+@@ -390,6 +390,32 @@ int av_packet_shrink_side_data(AVPacket *pkt, enum AVPacketSideDataType type,
+     return AVERROR(ENOENT);
+ }
+ 
++static void av_packet_free_moz_crypto_info(AVPacket *pkt) {
++  if (pkt->moz_crypto_info_release && pkt->moz_crypto_info) {
++    (*pkt->moz_crypto_info_release)(pkt->moz_crypto_info);
++  }
++  pkt->moz_ndk_crypto_info        = NULL;
++  pkt->moz_crypto_info            = NULL;
++  pkt->moz_crypto_info_addref     = NULL;
++  pkt->moz_crypto_info_release    = NULL;
++}
++
++static int av_packet_copy_moz_crypto_info(AVPacket *dst, const AVPacket *src) {
++  av_packet_free_moz_crypto_info(dst);
++  if (!src->moz_ndk_crypto_info) {
++    return 0;
++  }
++  if (!src->moz_crypto_info || !src->moz_crypto_info_addref || !src->moz_crypto_info_release) {
++    return AVERROR(EINVAL);
++  }
++  dst->moz_ndk_crypto_info        = src->moz_ndk_crypto_info;
++  dst->moz_crypto_info            = src->moz_crypto_info;
++  dst->moz_crypto_info_addref     = src->moz_crypto_info_addref;
++  dst->moz_crypto_info_release    = src->moz_crypto_info_release;
++  (*dst->moz_crypto_info_addref)(dst->moz_crypto_info);
++  return 0;
++}
++
+ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
+ {
+     int i, ret;
+@@ -406,10 +432,16 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
+     dst->side_data            = NULL;
+     dst->side_data_elems      = 0;
+ 
+-    ret = av_buffer_replace(&dst->opaque_ref, src->opaque_ref);
++    ret = av_packet_copy_moz_crypto_info(dst, src);
+     if (ret < 0)
+         return ret;
+ 
++    ret = av_buffer_replace(&dst->opaque_ref, src->opaque_ref);
++    if (ret < 0) {
++        av_packet_free_moz_crypto_info(dst);
++        return ret;
++    }
++
+     for (i = 0; i < src->side_data_elems; i++) {
+         enum AVPacketSideDataType type = src->side_data[i].type;
+         size_t size = src->side_data[i].size;
+@@ -417,6 +449,7 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
+         uint8_t *dst_data = av_packet_new_side_data(dst, type, size);
+ 
+         if (!dst_data) {
++            av_packet_free_moz_crypto_info(dst);
+             av_buffer_unref(&dst->opaque_ref);
+             av_packet_free_side_data(dst);
+             return AVERROR(ENOMEM);
+@@ -429,6 +462,7 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
+ 
+ void av_packet_unref(AVPacket *pkt)
+ {
++    av_packet_free_moz_crypto_info(pkt);
+     av_packet_free_side_data(pkt);
+     av_buffer_unref(&pkt->opaque_ref);
+     av_buffer_unref(&pkt->buf);
+diff --git a/media/ffvpx/libavcodec/packet.h b/media/ffvpx/libavcodec/packet.h
+--- a/media/ffvpx/libavcodec/packet.h
++++ b/media/ffvpx/libavcodec/packet.h
+@@ -581,6 +581,15 @@ typedef struct AVPacket {
+      * or muxers.
+      */
+     AVRational time_base;
++
++    /**
++     * Mozilla extensions to manage AMediaCryptoInfo for encrypted packets on
++     * Android. Must provide all parameters if any are given.
++     */
++    void* moz_ndk_crypto_info;
++    void* moz_crypto_info;
++    void (*moz_crypto_info_addref)(void*);
++    void (*moz_crypto_info_release)(void*);
+ } AVPacket;
+ 
+ #if FF_API_INIT_PACKET

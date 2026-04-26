@@ -32,8 +32,8 @@
 #include "libavutil/avassert.h"
 #include "libavutil/avstring.h"
 #include "libavutil/base64.h"
-#include "libavutil/common.h"
 #include "libavutil/cpu.h"
+#include "libavutil/hdr_dynamic_metadata.h"
 #include "libavutil/imgutils.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/mem.h"
@@ -43,12 +43,13 @@
 #include "av1.h"
 #include "avcodec.h"
 #include "bsf.h"
+#include "bytestream.h"
 #include "codec_internal.h"
 #include "dovi_rpu.h"
 #include "encode.h"
 #include "internal.h"
+#include "itut35.h"
 #include "libaom.h"
-#include "packet_internal.h"
 #include "profiles.h"
 
 /*
@@ -141,6 +142,8 @@ typedef struct AOMEncoderContext {
     AVDictionary *svc_parameters;
     AVDictionary *aom_params;
 } AOMContext;
+
+#define OFFSET(x) offsetof(AOMContext, x)
 
 static const char *const ctlidstr[] = {
     [AOME_SET_CPUUSED]          = "AOME_SET_CPUUSED",
@@ -240,7 +243,7 @@ static av_cold void dump_enc_cfg(AVCodecContext *avctx,
            width, "g_pass:",            cfg->g_pass,
            width, "g_lag_in_frames:",   cfg->g_lag_in_frames);
     av_log(avctx, level, "rate control settings\n"
-                         "  %*s%u\n  %*s%d\n  %*s%p(%"SIZE_SPECIFIER")\n  %*s%u\n",
+                         "  %*s%u\n  %*s%d\n  %*s%p(%zu)\n  %*s%u\n",
            width, "rc_dropframe_thresh:", cfg->rc_dropframe_thresh,
            width, "rc_end_usage:",        cfg->rc_end_usage,
            width, "rc_twopass_stats_in:", cfg->rc_twopass_stats_in.buf, cfg->rc_twopass_stats_in.sz,
@@ -303,11 +306,7 @@ static av_cold void free_frame_list(struct FrameListData *list)
 }
 
 static av_cold int codecctl_int(AVCodecContext *avctx,
-#ifdef UENUM1BYTE
-                                aome_enc_control_id id,
-#else
-                                enum aome_enc_control_id id,
-#endif
+                                int id,
                                 int val)
 {
     AOMContext *ctx = avctx->priv_data;
@@ -329,15 +328,58 @@ static av_cold int codecctl_int(AVCodecContext *avctx,
     return 0;
 }
 
+static int add_hdr_plus(AVCodecContext *avctx, struct aom_image *img, const AVFrame *frame)
+{
+    // Check for HDR10+
+    AVFrameSideData *side_data =
+        av_frame_get_side_data(frame, AV_FRAME_DATA_DYNAMIC_HDR_PLUS);
+    if (!side_data)
+        return 0;
+
+    size_t payload_size;
+    AVDynamicHDRPlus *hdr_plus = (AVDynamicHDRPlus *)side_data->buf->data;
+    int res = av_dynamic_hdr_plus_to_t35(hdr_plus, NULL, &payload_size);
+    if (res < 0) {
+        log_encoder_error(avctx, "Error finding the size of HDR10+");
+        return res;
+    }
+
+    uint8_t *hdr_plus_buf;
+    // Extra bytes for the country code, provider code, provider oriented code and app id.
+    const size_t hdr_plus_buf_size = payload_size + 6;
+    hdr_plus_buf = av_malloc(hdr_plus_buf_size);
+    if (!hdr_plus_buf)
+        return AVERROR(ENOMEM);
+
+    uint8_t *payload = hdr_plus_buf;
+    // See "HDR10+ AV1 Metadata Handling Specification" v1.0.1, Section 2.1.
+    bytestream_put_byte(&payload, ITU_T_T35_COUNTRY_CODE_US);
+    bytestream_put_be16(&payload, ITU_T_T35_PROVIDER_CODE_SAMSUNG);
+    bytestream_put_be16(&payload, 0x0001); // provider_oriented_code
+    bytestream_put_byte(&payload, 0x04);   // application_identifier
+
+    res = av_dynamic_hdr_plus_to_t35(hdr_plus, &payload, &payload_size);
+    if (res < 0) {
+        av_free(hdr_plus_buf);
+        log_encoder_error(avctx, "Error encoding HDR10+ from side data");
+        return res;
+    }
+
+    res = aom_img_add_metadata(img, OBU_METADATA_TYPE_ITUT_T35,
+                               hdr_plus_buf, hdr_plus_buf_size, AOM_MIF_ANY_FRAME);
+    av_free(hdr_plus_buf);
+    if (res < 0) {
+        log_encoder_error(avctx, "Error adding HDR10+ to aom_img");
+        return res;
+    }
+    return 0;
+}
+
 #if defined(AOM_CTRL_AV1E_GET_NUM_OPERATING_POINTS) && \
     defined(AOM_CTRL_AV1E_GET_SEQ_LEVEL_IDX) && \
     defined(AOM_CTRL_AV1E_GET_TARGET_SEQ_LEVEL_IDX)
 static av_cold int codecctl_intp(AVCodecContext *avctx,
-#ifdef UENUM1BYTE
-                                 aome_enc_control_id id,
-#else
-                                 enum aome_enc_control_id id,
-#endif
+                                 int id,
                                  int* ptr)
 {
     AOMContext *ctx = avctx->priv_data;
@@ -345,27 +387,23 @@ static av_cold int codecctl_intp(AVCodecContext *avctx,
     int width = -30;
     int res;
 
-    snprintf(buf, sizeof(buf), "%s:", ctlidstr[id]);
-    av_log(avctx, AV_LOG_DEBUG, "  %*s%d\n", width, buf, *ptr);
-
     res = aom_codec_control(&ctx->encoder, id, ptr);
     if (res != AOM_CODEC_OK) {
-        snprintf(buf, sizeof(buf), "Failed to set %s codec control",
+        snprintf(buf, sizeof(buf), "Failed to get %s codec control",
                  ctlidstr[id]);
         log_encoder_error(avctx, buf);
         return AVERROR(EINVAL);
     }
+
+    snprintf(buf, sizeof(buf), "%s:", ctlidstr[id]);
+    av_log(avctx, AV_LOG_DEBUG, "  %*s%d\n", width, buf, *ptr);
 
     return 0;
 }
 #endif
 
 static av_cold int codecctl_imgp(AVCodecContext *avctx,
-#ifdef UENUM1BYTE
-                                 aome_enc_control_id id,
-#else
-                                 enum aome_enc_control_id id,
-#endif
+                                 int id,
                                  struct aom_image *img)
 {
     AOMContext *ctx = avctx->priv_data;
@@ -472,7 +510,6 @@ static int set_pix_fmt(AVCodecContext *avctx, aom_codec_caps_t codec_caps,
                        struct aom_codec_enc_cfg *enccfg, aom_codec_flags_t *flags,
                        aom_img_fmt_t *img_fmt)
 {
-    AOMContext av_unused *ctx = avctx->priv_data;
     const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(avctx->pix_fmt);
     enccfg->g_bit_depth = enccfg->g_input_bit_depth = desc->comp[0].depth;
     switch (avctx->pix_fmt) {
@@ -713,6 +750,46 @@ static int choose_tiling(AVCodecContext *avctx,
     return 0;
 }
 
+
+static const struct {
+    int aom_enum;
+    unsigned offset;
+} option_map[] = {
+    { AOME_SET_ENABLEAUTOALTREF,          OFFSET(auto_alt_ref) },
+    { AOME_SET_ARNR_MAXFRAMES,            OFFSET(arnr_max_frames) },
+    { AOME_SET_ARNR_STRENGTH,             OFFSET(arnr_strength) },
+    { AV1E_SET_ENABLE_CDEF,               OFFSET(enable_cdef) },
+    { AV1E_SET_ENABLE_RESTORATION,        OFFSET(enable_restoration) },
+    { AV1E_SET_ENABLE_RECT_PARTITIONS,    OFFSET(enable_rect_partitions) },
+    { AV1E_SET_ENABLE_1TO4_PARTITIONS,    OFFSET(enable_1to4_partitions) },
+    { AV1E_SET_ENABLE_AB_PARTITIONS,      OFFSET(enable_ab_partitions) },
+    { AV1E_SET_ENABLE_ANGLE_DELTA,        OFFSET(enable_angle_delta) },
+    { AV1E_SET_ENABLE_CFL_INTRA,          OFFSET(enable_cfl_intra) },
+    { AV1E_SET_ENABLE_FILTER_INTRA,       OFFSET(enable_filter_intra) },
+    { AV1E_SET_ENABLE_INTRA_EDGE_FILTER,  OFFSET(enable_intra_edge_filter) },
+    { AV1E_SET_ENABLE_PAETH_INTRA,        OFFSET(enable_paeth_intra) },
+    { AV1E_SET_ENABLE_SMOOTH_INTRA,       OFFSET(enable_smooth_intra) },
+    { AV1E_SET_ENABLE_PALETTE,            OFFSET(enable_palette) },
+    { AV1E_SET_ENABLE_TX64,               OFFSET(enable_tx64) },
+    { AV1E_SET_ENABLE_FLIP_IDTX,          OFFSET(enable_flip_idtx) },
+    { AV1E_SET_INTRA_DCT_ONLY,            OFFSET(use_intra_dct_only) },
+    { AV1E_SET_INTER_DCT_ONLY,            OFFSET(use_inter_dct_only) },
+    { AV1E_SET_INTRA_DEFAULT_TX_ONLY,     OFFSET(use_intra_default_tx_only) },
+    { AV1E_SET_REDUCED_TX_TYPE_SET,       OFFSET(reduced_tx_type_set) },
+    { AV1E_SET_ENABLE_REF_FRAME_MVS,      OFFSET(enable_ref_frame_mvs) },
+    { AV1E_SET_REDUCED_REFERENCE_SET,     OFFSET(enable_reduced_reference_set) },
+    { AV1E_SET_ENABLE_DIFF_WTD_COMP,      OFFSET(enable_diff_wtd_comp) },
+    { AV1E_SET_ENABLE_DIST_WTD_COMP,      OFFSET(enable_dist_wtd_comp) },
+    { AV1E_SET_ENABLE_DUAL_FILTER,        OFFSET(enable_dual_filter) },
+    { AV1E_SET_ENABLE_INTERINTER_WEDGE,   OFFSET(enable_interinter_wedge) },
+    { AV1E_SET_ENABLE_MASKED_COMP,        OFFSET(enable_masked_comp) },
+    { AV1E_SET_ENABLE_INTERINTRA_COMP,    OFFSET(enable_interintra_comp) },
+    { AV1E_SET_ENABLE_INTERINTRA_WEDGE,   OFFSET(enable_interintra_wedge) },
+    { AV1E_SET_ENABLE_OBMC,               OFFSET(enable_obmc) },
+    { AV1E_SET_ENABLE_ONESIDED_COMP,      OFFSET(enable_onesided_comp) },
+    { AV1E_SET_ENABLE_SMOOTH_INTERINTRA,  OFFSET(enable_smooth_interintra) },
+};
+
 static av_cold int aom_init(AVCodecContext *avctx,
                             const struct aom_codec_iface *iface)
 {
@@ -721,7 +798,6 @@ static av_cold int aom_init(AVCodecContext *avctx,
     struct aom_codec_enc_cfg enccfg = { 0 };
     aom_codec_flags_t flags =
         (avctx->flags & AV_CODEC_FLAG_PSNR) ? AOM_CODEC_USE_PSNR : 0;
-    AVCPBProperties *cpb_props;
     int res;
     aom_img_fmt_t img_fmt;
     aom_codec_caps_t codec_caps = aom_codec_get_caps(iface);
@@ -848,7 +924,7 @@ static av_cold int aom_init(AVCodecContext *avctx,
         ret                   = av_reallocp(&ctx->twopass_stats.buf, ctx->twopass_stats.sz);
         if (ret < 0) {
             av_log(avctx, AV_LOG_ERROR,
-                   "Stat buffer alloc (%"SIZE_SPECIFIER" bytes) failed\n",
+                   "Stat buffer alloc (%zu bytes) failed\n",
                    ctx->twopass_stats.sz);
             ctx->twopass_stats.sz = 0;
             return ret;
@@ -900,73 +976,12 @@ static av_cold int aom_init(AVCodecContext *avctx,
     // codec control failures are currently treated only as warnings
     av_log(avctx, AV_LOG_DEBUG, "aom_codec_control\n");
     codecctl_int(avctx, AOME_SET_CPUUSED, ctx->cpu_used);
-    if (ctx->auto_alt_ref >= 0)
-        codecctl_int(avctx, AOME_SET_ENABLEAUTOALTREF, ctx->auto_alt_ref);
-    if (ctx->arnr_max_frames >= 0)
-        codecctl_int(avctx, AOME_SET_ARNR_MAXFRAMES,   ctx->arnr_max_frames);
-    if (ctx->arnr_strength >= 0)
-        codecctl_int(avctx, AOME_SET_ARNR_STRENGTH,    ctx->arnr_strength);
-    if (ctx->enable_cdef >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_CDEF, ctx->enable_cdef);
-    if (ctx->enable_restoration >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_RESTORATION, ctx->enable_restoration);
-    if (ctx->enable_rect_partitions >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_RECT_PARTITIONS, ctx->enable_rect_partitions);
-    if (ctx->enable_1to4_partitions >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_1TO4_PARTITIONS, ctx->enable_1to4_partitions);
-    if (ctx->enable_ab_partitions >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_AB_PARTITIONS, ctx->enable_ab_partitions);
-    if (ctx->enable_angle_delta >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_ANGLE_DELTA, ctx->enable_angle_delta);
-    if (ctx->enable_cfl_intra >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_CFL_INTRA, ctx->enable_cfl_intra);
-    if (ctx->enable_filter_intra >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_FILTER_INTRA, ctx->enable_filter_intra);
-    if (ctx->enable_intra_edge_filter >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_INTRA_EDGE_FILTER, ctx->enable_intra_edge_filter);
-    if (ctx->enable_paeth_intra >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_PAETH_INTRA, ctx->enable_paeth_intra);
-    if (ctx->enable_smooth_intra >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_SMOOTH_INTRA, ctx->enable_smooth_intra);
-    if (ctx->enable_palette >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_PALETTE, ctx->enable_palette);
-    if (ctx->enable_tx64 >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_TX64, ctx->enable_tx64);
-    if (ctx->enable_flip_idtx >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_FLIP_IDTX, ctx->enable_flip_idtx);
-    if (ctx->use_intra_dct_only >= 0)
-        codecctl_int(avctx, AV1E_SET_INTRA_DCT_ONLY, ctx->use_intra_dct_only);
-    if (ctx->use_inter_dct_only >= 0)
-        codecctl_int(avctx, AV1E_SET_INTER_DCT_ONLY, ctx->use_inter_dct_only);
-    if (ctx->use_intra_default_tx_only >= 0)
-        codecctl_int(avctx, AV1E_SET_INTRA_DEFAULT_TX_ONLY, ctx->use_intra_default_tx_only);
-    if (ctx->reduced_tx_type_set >= 0)
-        codecctl_int(avctx, AV1E_SET_REDUCED_TX_TYPE_SET, ctx->reduced_tx_type_set);
-    if (ctx->enable_ref_frame_mvs >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_REF_FRAME_MVS, ctx->enable_ref_frame_mvs);
-    if (ctx->enable_reduced_reference_set >= 0)
-        codecctl_int(avctx, AV1E_SET_REDUCED_REFERENCE_SET, ctx->enable_reduced_reference_set);
-    if (ctx->enable_diff_wtd_comp >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_DIFF_WTD_COMP, ctx->enable_diff_wtd_comp);
-    if (ctx->enable_dist_wtd_comp >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_DIST_WTD_COMP, ctx->enable_dist_wtd_comp);
-    if (ctx->enable_dual_filter >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_DUAL_FILTER, ctx->enable_dual_filter);
-    if (ctx->enable_interinter_wedge >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_INTERINTER_WEDGE, ctx->enable_interinter_wedge);
-    if (ctx->enable_masked_comp >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_MASKED_COMP, ctx->enable_masked_comp);
-    if (ctx->enable_interintra_comp >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_INTERINTRA_COMP, ctx->enable_interintra_comp);
-    if (ctx->enable_interintra_wedge >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_INTERINTRA_WEDGE, ctx->enable_interintra_wedge);
-    if (ctx->enable_obmc >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_OBMC, ctx->enable_obmc);
-    if (ctx->enable_onesided_comp >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_ONESIDED_COMP, ctx->enable_onesided_comp);
-    if (ctx->enable_smooth_interintra >= 0)
-        codecctl_int(avctx, AV1E_SET_ENABLE_SMOOTH_INTERINTRA, ctx->enable_smooth_interintra);
 
+    for (size_t i = 0; i < FF_ARRAY_ELEMS(option_map); ++i) {
+        int val = *(int*)((char*)ctx + option_map[i].offset);
+        if (val >= 0)
+            codecctl_int(avctx, option_map[i].aom_enum, val);
+    }
     codecctl_int(avctx, AOME_SET_STATIC_THRESHOLD, ctx->static_thresh);
     if (ctx->crf >= 0)
         codecctl_int(avctx, AOME_SET_CQ_LEVEL,          ctx->crf);
@@ -1064,10 +1079,6 @@ static av_cold int aom_init(AVCodecContext *avctx,
     if (codec_caps & AOM_CODEC_CAP_HIGHBITDEPTH)
         ctx->rawimg.bit_depth = enccfg.g_bit_depth;
 
-    cpb_props = ff_encode_add_cpb_side_data(avctx);
-    if (!cpb_props)
-        return AVERROR(ENOMEM);
-
     ctx->dovi.logctx = avctx;
     if ((res = ff_dovi_configure(&ctx->dovi, avctx)) < 0)
         return res;
@@ -1093,6 +1104,10 @@ static av_cold int aom_init(AVCodecContext *avctx,
         if (ret < 0)
            return ret;
     }
+
+    AVCPBProperties *cpb_props = ff_encode_add_cpb_side_data(avctx);
+    if (!cpb_props)
+        return AVERROR(ENOMEM);
 
     if (enccfg.rc_end_usage == AOM_CBR ||
         enccfg.g_pass != AOM_RC_ONE_PASS) {
@@ -1135,11 +1150,11 @@ static int storeframe(AVCodecContext *avctx, struct FrameListData *cx_frame,
                       AVPacket *pkt)
 {
     AOMContext *ctx = avctx->priv_data;
-    int av_unused pict_type;
+    enum AVPictureType pict_type;
     int ret = ff_get_encode_buffer(avctx, pkt, cx_frame->sz, 0);
     if (ret < 0) {
         av_log(avctx, AV_LOG_ERROR,
-               "Error getting output packet of size %"SIZE_SPECIFIER".\n", cx_frame->sz);
+               "Error getting output packet of size %zu.\n", cx_frame->sz);
         return ret;
     }
     memcpy(pkt->data, cx_frame->buf, pkt->size);
@@ -1155,8 +1170,8 @@ static int storeframe(AVCodecContext *avctx, struct FrameListData *cx_frame,
         pict_type = AV_PICTURE_TYPE_P;
     }
 
-    ff_side_data_set_encoder_stats(pkt, 0, cx_frame->sse + 1,
-                                   cx_frame->have_sse ? 3 : 0, pict_type);
+    ff_encode_add_stats_side_data(pkt, 0, cx_frame->sse + 1,
+                                  cx_frame->have_sse ? 3 : 0, pict_type);
 
     if (cx_frame->have_sse) {
         int i;
@@ -1238,7 +1253,7 @@ static int queue_frames(AVCodecContext *avctx, AVPacket *pkt_out)
 
                 if (!cx_frame->buf) {
                     av_log(avctx, AV_LOG_ERROR,
-                           "Data buffer alloc (%"SIZE_SPECIFIER" bytes) failed\n",
+                           "Data buffer alloc (%zu bytes) failed\n",
                            cx_frame->sz);
                     av_freep(&cx_frame);
                     return AVERROR(ENOMEM);
@@ -1329,6 +1344,7 @@ static int aom_encode(AVCodecContext *avctx, AVPacket *pkt,
 
     if (frame) {
         rawimg                      = &ctx->rawimg;
+        aom_img_remove_metadata(rawimg);
         rawimg->planes[AOM_PLANE_Y] = frame->data[0];
         rawimg->planes[AOM_PLANE_U] = frame->data[1];
         rawimg->planes[AOM_PLANE_V] = frame->data[2];
@@ -1345,13 +1361,7 @@ static int aom_encode(AVCodecContext *avctx, AVPacket *pkt,
         else if (avctx->framerate.num > 0 && avctx->framerate.den > 0)
             duration = av_rescale_q(1, av_inv_q(avctx->framerate), avctx->time_base);
         else {
-FF_DISABLE_DEPRECATION_WARNINGS
-            duration =
-#if FF_API_TICKS_PER_FRAME
-                avctx->ticks_per_frame ? avctx->ticks_per_frame :
-#endif
-                1;
-FF_ENABLE_DEPRECATION_WARNINGS
+            duration = 1;
         }
 
         switch (frame->color_range) {
@@ -1404,6 +1414,10 @@ FF_ENABLE_DEPRECATION_WARNINGS
                 return res;
             }
         }
+
+        res = add_hdr_plus(avctx, rawimg, frame);
+        if (res < 0)
+            return res;
     }
 
     res = aom_codec_encode(&ctx->encoder, rawimg, timestamp, duration, flags);
@@ -1420,7 +1434,7 @@ FF_ENABLE_DEPRECATION_WARNINGS
 
         avctx->stats_out = av_malloc(b64_size);
         if (!avctx->stats_out) {
-            av_log(avctx, AV_LOG_ERROR, "Stat buffer alloc (%"SIZE_SPECIFIER" bytes) failed\n",
+            av_log(avctx, AV_LOG_ERROR, "Stat buffer alloc (%zu bytes) failed\n",
                    b64_size);
             return AVERROR(ENOMEM);
         }
@@ -1558,7 +1572,6 @@ static av_cold int av1_init(AVCodecContext *avctx)
     return aom_init(avctx, aom_codec_av1_cx());
 }
 
-#define OFFSET(x) offsetof(AOMContext, x)
 #define VE AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_ENCODING_PARAM
 static const AVOption options[] = {
     { "cpu-used",        "Quality/Speed ratio modifier",           OFFSET(cpu_used),        AV_OPT_TYPE_INT, {.i64 = 1}, 0, 8, VE},

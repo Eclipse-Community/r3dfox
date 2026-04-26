@@ -1,0 +1,13 @@
+diff --git a/media/ffvpx/libavcodec/mediacodecdec.c b/media/ffvpx/libavcodec/mediacodecdec.c
+--- a/media/ffvpx/libavcodec/mediacodecdec.c
++++ b/media/ffvpx/libavcodec/mediacodecdec.c
+@@ -467,6 +467,9 @@ static av_cold int mediacodec_decode_init(AVCodecContext *avctx)
+         ff_AMediaFormat_setInt32(format, "channel-count", avctx->ch_layout.nb_channels);
+         ff_AMediaFormat_setInt32(format, "sample-rate", avctx->sample_rate);
+     }
++    if (avctx->flags & AV_CODEC_FLAG_LOW_DELAY) {
++        ff_AMediaFormat_setInt32(format, "low-latency", 1);
++    }
+     if (s->operating_rate > 0)
+         ff_AMediaFormat_setInt32(format, "operating-rate", s->operating_rate);
+ 

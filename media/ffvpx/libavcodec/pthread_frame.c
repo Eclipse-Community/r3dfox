@@ -115,10 +115,6 @@ typedef struct PerThreadContext {
     int hwaccel_threadsafe;
 
     atomic_int debug_threads;       ///< Set if the FF_DEBUG_THREADS option is set.
-
-    /// The following two fields have the same semantics as the DecodeContext field
-    int intra_only_flag;
-    enum AVPictureType initial_pict_type;
 } PerThreadContext;
 
 /**
@@ -378,12 +374,9 @@ FF_ENABLE_DEPRECATION_WARNINGS
         dst->level   = src->level;
 
         dst->bits_per_raw_sample = src->bits_per_raw_sample;
-#if FF_API_TICKS_PER_FRAME
-FF_DISABLE_DEPRECATION_WARNINGS
-        dst->ticks_per_frame     = src->ticks_per_frame;
-FF_ENABLE_DEPRECATION_WARNINGS
-#endif
         dst->color_primaries     = src->color_primaries;
+
+        dst->alpha_mode  = src->alpha_mode;
 
         dst->color_trc   = src->color_trc;
         dst->colorspace  = src->colorspace;
@@ -567,7 +560,7 @@ static int submit_packet(PerThreadContext *p, AVCodecContext *user_avctx,
     return 0;
 }
 
-int ff_thread_receive_frame(AVCodecContext *avctx, AVFrame *frame)
+int ff_thread_receive_frame(AVCodecContext *avctx, AVFrame *frame, unsigned flags)
 {
     FrameThreadContext *fctx = avctx->internal->thread_ctx;
     int ret = 0;
@@ -579,6 +572,10 @@ int ff_thread_receive_frame(AVCodecContext *avctx, AVFrame *frame)
     /* submit packets to threads while there are no buffered results to return */
     while (!fctx->df.nb_f && !fctx->result) {
         PerThreadContext *p;
+
+        if (fctx->next_decoding != fctx->next_finished &&
+            (flags & AV_CODEC_RECEIVE_FRAME_FLAG_SYNCHRONOUS))
+            goto wait_for_result;
 
         /* get a packet to be submitted to the next thread */
         av_packet_unref(fctx->next_pkt);
@@ -596,6 +593,7 @@ int ff_thread_receive_frame(AVCodecContext *avctx, AVFrame *frame)
             !avctx->internal->draining)
             continue;
 
+    wait_for_result:
         p                   = &fctx->threads[fctx->next_finished];
         fctx->next_finished = (fctx->next_finished + 1) % avctx->thread_count;
 
@@ -718,7 +716,7 @@ void ff_thread_finish_setup(AVCodecContext *avctx) {
 }
 
 /// Waits for all threads to finish.
-static void park_frame_worker_threads(FrameThreadContext *fctx, int thread_count)
+static av_cold void park_frame_worker_threads(FrameThreadContext *fctx, int thread_count)
 {
     int i;
 
@@ -750,7 +748,7 @@ DEFINE_OFFSET_ARRAY(PerThreadContext, per_thread, pthread_init_cnt,
                     (OFF(input_cond), OFF(progress_cond), OFF(output_cond)));
 #undef OFF
 
-void ff_frame_thread_free(AVCodecContext *avctx, int thread_count)
+av_cold void ff_frame_thread_free(AVCodecContext *avctx, int thread_count)
 {
     FrameThreadContext *fctx = avctx->internal->thread_ctx;
     const FFCodec *codec = ffcodec(avctx->codec);
@@ -824,13 +822,6 @@ static av_cold int init_thread(PerThreadContext *p, int *threads_to_free,
 {
     AVCodecContext *copy;
     int err;
-
-    p->initial_pict_type = AV_PICTURE_TYPE_NONE;
-    if (avctx->codec_descriptor->props & AV_CODEC_PROP_INTRA_ONLY) {
-        p->intra_only_flag = AV_FRAME_FLAG_KEY;
-        if (avctx->codec_type == AVMEDIA_TYPE_VIDEO)
-            p->initial_pict_type = AV_PICTURE_TYPE_I;
-    }
 
     atomic_init(&p->state, STATE_INPUT_READY);
 
@@ -922,7 +913,7 @@ static av_cold int init_thread(PerThreadContext *p, int *threads_to_free,
     return 0;
 }
 
-int ff_frame_thread_init(AVCodecContext *avctx)
+av_cold int ff_frame_thread_init(AVCodecContext *avctx)
 {
     int thread_count = avctx->thread_count;
     const FFCodec *codec = ffcodec(avctx->codec);
@@ -985,7 +976,7 @@ error:
     return err;
 }
 
-void ff_thread_flush(AVCodecContext *avctx)
+av_cold void ff_thread_flush(AVCodecContext *avctx)
 {
     int i;
     FrameThreadContext *fctx = avctx->internal->thread_ctx;
@@ -1087,7 +1078,7 @@ void ff_thread_release_ext_buffer(ThreadFrame *f)
         av_frame_unref(f->f);
 }
 
-enum ThreadingStatus ff_thread_sync_ref(AVCodecContext *avctx, size_t offset)
+av_cold enum ThreadingStatus ff_thread_sync_ref(AVCodecContext *avctx, size_t offset)
 {
     PerThreadContext *p;
     const void *ref;
