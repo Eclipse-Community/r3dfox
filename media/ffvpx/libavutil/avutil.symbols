@@ -111,6 +111,7 @@ av_frame_copy
 av_frame_copy_props
 av_frame_side_data_free
 av_frame_side_data_get_c
+av_frame_side_data_new
 av_frame_free
 av_frame_get_buffer
 av_frame_get_plane_buffer
