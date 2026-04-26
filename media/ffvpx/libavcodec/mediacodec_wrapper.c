@@ -2238,13 +2238,16 @@ static int mediacodec_ndk_setParameters(FFAMediaCodec *ctx,
         return AVERROR(EINVAL);
     }
 
-    status = AMediaCodec_setParameters(codec->impl, format->impl);
-    if (status != AMEDIA_OK) {
-        av_log(codec, AV_LOG_ERROR, "setParameters failed, %d\n", status);
-        return AVERROR_EXTERNAL;
+    if (__builtin_available(android 26, *)) {
+        status = AMediaCodec_setParameters(codec->impl, format->impl);
+        if (status != AMEDIA_OK) {
+            av_log(codec, AV_LOG_ERROR, "setParameters failed, %d\n", status);
+            return AVERROR_EXTERNAL;
+        }
+        return 0;
     }
 
-    return 0;
+    return AVERROR(ENOSYS);
 }
 
 #define MEDIACODEC_NDK_WRAPPER(method)                                   \
