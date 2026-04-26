@@ -118,11 +118,19 @@ struct H264LiteralSetting {
   H264Setting get() const { return {mValue, mString.AsString()}; }
 };
 
+#if LIBAVCODEC_VERSION_MAJOR < 62
 static constexpr H264LiteralSetting H264Profiles[]{
     {FF_PROFILE_H264_BASELINE, "baseline"_ns},
     {FF_PROFILE_H264_MAIN, "main"_ns},
     {FF_PROFILE_H264_EXTENDED, ""_ns},
     {FF_PROFILE_H264_HIGH, "high"_ns}};
+#else
+static constexpr H264LiteralSetting H264Profiles[]{
+    {AV_PROFILE_H264_BASELINE, "baseline"_ns},
+    {AV_PROFILE_H264_MAIN, "main"_ns},
+    {AV_PROFILE_H264_EXTENDED, ""_ns},
+    {AV_PROFILE_H264_HIGH, "high"_ns}};
+#endif
 
 static Maybe<H264Setting> GetH264Profile(const H264_PROFILE& aProfile) {
   switch (aProfile) {
