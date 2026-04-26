@@ -101,3 +101,4 @@ diff --git a/media/ffvpx/libavcodec/mediacodecdec.c b/media/ffvpx/libavcodec/med
 +DECLARE_MEDIACODEC_VDEC(hevc, "H.265", AV_CODEC_ID_HEVC, NULL)
  #endif
  
+

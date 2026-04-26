@@ -50,6 +50,7 @@ SOURCES += [
     'side_data.c',
     'slicethread.c',
     'time.c',
+    'timecode_internal.c',
     'tx.c',
     'tx_double.c',
     'tx_float.c',

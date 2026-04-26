@@ -36,12 +36,16 @@
 #include "avcodec.h"
 #include "codec_internal.h"
 #include "decode.h"
+#if CONFIG_H264_MEDIACODEC_DECODER_EXTRADATA
 #include "h264_parse.h"
 #include "h264_ps.h"
+#endif
+#if CONFIG_HEVC_MEDIACODEC_DECODER_EXTRADATA
 #include "hevc/parse.h"
+#endif
 #include "hwconfig.h"
 #include "internal.h"
-#include "jni.h"
+#include "fffjni.h"
 #include "mediacodec_wrapper.h"
 #include "mediacodecdec_common.h"
 
@@ -127,9 +131,9 @@ done:
 }
 #endif
 
-#if CONFIG_H264_MEDIACODEC_DECODER
 static int h264_set_extradata(AVCodecContext *avctx, FFAMediaFormat *format)
 {
+#if CONFIG_H264_MEDIACODEC_DECODER_EXTRADATA
     int i;
     int ret;
 
@@ -188,10 +192,25 @@ done:
     ff_h264_ps_uninit(&ps);
 
     return ret;
-}
-#endif
+#else
+    const uint8_t* ed = avctx->extradata;
+    int edsize = avctx->extradata_size;
+    int edoffset = avctx->moz_extradata_offset;
 
-#if CONFIG_HEVC_MEDIACODEC_DECODER
+    if (ed) {
+        if (edoffset > 0 && edoffset < edsize) {
+            ff_AMediaFormat_setBuffer(format, "csd-0", ed, edoffset);
+            ff_AMediaFormat_setBuffer(format, "csd-1", ed + edoffset, edsize - edoffset);
+        } else {
+            ff_AMediaFormat_setBuffer(format, "csd-0", ed, edsize);
+        }
+    }
+
+    return 0;
+#endif
+}
+
+#if CONFIG_HEVC_MEDIACODEC_DECODER_EXTRADATA
 static int hevc_set_extradata(AVCodecContext *avctx, FFAMediaFormat *format)
 {
     int i;
@@ -292,7 +311,8 @@ done:
     CONFIG_AAC_MEDIACODEC_DECODER   || \
     CONFIG_AMRNB_MEDIACODEC_DECODER || \
     CONFIG_AMRWB_MEDIACODEC_DECODER || \
-    CONFIG_MP3_MEDIACODEC_DECODER
+    CONFIG_MP3_MEDIACODEC_DECODER   || \
+    !CONFIG_HEVC_MEDIACODEC_DECODER_EXTRADATA
 static int common_set_extradata(AVCodecContext *avctx, FFAMediaFormat *format)
 {
     int ret = 0;
@@ -348,7 +368,11 @@ static av_cold int mediacodec_decode_init(AVCodecContext *avctx)
     case AV_CODEC_ID_HEVC:
         codec_mime = "video/hevc";
 
+#if CONFIG_HEVC_MEDIACODEC_DECODER_EXTRADATA
         ret = hevc_set_extradata(avctx, format);
+#else
+        ret = common_set_extradata(avctx, format);
+#endif
         if (ret < 0)
             goto done;
         break;
@@ -437,6 +461,9 @@ static av_cold int mediacodec_decode_init(AVCodecContext *avctx)
     } else {
         ff_AMediaFormat_setInt32(format, "channel-count", avctx->ch_layout.nb_channels);
         ff_AMediaFormat_setInt32(format, "sample-rate", avctx->sample_rate);
+    }
+    if (avctx->flags & AV_CODEC_FLAG_LOW_DELAY) {
+        ff_AMediaFormat_setInt32(format, "low-latency", 1);
     }
     if (s->operating_rate > 0)
         ff_AMediaFormat_setInt32(format, "operating-rate", s->operating_rate);
@@ -632,11 +659,11 @@ const FFCodec ff_ ## short_name ## _mediacodec_decoder = {                      
 };                                                                                             \
 
 #if CONFIG_H264_MEDIACODEC_DECODER
-DECLARE_MEDIACODEC_VDEC(h264, "H.264", AV_CODEC_ID_H264, "h264_mp4toannexb")
+DECLARE_MEDIACODEC_VDEC(h264, "H.264", AV_CODEC_ID_H264, NULL)
 #endif
 
 #if CONFIG_HEVC_MEDIACODEC_DECODER
-DECLARE_MEDIACODEC_VDEC(hevc, "H.265", AV_CODEC_ID_HEVC, "hevc_mp4toannexb")
+DECLARE_MEDIACODEC_VDEC(hevc, "H.265", AV_CODEC_ID_HEVC, NULL)
 #endif
 
 #if CONFIG_MPEG2_MEDIACODEC_DECODER
@@ -710,3 +737,9 @@ DECLARE_MEDIACODEC_ADEC(amrwb, "AMR-WB", AV_CODEC_ID_AMR_WB, NULL)
 #if CONFIG_MP3_MEDIACODEC_DECODER
 DECLARE_MEDIACODEC_ADEC(mp3, "MP3", AV_CODEC_ID_MP3, NULL)
 #endif
+
+int moz_avcodec_mediacodec_is_eos(AVCodecContext* avctx) {
+  // Note that MediaCodecH264DecContext is used by all codec types.
+  MediaCodecH264DecContext *s = avctx->priv_data;
+  return s->ctx->eos;
+}

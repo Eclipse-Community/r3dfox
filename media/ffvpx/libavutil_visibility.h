@@ -13,6 +13,7 @@
 
 // We need av_log() to be visible so we can enable assertions in libavcodec.
 #include "libavutil/log.h"
+#include "libavutil/internal.h"
 #include "libavcodec/packet.h"
 
 #pragma GCC visibility pop
