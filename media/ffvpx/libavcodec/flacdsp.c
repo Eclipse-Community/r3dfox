@@ -94,7 +94,7 @@ static void flac_lpc_33_c(int64_t *decoded, const int32_t *residual,
         int64_t sum = 0;
         for (j = 0; j < pred_order; j++)
             sum += (int64_t)coeffs[j] * (uint64_t)decoded[j];
-        decoded[j] = residual[i] + (sum >> qlevel);
+        decoded[j] = (uint64_t)residual[i] + (uint64_t)(sum >> qlevel);
     }
 }
 
@@ -154,7 +154,7 @@ av_cold void ff_flacdsp_init(FLACDSPContext *c, enum AVSampleFormat fmt, int cha
     ff_flacdsp_init_arm(c, fmt, channels);
 #elif ARCH_RISCV
     ff_flacdsp_init_riscv(c, fmt, channels);
-#elif ARCH_X86
+#elif ARCH_X86 && HAVE_X86ASM
     ff_flacdsp_init_x86(c, fmt, channels);
 #endif
 }

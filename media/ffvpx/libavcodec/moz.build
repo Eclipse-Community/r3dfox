@@ -89,6 +89,7 @@ if not CONFIG['MOZ_FFVPX_AUDIOONLY']:
         'av1dec.c',
         'cbs.c',
         'cbs_av1.c',
+        'cbs_vp9.c',
         'golomb.c',
         'h264pred.c',
         'imgconvert.c',

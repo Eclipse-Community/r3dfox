@@ -148,8 +148,10 @@ static int allocate_buffers(FLACContext *s)
         return buf_size;
 
     av_fast_malloc(&s->decoded_buffer, &s->decoded_buffer_size, buf_size);
-    if (!s->decoded_buffer)
+    if (!s->decoded_buffer) {
+        memset(s->decoded, 0, sizeof(s->decoded));
         return AVERROR(ENOMEM);
+    }
 
     ret = av_samples_fill_arrays((uint8_t **)s->decoded, NULL,
                                  s->decoded_buffer,
@@ -164,8 +166,10 @@ static int allocate_buffers(FLACContext *s)
             return buf_size;
 
         av_fast_malloc(&s->decoded_buffer_33bps, &s->decoded_buffer_size_33bps, buf_size);
-        if (!s->decoded_buffer_33bps)
+        if (!s->decoded_buffer_33bps) {
+            s->decoded_33bps = NULL;
             return AVERROR(ENOMEM);
+        }
 
         ret = av_samples_fill_arrays((uint8_t **)&s->decoded_33bps, NULL,
                                      s->decoded_buffer_33bps,
@@ -665,7 +669,7 @@ static int decode_frame(FLACContext *s)
         fi.samplerate = s->stream_info.samplerate;
     s->stream_info.samplerate = s->avctx->sample_rate = fi.samplerate;
 
-    if (!s->got_streaminfo) {
+    if (!s->got_streaminfo || !s->decoded_buffer) {
         ret = allocate_buffers(s);
         if (ret < 0)
             return ret;
@@ -827,10 +831,7 @@ const FFCodec ff_flac_decoder = {
     .p.capabilities = AV_CODEC_CAP_CHANNEL_CONF |
                       AV_CODEC_CAP_DR1 |
                       AV_CODEC_CAP_FRAME_THREADS,
-    .p.sample_fmts  = (const enum AVSampleFormat[]) { AV_SAMPLE_FMT_S16,
-                                                      AV_SAMPLE_FMT_S16P,
-                                                      AV_SAMPLE_FMT_S32,
-                                                      AV_SAMPLE_FMT_S32P,
-                                                      AV_SAMPLE_FMT_NONE },
+    CODEC_SAMPLEFMTS(AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_S16P,
+                     AV_SAMPLE_FMT_S32, AV_SAMPLE_FMT_S32P),
     .p.priv_class   = &flac_decoder_class,
 };
