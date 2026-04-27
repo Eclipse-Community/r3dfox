@@ -52,8 +52,10 @@ class InternalResponse final : public AtomicSafeRefCounted<InternalResponse> {
       const ParentToParentInternalResponse& aIPCResponse);
 
   void ToChildToParentInternalResponse(
-      ChildToParentInternalResponse* aIPCResponse,
-      mozilla::ipc::PBackgroundChild* aManager);
+      ChildToParentInternalResponse* aIPCResponse);
+
+  void SerializeChildToParentInternalResponseBody(
+      ChildToParentInternalResponse* aIPCResponse);
 
   ParentToParentInternalResponse ToParentToParentInternalResponse();
 

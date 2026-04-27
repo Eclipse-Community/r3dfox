@@ -39,20 +39,12 @@ nsresult GetIPCSynthesizeResponseArgs(
     ChildToParentSynthesizeResponseArgs* aIPCArgs,
     SynthesizeResponseArgs&& aArgs) {
   MOZ_ASSERT(RemoteWorkerService::Thread()->IsOnCurrentThread());
+  auto [internalResponse, ipcArgs] = std::move(aArgs);
 
-  auto [internalResponse, closure, timeStamps] = std::move(aArgs);
+  *aIPCArgs = std::move(ipcArgs);
 
-  aIPCArgs->closure() = std::move(closure);
-  aIPCArgs->timeStamps() = std::move(timeStamps);
-
-  PBackgroundChild* bgChild = BackgroundChild::GetOrCreateForCurrentThread();
-
-  if (NS_WARN_IF(!bgChild)) {
-    return NS_ERROR_DOM_INVALID_STATE_ERR;
-  }
-
-  internalResponse->ToChildToParentInternalResponse(
-      &aIPCArgs->internalResponse(), bgChild);
+  internalResponse->SerializeChildToParentInternalResponseBody(
+      &aIPCArgs->internalResponse());
   return NS_OK;
 }
 

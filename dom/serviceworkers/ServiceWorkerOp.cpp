@@ -1699,10 +1699,17 @@ void FetchEventOp::ResolvedCallback(JSContext* aCx,
   ir->SnapshotUnfilteredHeaders();
 
   mHandled->MaybeResolveWithUndefined();
+
+  ChildToParentSynthesizeResponseArgs synthesizeResponseArgs;
+  synthesizeResponseArgs.closure() = mRespondWithClosure.ref();
+  synthesizeResponseArgs.timeStamps() =
+      FetchEventTimeStamps(mFetchHandlerStart, mFetchHandlerFinish);
+  ir->ToChildToParentInternalResponse(
+      &synthesizeResponseArgs.internalResponse());
+
   mRespondWithPromiseHolder.Resolve(
-      FetchEventRespondWithResult(std::make_tuple(
-          std::move(ir), mRespondWithClosure.ref(),
-          FetchEventTimeStamps(mFetchHandlerStart, mFetchHandlerFinish))),
+      FetchEventRespondWithResult(
+          std::make_pair(std::move(ir), std::move(synthesizeResponseArgs))),
       __func__);
 }
 
