@@ -348,8 +348,17 @@ void AccessibleCaretManager::UpdateCaretsForSelectionMode(
       secondCaretResult == PositionChangedResult::Position;
 
   if (mIsCaretPositionChanged) {
+    AutoWeakFrame weakStartFrame = startFrame;
+    AutoWeakFrame weakEndFrame = endFrame;
+
     // Flush layout to make the carets intersection correct.
     if (MaybeFlushLayout() == Terminated::Yes) {
+      return;
+    }
+
+    if ((startFrame && !weakStartFrame.IsAlive()) ||
+        (endFrame && !weakEndFrame.IsAlive())) {
+      HideCaretsAndDispatchCaretStateChangedEvent();
       return;
     }
   }
