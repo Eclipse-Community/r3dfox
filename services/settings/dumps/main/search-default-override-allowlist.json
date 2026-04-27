@@ -3,6 +3,41 @@
     {
       "urls": [
         {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=english"
+        },
+        {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=nederlands"
+        },
+        {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=francais"
+        },
+        {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=deutsch"
+        },
+        {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=italiano"
+        },
+        {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=espanol"
+        },
+        {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=polski"
+        },
+        {
+          "search_url": "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=portugues"
+        }
+      ],
+      "schema": 1776297618072,
+      "engineName": "Startpage",
+      "overridesId": "startpage@search.mozilla.org",
+      "thirdPartyId": "opensearch@search.mozilla.org",
+      "overridesAppIdv2": "startpage",
+      "id": "0624436f-2562-46e4-8752-9afad4887d35",
+      "last_modified": 1776781146223
+    },
+    {
+      "urls": [
+        {
           "search_url": "https://www.bing.com/search?FORM=U506DF&PC=U506&q={searchTerms}"
         }
       ],
@@ -175,5 +210,5 @@
       "last_modified": 1721063513237
     }
   ],
-  "timestamp": 1744749743529
+  "timestamp": 1776781146223
 }

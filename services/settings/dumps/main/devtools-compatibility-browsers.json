@@ -1,6 +1,60 @@
 {
   "data": [
     {
+      "name": "Bun",
+      "schema": 1776470703829,
+      "status": "current",
+      "version": "1.3.12",
+      "browserid": "bun",
+      "id": "7d7b623a-9b5c-476a-b43d-5163d28b328c",
+      "last_modified": 1776664543985
+    },
+    {
+      "name": "Opera Android",
+      "schema": 1776470704327,
+      "status": "current",
+      "version": "97",
+      "browserid": "opera_android",
+      "id": "6d32715c-8bcd-4b9c-aafa-592cc34fc181",
+      "last_modified": 1776664543982
+    },
+    {
+      "name": "Edge",
+      "schema": 1776470704186,
+      "status": "planned",
+      "version": "150",
+      "browserid": "edge",
+      "id": "8dcc0dc6-e19c-4a1c-bd84-98ed10245fa4",
+      "last_modified": 1776664543979
+    },
+    {
+      "name": "Edge",
+      "schema": 1776470704048,
+      "status": "beta",
+      "version": "148",
+      "browserid": "edge",
+      "id": "25d5ebbc-8734-46b8-881c-949b2912533e",
+      "last_modified": 1776664543974
+    },
+    {
+      "name": "Edge",
+      "schema": 1776470703979,
+      "status": "current",
+      "version": "147",
+      "browserid": "edge",
+      "id": "08fe74cc-038a-4801-9f25-82fbd6468297",
+      "last_modified": 1776664543971
+    },
+    {
+      "name": "Edge",
+      "schema": 1776470704116,
+      "status": "nightly",
+      "version": "149",
+      "browserid": "edge",
+      "id": "ecc3ce4e-9c4f-49c9-aabd-ddb600ade94b",
+      "last_modified": 1776664543969
+    },
+    {
       "name": "WebView Android",
       "schema": 1775865904693,
       "status": "planned",
@@ -262,60 +316,6 @@
       "last_modified": 1775555173705
     },
     {
-      "name": "Edge",
-      "schema": 1774051505179,
-      "status": "planned",
-      "version": "149",
-      "browserid": "edge",
-      "id": "ecc3ce4e-9c4f-49c9-aabd-ddb600ade94b",
-      "last_modified": 1774245712490
-    },
-    {
-      "name": "Bun",
-      "schema": 1774051504876,
-      "status": "current",
-      "version": "1.3.11",
-      "browserid": "bun",
-      "id": "3de3e137-fe20-463e-8732-f39b6e0c1be1",
-      "last_modified": 1774245712488
-    },
-    {
-      "name": "Edge",
-      "schema": 1774051505120,
-      "status": "nightly",
-      "version": "148",
-      "browserid": "edge",
-      "id": "25d5ebbc-8734-46b8-881c-949b2912533e",
-      "last_modified": 1774245712484
-    },
-    {
-      "name": "Edge",
-      "schema": 1774051505056,
-      "status": "beta",
-      "version": "147",
-      "browserid": "edge",
-      "id": "08fe74cc-038a-4801-9f25-82fbd6468297",
-      "last_modified": 1774245712482
-    },
-    {
-      "name": "Edge",
-      "schema": 1774051504999,
-      "status": "current",
-      "version": "146",
-      "browserid": "edge",
-      "id": "71070e67-3067-4271-acef-cf0bd7a4f555",
-      "last_modified": 1774245712480
-    },
-    {
-      "name": "Opera Android",
-      "schema": 1773446703952,
-      "status": "current",
-      "version": "96",
-      "browserid": "opera_android",
-      "id": "dc01df05-453f-4d2f-b7d2-337a2670e91a",
-      "last_modified": 1773641281298
-    },
-    {
       "name": "Quest Browser",
       "schema": 1773446703816,
       "status": "current",
@@ -379,5 +379,5 @@
       "last_modified": 1735832995466
     }
   ],
-  "timestamp": 1776062852042
+  "timestamp": 1776664543985
 }
