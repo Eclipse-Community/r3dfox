@@ -1415,7 +1415,11 @@ cairo_cff_font_subset_dict_string(cairo_cff_font_t   *font,
     if (sid < NUM_STD_STRINGS)
         return CAIRO_STATUS_SUCCESS;
 
-    element = _cairo_array_index (&font->strings_index, sid - NUM_STD_STRINGS);
+    sid -= NUM_STD_STRINGS;
+    if (sid >= (int)_cairo_array_num_elements (&font->strings_index))
+        return CAIRO_INT_STATUS_UNSUPPORTED;
+
+    element = _cairo_array_index (&font->strings_index, sid);
     sid = NUM_STD_STRINGS + _cairo_array_num_elements (&font->strings_subset_index);
     status = cff_index_append (&font->strings_subset_index, element->data, element->length);
     if (unlikely (status))
