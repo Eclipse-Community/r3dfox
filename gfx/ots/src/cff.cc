@@ -899,8 +899,8 @@ bool ParseDictData(ots::Buffer& table, ots::Buffer& dict,
         if (type != DICT_DATA_TOPLEVEL) {
           return OTS_FAILURE();
         }
-        // A CID-keyed font must have exactly one FDSelect; duplicates would
-        // make the validated fd_select map diverge from the serialized bytes.
+        // A CID-keyed font must have exactly one FDSelect; fail if we already
+        // encountered one.
         if (!out_cff->fd_select.empty()) {
           return OTS_FAILURE();
         }

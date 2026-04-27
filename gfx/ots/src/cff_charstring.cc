@@ -405,6 +405,16 @@ bool ExecuteCharStringOperator(ots::OpenTypeCFF& cff,
     if (stack_size < 2) {
       return OTS_FAILURE();
     }
+    if (op == ots::kHStem || op == ots::kHStemHm) {
+      if (cs_ctx.hint_state > ots::kHs) {
+        return OTS_FAILURE();
+      }
+    } else {
+      if (cs_ctx.hint_state > ots::kVs) {
+        return OTS_FAILURE();
+      }
+      cs_ctx.hint_state = ots::kVs;
+    }
     if ((stack_size % 2) == 0) {
       successful = true;
     } else if ((!(cs_ctx.width_seen)) && (((stack_size - 1) % 2) == 0)) {
@@ -432,6 +442,7 @@ bool ExecuteCharStringOperator(ots::OpenTypeCFF& cff,
     while (!argument_stack->empty())
       argument_stack->pop();
     cs_ctx.width_seen = true;
+    cs_ctx.hint_state = ots::kHm;
     return successful ? true : OTS_FAILURE();
   }
 
@@ -446,6 +457,7 @@ bool ExecuteCharStringOperator(ots::OpenTypeCFF& cff,
     while (!argument_stack->empty())
       argument_stack->pop();
     cs_ctx.width_seen = true;
+    cs_ctx.hint_state = ots::kHm;
     return successful ? true : OTS_FAILURE();
   }
 
@@ -470,7 +482,14 @@ bool ExecuteCharStringOperator(ots::OpenTypeCFF& cff,
     if (!successful) {
        return OTS_FAILURE();
     }
-
+    if (op == ots::kHintMask) {
+      cs_ctx.hint_state = ots::kHm;
+    } else {
+      if (cs_ctx.hint_state > ots::kCm) {
+        return OTS_FAILURE();
+      }
+      cs_ctx.hint_state = ots::kCm;
+    }
     if ((cs_ctx.num_stems) == 0) {
       return OTS_FAILURE();
     }

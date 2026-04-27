@@ -966,6 +966,49 @@ TEST(ValidateTest, TestHintMask) {
   }
 }
 
+TEST(ValidateTest, TestStemOrder) {
+  {
+    const int char_string[] = {
+      1, 2, kOpPrefix, ots::kHStemHm,
+      3, 4, kOpPrefix, ots::kVStemHm,
+      kOpPrefix, ots::kHintMask, 0x00,
+      kOpPrefix, ots::kEndChar,
+    };
+    EXPECT_TRUE(ValidateCharStrings(char_string, ARRAYSIZE(char_string)));
+  }
+  {
+    const int char_string[] = {
+      1, 2, kOpPrefix, ots::kVStem,
+      3, 4, kOpPrefix, ots::kHStem,  // stems must be in canonical order
+      kOpPrefix, ots::kHintMask, 0x00,
+      kOpPrefix, ots::kEndChar,
+    };
+    EXPECT_FALSE(ValidateCharStrings(char_string, ARRAYSIZE(char_string)));
+  }
+}
+
+TEST(ValidateTest, TestStemsFirst) {
+  {
+    const int char_string[] = {
+      1, 2, kOpPrefix, ots::kHStemHm,
+      kOpPrefix, ots::kHintMask, 0x00,
+      3, 4, kOpPrefix, ots::kHStemHm,  // stems must be declared at the beginning
+      kOpPrefix, ots::kHintMask, 0x00,
+      kOpPrefix, ots::kEndChar,
+    };
+    EXPECT_FALSE(ValidateCharStrings(char_string, ARRAYSIZE(char_string)));
+  }
+  {
+    const int char_string[] = {
+      1, kOpPrefix, ots::kVMoveTo,
+      1, 2, kOpPrefix, ots::kHStemHm,  // stems must be declared at the beginning
+      kOpPrefix, ots::kHintMask, 0x00,
+      kOpPrefix, ots::kEndChar,
+    };
+    EXPECT_FALSE(ValidateCharStrings(char_string, ARRAYSIZE(char_string)));
+  }
+}
+
 TEST(ValidateTest, TestCntrMask) {
   {
     const int char_string[] = {

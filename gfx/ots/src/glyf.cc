@@ -462,12 +462,12 @@ bool OpenTypeGLYF::Parse(const uint8_t *data, size_t length) {
       GetFont()->GetTypedTable(OTS_TAG_LOCA));
   OpenTypeHEAD *head = static_cast<OpenTypeHEAD*>(
       GetFont()->GetTypedTable(OTS_TAG_HEAD));
-  if (!maxp || !loca || !head) {
-    return Error("Missing maxp or loca or head table needed by glyf table");
-  }
-
   OpenTypeNAME *name = static_cast<OpenTypeNAME*>(
       GetFont()->GetTypedTable(OTS_TAG_NAME));
+  if (!maxp || !loca || !head || !name) {
+    return Error("Missing maxp or loca or head or name table needed by glyf table");
+  }
+
   bool is_tricky = name->IsTrickyFont();
 
   this->loca = loca;
