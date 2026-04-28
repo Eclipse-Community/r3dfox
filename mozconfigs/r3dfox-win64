@@ -33,7 +33,7 @@ export MOZ_SOURCE_CHANGESET=iloveneedingtobodgechangesetfornoreason
 
 # Package VC++ DLLs
 WIN32_REDIST_DIR="${VCINSTALLDIR}/redist/x86/Microsoft.VC141.CRT"
-WIN_UCRT_REDIST_DIR="${WINDOWSSDKDIR}/Redist/ucrt/DLLs/r86"
+WIN_UCRT_REDIST_DIR="${WINDOWSSDKDIR}/Redist/ucrt/DLLs/r64"
 
 # manually specify windows_rs because cargo refuses to download it
 MOZ_WINDOWS_RS_DIR="C:/windows-0.52.0"
