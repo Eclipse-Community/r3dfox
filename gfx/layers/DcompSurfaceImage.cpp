@@ -30,8 +30,7 @@ static bool IsValidDcompSurfaceDescriptor(
 
   const gfx::SurfaceFormat fmt = aDescriptor.format();
   if (fmt != gfx::SurfaceFormat::B8G8R8A8 &&
-      fmt != gfx::SurfaceFormat::R8G8B8A8 &&
-      fmt != gfx::SurfaceFormat::R16G16B16A16F) {
+      fmt != gfx::SurfaceFormat::R8G8B8A8) {
     gfxCriticalNote << "DcompSurfaceHandleHost: unsupported format "
                     << static_cast<int>(fmt);
     return false;
