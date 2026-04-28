@@ -10,8 +10,10 @@
 #include "mozilla/ScopeExit.h"
 #include "mozilla/WindowsVersion.h"
 #include "nsIGeolocationUIUtilsWin.h"
-#include "nsIWifiListener.h"
-#include "nsIWifiMonitor.h"
+#ifdef NECKO_WIFI
+#  include "nsIWifiListener.h"
+#  include "nsIWifiMonitor.h"
+#endif
 
 #include <windows.system.h>
 #include <windows.security.authorization.appcapabilityaccess.h>
@@ -67,6 +69,7 @@ Maybe<AppCapabilityAccessStatus> GetWifiControlAccess() {
 
 bool SystemWillPromptForPermissionHint() {
   auto wifiAccess = GetWifiControlAccess();
+#ifdef NECKO_WIFI
   if (wifiAccess !=
       mozilla::Some(AppCapabilityAccessStatus::
                         AppCapabilityAccessStatus_UserPromptRequired)) {
@@ -79,6 +82,11 @@ bool SystemWillPromptForPermissionHint() {
   nsCOMPtr<nsIWifiMonitor> wifiMonitor = components::WifiMonitor::Service();
   NS_ENSURE_TRUE(wifiMonitor, false);
   return wifiMonitor->GetHasWifiAdapter();
+#else
+  return wifiAccess ==
+         mozilla::Some(AppCapabilityAccessStatus::
+                           AppCapabilityAccessStatus_UserPromptRequired);
+#endif
 }
 
 bool LocationIsPermittedHint() {
@@ -271,6 +279,7 @@ void OpenWindowsLocationSettings(
   cancelRequest.release();
 }
 
+#ifdef NECKO_WIFI
 class LocationPermissionWifiScanListener final : public nsIWifiListener {
  public:
   NS_DECL_ISUPPORTS
@@ -310,6 +319,7 @@ class LocationPermissionWifiScanListener final : public nsIWifiListener {
 };
 
 NS_IMPL_ISUPPORTS(LocationPermissionWifiScanListener, nsIWifiListener)
+#endif
 
 }  // namespace
 
@@ -335,6 +345,7 @@ RequestLocationPermissionFromUser(BrowsingContext* aBrowsingContext,
   if (permissionRequest->IsStopped()) {
     return nullptr;
   }
+#ifdef NECKO_WIFI
   if (SystemWillPromptForPermissionHint()) {
     // To tell the system to prompt for permission, run one wifi scan (no need
     // to poll). We won't use the result -- either the user will grant
@@ -349,6 +360,9 @@ RequestLocationPermissionFromUser(BrowsingContext* aBrowsingContext,
   } else {
     OpenWindowsLocationSettings(permissionRequest);
   }
+#else
+  OpenWindowsLocationSettings(permissionRequest);
+#endif
   return permissionRequest.forget();
 }
 
