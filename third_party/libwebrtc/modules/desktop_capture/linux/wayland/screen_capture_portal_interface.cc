@@ -11,6 +11,7 @@
 
 #include <string>
 
+#include "modules/portal/portal_guard.h"
 #include "modules/portal/xdg_desktop_portal_utils.h"
 #include "rtc_base/logging.h"
 
@@ -67,7 +68,8 @@ void ScreenCapturePortalInterface::RegisterSessionClosedSignalHandler(
     GVariant* parameters,
     GDBusConnection* connection,
     std::string& session_handle,
-    guint& session_closed_signal_id) {
+    guint& session_closed_signal_id,
+    scoped_refptr<PortalGuard> guard) {
   uint32_t portal_response = 2;
   Scoped<GVariant> response_data;
   g_variant_get(parameters, /*format_string=*/"(u@a{sv})", &portal_response,
@@ -95,7 +97,8 @@ void ScreenCapturePortalInterface::RegisterSessionClosedSignalHandler(
   session_closed_signal_id = g_dbus_connection_signal_subscribe(
       connection, kDesktopBusName, kSessionInterfaceName, /*member=*/"Closed",
       session_handle.c_str(), /*arg0=*/nullptr, G_DBUS_SIGNAL_FLAGS_NONE,
-      session_close_signal_handler, this, /*user_data_free_func=*/nullptr);
+      session_close_signal_handler, guard->AddRefAndGet(),
+      portal_guard_release);
 }
 
 void ScreenCapturePortalInterface::OnStartRequestResult(GDBusProxy* proxy,

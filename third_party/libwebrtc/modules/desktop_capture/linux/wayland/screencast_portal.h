@@ -15,9 +15,11 @@
 
 #include <string>
 
+#include "api/scoped_refptr.h"
 #include "modules/desktop_capture/desktop_capture_types.h"
 #include "modules/desktop_capture/linux/wayland/screen_capture_portal_interface.h"
 #include "modules/portal/pipewire_utils.h"
+#include "modules/portal/portal_guard.h"
 #include "modules/portal/portal_request_response.h"
 #include "modules/portal/xdg_desktop_portal_utils.h"
 #include "modules/portal/xdg_session_details.h"
@@ -86,7 +88,6 @@ class RTC_EXPORT ScreenCastPortal
                    ProxyRequestResponseHandler proxy_request_response_handler,
                    SourcesRequestResponseSignalHandler
                        sources_request_response_signal_handler,
-                   gpointer user_data,
                    // TODO(chromium:1291247): Remove the default option once
                    // downstream has been adjusted.
                    bool prefer_cursor_embedded = false);
@@ -151,7 +152,6 @@ class RTC_EXPORT ScreenCastPortal
 
   ProxyRequestResponseHandler proxy_request_response_handler_;
   SourcesRequestResponseSignalHandler sources_request_response_signal_handler_;
-  gpointer user_data_;
 
   GDBusConnection* connection_ = nullptr;
   GDBusProxy* proxy_ = nullptr;
@@ -164,6 +164,8 @@ class RTC_EXPORT ScreenCastPortal
   guint sources_request_signal_id_ = 0;
   guint start_request_signal_id_ = 0;
   guint session_closed_signal_id_ = 0;
+
+  scoped_refptr<PortalGuard> guard_;
 
   void UnsubscribeSignalHandlers();
   static void OnProxyRequested(GObject* object,
