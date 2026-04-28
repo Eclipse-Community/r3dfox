@@ -12,8 +12,10 @@
 #include "mozilla/WindowsVersion.h"
 #include "mozilla/dom/BrowsingContext.h"
 #include "nsIGeolocationUIUtilsWin.h"
-#include "nsIWifiListener.h"
-#include "nsIWifiMonitor.h"
+#ifdef NECKO_WIFI
+#  include "nsIWifiListener.h"
+#  include "nsIWifiMonitor.h"
+#endif
 
 namespace mozilla::dom::geolocation {
 
@@ -73,6 +75,7 @@ Maybe<AppCapabilityAccessStatus> GetLocationAccess() {
 // GetLocationAccess() multiple times, which can be slow (bug 1972405).
 bool SystemWillPromptForPermissionHint(
     Maybe<AppCapabilityAccessStatus> aLocationAccess) {
+#ifdef NECKO_WIFI
   if (aLocationAccess !=
       mozilla::Some(AppCapabilityAccessStatus::
                         AppCapabilityAccessStatus_UserPromptRequired)) {
@@ -88,6 +91,11 @@ bool SystemWillPromptForPermissionHint(
   nsCOMPtr<nsIWifiMonitor> wifiMonitor = components::WifiMonitor::Service();
   NS_ENSURE_TRUE(wifiMonitor, false);
   return wifiMonitor->GetHasWifiAdapter();
+#else
+  return aLocationAccess ==
+         mozilla::Some(AppCapabilityAccessStatus::
+                           AppCapabilityAccessStatus_UserPromptRequired);
+#endif
 }
 
 // Takes in locationAccess instead of calculating here so we can avoid calling
@@ -292,6 +300,7 @@ void OpenWindowsLocationSettings(
   cancelRequest.release();
 }
 
+#ifdef NECKO_WIFI
 class LocationPermissionWifiScanListener final : public nsIWifiListener {
  public:
   NS_DECL_ISUPPORTS
@@ -331,6 +340,7 @@ class LocationPermissionWifiScanListener final : public nsIWifiListener {
 };
 
 NS_IMPL_ISUPPORTS(LocationPermissionWifiScanListener, nsIWifiListener)
+#endif
 
 }  // namespace
 
@@ -357,6 +367,7 @@ RequestLocationPermissionFromUser(BrowsingContext* aBrowsingContext,
   if (permissionRequest->IsStopped()) {
     return nullptr;
   }
+#ifdef NECKO_WIFI
   if (SystemWillPromptForPermissionHint(GetLocationAccess())) {
     // To tell the system to prompt for permission, run one wifi scan (no need
     // to poll). We won't use the result -- either the user will grant
@@ -371,6 +382,9 @@ RequestLocationPermissionFromUser(BrowsingContext* aBrowsingContext,
   } else {
     OpenWindowsLocationSettings(permissionRequest);
   }
+#else
+  OpenWindowsLocationSettings(permissionRequest);
+#endif
   return permissionRequest.forget();
 }
 
