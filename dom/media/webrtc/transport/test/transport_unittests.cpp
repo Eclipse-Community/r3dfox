@@ -443,14 +443,6 @@ class TransportTestPeer : public sigslot::has_slots<> {
         gathering_complete_(false),
         digest_("sha-1"_ns),
         test_utils_(utils) {
-    NrIceCtx::InitializeGlobals(NrIceCtx::GlobalConfig());
-    ice_ctx_ = NrIceCtx::Create(name);
-    std::vector<NrIceStunServer> stun_servers;
-    UniquePtr<NrIceStunServer> server(NrIceStunServer::Create(
-        std::string((char*)"stun.services.mozilla.com"), 3478));
-    stun_servers.push_back(*server);
-    EXPECT_TRUE(NS_SUCCEEDED(ice_ctx_->SetStunServers(stun_servers)));
-
     dtls_->SetIdentity(identity_);
     dtls_->SetRole(offerer_ ? TransportLayerDtls::SERVER
                             : TransportLayerDtls::CLIENT);
@@ -463,6 +455,21 @@ class TransportTestPeer : public sigslot::has_slots<> {
   ~TransportTestPeer() {
     test_utils_->SyncDispatchToSTS(
         WrapRunnable(this, &TransportTestPeer::DestroyFlow));
+  }
+
+  void Init() {
+    test_utils_->SyncDispatchToSTS(
+        WrapRunnable(this, &TransportTestPeer::Init_s));
+  }
+
+  void Init_s() {
+    NrIceCtx::InitializeGlobals(NrIceCtx::GlobalConfig());
+    ice_ctx_ = NrIceCtx::Create(name_);
+    std::vector<NrIceStunServer> stun_servers;
+    UniquePtr<NrIceStunServer> server(NrIceStunServer::Create(
+        std::string((char*)"stun.services.mozilla.com"), 3478));
+    stun_servers.push_back(*server);
+    EXPECT_TRUE(NS_SUCCEEDED(ice_ctx_->SetStunServers(stun_servers)));
   }
 
   void DestroyFlow() {
@@ -840,6 +847,8 @@ class TransportTest : public MtransportTest {
     }
     p1_ = new TransportTestPeer(target_, "P1", test_utils_);
     p2_ = new TransportTestPeer(target_, "P2", test_utils_);
+    p1_->Init();
+    p2_->Init();
   }
 
   void SetupSrtp() {
