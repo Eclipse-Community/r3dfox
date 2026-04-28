@@ -18,9 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <assert.h>
-
 #include "config.h"
+#include "avassert.h"
 #include "avutil.h"
 #include "samplefmt.h"
 #include "version.h"
@@ -35,11 +34,10 @@ const char *av_version_info(void)
 
 unsigned avutil_version(void)
 {
-    static_assert(AV_SAMPLE_FMT_S64P      == 11 &&
-                  AVMEDIA_TYPE_ATTACHMENT ==  4 &&
-                  AV_PICTURE_TYPE_BI      ==  7,
-                  "Don't insert new sample/media/picture types in the middle of the list");
-    static_assert(LIBAVUTIL_VERSION_MICRO >= 100, "micro version starts at 100");
+    av_assert0(AV_SAMPLE_FMT_DBLP == 9);
+    av_assert0(AVMEDIA_TYPE_ATTACHMENT == 4);
+    av_assert0(AV_PICTURE_TYPE_BI == 7);
+    av_assert0(LIBAVUTIL_VERSION_MICRO >= 100);
 
     return LIBAVUTIL_VERSION_INT;
 }
