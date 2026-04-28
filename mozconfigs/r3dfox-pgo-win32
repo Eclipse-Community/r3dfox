@@ -1,10 +1,21 @@
-## mozconfig for compiling r3dfox Browser for Windows natively
-
-##Uncomment PGO for release build
+## mozconfig for compiling r3dfox browser for Windows natively
 
 # x86 build
-ac_add_options --target=i686 
+ac_add_options --target=i686
 ac_add_options --disable-sandbox
+
+# Please do not redistribute this build with official branding if you are not part of Eclipse Community.
+#ac_add_options --with-app-name=r3dfox
+#ac_add_options --with-app-basename=r3dfox
+# For ESR enable the below and disable the above
+ac_add_options --with-branding=browser/branding/esr
+ac_add_options --with-app-name=r3dfox_esr
+ac_add_options --with-app-basename="r3dfox ESR"
+# For potential nightly experimentation enable the below and disable the above.
+#ac_add_options --with-branding=browser/branding/nightly
+#ac_add_options --with-app-name=plasmafox
+#ac_add_options --with-app-basename=Plasmafox
+ac_add_options --enable-official-branding
 
 # Updater stuffs
 ac_add_options --disable-update-agent
@@ -86,6 +97,8 @@ ac_add_options RUSTC_OPT_LEVEL="3"
 # Enable LTO
 export MOZ_LTO=1
 ac_add_options MOZ_LTO=1
+export MOZ_PGO=1
+ac_add_options MOZ_PGO=1
 
 if test "$GEN_PGO"; then
     ac_add_options --enable-profile-generate
@@ -99,5 +112,5 @@ export CPPFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3"
 export CXXFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3"
 export LDFLAGS="-Wl,-O3 -msse2"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
-export RUSTFLAGS="-C target-cpu=athlon64 -C target-feature=+sse2 -C codegen-units=1 -Z tune-cpu=athlon64"
+export RUSTFLAGS="-C target-cpu=athlon64 -C target-feature=+sse2 -C codegen-units=1 -C opt-level=3 -Z tune-cpu=athlon64"
 export VERBOSE=1
