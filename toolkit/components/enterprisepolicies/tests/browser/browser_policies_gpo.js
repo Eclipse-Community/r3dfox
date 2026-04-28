@@ -153,6 +153,60 @@ add_task(async function test_gpo_json_policies() {
   wrk.close();
 });
 
+add_task(async function test_gpo_blank_json_policies() {
+  let { Policies } = ChromeUtils.importESModule(
+    "resource:///modules/policies/Policies.sys.mjs"
+  );
+
+  let gpoPolicyRan = false;
+
+  Policies.gpo_policy = {
+    onProfileAfterChange(manager, param) {
+      is(param, true, "Param matches what was in the registry");
+      gpoPolicyRan = true;
+    },
+  };
+
+  let wrk = Cc["@mozilla.org/windows-registry-key;1"].createInstance(
+    Ci.nsIWindowsRegKey
+  );
+  let regLocation =
+    "SOFTWARE\\Mozilla\\PolicyTesting\\Mozilla\\" + Services.appinfo.name;
+  wrk.create(wrk.ROOT_KEY_CURRENT_USER, regLocation, wrk.ACCESS_WRITE);
+  wrk.writeIntValue("gpo_policy", 1);
+  wrk.close();
+
+  await setupPolicyEngineWithJson(
+    // policies.json missing the "policies" object entirely
+    {},
+
+    // custom schema
+    {
+      properties: {
+        gpo_policy: {
+          type: "boolean",
+        },
+      },
+    }
+  );
+
+  is(
+    Services.policies.status,
+    Ci.nsIEnterprisePolicies.ACTIVE,
+    "Engine is active"
+  );
+
+  ok(gpoPolicyRan, "GPO Policy ran correctly though onProfileAfterChange");
+
+  delete Policies.gpo_policy;
+
+  wrk.open(wrk.ROOT_KEY_CURRENT_USER, "SOFTWARE\\Mozilla", wrk.ACCESS_WRITE);
+  wrk.removeChild("PolicyTesting\\Mozilla\\" + Services.appinfo.name);
+  wrk.removeChild("PolicyTesting\\Mozilla");
+  wrk.removeChild("PolicyTesting");
+  wrk.close();
+});
+
 add_task(async function test_gpo_broken_json_policies() {
   let { Policies } = ChromeUtils.importESModule(
     "resource:///modules/policies/Policies.sys.mjs"
