@@ -38,6 +38,7 @@ if (
     CONFIG["OS_TARGET"] == "WINNT"
     and (CONFIG["CC_TYPE"] == "clang-cl" or CONFIG["MOZ_ARTIFACT_BUILDS"])
     and CONFIG["MOZ_BUILD_APP"] == "browser"
+    and CONFIG["NECKO_WIFI"]
 ):
     UNIFIED_SOURCES += [
         "GeolocationSystemWin.cpp",
