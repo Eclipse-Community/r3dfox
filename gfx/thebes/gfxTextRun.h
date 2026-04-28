@@ -890,10 +890,6 @@ class gfxTextRun : public gfxShapedText {
   bool mDontSkipDrawing;  // true if the text run must not skip drawing, even if
                           // waiting for a user font download, e.g. because we
                           // are using it to draw canvas text
-  bool mReleasedFontGroup;                // we already called NS_RELEASE on
-                                          // mFontGroup, so don't do it again
-  bool mReleasedFontGroupSkippedDrawing;  // whether our old mFontGroup value
-                                          // was set to skip drawing
 
   // shaping state for handling variant fallback features
   // such as subscript/superscript variant glyphs
@@ -1039,7 +1035,6 @@ class gfxFontGroup final : public gfxTextRunFactory {
     mUnderlineOffset = UNDERLINE_OFFSET_NOT_SET;
     mSkipDrawing = false;
     mHyphenWidth = -1;
-    mCachedEllipsisTextRun = nullptr;
   }
 
   // If there is a user font set, check to see whether the font list or any
@@ -1051,18 +1046,11 @@ class gfxFontGroup final : public gfxTextRunFactory {
 
   bool ShouldSkipDrawing() const { return mSkipDrawing; }
 
-  class LazyReferenceDrawTargetGetter {
-   public:
-    virtual already_AddRefed<DrawTarget> GetRefDrawTarget() = 0;
-  };
-  // The gfxFontGroup keeps ownership of this textrun.
-  // It is only guaranteed to exist until the next call to GetEllipsisTextRun
-  // (which might use a different appUnitsPerDev value or flags) for the font
-  // group, or until UpdateUserFonts is called, or the fontgroup is destroyed.
-  // Get it/use it/forget it :) - don't keep a reference that might go stale.
-  gfxTextRun* GetEllipsisTextRun(
+  // Make a textrun for the ellipsis character (with fallback to "..." if
+  // ellipsis is not supported by the font).
+  already_AddRefed<gfxTextRun> MakeEllipsisTextRun(
       int32_t aAppUnitsPerDevPixel, mozilla::gfx::ShapedTextFlags aFlags,
-      LazyReferenceDrawTargetGetter& aRefDrawTargetGetter);
+      DrawTarget* aRefDrawTarget);
 
   nsAtom* Language() const { return mLanguage.get(); }
 
@@ -1377,10 +1365,6 @@ class gfxFontGroup final : public gfxTextRunFactory {
                                  // rebuild font list if needed
 
   gfxTextPerfMetrics* mTextPerf;
-
-  // Cache a textrun representing an ellipsis (useful for CSS text-overflow)
-  // at a specific appUnitsPerDevPixel size and orientation
-  RefPtr<gfxTextRun> mCachedEllipsisTextRun;
 
   // cache the most recent pref font to avoid general pref font lookup
   FontFamily mLastPrefFamily;
