@@ -43,7 +43,6 @@ ac_add_options --disable-debug
 ac_add_options --disable-debug-js-modules
 ac_add_options --disable-debug-symbols
 ac_add_options --disable-tests
-ac_add_options --enable-clang-plugin
 ac_add_options --enable-hardening
 ac_add_options --enable-install-strip
 ac_add_options --enable-jemalloc
