@@ -9,7 +9,7 @@
 
 #include "content_decryption_module_export.h"
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 typedef unsigned char uint8_t;
 typedef unsigned int uint32_t;
 typedef int int32_t;
