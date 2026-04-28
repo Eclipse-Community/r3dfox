@@ -17,7 +17,7 @@ pref("app.update.url.manual", "https://github.com/Eclipse-Community/r3dfox/relea
 // A default value for the "More information about this update" link
 // supplied in the "An update is available" page of the update wizard.
 pref("app.update.url.details", "https://github.com/Eclipse-Community/r3dfox/releases");
-
+pref("app.feedback.baseURL", "https://github.com/Eclipse-Community/r3dfox/issues");
 pref("app.releaseNotesURL", "https://github.com/Eclipse-Community/r3dfox/releases");
 pref("app.releaseNotesURL.aboutDialog", "https://github.com/Eclipse-Community/r3dfox/releases");
 

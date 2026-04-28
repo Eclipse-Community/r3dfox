@@ -24,4 +24,4 @@
 # remain unchanged across different versions (Nightly, Beta, etc.).
 -brand-product-name = r3dfox ESR
 -vendor-short-name = Eclipse Community
-trademarkInfo = { "r3dfox logos are copyrights of Eclipse Community." }
+trademarkInfo = { "r3dfox is a comunity project made by Eclipse Community." }

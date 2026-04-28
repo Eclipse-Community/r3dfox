@@ -14,9 +14,9 @@ MOZ_APP_VENDOR="Eclipse Community"
 
 MOZ_APP_PROFILE="Eclipse Community/r3dfox"
 
-MOZ_APP_REMOTINGNAME=com.eclipse.r3dfox
+MOZ_APP_REMOTINGNAME=com.eclipse.r3dfox_esr
 
-MOZ_MACBUNDLE_ID=com.eclipse.r3dfox
+MOZ_MACBUNDLE_ID=com.eclipse.r3dfox_esr
 
 MOZ_DISTRIBUTION_ID=com.eclipse
 

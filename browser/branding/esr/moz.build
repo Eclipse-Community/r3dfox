@@ -11,3 +11,9 @@ export("DIST_SUBDIR")
 
 include("../branding-common.mozbuild")
 FirefoxBranding()
+
+if CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
+    FINAL_TARGET_FILES[".."] += [
+        "r3dfox_esr.VisualElementsManifest.xml",
+    ]
+
