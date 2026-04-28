@@ -132,11 +132,13 @@ class nsDisplayTextOverflowMarker final : public nsPaintedDisplayItem {
  public:
   nsDisplayTextOverflowMarker(nsDisplayListBuilder* aBuilder, nsIFrame* aFrame,
                               const nsRect& aRect, nscoord aAscent,
-                              const StyleTextOverflowSide& aStyle)
+                              const StyleTextOverflowSide& aStyle,
+                              gfxTextRun* aTextRun)
       : nsPaintedDisplayItem(aBuilder, aFrame),
         mRect(aRect),
         mStyle(aStyle),
-        mAscent(aAscent) {
+        mAscent(aAscent),
+        mTextRun(aTextRun) {
     MOZ_COUNT_CTOR(nsDisplayTextOverflowMarker);
   }
 
@@ -177,7 +179,8 @@ class nsDisplayTextOverflowMarker final : public nsPaintedDisplayItem {
  private:
   nsRect mRect;  // in reference frame coordinates
   const StyleTextOverflowSide mStyle;
-  nscoord mAscent;  // baseline for the marker text in mRect
+  nscoord mAscent;              // baseline for the marker text in mRect
+  RefPtr<gfxTextRun> mTextRun;  // precached textrun, if available
 };
 
 static void PaintTextShadowCallback(gfxContext* aCtx, nsPoint aShadowOffset,
@@ -217,23 +220,19 @@ void nsDisplayTextOverflowMarker::PaintTextToContext(gfxContext* aCtx,
   }
   pt += aOffsetFromRect;
 
-  if (mStyle.IsEllipsis()) {
-    RefPtr<gfxTextRun> textRun = MakeEllipsisTextRun(mFrame);
-    if (textRun) {
-      NS_ASSERTION(!textRun->IsRightToLeft(),
-                   "Ellipsis textruns should always be LTR!");
-      gfx::Point gfxPt(pt.x, pt.y);
-      auto& paletteCache = mFrame->PresContext()->FontPaletteCache();
-      textRun->Draw(gfxTextRun::Range(textRun), gfxPt,
-                    gfxTextRun::DrawParams(aCtx, paletteCache));
-    }
-  } else {
-    RefPtr<nsFontMetrics> fm =
-        nsLayoutUtils::GetInflatedFontMetricsForFrame(mFrame);
-    nsDependentAtomString str16(mStyle.AsString().AsAtom());
-    nsLayoutUtils::DrawString(mFrame, *fm, aCtx, str16.get(), str16.Length(),
-                              pt);
+  if (mTextRun) {
+    gfx::Point gfxPt(pt.x, pt.y);
+    auto& paletteCache = mFrame->PresContext()->FontPaletteCache();
+    mTextRun->Draw(gfxTextRun::Range(mTextRun), gfxPt,
+                   gfxTextRun::DrawParams(aCtx, paletteCache));
+    return;
   }
+
+  MOZ_ASSERT(!mStyle.IsEllipsis());
+  RefPtr<nsFontMetrics> fm =
+      nsLayoutUtils::GetInflatedFontMetricsForFrame(mFrame);
+  nsDependentAtomString str16(mStyle.AsString().AsAtom());
+  nsLayoutUtils::DrawString(mFrame, *fm, aCtx, str16.get(), str16.Length(), pt);
 }
 
 bool nsDisplayTextOverflowMarker::CreateWebRenderCommands(
@@ -863,7 +862,8 @@ void TextOverflow::CreateMarkers(const nsLineBox* aLine, bool aCreateIStart,
 
     mMarkerList.AppendNewToTopWithIndex<nsDisplayTextOverflowMarker>(
         mBuilder, mBlock, /* aIndex = */ (aLineNumber << 1) + 0, markerRect,
-        aLine->GetLogicalAscent(), *mIStart.mStyle);
+        aLine->GetLogicalAscent(), *mIStart.mStyle,
+        mIStart.mStyle->IsEllipsis() ? GetEllipsisTextRun() : nullptr);
   }
 
   if (aCreateIEnd) {
@@ -882,8 +882,18 @@ void TextOverflow::CreateMarkers(const nsLineBox* aLine, bool aCreateIStart,
         mBuilder, mBlock, /* aIndex = */ (aLineNumber << 1) + 1, markerRect,
         aLine->GetLogicalAscent(),
         mIEnd.mHasBlockEllipsis ? StyleTextOverflowSide::Ellipsis()
-                                : *mIEnd.mStyle);
+                                : *mIEnd.mStyle,
+        mIEnd.mHasBlockEllipsis || mIEnd.mStyle->IsEllipsis()
+            ? GetEllipsisTextRun()
+            : nullptr);
   }
+}
+
+gfxTextRun* TextOverflow::GetEllipsisTextRun() {
+  if (!mEllipsisTextRun) {
+    mEllipsisTextRun = MakeEllipsisTextRun(mBlock);
+  }
+  return mEllipsisTextRun;
 }
 
 void TextOverflow::Marker::SetupString(nsIFrame* aFrame) {
