@@ -12,35 +12,6 @@
 namespace mozilla::dom {
 
 /* static */
-bool FileSystemUtils::IsDescendantPath(const nsAString& aAuthorizedRoot,
-                                       const nsAString& aRequestedDescendant) {
-  // Check the sub-directory path to see if it has the parent path as prefix.
-  if (aRequestedDescendant.Equals(aAuthorizedRoot)) {
-    return true;
-  }
-
-  if (!StringBeginsWith(/*aSource*/ aRequestedDescendant,
-                        /*aSubstring*/ aAuthorizedRoot)) {
-    return false;
-  }
-
-  // Require a path separator immediately after the granted prefix.
-  const uint32_t prefixLen = aAuthorizedRoot.Length();
-  if (prefixLen > 0 &&
-      aAuthorizedRoot.Last() == FILESYSTEM_DOM_PATH_SEPARATOR_CHAR) {
-    return true;
-  }
-
-  if (aRequestedDescendant.Length() <= prefixLen ||
-      aRequestedDescendant.CharAt(prefixLen) !=
-          FILESYSTEM_DOM_PATH_SEPARATOR_CHAR) {
-    return false;
-  }
-
-  return true;
-}
-
-/* static */
 bool FileSystemUtils::IsValidRelativeDOMPath(const nsAString& aPath,
                                              nsTArray<nsString>& aParts) {
   // We don't allow empty relative path to access the root.
