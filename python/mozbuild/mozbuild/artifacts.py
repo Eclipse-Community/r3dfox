@@ -653,7 +653,6 @@ class MacArtifactJob(ArtifactJob):
                 "{product}",
                 "{product}-bin",
                 "*.dylib",
-                "nmhproxy",
                 "plugin-container.app/Contents/MacOS/plugin-container",
                 "updater.app/Contents/MacOS/org.mozilla.updater",
                 # 'xpcshell',
