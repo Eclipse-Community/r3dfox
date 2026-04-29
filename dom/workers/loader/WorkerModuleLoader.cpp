@@ -70,11 +70,10 @@ bool WorkerModuleLoader::CreateDynamicImportLoader() {
   WorkerPrivate* workerPrivate = GetCurrentThreadWorkerPrivate();
   workerPrivate->AssertIsOnWorkerThread();
 
-  IgnoredErrorResult rv;
   RefPtr<WorkerScriptLoader> loader = loader::WorkerScriptLoader::Create(
       workerPrivate, nullptr, nullptr,
-      GetCurrentScriptLoader()->GetWorkerScriptType(), rv);
-  if (NS_WARN_IF(rv.Failed())) {
+      GetCurrentScriptLoader()->GetWorkerScriptType());
+  if (NS_WARN_IF(!loader)) {
     return false;
   }
 

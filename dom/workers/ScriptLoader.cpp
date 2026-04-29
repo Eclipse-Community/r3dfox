@@ -10,6 +10,8 @@
 #include <type_traits>
 
 #include "mozilla/dom/RequestBinding.h"
+#include "mozilla/ScopeExit.h"
+
 #include "nsIChannel.h"
 #include "nsIContentPolicy.h"
 #include "nsIContentSecurityPolicy.h"
@@ -225,13 +227,18 @@ void LoadAllScripts(WorkerPrivate* aWorkerPrivate,
   }
 
   RefPtr<loader::WorkerScriptLoader> loader =
-      loader::WorkerScriptLoader::Create(
-          aWorkerPrivate, std::move(aOriginStack), syncLoopTarget,
-          aWorkerScriptType, aRv);
+      loader::WorkerScriptLoader::Create(aWorkerPrivate,
+                                         std::move(aOriginStack),
+                                         syncLoopTarget, aWorkerScriptType);
 
-  if (NS_WARN_IF(aRv.Failed())) {
+  if (NS_WARN_IF(!loader)) {
+    aRv.Throw(NS_ERROR_FAILURE);
     return;
   }
+
+  // Move any WorkerScriptLoader error back to the caller
+  auto takeErrorResult =
+      MakeScopeExit([&] { aRv = loader->TakeErrorResult(); });
 
   bool ok = loader->CreateScriptRequests(aScriptURLs, aDocumentEncoding,
                                          aIsMainScript);
@@ -472,25 +479,26 @@ static bool EvaluateSourceBuffer(JSContext* aCx, JS::Handle<JSScript*> aScript,
 
 WorkerScriptLoader::WorkerScriptLoader(
     UniquePtr<SerializedStackHolder> aOriginStack,
-    nsISerialEventTarget* aSyncLoopTarget, WorkerScriptType aWorkerScriptType,
-    ErrorResult& aRv)
+    nsISerialEventTarget* aSyncLoopTarget, WorkerScriptType aWorkerScriptType)
     : mOriginStack(std::move(aOriginStack)),
       mSyncLoopTarget(aSyncLoopTarget),
       mWorkerScriptType(aWorkerScriptType),
-      mRv(aRv),
       mLoadingModuleRequestCount(0),
       mCleanedUp(false),
       mCleanUpLock("cleanUpLock") {}
 
+WorkerScriptLoader::~WorkerScriptLoader() { mRv.SuppressException(); }
+
+ErrorResult WorkerScriptLoader::TakeErrorResult() { return std::move(mRv); }
+
 already_AddRefed<WorkerScriptLoader> WorkerScriptLoader::Create(
     WorkerPrivate* aWorkerPrivate,
     UniquePtr<SerializedStackHolder> aOriginStack,
-    nsISerialEventTarget* aSyncLoopTarget, WorkerScriptType aWorkerScriptType,
-    ErrorResult& aRv) {
+    nsISerialEventTarget* aSyncLoopTarget, WorkerScriptType aWorkerScriptType) {
   aWorkerPrivate->AssertIsOnWorkerThread();
 
   RefPtr<WorkerScriptLoader> self = new WorkerScriptLoader(
-      std::move(aOriginStack), aSyncLoopTarget, aWorkerScriptType, aRv);
+      std::move(aOriginStack), aSyncLoopTarget, aWorkerScriptType);
 
   RefPtr<StrongWorkerRef> workerRef = StrongWorkerRef::Create(
       aWorkerPrivate, "WorkerScriptLoader::Create", [self]() {
@@ -501,12 +509,10 @@ already_AddRefed<WorkerScriptLoader> WorkerScriptLoader::Create(
         self->TryShutdown();
       });
 
-  if (workerRef) {
-    self->mWorkerRef = new ThreadSafeWorkerRef(workerRef);
-  } else {
-    self->mRv.Throw(NS_ERROR_FAILURE);
+  if (!workerRef) {
     return nullptr;
   }
+  self->mWorkerRef = new ThreadSafeWorkerRef(workerRef);
 
   nsIGlobalObject* global = self->GetGlobal();
   self->mController = global->GetController();
@@ -1380,7 +1386,7 @@ void WorkerScriptLoader::ShutdownScriptLoader(bool aResult, bool aMutedError) {
 void WorkerScriptLoader::ReportErrorToConsole(ScriptLoadRequest* aRequest,
                                               nsresult aResult) const {
   nsAutoString url = NS_ConvertUTF8toUTF16(aRequest->mURL);
-  workerinternals::ReportLoadError(mRv, aResult, url);
+  workerinternals::ReportLoadError(const_cast<ErrorResult&>(mRv), aResult, url);
 }
 
 void WorkerScriptLoader::LogExceptionToConsole(JSContext* aCx,
