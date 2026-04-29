@@ -68,17 +68,20 @@ const char* nsUnixRemoteServer::HandleCommandLine(
   //
   // [argc][offsetargv0][offsetargv1...]<workingdir>\0<argv[0]>\0argv[1]...\0
   // (offset is from the beginning of the buffer)
-  if (aBuffer.size() < sizeof(uint32_t)) {
+  if (aBuffer.size() < sizeof(uint32_t) ||
+      aBuffer[aBuffer.size() - 1] != '\0') {
     return "500 command not parseable";
   }
 
   uint32_t argc =
       TO_LITTLE_ENDIAN32(*reinterpret_cast<const uint32_t*>(aBuffer.data()));
-  uint32_t offsetFilelist = ((argc + 1) * sizeof(uint32_t));
-  if (offsetFilelist >= aBuffer.size()) {
+
+  mozilla::CheckedInt<uint32_t> offsetFilelist =
+      ((mozilla::CheckedInt<uint32_t>(argc) + 1) * sizeof(uint32_t));
+  if (!offsetFilelist.isValid() || offsetFilelist.value() >= aBuffer.size()) {
     return "500 command not parseable";
   }
-  const char* workingDir = aBuffer.data() + offsetFilelist;
+  const char* workingDir = aBuffer.data() + offsetFilelist.value();
 
   nsCOMPtr<nsIFile> lf;
   nsresult rv =
