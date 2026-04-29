@@ -16,7 +16,6 @@
 #if defined(MOZ_CRASHREPORTER)
 /crashhelper
 #endif
-/nmhproxy
 /pk12util
 /ssltunnel
 /xpcshell
