@@ -60,7 +60,10 @@ int likeCompare(nsAString::const_iterator aPatternItr,
        * MATCH_ALL character.  For each MATCH_ONE character, skip one character
        * in the pattern string.
        */
-      while (*aPatternItr == MATCH_ALL || *aPatternItr == MATCH_ONE) {
+      // The aPatternEnd check is not strictly necessary since the buffer is
+      // null-terminated, but we check defensively in case that changes.
+      while (aPatternItr != aPatternEnd &&
+             (*aPatternItr == MATCH_ALL || *aPatternItr == MATCH_ONE)) {
         if (*aPatternItr == MATCH_ONE) {
           // If we've hit the end of the string we are testing, no match
           if (aStringItr == aStringEnd) return 0;
@@ -97,7 +100,8 @@ int likeCompare(nsAString::const_iterator aPatternItr,
       lastWasEscape = true;
     } else {
       // CASE 4
-      if (::ToUpperCase(*aStringItr) != ::ToUpperCase(*aPatternItr)) {
+      if (aStringItr == aStringEnd ||
+          ::ToUpperCase(*aStringItr) != ::ToUpperCase(*aPatternItr)) {
         // If we've hit a point where the strings don't match, there is no match
         return 0;
       }
