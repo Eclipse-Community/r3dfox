@@ -3084,7 +3084,8 @@ _cairo_pdf_surface_emit_smask (cairo_pdf_surface_t	*surface,
     unsigned long alpha_size;
     uint32_t *pixel32;
     uint8_t *pixel8;
-    int i, x, y, bit, a;
+    unsigned long i;
+    int x, y, bit, a;
     cairo_image_transparency_t transparency;
 
     /* This is the only image format we support, which simplifies things. */
@@ -3102,10 +3103,10 @@ _cairo_pdf_surface_emit_smask (cairo_pdf_surface_t	*surface,
     }
 
     if (transparency == CAIRO_IMAGE_HAS_BILEVEL_ALPHA || transparency == CAIRO_IMAGE_IS_OPAQUE) {
-	alpha_size = (image->width + 7) / 8 * image->height;
+	alpha_size = (unsigned long) ((image->width + 7) / 8) * image->height;
 	alpha = _cairo_malloc_ab ((image->width+7) / 8, image->height);
     } else {
-	alpha_size = image->height * image->width;
+	alpha_size = (unsigned long) image->height * image->width;
 	alpha = _cairo_malloc_ab (image->height, image->width);
     }
 
@@ -3220,7 +3221,8 @@ _cairo_pdf_surface_emit_image (cairo_pdf_surface_t              *surface,
     char *data;
     unsigned long data_size;
     uint32_t *pixel;
-    int i, x, y, bit;
+    unsigned long i;
+    int x, y, bit;
     cairo_pdf_resource_t smask = {0}; /* squelch bogus compiler warning */
     cairo_bool_t need_smask;
     cairo_image_color_t color;
@@ -3268,16 +3270,16 @@ _cairo_pdf_surface_emit_image (cairo_pdf_surface_t              *surface,
 	case CAIRO_IMAGE_UNKNOWN_COLOR:
 	    ASSERT_NOT_REACHED;
 	case CAIRO_IMAGE_IS_COLOR:
-	    data_size = image->height * image->width * 3;
+	    data_size = (unsigned long) image->height * image->width * 3;
 	    data = _cairo_malloc_abc (image->width, image->height, 3);
 	    break;
 
 	case CAIRO_IMAGE_IS_GRAYSCALE:
-	    data_size = image->height * image->width;
+	    data_size = (unsigned long) image->height * image->width;
 	    data = _cairo_malloc_ab (image->width, image->height);
 	    break;
 	case CAIRO_IMAGE_IS_MONOCHROME:
-	    data_size = (image->width + 7) / 8 * image->height;
+	    data_size = (unsigned long) ((image->width + 7) / 8) * image->height;
 	    data = _cairo_malloc_ab ((image->width+7) / 8, image->height);
 	    break;
     }
