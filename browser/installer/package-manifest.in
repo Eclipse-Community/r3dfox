@@ -368,14 +368,6 @@ bin/libfreebl_64int_3.so
 @RESPATH@/chrome/pippki@JAREXT@
 @RESPATH@/chrome/pippki.manifest
 
-; preprocessor.py doesn't handle parentheses, so while the following could be
-; expressed in a single line, it's more clear to break them up.
-#if defined(XP_WIN) || defined(XP_MACOSX)
-#if !defined(_ARM64_)
-@BINPATH@/@DLL_PREFIX@osclientcerts@DLL_SUFFIX@
-#endif
-#endif
-
 @BINPATH@/@DLL_PREFIX@ipcclientcerts@DLL_SUFFIX@
 
 ; For process sandboxing
@@ -427,12 +419,6 @@ bin/libfreebl_64int_3.so
 ;
 #ifdef MOZ_CRASHREPORTER
 @BINPATH@/minidump-analyzer@BIN_SUFFIX@
-#endif
-
-; [ Native Messaging Host Proxy ]
-;
-#if defined(XP_WIN) || defined(XP_MACOSX)
-@BINPATH@/nmhproxy@BIN_SUFFIX@
 #endif
 
 ; [ Notification COM Server ]

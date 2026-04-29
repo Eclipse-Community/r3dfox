@@ -659,7 +659,6 @@ class MacArtifactJob(ArtifactJob):
                 "{product}-bin",
                 "*.dylib",
                 "minidump-analyzer",
-                "nmhproxy",
                 "plugin-container.app/Contents/MacOS/plugin-container",
                 "updater.app/Contents/MacOS/org.mozilla.updater",
                 # 'xpcshell',
