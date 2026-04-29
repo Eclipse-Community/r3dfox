@@ -59,6 +59,24 @@ void OverflowAreas::UnionWith(const OverflowAreas& aOther) {
   }
 }
 
+void OverflowAreas::UnionWithAbsoluteOverflowAreas(
+    const OverflowAreas& aOther) {
+  // Note(dshin, Bug 2025540): This is different from
+  // `OverflowAreas::UnionWith`, which adds overflows as long as at least one
+  // axis has a non-zero size, is explicitly avoided here. This is not
+  // explicitly specified in spec, but not being strict here can lead to
+  // surprises when the inset value causes the abspos frame to lie outside its
+  // containing block.
+  for (const auto t : AllOverflowTypes()) {
+    const auto& kidOverflow = aOther.Overflow(t);
+    if (kidOverflow.IsEmpty()) {
+      continue;
+    }
+    auto& overflow = Overflow(t);
+    overflow.UnionRect(overflow, kidOverflow);
+  }
+}
+
 void OverflowAreas::UnionAllWith(const nsRect& aRect) {
   if (!IsValidOverflowRect(aRect)) {
     // Same as `UnionWith()` - avoid losing information.

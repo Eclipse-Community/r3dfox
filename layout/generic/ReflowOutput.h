@@ -73,6 +73,10 @@ struct OverflowAreas {
   // Mutates |this| by unioning both overflow areas with |aOther|.
   void UnionWith(const OverflowAreas& aOther);
 
+  // Mutates |this| by unioning both overflow areas with |aOther|, which is
+  // assumed to be overflow areas of an absolutely positioned frame.
+  void UnionWithAbsoluteOverflowAreas(const OverflowAreas& aOther);
+
   // Mutates |this| by unioning both overflow areas with |aRect|.
   void UnionAllWith(const nsRect& aRect);
 

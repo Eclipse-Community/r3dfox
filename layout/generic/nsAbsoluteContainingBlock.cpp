@@ -1051,6 +1051,7 @@ void nsAbsoluteContainingBlock::ReflowAbsoluteFrame(
 #endif
 
   if (aOverflowAreas) {
-    aOverflowAreas->UnionWith(kidDesiredSize.mOverflowAreas + r.TopLeft());
+    aOverflowAreas->UnionWithAbsoluteOverflowAreas(
+        kidDesiredSize.mOverflowAreas + r.TopLeft());
   }
 }
