@@ -107,6 +107,12 @@ struct MOZ_CAPABILITY("mutex") Mutex {
 #endif
   }
 
+#if defined(XP_WIN)
+  inline void Del() {
+    DeleteCriticalSection(&mMutex);
+  }
+#endif
+
 #if defined(XP_DARWIN)
   static bool SpinInKernelSpace();
   static const bool gSpinInKernelSpace;
@@ -122,20 +128,18 @@ struct MOZ_CAPABILITY("mutex") Mutex {
 // everywhere incur a performance penalty. See bug 1418389.
 #if defined(XP_WIN)
 struct MOZ_CAPABILITY("mutex") StaticMutex {
-  SRWLOCK mMutex;
+  CRITICAL_SECTION mMutex;
 
   inline void Lock() MOZ_CAPABILITY_ACQUIRE() {
-    AcquireSRWLockExclusive(&mMutex);
+    InitializeCriticalSectionAndSpinCount(&mMutex, 5000);
+    EnterCriticalSection(&mMutex);
   }
 
   inline void Unlock() MOZ_CAPABILITY_RELEASE() {
-    ReleaseSRWLockExclusive(&mMutex);
+    LeaveCriticalSection(&mMutex);
+    DeleteCriticalSection(&mMutex);
   }
 };
-
-// Normally, we'd use a constexpr constructor, but MSVC likes to create
-// static initializers anyways.
-#  define STATIC_MUTEX_INIT SRWLOCK_INIT
 
 #else
 typedef Mutex StaticMutex;

@@ -25,17 +25,8 @@ RecursiveMutex::RecursiveMutex(const char* aName)
 #ifdef XP_WIN
   // This number was adapted from NSPR.
   static const DWORD sLockSpinCount = 100;
-
-#  if defined(RELEASE_OR_BETA)
-  // Vista and later automatically allocate and subsequently leak a debug info
-  // object for each critical section that we allocate unless we tell the
-  // system not to do that.
-  DWORD flags = CRITICAL_SECTION_NO_DEBUG_INFO;
-#  else
-  DWORD flags = 0;
-#  endif
   BOOL r =
-      InitializeCriticalSectionEx(NativeHandle(mMutex), sLockSpinCount, flags);
+      InitializeCriticalSectionAndSpinCount(NativeHandle(mMutex), sLockSpinCount);
   MOZ_RELEASE_ASSERT(r);
 #else
   pthread_mutexattr_t attr;

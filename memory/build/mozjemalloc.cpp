@@ -672,7 +672,7 @@ static bool malloc_initialized;
 static Atomic<bool, MemoryOrdering::ReleaseAcquire> malloc_initialized;
 #endif
 
-static StaticMutex gInitLock MOZ_UNANNOTATED = {STATIC_MUTEX_INIT};
+static StaticMutex gInitLock MOZ_UNANNOTATED;
 
 // ***************************************************************************
 // Statistics data structures.
