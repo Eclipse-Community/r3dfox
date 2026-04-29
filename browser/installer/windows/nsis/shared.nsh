@@ -1632,7 +1632,6 @@ ${RemoveDefaultBrowserAgentShortcut}
   Push "crashreporter.exe"
   Push "default-browser-agent.exe"
   Push "minidump-analyzer.exe"
-  Push "nmhproxy.exe"
   Push "updater.exe"
   Push "mozwer.dll"
   Push "${FileMainEXE}"
