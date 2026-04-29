@@ -733,6 +733,9 @@ void StorageDBParent::Init() {
   if (::mozilla::ipc::BackgroundParent::IsOtherProcessActor(actor)) {
     mObserverSink = new ObserverSink(this);
     mObserverSink->Start();
+    // Content processes are not trusted to supply a valid profile path; clear
+    // it so that StorageDBThread::Init derives the correct path itself.
+    mProfilePath.Truncate();
   }
 
   StorageDBThread* storageThread = StorageDBThread::Get(mPrivateBrowsingId);
