@@ -96,10 +96,14 @@ class WebSocketChannelChild final : public BaseWebSocketChannel,
   nsString mEffectiveURL;
   nsCString mReceivedMsgBuffer;
 
-  // This variable is protected by mutex.
-  enum { Opened, Closing, Closed } mIPCState;
+  mozilla::Mutex mMutex;
+  enum { Opened, Closing, Closed } mIPCState MOZ_GUARDED_BY(mMutex);
+  mozilla::Mutex mListenerMutex;  // guards mListenerMT
+  RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> mListenerMT
+      MOZ_GUARDED_BY(mListenerMutex);
 
-  mozilla::Mutex mMutex MOZ_UNANNOTATED;
+  already_AddRefed<BaseWebSocketChannel::ListenerAndContextContainer>
+  GetListenerMT() MOZ_EXCLUDES(mListenerMutex);
 
   friend class StartEvent;
   friend class StopEvent;

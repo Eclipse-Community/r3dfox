@@ -98,7 +98,6 @@ class BaseWebSocketChannel : public nsIWebSocketChannel,
   virtual ~BaseWebSocketChannel();
   nsCOMPtr<nsIURI> mOriginalURI;
   nsCOMPtr<nsIURI> mURI;
-  RefPtr<ListenerAndContextContainer> mListenerMT;
   nsCOMPtr<nsIInterfaceRequestor> mCallbacks;
   nsCOMPtr<nsILoadGroup> mLoadGroup;
   nsCOMPtr<nsILoadInfo> mLoadInfo;

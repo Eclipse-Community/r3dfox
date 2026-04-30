@@ -598,11 +598,13 @@ StaticMutex nsWSAdmissionManager::sLock;
 
 class CallOnMessageAvailable final : public Runnable {
  public:
-  CallOnMessageAvailable(WebSocketChannel* aChannel, nsACString& aData,
-                         int32_t aLen)
+  CallOnMessageAvailable(
+      WebSocketChannel* aChannel,
+      RefPtr<BaseWebSocketChannel::ListenerAndContextContainer>&& aListenerMT,
+      nsACString& aData, int32_t aLen)
       : Runnable("net::CallOnMessageAvailable"),
         mChannel(aChannel),
-        mListenerMT(aChannel->mListenerMT),
+        mListenerMT(std::move(aListenerMT)),
         mData(aData),
         mLen(aLen) {}
 
@@ -644,10 +646,13 @@ class CallOnMessageAvailable final : public Runnable {
 
 class CallOnStop final : public Runnable {
  public:
-  CallOnStop(WebSocketChannel* aChannel, nsresult aReason)
+  CallOnStop(
+      WebSocketChannel* aChannel,
+      RefPtr<BaseWebSocketChannel::ListenerAndContextContainer>&& aListenerMT,
+      nsresult aReason)
       : Runnable("net::CallOnStop"),
         mChannel(aChannel),
-        mListenerMT(mChannel->mListenerMT),
+        mListenerMT(std::move(aListenerMT)),
         mReason(aReason) {}
 
   NS_IMETHOD Run() override {
@@ -662,7 +667,6 @@ class CallOnStop final : public Runnable {
              "OnStop failed (%08" PRIx32 ")\n",
              static_cast<uint32_t>(rv)));
       }
-      mChannel->mListenerMT = nullptr;
     }
 
     return NS_OK;
@@ -682,11 +686,13 @@ class CallOnStop final : public Runnable {
 
 class CallOnServerClose final : public Runnable {
  public:
-  CallOnServerClose(WebSocketChannel* aChannel, uint16_t aCode,
-                    nsACString& aReason)
+  CallOnServerClose(
+      WebSocketChannel* aChannel,
+      RefPtr<BaseWebSocketChannel::ListenerAndContextContainer>&& aListenerMT,
+      uint16_t aCode, nsACString& aReason)
       : Runnable("net::CallOnServerClose"),
         mChannel(aChannel),
-        mListenerMT(mChannel->mListenerMT),
+        mListenerMT(std::move(aListenerMT)),
         mCode(aCode),
         mReason(aReason) {}
 
@@ -721,10 +727,13 @@ class CallOnServerClose final : public Runnable {
 
 class CallAcknowledge final : public Runnable {
  public:
-  CallAcknowledge(WebSocketChannel* aChannel, uint32_t aSize)
+  CallAcknowledge(
+      WebSocketChannel* aChannel,
+      RefPtr<BaseWebSocketChannel::ListenerAndContextContainer>&& aListenerMT,
+      uint32_t aSize)
       : Runnable("net::CallAcknowledge"),
         mChannel(aChannel),
-        mListenerMT(mChannel->mListenerMT),
+        mListenerMT(std::move(aListenerMT)),
         mSize(aSize) {}
 
   NS_IMETHOD Run() override {
@@ -1461,6 +1470,18 @@ bool WebSocketChannel::UpdateReadBuffer(uint8_t* buffer, uint32_t count,
   return true;
 }
 
+already_AddRefed<BaseWebSocketChannel::ListenerAndContextContainer>
+WebSocketChannel::GetListenerMT() {
+  MutexAutoLock lock(mMutex);
+  return do_AddRef(mStopped ? nullptr : mListenerMT.get());
+}
+
+already_AddRefed<BaseWebSocketChannel::ListenerAndContextContainer>
+WebSocketChannel::TakeListenerMT() {
+  MutexAutoLock lock(mMutex);
+  return mListenerMT.forget();
+}
+
 nsresult WebSocketChannel::ProcessInput(uint8_t* buffer, uint32_t count) {
   LOG(("WebSocketChannel::ProcessInput %p [%d %d]\n", this, count, mBuffered));
   MOZ_ASSERT(mIOThread->IsOnCurrentThread(), "not on right thread");
@@ -1672,7 +1693,8 @@ nsresult WebSocketChannel::ProcessInput(uint8_t* buffer, uint32_t count) {
       LOG(("WebSocketChannel:: ignoring read frame code %d after completion\n",
            opcode));
     } else if (opcode == nsIWebSocketFrame::OPCODE_TEXT) {
-      if (mListenerMT) {
+      if (RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> listener =
+              GetListenerMT()) {
         nsCString utf8Data;
         {
           MutexAutoLock lock(mCompressorMutex);
@@ -1712,7 +1734,8 @@ nsresult WebSocketChannel::ProcessInput(uint8_t* buffer, uint32_t count) {
         }
 
         if (nsCOMPtr<nsIEventTarget> target = GetTargetThread()) {
-          target->Dispatch(new CallOnMessageAvailable(this, utf8Data, -1),
+          target->Dispatch(new CallOnMessageAvailable(this, std::move(listener),
+                                                      utf8Data, -1),
                            NS_DISPATCH_NORMAL);
         } else {
           return NS_ERROR_UNEXPECTED;
@@ -1774,11 +1797,13 @@ nsresult WebSocketChannel::ProcessInput(uint8_t* buffer, uint32_t count) {
           frame = nullptr;
         }
 
-        if (mListenerMT) {
+        if (RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> listener =
+                GetListenerMT()) {
           if (nsCOMPtr<nsIEventTarget> target = GetTargetThread()) {
-            target->Dispatch(new CallOnServerClose(this, mServerCloseCode,
-                                                   mServerCloseReason),
-                             NS_DISPATCH_NORMAL);
+            target->Dispatch(
+                new CallOnServerClose(this, std::move(listener),
+                                      mServerCloseCode, mServerCloseReason),
+                NS_DISPATCH_NORMAL);
           } else {
             return NS_ERROR_UNEXPECTED;
           }
@@ -1815,7 +1840,8 @@ nsresult WebSocketChannel::ProcessInput(uint8_t* buffer, uint32_t count) {
         mService->FrameReceived(mSerial, mInnerWindowID, frame.forget());
       }
     } else if (opcode == nsIWebSocketFrame::OPCODE_BINARY) {
-      if (mListenerMT) {
+      if (RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> listener =
+              GetListenerMT()) {
         nsCString binaryData;
         {
           MutexAutoLock lock(mCompressorMutex);
@@ -1850,7 +1876,8 @@ nsresult WebSocketChannel::ProcessInput(uint8_t* buffer, uint32_t count) {
 
         if (nsCOMPtr<nsIEventTarget> target = GetTargetThread()) {
           target->Dispatch(
-              new CallOnMessageAvailable(this, binaryData, binaryData.Length()),
+              new CallOnMessageAvailable(this, std::move(listener), binaryData,
+                                         binaryData.Length()),
               NS_DISPATCH_NORMAL);
         } else {
           return NS_ERROR_UNEXPECTED;
@@ -2461,7 +2488,8 @@ void WebSocketChannel::DoStopSession(nsresult reason) {
 
     nsWSAdmissionManager::OnStopSession(this, reason);
 
-    RefPtr<CallOnStop> runnable = new CallOnStop(this, reason);
+    RefPtr<CallOnStop> runnable =
+        new CallOnStop(this, TakeListenerMT(), reason);
     if (nsCOMPtr<nsIEventTarget> target = GetTargetThread()) {
       target->Dispatch(runnable, NS_DISPATCH_NORMAL);
     }
@@ -3000,15 +3028,17 @@ nsresult WebSocketChannel::StartWebsocketData() {
 }
 
 void WebSocketChannel::NotifyOnStart() {
+  RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> listener =
+      GetListenerMT();
   LOG(("WebSocketChannel::NotifyOnStart Notifying Listener %p",
-       mListenerMT ? mListenerMT->mListener.get() : nullptr));
+       listener ? listener->mListener.get() : nullptr));
   mDataStarted = true;
-  if (mListenerMT) {
-    nsresult rv = mListenerMT->mListener->OnStart(mListenerMT->mContext);
+  if (listener) {
+    nsresult rv = listener->mListener->OnStart(listener->mContext);
     if (NS_FAILED(rv)) {
       LOG(
           ("WebSocketChannel::NotifyOnStart "
-           "mListenerMT->mListener->OnStart() failed with error 0x%08" PRIx32,
+           "listener->mListener->OnStart() failed with error 0x%08" PRIx32,
            static_cast<uint32_t>(rv)));
     }
   }
@@ -3138,11 +3168,16 @@ WebSocketChannel::OnProxyAvailable(nsICancelable* aRequest,
   }
 
   // notify listener of OnProxyAvailable
+  RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> listener =
+      GetListenerMT();
   LOG(("WebSocketChannel::OnProxyAvailable Notifying Listener %p",
-       mListenerMT ? mListenerMT->mListener.get() : nullptr));
+       listener ? listener->mListener.get() : nullptr));
+  if (!listener) {
+    return NS_OK;
+  }
   nsresult rv;
   nsCOMPtr<nsIProtocolProxyCallback> ppc(
-      do_QueryInterface(mListenerMT->mListener, &rv));
+      do_QueryInterface(listener->mListener, &rv));
   if (NS_SUCCEEDED(rv)) {
     rv = ppc->OnProxyAvailable(aRequest, aChannel, pi, status);
     if (NS_FAILED(rv)) {
@@ -3422,7 +3457,10 @@ WebSocketChannel::AsyncOpenNative(nsIURI* aURI, const nsACString& aOrigin,
     return NS_ERROR_UNEXPECTED;
   }
 
-  if (mListenerMT || mWasOpened) return NS_ERROR_ALREADY_OPENED;
+  {
+    MutexAutoLock lock(mMutex);
+    if (mWasOpened || mListenerMT) return NS_ERROR_ALREADY_OPENED;
+  }
 
   nsresult rv;
 
@@ -3498,7 +3536,10 @@ WebSocketChannel::AsyncOpenNative(nsIURI* aURI, const nsACString& aOrigin,
   if (mIsServerSide) {
     // IncrementSessionCount();
     mWasOpened = 1;
-    mListenerMT = new ListenerAndContextContainer(aListener, aContext);
+    {
+      MutexAutoLock lock(mMutex);
+      mListenerMT = new ListenerAndContextContainer(aListener, aContext);
+    }
     rv = mServerTransportProvider->SetListener(this);
     MOZ_ASSERT(NS_SUCCEEDED(rv));
     mServerTransportProvider = nullptr;
@@ -3602,7 +3643,10 @@ WebSocketChannel::AsyncOpenNative(nsIURI* aURI, const nsACString& aOrigin,
   // Only set these if the open was successful:
   //
   mWasOpened = 1;
-  mListenerMT = new ListenerAndContextContainer(aListener, aContext);
+  {
+    MutexAutoLock lock(mMutex);
+    mListenerMT = new ListenerAndContextContainer(aListener, aContext);
+  }
   IncrementSessionCount();
 
   return rv;
@@ -4203,11 +4247,12 @@ WebSocketChannel::OnOutputStreamReady(nsIAsyncOutputStream* aStream) {
       }
     } else {
       if (amtSent == toSend) {
-        if (!mStopped) {
+        if (RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> listener =
+                GetListenerMT()) {
           if (nsCOMPtr<nsIEventTarget> target = GetTargetThread()) {
-            target->Dispatch(
-                new CallAcknowledge(this, mCurrentOut->OrigLength()),
-                NS_DISPATCH_NORMAL);
+            target->Dispatch(new CallAcknowledge(this, std::move(listener),
+                                                 mCurrentOut->OrigLength()),
+                             NS_DISPATCH_NORMAL);
           } else {
             return NS_ERROR_UNEXPECTED;
           }
@@ -4278,13 +4323,15 @@ void WebSocketChannel::DoEnqueueOutgoingMessage() {
       return;
     }
 
-    if (!mStopped) {
+    if (RefPtr<BaseWebSocketChannel::ListenerAndContextContainer> listener =
+            GetListenerMT()) {
       // TODO: Currently, we assume that data is completely written to the
       // socket after sending it to socket process, but it's not true. The data
       // could be queued in socket process and waiting for the socket to be able
       // to write. We should implement flow control for this in bug 1726552.
       if (nsCOMPtr<nsIEventTarget> target = GetTargetThread()) {
-        target->Dispatch(new CallAcknowledge(this, mCurrentOut->OrigLength()),
+        target->Dispatch(new CallAcknowledge(this, std::move(listener),
+                                             mCurrentOut->OrigLength()),
                          NS_DISPATCH_NORMAL);
       } else {
         AbortSession(NS_ERROR_UNEXPECTED);
