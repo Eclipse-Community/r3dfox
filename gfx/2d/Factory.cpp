@@ -859,7 +859,7 @@ RefPtr<IDWriteFactory> Factory::EnsureDWriteFactory() {
 
   mDWriteFactoryInitialized = true;
 
-  HMODULE dwriteModule = LoadLibrarySystem32(L"dwrite.dll");
+  HMODULE dwriteModule = LoadLibrary(L"dwrite.dll");
   decltype(DWriteCreateFactory)* createDWriteFactory =
       (decltype(DWriteCreateFactory)*)GetProcAddress(dwriteModule,
                                                      "DWriteCreateFactory");
