@@ -85,15 +85,14 @@ COLD int dav1d_pthread_join(pthread_t *const thread, void **const res) {
 COLD int dav1d_pthread_once(pthread_once_t *const once_control,
                             void (*const init_routine)(void))
 {
-    BOOL pending = FALSE;
+    static LONG counter = 0;
 
-    if (InitOnceBeginInitialize(once_control, 0, &pending, NULL) != TRUE)
-        return 1;
-
-    if (pending == TRUE)
+    if (InterlockedCompareExchange(&counter, 1, 0) == 0) {
         init_routine();
+        InterlockedIncrement(&counter);
+    }
 
-    return !InitOnceComplete(once_control, 0, NULL);
+    return 0;
 }
 
 #endif
