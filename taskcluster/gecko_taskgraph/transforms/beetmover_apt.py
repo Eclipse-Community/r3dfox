@@ -19,8 +19,13 @@ transforms = TransformSequence()
 
 @transforms.add
 def beetmover_apt(config, tasks):
+    if config.params["project"].startswith("comm"):
+        nightly_product = "thunderbird"
+    else:
+        nightly_product = "firefox"
+
     product = (
-        "firefox"
+        nightly_product
         if config.params["release_type"] == "nightly"
         else config.params["release_product"]
     )
