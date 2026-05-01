@@ -22,6 +22,7 @@ UNIFIED_SOURCES += [
 if CONFIG["OS_ARCH"] == "WINNT":
     OS_LIBS += [
         "advapi32",
+        "winmm",
     ]
     UNIFIED_SOURCES += [
         "windows/CpuCount.cpp",
