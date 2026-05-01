@@ -10059,7 +10059,7 @@ var TabBarVisibility = {
     // We only want a non-customized titlebar for popups. It should not be the
     // case, but if a popup window contains more than one tab we re-enable
     // titlebar customization and display tabs.
-    CustomTitlebar.allowedBy("non-popup", !(isPopup && hasSingleTab));
+    TabsInTitlebar.allowedBy("non-popup", !(isPopup && hasSingleTab));
 
     // Update the browser chrome.
 
@@ -10070,7 +10070,7 @@ var TabBarVisibility = {
     // Should the nav-bar look and function like a titlebar?
     navbar.classList.toggle(
       "browser-titlebar",
-      CustomTitlebar.enabled && hideTabsToolbar
+      TabsInTitlebar.enabled && hideTabsToolbar
     );
 
     if (
