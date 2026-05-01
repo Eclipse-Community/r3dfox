@@ -549,3 +549,7 @@ Used by source tests to support chunking and specify a current chunk.
 total_chunks
 =============
 Used by source tests to support chunking and specify a total amount of chunks.
+
+flatpak_name
+============
+name of the built flatpak app (e.g. `org.mozilla.firefox`)
