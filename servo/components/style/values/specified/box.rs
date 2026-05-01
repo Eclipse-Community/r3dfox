@@ -1695,6 +1695,11 @@ pub enum Appearance {
     /// https://drafts.csswg.org/css-forms/#appearance
     #[parse(condition = "appearance_base_enabled")]
     Base,
+    /// <menu> and <menuitem> appearances
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Menuitem,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Checkmenuitem,
     /// Only relevant to the <select> element and ::picker(select) pseudo-element, allowing them to
     /// be styled.
     #[parse(condition = "appearance_base_select_enabled")]
