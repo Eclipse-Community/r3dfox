@@ -1042,9 +1042,15 @@ export class NetErrorCard extends MozLitElement {
         aria-labelledby="error-title"
         aria-describedby="error-intro whatCanYouDo"
       >
-        <div class="img-container">
-          <img src=${src} data-l10n-id=${alt} data-l10n-attrs="alt" />
-        </div>
+        ${src &&
+        html`
+          <div class="img-container">
+            <img
+              src=${src}
+              ${alt && `data-l10n-id=${alt} data-l10n-attrs="alt"`}
+            />
+          </div>
+        `}
         <div class="container">
           ${this.showCustomNetErrorCard
             ? html`${this.customNetErrorContainerTemplate()}`
