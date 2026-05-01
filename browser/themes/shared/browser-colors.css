@@ -5,12 +5,14 @@
 @import url("chrome://global/skin/design-system/toolbar.css");
 
 :root {
+@media not (-moz-windows-default-theme) {
   &:where([tabsintitlebar]) {
     --toolbox-bgcolor: ActiveCaption;
     --toolbox-textcolor: CaptionText;
     --toolbox-bgcolor-inactive: InactiveCaption;
     --toolbox-textcolor-inactive: InactiveCaptionText;
   }
+}
 
   --sidebar-background-color: -moz-sidebar;
   --sidebar-text-color: -moz-sidebartext;
@@ -94,9 +96,11 @@
     --tab-selected-textcolor: light-dark(rgb(21, 20, 26), rgb(251, 251, 254));
     --tabs-navbar-separator-style: none;
 
+@media not (-moz-windows-default-theme) {
       &:where([tabsintitlebar]) {
       --toolbox-bgcolor-inactive: light-dark(rgb(235, 235, 239), rgb(31, 30, 37));
     }
+}
 
     --urlbarView-action-color: light-dark(rgb(91, 91, 102), rgb(191, 191, 201));
     --urlbarView-separator-color: light-dark(rgb(240, 240, 244), rgb(82, 82, 94));
