@@ -1509,6 +1509,13 @@ void DisplayListBuilder::PushRectWithAnimation(
                                  aAnimation);
 }
 
+void DisplayListBuilder::PushClearRect(const wr::LayoutRect& aBounds) {
+  wr::LayoutRect clip = MergeClipLeaf(aBounds);
+  WRDL_LOG("PushClearRect b=%s c=%s\n", mWrState, ToString(aBounds).c_str(),
+           ToString(clip).c_str());
+  wr_dp_push_clear_rect(mWrState, aBounds, clip, &mCurrentSpaceAndClipChain);
+}
+
 void DisplayListBuilder::PushBackdropFilter(
     const wr::LayoutRect& aBounds, const wr::ComplexClipRegion& aRegion,
     const nsTArray<wr::FilterOp>& aFilters,
