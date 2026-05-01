@@ -2,7 +2,6 @@
 
 # x64 build
 ac_add_options --target=x86_64
-ac_add_options --disable-bootstrap
 ac_add_options --disable-cargo-incremental
 
 # Please do not redistribute this build with official branding if you are not part of Eclipse Community.
