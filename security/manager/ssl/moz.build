@@ -4,14 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# osclientcerts is currently only implemented for Windows
-# osclientcerts transitively depends on winapi 0.2.8, which doesn't work with
-# AArch64
-if (CONFIG["OS_ARCH"] == "WINNT" and CONFIG["TARGET_CPU"] != "aarch64") or CONFIG[
-    "OS_ARCH"
-] == "Darwin":
-    DIRS += ["osclientcerts"]
-
 DIRS += ["ipcclientcerts"]
 DIRS += ["builtins"]
 
