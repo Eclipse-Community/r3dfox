@@ -9,13 +9,21 @@
 namespace base {
 namespace internal {
 
-LockImpl::LockImpl() : native_handle_(SRWLOCK_INIT) {}
+LockImpl::LockImpl() {
+  // The second parameter is the spin count, for short-held locks it avoid the
+  // contending thread from going to sleep which helps performance greatly.
+  ::InitializeCriticalSectionAndSpinCount(reinterpret_cast<CRITICAL_SECTION *>(&native_handle_), 2000);
+}
 
-LockImpl::~LockImpl() = default;
+LockImpl::~LockImpl() {
+  ::DeleteCriticalSection(reinterpret_cast<CRITICAL_SECTION *>(&native_handle_));
+}
 
 bool LockImpl::Try() {
-  return !!::TryAcquireSRWLockExclusive(
-      reinterpret_cast<PSRWLOCK>(&native_handle_));
+  if (::TryEnterCriticalSection(reinterpret_cast<CRITICAL_SECTION *>(&native_handle_)) != FALSE) {
+    return true;
+  }
+  return false;
 }
 
 void LockImpl::Lock() {
@@ -30,11 +38,11 @@ void LockImpl::Lock() {
   if (Try())
     return;
 
-  ::AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
+  ::EnterCriticalSection(reinterpret_cast<CRITICAL_SECTION *>(&native_handle_));
 }
 
 void LockImpl::Unlock() {
-  ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
+  ::LeaveCriticalSection(reinterpret_cast<CRITICAL_SECTION *>(&native_handle_));
 }
 
 }  // namespace internal
