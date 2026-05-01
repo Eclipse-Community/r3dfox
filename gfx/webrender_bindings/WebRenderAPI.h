@@ -873,6 +873,10 @@ class DisplayListBuilder final {
   // Try to avoid using this when possible.
   wr::WrState* Raw() { return mWrState; }
 
+  void SetClipChainLeaf(const Maybe<wr::LayoutRect>& aClipRect) {
+    mClipChainLeaf = aClipRect;
+  }
+
   // Used for opacity flattening. When we flatten away an opacity item,
   // we push the opacity value onto the builder.
   // Descendant items should pull the inherited opacity during
@@ -915,6 +919,17 @@ class DisplayListBuilder final {
   };
 
  protected:
+  wr::LayoutRect MergeClipLeaf(const wr::LayoutRect& aClip) {
+    if (mClipChainLeaf) {
+      return wr::IntersectLayoutRect(*mClipChainLeaf, aClip);
+    }
+    return aClip;
+  }
+
+  // See the implementation of PushShadow for details on these methods.
+  void SuspendClipLeafMerging();
+  void ResumeClipLeafMerging();
+
   wr::WrState* mWrState;
 
   // Track each scroll id that we encountered. We use this structure to
@@ -931,6 +946,16 @@ class DisplayListBuilder final {
       mASRToSpatialIdMap;
 
   wr::WrSpaceAndClipChain mCurrentSpaceAndClipChain;
+
+  // Contains the current leaf of the clip chain to be merged with the
+  // display item's clip rect when pushing an item. May be set to Nothing() if
+  // there is no clip rect to merge with.
+  Maybe<wr::LayoutRect> mClipChainLeaf;
+
+  // Versions of the above that are on hold while SuspendClipLeafMerging is on
+  // (see the implementation of PushShadow for details).
+  Maybe<wr::WrSpaceAndClipChain> mSuspendedSpaceAndClipChain;
+  Maybe<wr::LayoutRect> mSuspendedClipChainLeaf;
 
   RefPtr<layout::TextDrawTarget> mCachedTextDT;
   mozilla::UniquePtr<gfxContext> mCachedContext;

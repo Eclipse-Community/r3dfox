@@ -2877,12 +2877,7 @@ impl TileCacheInstance {
             // If the opaque backdrop rect covers the entire tile cache surface,
             // we can allow subpixel AA anywhere, skipping the per-text-run tests
             // later on during primitive preparation.
-            // Use the intersection with local_clip_rect to only consider the visible
-            // portion - content extending beyond the clip doesn't affect subpixel AA.
-            let clipped_local_rect = self.local_rect
-                .intersection(&self.local_clip_rect)
-                .unwrap_or(PictureRect::zero());
-            if self.backdrop.opaque_rect.contains_box(&clipped_local_rect) {
+            if self.backdrop.opaque_rect.contains_box(&self.local_rect) {
                 return SubpixelMode::Allow;
             }
         }
