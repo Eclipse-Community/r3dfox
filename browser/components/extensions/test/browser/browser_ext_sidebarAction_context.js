@@ -107,7 +107,7 @@ async function runTests(options) {
 
     let title = details.title || options.manifest.name;
 
-    is(getMenuitemImage(menu), details.icon, "icon URL is correct");
+    is(getListStyleImage(menu), details.icon, "icon URL is correct");
     is(menu.getAttribute("label"), title, "image label is correct");
   }
 
