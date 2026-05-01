@@ -137,6 +137,8 @@ class gfxWindowsPlatform final : public gfxPlatform {
  public:
   static nsresult GetGpuTimeSinceProcessStartInMs(uint64_t* aResult);
 
+  bool DwmCompositionEnabled();
+
   static bool IsOptimus();
 
   bool SupportsApzWheelInput() const override { return true; }
@@ -179,6 +181,12 @@ class gfxWindowsPlatform final : public gfxPlatform {
   BackendPrefsData GetBackendPrefs() const override;
 
  private:
+  enum class DwmCompositionStatus : uint32_t {
+    Unknown,
+    Disabled,
+    Enabled,
+  };
+
   void Init();
   void InitAcceleration() override;
   void InitWebRenderConfig() override;
@@ -202,6 +210,9 @@ class gfxWindowsPlatform final : public gfxPlatform {
   void RecordStartupTelemetry();
 
   bool mInitializedDevices = false;
+
+  mozilla::Atomic<DwmCompositionStatus, mozilla::ReleaseAcquire>
+      mDwmCompositionStatus;
 
   // Cached contents of the output color profile file
   nsTArray<uint8_t> mCachedOutputColorProfile;
