@@ -1958,14 +1958,14 @@ void nsWindow::ClearThemeRegion() {
 
 void nsWindow::RegisterTouchWindow() {
   mTouchWindow = true;
-  ::RegisterTouchWindow(mWnd, TWF_WANTPALM);
+  mGesture.RegisterTouchWindow(mWnd);
   ::EnumChildWindows(mWnd, nsWindow::RegisterTouchForDescendants, 0);
 }
 
 BOOL CALLBACK nsWindow::RegisterTouchForDescendants(HWND aWnd, LPARAM aMsg) {
   nsWindow* win = WinUtils::GetNSWindowPtr(aWnd);
   if (win) {
-    ::RegisterTouchWindow(aWnd, TWF_WANTPALM);
+    win->mGesture.RegisterTouchWindow(aWnd);
   }
   return TRUE;
 }
@@ -7272,8 +7272,7 @@ bool nsWindow::OnTouch(WPARAM wParam, LPARAM lParam) {
   uint32_t cInputs = LOWORD(wParam);
   PTOUCHINPUT pInputs = new TOUCHINPUT[cInputs];
 
-  if (GetTouchInputInfo((HTOUCHINPUT)lParam, cInputs, pInputs,
-                        sizeof(TOUCHINPUT))) {
+  if (mGesture.GetTouchInputInfo((HTOUCHINPUT)lParam, cInputs, pInputs)) {
     MultiTouchInput touchInput, touchEndInput;
 
     // Walk across the touch point array processing each contact point.
@@ -7363,7 +7362,7 @@ bool nsWindow::OnTouch(WPARAM wParam, LPARAM lParam) {
   }
 
   delete[] pInputs;
-  CloseTouchInputHandle((HTOUCHINPUT)lParam);
+  mGesture.CloseTouchInputHandle((HTOUCHINPUT)lParam);
   return true;
 }
 
@@ -7397,7 +7396,7 @@ bool nsWindow::OnGesture(WPARAM wParam, LPARAM lParam) {
       mGesture.PanFeedbackFinalize(mWnd, endFeedback);
     }
 
-    CloseGestureInfoHandle((HGESTUREINFO)lParam);
+    mGesture.CloseGestureInfoHandle((HGESTUREINFO)lParam);
 
     return true;
   }
@@ -7421,7 +7420,7 @@ bool nsWindow::OnGesture(WPARAM wParam, LPARAM lParam) {
   }
 
   // Only close this if we process and return true.
-  CloseGestureInfoHandle((HGESTUREINFO)lParam);
+  mGesture.CloseGestureInfoHandle((HGESTUREINFO)lParam);
 
   return true;  // Handled
 }
