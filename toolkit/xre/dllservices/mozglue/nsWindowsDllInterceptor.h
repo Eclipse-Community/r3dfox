@@ -9,7 +9,6 @@
 
 #include <wchar.h>
 #include <windows.h>
-#include <winternl.h>
 
 #include <utility>
 
@@ -29,6 +28,7 @@
 #include "mozilla/interceptor/PatcherNopSpace.h"
 #include "mozilla/interceptor/VMSharingPolicies.h"
 #include "nsWindowsHelpers.h"
+#include "InitOnceExecOnceXP.h"
 
 /*
  * Simple function interception.
@@ -128,7 +128,7 @@ class FuncHook final {
     LPVOID addHookOk = nullptr;
     InitOnceContext ctx(this, &aInterceptor, aName, aHookDest, false);
 
-    return ::InitOnceExecuteOnce(&mInitOnce, &InitOnceCallback, &ctx,
+    return WinxpStuff::InitOnceExecOnceXP(&mInitOnce, &InitOnceCallback, &ctx,
                                  &addHookOk) &&
            addHookOk;
   }
@@ -138,7 +138,7 @@ class FuncHook final {
     LPVOID addHookOk = nullptr;
     InitOnceContext ctx(this, &aInterceptor, aName, aHookDest, true);
 
-    return ::InitOnceExecuteOnce(&mInitOnce, &InitOnceCallback, &ctx,
+    return WinxpStuff::InitOnceExecOnceXP(&mInitOnce, &InitOnceCallback, &ctx,
                                  &addHookOk) &&
            addHookOk;
   }
@@ -701,7 +701,7 @@ class MOZ_ONLY_USED_TO_AVOID_STATIC_CONSTRUCTORS
     LPVOID addHookOk = nullptr;
     InitOnceContext ctx(this, aFromModule, aToModuleName, aFnName, aHookDest);
 
-    bool result = ::InitOnceExecuteOnce(&mInitOnce, &InitOnceCallback, &ctx,
+    bool result = WinxpStuff::InitOnceExecOnceXP(&mInitOnce, &InitOnceCallback, &ctx,
                                         &addHookOk) &&
                   addHookOk;
     if (!result) {

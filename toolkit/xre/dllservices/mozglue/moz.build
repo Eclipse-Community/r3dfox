@@ -41,6 +41,7 @@ DELAYLOAD_DLLS += [
 ]
 
 EXPORTS += [
+    "InitOnceExecOnceXP.h",
     "nsWindowsDllInterceptor.h",
 ]
 
