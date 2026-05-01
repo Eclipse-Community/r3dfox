@@ -576,6 +576,7 @@ class nsWindow final : public nsIWidget {
   static bool GetPopupsToRollup(
       nsIRollupListener* aRollupListener, uint32_t* aPopupsToRollup,
       mozilla::Maybe<POINT> aEventPoint = mozilla::Nothing());
+  static bool NeedsToHandleNCActivateDelayed(HWND aWnd);
   static bool DealWithPopups(HWND inWnd, UINT inMsg, WPARAM inWParam,
                              LPARAM inLParam, LRESULT* outResult);
 
@@ -863,7 +864,7 @@ class nsWindow final : public nsIWidget {
   class MOZ_STACK_CLASS ContextMenuPreventer final {
    public:
     explicit ContextMenuPreventer(nsWindow* aWindow)
-        : mWindow(aWindow), mNeedsToPreventContextMenu(false) {};
+        : mWindow(aWindow), mNeedsToPreventContextMenu(false){};
     ~ContextMenuPreventer() {
       mWindow->mNeedsToPreventContextMenu = mNeedsToPreventContextMenu;
     }
