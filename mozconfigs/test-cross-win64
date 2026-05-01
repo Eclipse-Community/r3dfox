@@ -95,9 +95,9 @@ export MOZ_LTO=1
 ac_add_options MOZ_LTO=1
 
 # Compiler, Linker, and Rust flags
-export CFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero -fwrapv $CFLAGS"
-export CPPFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero -fwrapv $CXXFLAGS"
-export CXXFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero -fwrapv $CPPFLAGS"
+export CFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 $CFLAGS"
+export CPPFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 $CXXFLAGS"
+export CXXFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 $CPPFLAGS"
 export LDFLAGS="-Wl,-O3 -msse2"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
 export RUSTFLAGS="-C target-cpu=athlon64 -C target-feature=+sse2 -C codegen-units=1 -C opt-level=3 -Z tune-cpu=athlon64"
