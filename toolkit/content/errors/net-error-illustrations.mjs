@@ -3,11 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 export const NET_ERROR_ILLUSTRATIONS = {
-  noConnection: {
-    src: "chrome://global/skin/illustrations/no-connection.svg",
-    className: "no-connection",
-  },
+  noConnection: {},
   securityError: {
-    src: "chrome://global/skin/illustrations/security-error.svg",
+    src: "chrome://global/skin/illustrations/warning.svg",
   },
 };
