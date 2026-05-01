@@ -786,7 +786,10 @@ angle::Result TextureD3D::releaseTexStorage(const gl::Context *context,
     onStateChange(angle::SubjectMessage::StorageReleased);
 
     auto err = mTexStorage->onDestroy(context);
-    SafeDelete(mTexStorage);
+    if (!IsError(err))
+    {
+        SafeDelete(mTexStorage);
+    }
     return err;
 }
 
