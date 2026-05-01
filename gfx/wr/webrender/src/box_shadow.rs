@@ -1,14 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-use api::{BorderRadius, BoxShadowClipMode, ClipMode, ColorF, ColorU, PropertyBinding};
+use api::{BorderRadius, BoxShadowClipMode, ClipMode, ColorF, ColorU, PrimitiveKeyKind, PropertyBinding};
 use api::units::*;
 use crate::border::{BorderRadiusAu};
 use crate::clip::{ClipItemKey, ClipItemKeyKind, ClipItemEntry, ClipNodeId};
 use crate::intern::{Handle as InternHandle, InternDebug, Internable};
 use crate::prim_store::{InternablePrimitive, PrimKey, PrimTemplate, PrimTemplateCommonData};
-use crate::prim_store::{PrimitiveInstanceKind, PrimitiveStore, RectKey};
-use crate::prim_store::rectangle::RectanglePrim;
+use crate::prim_store::{PrimitiveInstanceKind, PrimitiveStore, RectangleKey};
 use crate::scene_building::{SceneBuilder, IsVisible};
 use crate::spatial_tree::SpatialNodeIndex;
 use crate::gpu_types::BoxShadowStretchMode;
@@ -38,8 +37,8 @@ pub struct BoxShadow {
     pub color: ColorU,
     pub blur_radius: Au,
     pub clip_mode: BoxShadowClipMode,
-    pub inner_shadow_rect: RectKey,
-    pub outer_shadow_rect: RectKey,
+    pub inner_shadow_rect: RectangleKey,
+    pub outer_shadow_rect: RectangleKey,
     pub shadow_radius: BorderRadiusAu,
 }
 
@@ -268,7 +267,7 @@ impl<'a> SceneBuilder<'a> {
                 clip_node_id,
                 &LayoutPrimitiveInfo::with_clip_rect(final_prim_rect, prim_info.clip_rect),
                 clips,
-                RectanglePrim {
+                PrimitiveKeyKind::Rectangle {
                     color: PropertyBinding::Value(color.into()),
                 },
             );
@@ -296,7 +295,7 @@ impl<'a> SceneBuilder<'a> {
 
             // Draw the box-shadow as a solid rect, using a box-shadow
             // clip mask item.
-            let prim = RectanglePrim {
+            let prim = PrimitiveKeyKind::Rectangle {
                 color: PropertyBinding::Value(color.into()),
             };
 
