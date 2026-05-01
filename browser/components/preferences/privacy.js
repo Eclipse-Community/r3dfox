@@ -3526,7 +3526,6 @@ var gPrivacyPane = {
     this.networkCookieBehaviorReadPrefs();
     this._initTrackingProtectionExtensionControl();
     this._ensureTrackingProtectionExceptionListMigration();
-    this._initProfilesInfo();
 
     Preferences.get("privacy.trackingprotection.enabled").on(
       "change",
