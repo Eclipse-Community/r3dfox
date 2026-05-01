@@ -1090,9 +1090,12 @@ class PresShell final : public nsStubDocumentObserver,
   nsresult HandleEvent(nsIFrame* aFrame, WidgetGUIEvent* aEvent,
                        bool aDontRetargetEvents, nsEventStatus* aEventStatus);
   bool ShouldIgnoreInvalidation();
-  // Notify that we called PaintWindow() from widget.
-  MOZ_CAN_RUN_SCRIPT
-  void DidPaintWindow();
+  /**
+   * Notify that we called Paint with PaintFlags::PaintComposite.
+   * Fires on the presshell for the painted widget.
+   * This is issued at a time when it's safe to modify widget geometry.
+   */
+  MOZ_CAN_RUN_SCRIPT void DidPaintWindow();
 
   bool IsVisible() const;
   bool IsUnderHiddenEmbedderElement() const {

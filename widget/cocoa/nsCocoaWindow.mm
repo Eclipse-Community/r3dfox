@@ -748,17 +748,33 @@ void nsCocoaWindow::Invalidate(const LayoutDeviceIntRect& aRect) {
 
 #pragma mark -
 
-void nsCocoaWindow::PaintWindow() {
+void nsCocoaWindow::WillPaintWindow() {
   if (nsIWidgetListener* listener = GetPaintListener()) {
-    listener->PaintWindow(this);
+    listener->WillPaintWindow(this);
   }
 }
 
-void nsCocoaWindow::PaintWindowInDrawTarget(
+bool nsCocoaWindow::PaintWindow(LayoutDeviceIntRegion aRegion) {
+  nsIWidgetListener* listener = GetPaintListener();
+  if (!listener) {
+    return false;
+  }
+
+  bool returnValue = listener->PaintWindow(this, aRegion);
+
+  listener = GetPaintListener();
+  if (listener) {
+    listener->DidPaintWindow();
+  }
+
+  return returnValue;
+}
+
+bool nsCocoaWindow::PaintWindowInDrawTarget(
     gfx::DrawTarget* aDT, const LayoutDeviceIntRegion& aRegion,
     const gfx::IntSize& aSurfaceSize) {
   if (!aDT || !aDT->IsValid()) {
-    return;
+    return false;
   }
   gfxContext targetContext(aDT);
 
@@ -774,8 +790,9 @@ void nsCocoaWindow::PaintWindowInDrawTarget(
   nsAutoRetainCocoaObject kungFuDeathGrip(mChildView);
   if (GetWindowRenderer()->GetBackendType() == LayersBackend::LAYERS_NONE) {
     nsIWidget::AutoLayerManagerSetup setupLayerManager(this, &targetContext);
-    PaintWindow();
+    return PaintWindow(aRegion);
   }
+  return false;
 }
 
 void nsCocoaWindow::EnsureContentLayerForMainThreadPainting() {
@@ -821,6 +838,7 @@ void nsCocoaWindow::PaintWindowInContentLayer() {
 
 void nsCocoaWindow::HandleMainThreadCATransaction() {
   AUTO_PROFILER_MARKER("HandleMainThreadCATransaction", GRAPHICS);
+  WillPaintWindow();
 
   if (GetWindowRenderer()->GetBackendType() == LayersBackend::LAYERS_NONE) {
     // We're in BasicLayers mode, i.e. main thread software compositing.
@@ -831,7 +849,7 @@ void nsCocoaWindow::HandleMainThreadCATransaction() {
     // NotifySurfaceReady on the compositor thread to update mNativeLayerRoot's
     // contents, and the main thread (this thread) will wait inside PaintWindow
     // during that time.
-    PaintWindow();
+    PaintWindow(LayoutDeviceIntRegion(GetClientBounds()));
   }
 
   {
