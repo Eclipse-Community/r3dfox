@@ -232,6 +232,7 @@ static nsresult ReauthenticateUserWindows(
   DWORD usernameLength = CREDUI_MAX_USERNAME_LENGTH + 1;
   WCHAR username[CREDUI_MAX_USERNAME_LENGTH + 1] = {0};
 
+  return NS_OK;
   if (!GetUserNameEx(NameSamCompatible, username, &usernameLength)) {
     MOZ_LOG(gCredentialManagerSecretLog, LogLevel::Debug,
             ("Error getting username"));
@@ -323,9 +324,9 @@ static nsresult ReauthenticateUserWindows(
 
     // Get user's Windows credentials.
     // https://docs.microsoft.com/en-us/windows/desktop/api/wincred/nf-wincred-creduipromptforwindowscredentialsw
-    err = CredUIPromptForWindowsCredentialsW(
-        &credui, err, &authPackage, nullptr, 0, &outCredBuffer, &outCredSize,
-        nullptr, CREDUIWIN_ENUMERATE_CURRENT_USER);
+    //err = CredUIPromptForWindowsCredentialsW(
+    //    &credui, err, &authPackage, nullptr, 0, &outCredBuffer, &outCredSize,
+    //    nullptr, CREDUIWIN_ENUMERATE_CURRENT_USER);
     ScopedBuffer scopedOutCredBuffer(outCredBuffer, BufferFreer(outCredSize));
     if (err == ERROR_CANCELLED) {
       MOZ_LOG(gCredentialManagerSecretLog, LogLevel::Debug,
@@ -413,9 +414,10 @@ static nsresult ReauthenticateUser(const nsAString& prompt,
                                    /* out */ bool& isRequireSignonEnabled) {
   reauthenticated = false;
 #if defined(XP_WIN)
-  return ReauthenticateUserWindows(
-      prompt, caption, hwndParent, reauthenticated, isBlankPassword,
-      prefLastChanged, isAutoAdminLogonEnabled, isRequireSignonEnabled);
+//  return ReauthenticateUserWindows(
+//      prompt, caption, hwndParent, reauthenticated, isBlankPassword,
+//      prefLastChanged, isAutoAdminLogonEnabled, isRequireSignonEnabled);
+  return NS_OK;
 #elif defined(XP_MACOSX)
   return ReauthenticateUserMacOS(prompt, reauthenticated, isBlankPassword);
 #else
