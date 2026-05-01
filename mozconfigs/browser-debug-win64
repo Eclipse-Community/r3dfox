@@ -2,7 +2,6 @@
 
 # x64 build
 ac_add_options --target=x86_64
-ac_add_options --disable-bootstrap
 ac_add_options --disable-cargo-incremental
 
 # 16 jobs for 16 cores
