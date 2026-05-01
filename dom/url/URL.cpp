@@ -148,9 +148,9 @@ bool URL::CanParse(const GlobalObject& aGlobal, const nsACString& aURL,
   return !!uri;
 }
 
-URLSearchParams* URL::SearchParams() {
+already_AddRefed<URLSearchParams> URL::SearchParams() {
   CreateSearchParamsIfNeeded();
-  return mSearchParams;
+  return do_AddRef(mSearchParams);
 }
 
 void URL::CreateSearchParamsIfNeeded() {
