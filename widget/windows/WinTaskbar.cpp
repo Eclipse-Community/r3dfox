@@ -16,6 +16,7 @@
 #include <nsIBaseWindow.h>
 #include <nsServiceManagerUtils.h>
 #include "nsIXULAppInfo.h"
+#include "nsUXThemeData.h"
 #include "nsWindow.h"
 #include "WinUtils.h"
 #include "TaskbarTabPreview.h"
