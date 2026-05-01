@@ -662,8 +662,9 @@ nsAppStartup::GetWasSilentlyStarted(bool* aResult) {
 NS_IMETHODIMP
 nsAppStartup::GetSecondsSinceLastOSRestart(int64_t* aResult) {
 #if defined(XP_WIN)
-  *aResult = int64_t(GetTickCount64() / 1000ull);
-  return NS_OK;
+/*  *aResult = int64_t(GetTickCount64() / 1000ull);
+  return NS_OK;*/
+  return NS_ERROR_NOT_IMPLEMENTED;
 #elif defined(XP_DARWIN)
   uint64_t absTime = mach_absolute_time();
   mach_timebase_info_data_t timebaseInfo;
