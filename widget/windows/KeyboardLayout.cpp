@@ -13,6 +13,7 @@
 #include "mozilla/StaticPtr.h"
 #include "mozilla/TextEvents.h"
 #include "mozilla/widget/WinRegistry.h"
+#include "mozilla/WindowsVersion.h"
 
 #include "nsExceptionHandler.h"
 #include "nsGkAtoms.h"
