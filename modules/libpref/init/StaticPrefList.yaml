@@ -7190,6 +7190,11 @@
   value: true
   mirror: always
 
+- name: gfx.compositor.clearstate
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
 #ifdef XP_MACOSX
 # Whether GL contexts can be migrated to a different GPU (to match the one the
 # OS is using for composition).
