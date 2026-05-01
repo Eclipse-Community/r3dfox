@@ -495,6 +495,7 @@ class nsWindow final : public nsIWidget {
   void UpdateDarkModeToolbar();
   void ResetLayout();
   void InvalidateNonClientRegion();
+  static const wchar_t* GetMainWindowClass();
   HWND GetOwnerWnd() const { return ::GetWindow(mWnd, GW_OWNER); }
   bool IsOwnerForegroundWindow() const {
     HWND owner = GetOwnerWnd();
@@ -566,6 +567,11 @@ class nsWindow final : public nsIWidget {
 
   DWORD WindowStyle();
   DWORD WindowExStyle();
+
+  static const wchar_t* ChooseWindowClass(WindowType);
+  // This method registers the given window class, and returns the class name.
+  static const wchar_t* RegisterWindowClass(const wchar_t* aClassName,
+                                            UINT aExtraStyle, LPWSTR aIconID);
 
   /**
    * Popup hooks
