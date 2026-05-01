@@ -2,6 +2,8 @@
 
 # x64 build
 ac_add_options --target=x86_64
+ac_add_options --disable-bootstrap
+ac_add_options --disable-cargo-incremental
 
 # 16 jobs for 16 cores
 mk_add_options MOZ_MAKE_FLAGS="-j16"
@@ -32,6 +34,7 @@ ac_add_options --disable-backgroundtasks
 ac_add_options --disable-bits-download
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-maintenance-service
+ac_add_options --disable-necko-wifi
 ac_add_options --disable-notification-server
 ac_add_options --disable-parental-controls
 ac_add_options --disable-update-agent
