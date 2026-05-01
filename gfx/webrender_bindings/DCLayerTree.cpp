@@ -575,8 +575,12 @@ bool DCLayerTree::UseNativeCompositor() const {
 }
 
 bool DCLayerTree::UseLayerCompositor() const {
+#if 0
   return mCompositorKind.isSome() &&
          mCompositorKind.ref() == WebRenderOsCompositorKind::LayerCompositor;
+#else
+  return false;
+#endif
 }
 
 void DCLayerTree::DisableNativeCompositor() {
