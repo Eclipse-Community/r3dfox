@@ -17729,7 +17729,7 @@
   # using a pref to give users a work-around if they have issues.
 -   name: security.sandbox.content.close-ksecdd-handle
     type: RelaxedAtomicBool
-    value: true
+    value: false
     mirror: always
 
   # Whether MITIGATION_EXTENSION_POINT_DISABLE is used for the GPU sandbox.
