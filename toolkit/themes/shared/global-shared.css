@@ -155,7 +155,7 @@ html|textarea {
   }
 }
 
-/* adapted from toolkit/themes/shared/menulist.css */
+/* adapted from toolkit/themes/shared/menulist-shared.css */
 html|select:where(:not([size], [multiple])) {
   --select-image-spacing: var(--space-small);
   --select-padding-inline-end: calc(var(--select-image-spacing) * 2 + var(--dimension-12)); /* padding plus image width */
