@@ -209,6 +209,11 @@ static IInspectable* GetUISettings() {
   // expected, sigh.
   static StaticRefPtr<IInspectable> sUiSettingsAsInspectable;
 
+  if (!IsWin10OrLater()) {
+    // Windows.UI.ViewManagement.UISettings is Win10+ only.
+    return nullptr;
+  }
+
   if (!sUiSettingsAsInspectable) {
     ComPtr<IInspectable> uiSettingsAsInspectable;
     ::RoActivateInstance(
@@ -462,6 +467,10 @@ void WindowsUIUtils::UpdateInWin10TabletMode() {
   MOZ_DIAGNOSTIC_ASSERT(NS_IsMainThread());
 
 #ifndef __MINGW32__
+  if (!IsWin10OrLater()) {
+    return;
+  }
+
   nsresult rv;
   nsCOMPtr<nsIWindowMediator> winMediator(
       do_GetService(NS_WINDOWMEDIATOR_CONTRACTID, &rv));
@@ -771,6 +780,10 @@ Result<HStringUniquePtr, HRESULT> ConvertToWindowsString(
 
 static Result<Ok, nsresult> RequestShare(
     std::function<HRESULT(IDataRequestedEventArgs* pArgs)>&& aCallback) {
+  if (!IsWin10OrLater()) {
+    return Err(NS_ERROR_FAILURE);
+  }
+
   HWND hwnd = GetForegroundWindow();
   if (!hwnd) {
     return Err(NS_ERROR_FAILURE);
