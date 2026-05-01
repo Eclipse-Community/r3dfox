@@ -4,6 +4,8 @@
 ac_add_options --target=i686-pc-mingw32
 ac_add_options --with-toolchain-prefix=i686-pc-mingw32
 ac_add_options --disable-sandbox
+ac_add_options --disable-bootstrap
+ac_add_options --disable-cargo-incremental
 
 # Please do not redistribute this build with official branding if you are not part of Eclipse Community.
 ac_add_options --enable-official-branding
@@ -37,8 +39,8 @@ ac_add_options --disable-debug
 ac_add_options --disable-debug-js-modules
 ac_add_options --disable-debug-symbols
 ac_add_options --disable-tests
-ac_add_options --enable-clang-plugin
 ac_add_options --enable-hardening
+ac_add_options --enable-stl-hardening
 ac_add_options --enable-install-strip
 ac_add_options --enable-jemalloc
 ac_add_options --enable-lto
@@ -69,6 +71,7 @@ ac_add_options --disable-bits-download
 ac_add_options --disable-crashreporter
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-maintenance-service
+ac_add_options --disable-necko-wifi
 ac_add_options --disable-notification-server
 ac_add_options --disable-parental-controls
 ac_add_options --without-onnx-runtime
@@ -94,9 +97,9 @@ export MOZ_LTO=1
 ac_add_options MOZ_LTO=1
 
 # Compiler, Linker, and Rust flags
-export CFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3"
-export CPPFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3"
-export CXXFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3"
+export CFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero -fwrapv $CFLAGS"
+export CPPFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero -fwrapv $CPPFLAGS"
+export CXXFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero -fwrapv $CXXFLAGS"
 export LDFLAGS="-Wl,-O3 -msse2"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
 export RUSTFLAGS="-C target-cpu=athlon64 -C target-feature=+sse2 -C codegen-units=1 -C opt-level=3 -Z tune-cpu=athlon64"
