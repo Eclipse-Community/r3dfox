@@ -206,6 +206,7 @@ pub enum TileSurface {
     Color {
         color: ColorF,
     },
+    Clear,
 }
 
 impl TileSurface {
@@ -213,6 +214,7 @@ impl TileSurface {
         match *self {
             TileSurface::Color { .. } => "Color",
             TileSurface::Texture { .. } => "Texture",
+            TileSurface::Clear => "Clear",
         }
     }
 }
@@ -553,6 +555,9 @@ impl Tile {
                         color,
                     }
                 }
+                Some(BackdropKind::Clear) => {
+                    TileSurface::Clear
+                }
                 None => {
                     // This should be prevented by the is_simple_prim check above.
                     unreachable!();
@@ -570,7 +575,7 @@ impl Tile {
                         descriptor,
                     }
                 }
-                Some(TileSurface::Color { .. }) | None => {
+                Some(TileSurface::Color { .. }) | Some(TileSurface::Clear) | None => {
                     // This is the case where we are constructing a tile surface that
                     // involves drawing to a texture. Create the correct surface
                     // descriptor depending on the compositing mode that will read
@@ -606,12 +611,14 @@ impl Tile {
 }
 
 // TODO(gw): Tidy this up by:
+//      - Rename Clear variant to something more appropriate to what it does
 //      - Add an Other variant for things like opaque gradient backdrops
 #[derive(Debug, Copy, Clone)]
 pub enum BackdropKind {
     Color {
         color: ColorF,
     },
+    Clear,
 }
 
 /// Stores information about the calculated opaque backdrop of this slice.
@@ -2292,8 +2299,12 @@ impl TileCacheInstance {
                 // Rectangles can only form a backdrop candidate if they are known opaque.
                 // TODO(gw): We could resolve the opacity binding here, but the common
                 //           case for background rects is that they don't have animated opacity.
-                let PrimitiveTemplateKind::Rectangle { color, .. } = data_stores.prim[data_handle].kind;
-                let color = frame_context.scene_properties.resolve_color(&color);
+                let color = match data_stores.prim[data_handle].kind {
+                    PrimitiveTemplateKind::Rectangle { color, .. } => {
+                        frame_context.scene_properties.resolve_color(&color)
+                    }
+                    _ => unreachable!(),
+                };
                 if color.a >= 1.0 {
                     backdrop_candidate = Some(BackdropInfo {
                         opaque_rect: pic_coverage_rect,
@@ -2550,6 +2561,14 @@ impl TileCacheInstance {
                     generation: resource_cache.get_image_generation(border_data.request.key),
                 });
             }
+            PrimitiveInstanceKind::Clear { .. } => {
+                backdrop_candidate = Some(BackdropInfo {
+                    opaque_rect: pic_coverage_rect,
+                    spanning_opaque_color: None,
+                    kind: Some(BackdropKind::Clear),
+                    backdrop_rect: pic_coverage_rect,
+                });
+            }
             PrimitiveInstanceKind::LinearGradient { data_handle, .. }
             | PrimitiveInstanceKind::CachedLinearGradient { data_handle, .. } => {
                 let gradient_data = &data_stores.linear_grad[data_handle];
@@ -2677,22 +2696,34 @@ impl TileCacheInstance {
                         surface.is_opaque = true;
                     }
                 }
+                Some(BackdropKind::Clear) => {}
             }
 
-            // Check a number of conditions to see if we can consider this
-            // primitive as an opaque backdrop rect. Several of these are conservative
-            // checks and could be relaxed in future. However, these checks
-            // are quick and capture the common cases of background rects and images.
-            // Specifically, we currently require:
-            //  - The primitive is on the main picture cache surface.
-            //  - Same coord system as picture cache (ensures rects are axis-aligned).
-            //  - No clip masks exist.
-            let same_coord_system = frame_context.spatial_tree.is_matching_coord_system(
-                prim_spatial_node_index,
-                self.spatial_node_index,
-            );
+            let is_suitable_backdrop = match backdrop_candidate.kind {
+                Some(BackdropKind::Clear) => {
+                    // Clear prims are special - they always end up in their own slice,
+                    // and always set the backdrop. In future, we hope to completely
+                    // remove clear prims, since they don't integrate with the compositing
+                    // system cleanly.
+                    true
+                }
+                Some(BackdropKind::Color { .. }) | None => {
+                    // Check a number of conditions to see if we can consider this
+                    // primitive as an opaque backdrop rect. Several of these are conservative
+                    // checks and could be relaxed in future. However, these checks
+                    // are quick and capture the common cases of background rects and images.
+                    // Specifically, we currently require:
+                    //  - The primitive is on the main picture cache surface.
+                    //  - Same coord system as picture cache (ensures rects are axis-aligned).
+                    //  - No clip masks exist.
+                    let same_coord_system = frame_context.spatial_tree.is_matching_coord_system(
+                        prim_spatial_node_index,
+                        self.spatial_node_index,
+                    );
 
-            let is_suitable_backdrop = same_coord_system && on_picture_surface;
+                    same_coord_system && on_picture_surface
+                }
+            };
 
             if sub_slice_index == 0 &&
                is_suitable_backdrop &&
@@ -2728,10 +2759,11 @@ impl TileCacheInstance {
                         // (and also clears any previous primitives). Additionally, update our
                         // background color to match the backdrop color, which will ensure that
                         // our tiles are cleared to this color.
-                        let BackdropKind::Color { color } = kind;
-                        if backdrop_candidate.opaque_rect.contains_box(&self.local_rect) {
-                            vis_flags |= PrimitiveVisibilityFlags::IS_BACKDROP;
-                            self.backdrop.spanning_opaque_color = Some(color);
+                        if let BackdropKind::Color { color } = kind {
+                            if backdrop_candidate.opaque_rect.contains_box(&self.local_rect) {
+                                vis_flags |= PrimitiveVisibilityFlags::IS_BACKDROP;
+                                self.backdrop.spanning_opaque_color = Some(color);
+                            }
                         }
                     }
                 }
