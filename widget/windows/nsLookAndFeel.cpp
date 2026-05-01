@@ -228,16 +228,13 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     switch (aID) {
       case ColorID::MozButtonhoverborder:
       case ColorID::MozButtonhoverface:
-      case ColorID::MozColheaderhover:
       case ColorID::MozButtonactivetext:
-      case ColorID::MozColheaderactivetext:
       case ColorID::TargetTextBackground:
         aColor = GetColorForSysColorIndex(COLOR_HIGHLIGHT);
         return NS_OK;
       case ColorID::MozButtonhovertext:
       case ColorID::MozColheaderhovertext:
       case ColorID::MozButtonactiveface:
-      case ColorID::MozColheaderactive:
       case ColorID::TargetTextForeground:
         aColor = GetColorForSysColorIndex(COLOR_HIGHLIGHTTEXT);
         return NS_OK;
@@ -245,7 +242,6 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
         aColor = GetColorForSysColorIndex(COLOR_GRAYTEXT);
         return NS_OK;
       case ColorID::Buttonface:
-      case ColorID::MozColheader:
       case ColorID::MozButtondisabledface:
       case ColorID::MozDisabledfield:
       case ColorID::Field:
@@ -314,9 +310,6 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::MozButtonhoverface:
     case ColorID::MozButtonactiveface:
     case ColorID::MozButtondisabledface:
-    case ColorID::MozColheader:
-    case ColorID::MozColheaderhover:
-    case ColorID::MozColheaderactive:
       idx = COLOR_BTNFACE;
       break;
     case ColorID::Buttonhighlight:
@@ -429,7 +422,6 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::MozDialogtext:
     case ColorID::MozColheadertext:
     case ColorID::MozColheaderhovertext:
-    case ColorID::MozColheaderactivetext:
       idx = COLOR_WINDOWTEXT;
       break;
     case ColorID::Linktext:
