@@ -286,7 +286,7 @@ bool DocAccessibleParent::AttachChild(RemoteAccessible* aParent,
   if (!aChild->GetWrapper()) {
     ProxyCreated(aChild);
   }
-  if (aChild->IsTableCell()) {
+  if (aChild->IsTableRow() || aChild->IsTableCell()) {
     CachedTableAccessible::Invalidate(aChild);
   }
   if (aChild->IsOuterDoc()) {
@@ -338,7 +338,7 @@ void DocAccessibleParent::ShutdownOrPrepareForMove(RemoteAccessible* aAcc) {
   }
   // This is a move. Moves are sent as a hide and then a show, but for a move,
   // we want to keep the Accessible alive for reuse later.
-  if (aAcc->IsTable() || aAcc->IsTableCell()) {
+  if (aAcc->IsTable() || aAcc->IsTableRow() || aAcc->IsTableCell()) {
     // For table cells, it's important that we do this before the parent is
     // cleared because CachedTableAccessible::Invalidate needs the ancestry.
     CachedTableAccessible::Invalidate(aAcc);

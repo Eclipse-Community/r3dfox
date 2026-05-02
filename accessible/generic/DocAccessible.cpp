@@ -2909,7 +2909,7 @@ void DocAccessible::UncacheChildrenInSubtree(LocalAccessible* aRoot) {
   // The parent of the removed subtree is about to be cleared, so we must do
   // this here rather than in LocalAccessible::UnbindFromParent because we need
   // the ancestry for this to work.
-  if (aRoot->IsTable() || aRoot->IsTableCell()) {
+  if (aRoot->IsTable() || aRoot->IsTableRow() || aRoot->IsTableCell()) {
     CachedTableAccessible::Invalidate(aRoot);
   }
 
