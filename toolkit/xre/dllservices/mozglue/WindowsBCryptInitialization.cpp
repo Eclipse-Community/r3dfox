@@ -9,16 +9,20 @@
 #include "mozilla/RandomNum.h"
 #include "nsWindowsDllInterceptor.h"
 
-#include <bcrypt.h>
-#pragma comment(lib, "bcrypt.lib")
+#include <windows.h>
+
+using RtlGenRandomFn = BOOLEAN(WINAPI*)(PVOID, ULONG);
 
 namespace mozilla {
 
 bool WindowsBCryptInitialization() {
+  HMODULE h = GetModuleHandleW(L"advapi32.dll");
+  if (!h) return false;
+  auto fn = reinterpret_cast<RtlGenRandomFn>(
+              GetProcAddress(h, "SystemFunction036"));
+  if (!fn) return false;
   UCHAR buffer[32];
-  NTSTATUS status = ::BCryptGenRandom(nullptr, buffer, sizeof(buffer),
-                                      BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-  return NT_SUCCESS(status);
+  return !!fn(buffer, sizeof(buffer));
 }
 
 }  // namespace mozilla
