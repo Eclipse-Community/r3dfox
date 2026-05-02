@@ -1902,7 +1902,7 @@ bool State::removeReadFramebufferBinding(FramebufferID framebuffer)
 
 bool State::removeDrawFramebufferBinding(FramebufferID framebuffer)
 {
-    if (mReadFramebuffer != nullptr && mDrawFramebuffer->id() == framebuffer)
+    if (mDrawFramebuffer != nullptr && mDrawFramebuffer->id() == framebuffer)
     {
         setDrawFramebufferBinding(nullptr);
         return true;
