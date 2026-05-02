@@ -43,8 +43,8 @@
 #elif defined(_WIN32)
 
 #include <windows.h>
-#define ABSL_RANDOM_USE_BCRYPT 1
-#pragma comment(lib, "bcrypt.lib")
+//#define ABSL_RANDOM_USE_BCRYPT 1
+//#pragma comment(lib, "bcrypt.lib")
 
 #elif defined(__Fuchsia__)
 #include <zircon/syscalls.h>

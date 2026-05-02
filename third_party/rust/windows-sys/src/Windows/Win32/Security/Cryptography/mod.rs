@@ -66,8 +66,6 @@ pub mod UI;
 ::windows_targets::link!("bcrypt.dll" "system" #[doc = "Required features: `\"Win32_Foundation\"`"] fn BCryptFinishHash(hhash : BCRYPT_HASH_HANDLE, pboutput : *mut u8, cboutput : u32, dwflags : u32) -> super::super::Foundation:: NTSTATUS);
 ::windows_targets::link!("bcrypt.dll" "system" fn BCryptFreeBuffer(pvbuffer : *const ::core::ffi::c_void) -> ());
 #[cfg(feature = "Win32_Foundation")]
-::windows_targets::link!("bcrypt.dll" "system" #[doc = "Required features: `\"Win32_Foundation\"`"] fn BCryptGenRandom(halgorithm : BCRYPT_ALG_HANDLE, pbbuffer : *mut u8, cbbuffer : u32, dwflags : BCRYPTGENRANDOM_FLAGS) -> super::super::Foundation:: NTSTATUS);
-#[cfg(feature = "Win32_Foundation")]
 ::windows_targets::link!("bcrypt.dll" "system" #[doc = "Required features: `\"Win32_Foundation\"`"] fn BCryptGenerateKeyPair(halgorithm : BCRYPT_ALG_HANDLE, phkey : *mut BCRYPT_KEY_HANDLE, dwlength : u32, dwflags : u32) -> super::super::Foundation:: NTSTATUS);
 #[cfg(feature = "Win32_Foundation")]
 ::windows_targets::link!("bcrypt.dll" "system" #[doc = "Required features: `\"Win32_Foundation\"`"] fn BCryptGenerateSymmetricKey(halgorithm : BCRYPT_ALG_HANDLE, phkey : *mut BCRYPT_KEY_HANDLE, pbkeyobject : *mut u8, cbkeyobject : u32, pbsecret : *const u8, cbsecret : u32, dwflags : u32) -> super::super::Foundation:: NTSTATUS);

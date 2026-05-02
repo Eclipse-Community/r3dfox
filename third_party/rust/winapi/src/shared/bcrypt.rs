@@ -736,12 +736,6 @@ extern "system" {
 pub const BCRYPT_RNG_USE_ENTROPY_IN_BUFFER: ULONG = 0x00000001;
 pub const BCRYPT_USE_SYSTEM_PREFERRED_RNG: ULONG = 0x00000002;
 extern "system" {
-    pub fn BCryptGenRandom(
-        hAlgorithm: BCRYPT_ALG_HANDLE,
-        pbBuffer: PUCHAR,
-        cbBuffer: ULONG,
-        dwFlags: ULONG,
-    ) -> NTSTATUS;
     pub fn BCryptDeriveKeyCapi(
         hHash: BCRYPT_HASH_HANDLE,
         hTargetAlg: BCRYPT_ALG_HANDLE,
