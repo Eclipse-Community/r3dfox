@@ -56,15 +56,12 @@ elif CONFIG["OS_ARCH"] == "WINNT":
         "Windows11LimitedAccessFeatures.cpp",
         "Windows11TaskbarPinning.cpp",
         "WindowsDefaultBrowser.cpp",
-        "WindowsUserChoice.cpp",
     ]
     LOCAL_INCLUDES += [
         "../../../other-licenses/nsis/Contrib/CityHash/cityhash",
         "/toolkit/xre",
     ]
     OS_LIBS += [
-        "bcrypt",
-        "crypt32",
         "propsys",
     ]
 
@@ -83,7 +80,6 @@ for var in (
     "MOZ_APP_DISPLAYNAME",
     "MOZ_APP_NAME",
     "MOZ_APP_VERSION",
-    "MOZ_DEFAULT_BROWSER_AGENT",
 ):
     DEFINES[var] = '"%s"' % CONFIG[var]
 

@@ -337,25 +337,6 @@ interface nsIWindowsShellService : nsISupports
   Promise hasMatchingShortcut(in AString aAUMID, in boolean aPrivateBrowsing);
 
   /*
-   * Check if setDefaultBrowserUserChoice() is expected to succeed.
-   *
-   * This checks the ProgIDs for this installation, and the hash of the existing
-   * UserChoice association.
-   *
-   * @return true if the check succeeds, false otherwise.
-   */
-  boolean canSetDefaultBrowserUserChoice();
-
-  /*
-   * checkAllProgIDsExist() and checkBrowserUserChoiceHashes() are components
-   * of canSetDefaultBrowserUserChoice(), broken out for telemetry purposes.
-   *
-   * @return true if the check succeeds, false otherwise.
-   */
-  boolean checkAllProgIDsExist();
-  boolean checkBrowserUserChoiceHashes();
-
-  /*
    * Determines whether or not Firefox is the "Default Handler", i.e.,
    * is registered to handle, the given file extension (like ".pdf")
    * or protocol (like "https").

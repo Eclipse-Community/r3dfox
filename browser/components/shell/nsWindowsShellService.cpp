@@ -37,7 +37,6 @@
 #include "mozilla/gfx/2D.h"
 #include "mozilla/intl/Localization.h"
 #include "WindowsDefaultBrowser.h"
-#include "WindowsUserChoice.h"
 #include "nsLocalFile.h"
 #include "nsIXULAppInfo.h"
 #include "nsINIParser.h"
@@ -343,71 +342,6 @@ nsresult nsWindowsShellService::LaunchControlPanelDefaultPrograms() {
   }
 
   return ::LaunchControlPanelDefaultPrograms() ? NS_OK : NS_ERROR_FAILURE;
-}
-
-NS_IMETHODIMP
-nsWindowsShellService::CheckAllProgIDsExist(bool* aResult) {
-  *aResult = false;
-  nsAutoString aumid;
-  if (!mozilla::widget::WinTaskbar::GetAppUserModelID(aumid)) {
-    return NS_OK;
-  }
-
-  if (widget::WinUtils::HasPackageIdentity()) {
-    UniquePtr<wchar_t[]> extraProgID;
-    nsresult rv;
-    bool result = true;
-
-    // "FirefoxURL".
-    rv = GetMsixProgId(L"https", extraProgID);
-    if (NS_WARN_IF(NS_FAILED(rv))) {
-      return rv;
-    }
-    result = result && CheckProgIDExists(extraProgID.get());
-
-    // "FirefoxHTML".
-    rv = GetMsixProgId(L".htm", extraProgID);
-    if (NS_WARN_IF(NS_FAILED(rv))) {
-      return rv;
-    }
-    result = result && CheckProgIDExists(extraProgID.get());
-
-    // "FirefoxPDF".
-    rv = GetMsixProgId(L".pdf", extraProgID);
-    if (NS_WARN_IF(NS_FAILED(rv))) {
-      return rv;
-    }
-    result = result && CheckProgIDExists(extraProgID.get());
-
-    *aResult = result;
-  } else {
-    *aResult =
-        CheckProgIDExists(FormatProgID(L"FirefoxURL", aumid.get()).get()) &&
-        CheckProgIDExists(FormatProgID(L"FirefoxHTML", aumid.get()).get()) &&
-        CheckProgIDExists(FormatProgID(L"FirefoxPDF", aumid.get()).get());
-  }
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsWindowsShellService::CheckBrowserUserChoiceHashes(bool* aResult) {
-  *aResult = ::CheckBrowserUserChoiceHashes();
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsWindowsShellService::CanSetDefaultBrowserUserChoice(bool* aResult) {
-  *aResult = false;
-// If the WDBA is not available, this could never succeed.
-#ifdef MOZ_DEFAULT_BROWSER_AGENT
-  bool progIDsExist = false;
-  bool hashOk = false;
-  *aResult = NS_SUCCEEDED(CheckAllProgIDsExist(&progIDsExist)) &&
-             progIDsExist &&
-             NS_SUCCEEDED(CheckBrowserUserChoiceHashes(&hashOk)) && hashOk;
-#endif
-  return NS_OK;
 }
 
 nsresult nsWindowsShellService::LaunchModernSettingsDialogDefaultApps() {
@@ -798,8 +732,8 @@ static nsresult WriteShortcutToLog(nsIFile* aShortcutsLogDir,
   rv = appInfo->GetName(appName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  auto userSid = GetCurrentUserStringSid();
-  if (!userSid) {
+  nsAutoCString userSid; // empty
+  if (userSid.IsEmpty()) {
     return NS_ERROR_FILE_NOT_FOUND;
   }
 
