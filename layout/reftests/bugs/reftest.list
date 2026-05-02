@@ -2133,7 +2133,6 @@ pref(layout.css.prefers-color-scheme.content-override,1) == 1787127.html 1787127
 pref(layout.css.prefers-color-scheme.content-override,2) == 1787127.html 1787127-ref.html
 == 1792643-1.html 1792643-1-ref.html
 skip-if(!winWidget) == 1798297-1.html 1798297-1-ref.html
-skip-if(!winWidget) != 1798297-1.html 1798297-1-notref.html
 == 1799425-1.html 1799425-1-ref.html
 fuzzy-if(winWidget,111-114,572-572) == 1800437-1.html 1800437-1-ref.html
 == 1803999-1.html 1803999-1-ref.html
