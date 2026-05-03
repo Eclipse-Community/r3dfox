@@ -961,7 +961,7 @@ nsresult nsWindow::Create(nsIWidget* aParent, nsNativeWidget aNativeParent,
       parent = nullptr;
     }
 
-    if (!IsWin8OrLater() && HasBogusPopupsDropShadowOnMultiMonitor() &&
+    if (IsVistaOrLater() && !IsWin8OrLater() && HasBogusPopupsDropShadowOnMultiMonitor() &&
         ShouldUseOffMainThreadCompositing()) {
       extendedStyle |= WS_EX_COMPOSITED;
     }
@@ -1879,6 +1879,7 @@ void nsWindow::SetThemeRegion() {
   // state. At some point we might need part and state values fromMore actions
   // nsNativeThemeWin's GetThemePartAndState, but currently windows that change
   // shape based on state haven't come up.
+//  if (IsVistaOrLater() && !HasGlass() &&
   if ((mWindowType == WindowType::Popup && !IsPopupWithTitleBar() &&
             (mPopupType == PopupType::Tooltip ||
              mPopupType == PopupType::Panel))) {
@@ -2681,11 +2682,10 @@ BOOL WINAPI GetWindowInfoHook(HWND hWnd, PWINDOWINFO pwi) {
 void nsWindow::UpdateGetWindowInfoCaptionStatus(bool aActiveCaption) {
   if (!mWnd) return;
 
-  sUser32Intercept.Init("user32.dll");
-  sGetWindowInfoPtrStub.Set(sUser32Intercept, "GetWindowInfo",
-                            &GetWindowInfoHook);
   if (!sGetWindowInfoPtrStub) {
-    return;
+    sUser32Intercept.Init("user32.dll");
+    sGetWindowInfoPtrStub.Set(sUser32Intercept, "GetWindowInfo",
+                              &GetWindowInfoHook);
   }
 
   // Update our internally tracked caption status
@@ -5130,7 +5130,7 @@ LRESULT CALLBACK nsWindow::WindowProcInternal(HWND hWnd, UINT msg,
   return res;
 }
 
-const char16_t* GetQuitType() {
+/*const char16_t* GetQuitType() {
   if (Preferences::GetBool(PREF_WIN_REGISTER_APPLICATION_RESTART, false)) {
     DWORD cchCmdLine = 0;
     HRESULT rc = ::GetApplicationRestartSettings(::GetCurrentProcess(), nullptr,
@@ -5140,7 +5140,7 @@ const char16_t* GetQuitType() {
     }
   }
   return nullptr;
-}
+}*/
 
 bool nsWindow::ExternalHandlerProcessMessage(UINT aMessage, WPARAM& aWParam,
                                              LPARAM& aLParam,
@@ -5239,9 +5239,9 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
           do_CreateInstance(NS_SUPPORTS_PRBOOL_CONTRACTID);
       cancelQuitWrapper->SetData(false);
 
-      const char16_t* quitType = GetQuitType();
+      //const char16_t* quitType = GetQuitType();
       obsServ->NotifyObservers(cancelQuitWrapper, "quit-application-requested",
-                               quitType);
+                               nullptr);
 
       bool shouldCancelQuit;
       cancelQuitWrapper->GetData(&shouldCancelQuit);
@@ -5297,7 +5297,7 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
       nsCOMPtr<nsIObserverService> obsServ =
           mozilla::services::GetObserverService();
       const char16_t* syncShutdown = u"syncShutdown";
-      const char16_t* quitType = GetQuitType();
+      //const char16_t* quitType = GetQuitType();
 
       AppShutdown::Init(AppShutdownMode::Normal, 0, shutdownReason);
 
@@ -5308,7 +5308,7 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
       AppShutdown::OnShutdownConfirmed();
 
       AppShutdown::AdvanceShutdownPhase(ShutdownPhase::AppShutdownConfirmed,
-                                        quitType);
+                                        nullptr);
       AppShutdown::AdvanceShutdownPhase(ShutdownPhase::AppShutdownNetTeardown,
                                         nullptr);
       AppShutdown::AdvanceShutdownPhase(ShutdownPhase::AppShutdownTeardown,
@@ -5369,7 +5369,7 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
     } break;
 
     case WM_SETTINGCHANGE: {
-      if (wParam == SPI_SETCLIENTAREAANIMATION ||
+      if (//wParam == SPI_SETCLIENTAREAANIMATION ||
           wParam == SPI_SETKEYBOARDDELAY || wParam == SPI_SETMOUSEVANISH ||
           wParam == MOZ_SPI_SETCURSORSIZE) {
         // These need to update LookAndFeel cached values.
