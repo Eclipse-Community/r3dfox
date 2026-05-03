@@ -5,6 +5,8 @@
 
 #include "ipc/IPCMessageUtils.h"
 
+#include <algorithm>
+
 #if defined(XP_UNIX)
 #  include <unistd.h>
 #elif defined(XP_WIN)
@@ -198,7 +200,8 @@ nsresult nsFileStreamBase::Read(char* aBuf, uint32_t aCount,
     return rv;
   }
 
-  int32_t bytesRead = PR_Read(mFD, aBuf, aCount);
+  MOZ_ASSERT(aCount <= INT32_MAX);
+  int32_t bytesRead = PR_Read(mFD, aBuf, std::min<uint32_t>(aCount, INT32_MAX));
   if (bytesRead == -1) {
     return NS_ErrorAccordingToNSPR();
   }
@@ -267,7 +270,8 @@ nsresult nsFileStreamBase::Write(const char* buf, uint32_t count,
   nsresult rv = DoPendingOpen();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  int32_t cnt = PR_Write(mFD, buf, count);
+  MOZ_ASSERT(count <= INT32_MAX);
+  int32_t cnt = PR_Write(mFD, buf, std::min<uint32_t>(count, INT32_MAX));
   if (cnt == -1) {
     return NS_ErrorAccordingToNSPR();
   }
