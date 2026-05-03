@@ -15,6 +15,8 @@
 #  include "prenv.h"
 #endif
 
+extern void StartupSpecialSystemDirectory();
+
 enum SystemDirectories {
   OS_TemporaryDirectory = 2,
   // 3 Used to be OS_CurrentProcessDirectory, which we never actually

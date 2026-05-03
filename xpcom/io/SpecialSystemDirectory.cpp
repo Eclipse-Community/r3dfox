@@ -57,13 +57,32 @@ using mozilla::IsWin7OrLater;
 
 #if defined(XP_WIN)
 
+typedef HRESULT (WINAPI* nsGetKnownFolderPath)(GUID& rfid,
+                                               DWORD dwFlags,
+                                               HANDLE hToken,
+                                               PWSTR* ppszPath);
+
+static nsGetKnownFolderPath gGetKnownFolderPath = nullptr;
+
+void
+StartupSpecialSystemDirectory()
+{
+  // SHGetKnownFolderPath is only available on Windows Vista
+  // so that we need to use GetProcAddress to get the pointer.
+  HMODULE hShell32DLLInst = GetModuleHandleW(L"shell32.dll");
+  if (hShell32DLLInst) {
+    gGetKnownFolderPath = (nsGetKnownFolderPath)
+      GetProcAddress(hShell32DLLInst, "SHGetKnownFolderPath");
+  }
+}
+
 static nsresult GetKnownFolder(GUID* aGuid, nsIFile** aFile) {
-  if (!aGuid) {
+  if (!aGuid || !gGetKnownFolderPath) {
     return NS_ERROR_FAILURE;
   }
 
   PWSTR path = nullptr;
-  SHGetKnownFolderPath(*aGuid, 0, nullptr, &path);
+  gGetKnownFolderPath(*aGuid, 0, nullptr, &path);
 
   if (!path) {
     return NS_ERROR_FAILURE;
