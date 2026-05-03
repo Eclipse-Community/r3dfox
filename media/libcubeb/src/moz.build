@@ -86,7 +86,6 @@ if CONFIG['MOZ_WASAPI']:
     DEFINES['USE_WINMM'] = True
     DEFINES['USE_WASAPI'] = True
     OS_LIBS += [
-      "avrt",
       "ksuser",
     ]
 
