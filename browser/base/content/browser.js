@@ -2239,7 +2239,6 @@ var XULBrowserWindow = {
 
     BrowserPageActions.onLocationChange();
 
-    SaveToPocket.onLocationChange(window);
 
     UrlbarProviderSearchTips.onLocationChange(
       window,
