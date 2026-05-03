@@ -228,6 +228,11 @@ class AttachmentDownloader extends Downloader {
    * @see Downloader.download
    */
   async download(record, options) {
+    if (!lazy.Utils.isCollectionAllowed(this.bucketName, this.collectionName)) {
+      throw Error(
+        `Download attempt to RS collection "${this.identifier}" was blocked.`
+      );
+    }
     try {
       // Explicitly await here to ensure we catch a network error.
       return await super.download(record, options);
@@ -630,6 +635,10 @@ export class RemoteSettingsClient extends EventEmitter {
       return;
     }
 
+    if (!lazy.Utils.isCollectionAllowed(this.bucketName, this.collectionName)) {
+      return;
+    }
+
     // We want to know which timestamp we are expected to obtain in order to leverage
     // cache busting. We don't provide ETag because we don't want a 304.
     const { changes } = await lazy.Utils.fetchLatestChanges(
@@ -997,6 +1006,14 @@ export class RemoteSettingsClient extends EventEmitter {
    * Import the JSON files from services/settings/dump into the local DB.
    */
   async _importJSONDump() {
+    if (
+      !lazy.Utils.isCollectionAllowedFromDump(
+        this.bucketName,
+        this.collectionName
+      )
+    ) {
+      return 0;
+    }
     lazy.console.info(`${this.identifier} try to restore dump`);
     const result = await lazy.RemoteSettingsWorker.importJSONDump(
       this.bucketName,
