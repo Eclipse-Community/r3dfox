@@ -1243,3 +1243,6 @@ file-picker-crashed-show-in-folder =
 ## Onboarding Finish Setup checklist
 
 onboarding-checklist-button-label = Finish setup
+
+
+identity-allow-site-data = { -brand-short-name }: Always store cookies/data for this site
