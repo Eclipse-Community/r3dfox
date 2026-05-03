@@ -22,7 +22,7 @@ namespace mozilla {
 // Returns Some(false) if the registry value is not 1
 // Returns Nothing() if the registry value is not present
 inline Maybe<bool> PolicyHasRegValueOfOne(HKEY aKey, LPCWSTR aName) {
-  {
+/*  { Maybe make this only return nothing on XP?
     DWORD len = sizeof(DWORD);
     DWORD value;
     LONG ret = ::RegGetValueW(aKey, POLICY_REGKEY_NAME, aName, RRF_RT_DWORD,
@@ -39,7 +39,7 @@ inline Maybe<bool> PolicyHasRegValueOfOne(HKEY aKey, LPCWSTR aName) {
     if (ret == ERROR_SUCCESS) {
       return Some(value == 1);
     }
-  }
+  }*/
   return Nothing();
 }
 

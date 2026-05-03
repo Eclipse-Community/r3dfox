@@ -2206,6 +2206,7 @@ nsresult XRE_GetBinaryPath(nsIFile** aResult) {
 typedef BOOL(WINAPI* SetProcessDEPPolicyFunc)(DWORD dwFlags);
 
 static void RegisterApplicationRestartChanged(const char* aPref, void* aData) {
+/* Maybe just make this return on XP?
   DWORD cchCmdLine = 0;
   HRESULT rc = ::GetApplicationRestartSettings(::GetCurrentProcess(), nullptr,
                                                &cchCmdLine, nullptr);
@@ -2240,7 +2241,7 @@ static void RegisterApplicationRestartChanged(const char* aPref, void* aData) {
     }
   } else if (wasRegistered) {
     ::UnregisterApplicationRestart();
-  }
+  }*/
 }
 
 static void OnAlteredPrefetchPrefChanged(const char* aPref, void* aData) {
