@@ -6874,7 +6874,8 @@ void TSFTextStore::Initialize() {
     return;
   }
 
-  const bool enableTsf = StaticPrefs::intl_tsf_enabled_AtStartup();
+  const bool enableTsf =
+    IsVistaOrLater() && StaticPrefs::intl_tsf_enabled_AtStartup();
   MOZ_LOG(gIMELog, LogLevel::Info,
           ("  TSFTextStore::Initialize(), TSF is %s",
            enableTsf ? "enabled" : "disabled"));

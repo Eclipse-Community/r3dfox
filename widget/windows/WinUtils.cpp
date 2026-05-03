@@ -120,7 +120,7 @@ static GetDpiForWindowProc sGetDpiForWindow = NULL;
 
 /* static */
 void WinUtils::Initialize() {
-  if (!sDwmDll) {
+  if (!sDwmDll && IsVistaOrLater()) {
     sDwmDll = ::LoadLibraryW(kDwmLibraryName);
 
     if (sDwmDll) {
@@ -289,6 +289,7 @@ GETDPIFORMONITORPROC sGetDpiForMonitor;
 GETPROCESSDPIAWARENESSPROC sGetProcessDpiAwareness;
 
 static bool SlowIsPerMonitorDPIAware() {
+  if (IsVistaOrLater()) {
   // Intentionally leak the handle.
   HMODULE shcore = LoadLibraryEx(L"shcore", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
   if (shcore) {
@@ -296,6 +297,7 @@ static bool SlowIsPerMonitorDPIAware() {
         (GETDPIFORMONITORPROC)GetProcAddress(shcore, "GetDpiForMonitor");
     sGetProcessDpiAwareness = (GETPROCESSDPIAWARENESSPROC)GetProcAddress(
         shcore, "GetProcessDpiAwareness");
+  }
   }
   PROCESS_DPI_AWARENESS dpiAwareness;
   return sGetDpiForMonitor && sGetProcessDpiAwareness &&
@@ -467,7 +469,7 @@ bool WinUtils::GetMessage(LPMSG aMsg, HWND aWnd, UINT aFirstMessage,
 #if defined(ACCESSIBILITY)
 static DWORD GetWaitFlags() {
   DWORD result = MWMO_INPUTAVAILABLE;
-  if (XRE_IsContentProcess()) {
+  if (IsVistaOrLater() && XRE_IsContentProcess()) {
     result |= MWMO_ALERTABLE;
   }
   return result;
@@ -1659,6 +1661,11 @@ void WinUtils::GetPointerExplanation(nsAString* aExplanation) {
   }
 }
 
+typedef DWORD (WINAPI * GetFinalPathNameByHandlePtr)(HANDLE hFile,
+                                                    LPTSTR lpszFilePath,
+                                                    DWORD cchFilePath,
+                                                    DWORD dwFlags);
+
 /* static */
 bool WinUtils::ResolveJunctionPointsAndSymLinks(std::wstring& aPath) {
   LOG_D("ResolveJunctionPointsAndSymLinks: Resolving path: %S", aPath.c_str());
@@ -1675,8 +1682,21 @@ bool WinUtils::ResolveJunctionPointsAndSymLinks(std::wstring& aPath) {
     return false;
   }
 
-  DWORD pathLen = GetFinalPathNameByHandleW(
-      handle, path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+  // GetFinalPathNameByHandleW is a Vista and later API. Since ESR builds with
+  // XP support still, we need to load the function manually.
+  GetFinalPathNameByHandlePtr getFinalPathNameFnPtr = nullptr;
+  HMODULE kernel32Dll = ::GetModuleHandleW(L"Kernel32");
+  if (kernel32Dll) {
+    getFinalPathNameFnPtr = (GetFinalPathNameByHandlePtr)
+      ::GetProcAddress(kernel32Dll, "GetFinalPathNameByHandleW");
+  }
+
+  if (!getFinalPathNameFnPtr) {
+    return false;
+  }
+
+  DWORD pathLen = getFinalPathNameFnPtr(
+    handle, path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
   if (pathLen == 0 || pathLen >= MAX_PATH) {
     LOG_E("GetFinalPathNameByHandleW failed. GetLastError=%lu", GetLastError());
     return false;
@@ -1868,6 +1888,7 @@ bool WinUtils::GetAppInitDLLs(nsAString& aOutput) {
   }
   nsAutoRegKey key(hkey);
   LONG status;
+  if (IsVistaOrLater()) {
   const wchar_t kLoadAppInitDLLs[] = L"LoadAppInit_DLLs";
   DWORD loadAppInitDLLs = 0;
   DWORD loadAppInitDLLsLen = sizeof(loadAppInitDLLs);
@@ -1880,6 +1901,7 @@ bool WinUtils::GetAppInitDLLs(nsAString& aOutput) {
     // If loadAppInitDLLs is zero then AppInit_DLLs is disabled.
     // In this case we'll return true along with an empty output string.
     return true;
+  }
   }
   DWORD numBytes = 0;
   const wchar_t kAppInitDLLs[] = L"AppInit_DLLs";

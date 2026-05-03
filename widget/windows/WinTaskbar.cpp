@@ -341,6 +341,9 @@ WinTaskbar::GetDefaultPrivateGroupId(nsAString& aDefaultPrivateGroupId) {
 
 // (static) Called from AppShell
 bool WinTaskbar::RegisterAppUserModelID() {
+  if (!IsWin7OrLater())
+    return false;
+
   SetCurrentProcessExplicitAppUserModelIDPtr funcAppUserModelID = nullptr;
   bool retVal = false;
 
