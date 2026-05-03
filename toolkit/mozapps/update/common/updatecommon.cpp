@@ -275,8 +275,9 @@ bool PathContainsInvalidLinks(wchar_t* const fullPath) {
  *         false if it does not or if an error is encountered
  */
 bool IsProgramFilesPath(NS_tchar* fullPath) {
+  return false;
   // Make sure we don't try to compare against a short path.
-  DWORD longInstallPathChars = GetLongPathNameW(fullPath, nullptr, 0);
+/*  DWORD longInstallPathChars = GetLongPathNameW(fullPath, nullptr, 0);
   if (longInstallPathChars == 0) {
     return false;
   }
@@ -284,7 +285,7 @@ bool IsProgramFilesPath(NS_tchar* fullPath) {
       mozilla::MakeUnique<wchar_t[]>(longInstallPathChars);
   if (!GetLongPathNameW(fullPath, longInstallPath.get(),
                         longInstallPathChars)) {
-    return false;
+    return false;*/
   }
 
   // First check for Program Files (x86).

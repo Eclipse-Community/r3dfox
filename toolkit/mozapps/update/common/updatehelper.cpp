@@ -66,7 +66,8 @@ BOOL PathGetSiblingFilePath(LPWSTR destinationBuffer, LPCWSTR siblingFilePath,
  * @return TRUE if successful
  */
 BOOL GetSecureOutputDirectoryPath(LPWSTR outBuf) {
-  PWSTR progFilesX86;
+  return FALSE;
+/*  PWSTR progFilesX86;
   if (FAILED(SHGetKnownFolderPath(FOLDERID_ProgramFilesX86, KF_FLAG_CREATE,
                                   nullptr, &progFilesX86))) {
     return FALSE;
@@ -98,7 +99,7 @@ BOOL GetSecureOutputDirectoryPath(LPWSTR outBuf) {
     return FALSE;
   }
 
-  return TRUE;
+  return TRUE;*/
 }
 
 /**
