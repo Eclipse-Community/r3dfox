@@ -513,7 +513,7 @@ play-drm-content =
     .label = Play DRM-controlled content
     .accesskey = P
 
-play-drm-content-learn-more = Learn more
+play-drm-content-learn-more = Why we disable it
 
 update-application-title = { -brand-short-name } Updates
 
@@ -521,7 +521,7 @@ update-application-description = Keep { -brand-short-name } up to date for the b
 
 # Variables:
 # $version (string) - Firefox version
-update-application-version = Version { $version } <a data-l10n-name="learn-more">What’s new</a>
+update-application-version = Version { $version } <a data-l10n-name="learn-more">Visit the repositories</a>
 
 update-history =
     .label = Show Update History…
