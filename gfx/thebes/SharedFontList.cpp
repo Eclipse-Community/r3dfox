@@ -1277,8 +1277,18 @@ Family* FontList::FindFamily(const nsCString& aName, bool aPrimaryNameOnly) {
     if (BinarySearchIf(families, 0, familyCount,
                        FamilyNameComparator(this, base), &match)) {
       // Check to see if we have already read the face names for this base
-      // family. Note: EnsureLengthAtLeast will default new entries to false.
+      // family.
+
+      // First, extend mFaceNamesRead as-needed up to `familyCount` (setting
+      // new entries to 'false'):
+      const auto oldLength = mFaceNamesRead.Length();
       mFaceNamesRead.EnsureLengthAtLeast(familyCount);
+      for (auto i = oldLength; i < mFaceNamesRead.Length(); i++) {
+        mFaceNamesRead[i] = false;
+      }
+
+      // Now we can check its entry at index `match` to see if we've already
+      // read this one:
       if (mFaceNamesRead[match]) {
         return nullptr;
       }
