@@ -705,7 +705,7 @@ class nsWindow final : public nsBaseWidget {
   static bool sJustGotDeactivate;
   static bool sJustGotActivate;
   static bool sIsInMouseCapture;
-  //static int sTrimOnMinimize;
+  static int sTrimOnMinimize;
   static bool sIsRestoringSession;
 
   // Message postponement hack. See the definition-site of

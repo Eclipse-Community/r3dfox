@@ -339,7 +339,7 @@ UINT nsWindow::sHookTimerId = 0;
 POINT nsWindow::sLastMouseMovePoint = {0};
 
 // Trim heap on minimize. (initialized, but still true.)
-//int nsWindow::sTrimOnMinimize = 2;
+int nsWindow::sTrimOnMinimize = 2;
 
 bool nsWindow::sIsRestoringSession = false;
 
@@ -1207,14 +1207,14 @@ const wchar_t kShellLibraryName[] =  L"shell32.dll";
   // been initialized, and if this is the hidden window (conveniently created
   // before any visible windows, and after the profile has been initialized),
   // do some initialization work.
-//  if (sTrimOnMinimize == 2 && mWindowType == eWindowType_invisible) {
+  if (sTrimOnMinimize == 2 && mWindowType == WindowType::Invisible) {
     // Our internal trim prevention logic is effective on 2K/XP at maintaining
     // the working set when windows are minimized, but on Vista and up it has
     // little to no effect. Since this feature has been the source of numerous
     // bugs over the years, disable it (sTrimOnMinimize=1) on Vista and up.
-//    sTrimOnMinimize = Preferences::GetBool("config.trim_on_minimize",
-//                                           IsVistaOrLater() ? 1 : 0);
-//  }
+    sTrimOnMinimize = Preferences::GetBool("config.trim_on_minimize",
+                                           IsVistaOrLater() ? 1 : 0);
+  }
 
   // Query for command button metric data for rendering the titlebar. We
   // only do this once on the first window that has an actual titlebar
@@ -6364,6 +6364,11 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
 
     case WM_SYSCOMMAND: {
       WPARAM const filteredWParam = (wParam & 0xFFF0);
+      // prevent Windows from trimming the working set. bug 76831
+      if (!sTrimOnMinimize && filteredWParam == SC_MINIMIZE) {
+        ::ShowWindow(mWnd, SW_SHOWMINIMIZED);
+        result = true;
+      }
 
       // SC_CLOSE may trigger a synchronous confirmation prompt. If we're in the
       // middle of something important, put off responding to it.
@@ -7028,6 +7033,14 @@ void nsWindow::OnWindowPosChanged(WINDOWPOS* wp) {
       return;
     }
   }
+
+  // If !sTrimOnMinimize, we minimize windows using SW_SHOWMINIMIZED (See
+  // SetSizeMode for internal calls, and WM_SYSCOMMAND for external). This
+  // prevents the working set from being trimmed but keeps the window active.
+  // After the window is minimized, we need to do some touch up work on the
+  // active window. (bugs 76831 & 499816)
+  if (!sTrimOnMinimize && mFrameState->GetSizeMode() == nsSizeMode_Minimized)
+    ActivateOtherWindowHelper(mWnd);
 
   // Notify visibility change when window is activated.
   if (!(wp->flags & SWP_NOACTIVATE) && NeedsToTrackWindowOcclusionState()) {
@@ -9487,6 +9500,16 @@ static void ShowWindowWithMode(HWND aWnd, nsSizeMode aMode) {
       break;
 
     case nsSizeMode_Minimized:
+      // Using SW_SHOWMINIMIZED prevents the working set from being trimmed but
+      // keeps the window active in the tray. So after the window is minimized,
+      // windows will fire WM_WINDOWPOSCHANGED (OnWindowPosChanged) at which point
+      // we will do some additional processing to get the active window set right.
+      // If sTrimOnMinimize is set, we let windows handle minimization normally
+      // using SW_MINIMIZE.
+      //::ShowWindow(aWnd, sTrimOnMinimize ? SW_MINIMIZE : SW_SHOWMINIMIZED);
+
+// FUCK YOU MEAN `error: use of undeclared identifier 'sTrimOnMinimize'`!??!?!?!?!
+
       ::ShowWindow(aWnd, SW_MINIMIZE);
       break;
 
