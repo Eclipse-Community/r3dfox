@@ -211,7 +211,7 @@ int32_t WordBreaker::Next(const char16_t* aText, uint32_t aLen, uint32_t aPos) {
     // We pass the whole text segment to the complex word breaker to find a
     // shorter answer.
     const char16_t* segStart = aText + aPos;
-    const uint32_t segLen = nextBreakPos - aPos + 1;
+    const uint32_t segLen = nextBreakPos - aPos;
     AutoTArray<uint8_t, 256> breakBefore;
     breakBefore.SetLength(segLen);
     ComplexBreaker::GetBreaks(segStart, segLen, breakBefore.Elements());

@@ -37,15 +37,15 @@ void NS_GetComplexLineBreaks(const char16_t* aText, uint32_t aLength,
     pango_get_log_attrs(p, end - p, -1, language, attr, attrBuffer.Length());
 
     while (p < end) {
-      aBreakBefore[u16Offset] = attr->is_line_break;
-      if (NS_IS_LOW_SURROGATE(aText[u16Offset]))
-        aBreakBefore[++u16Offset] = false;  // Skip high surrogate
-      ++u16Offset;
+      aBreakBefore[u16Offset++] = attr->is_line_break;
 
       // We're iterating over text obtained from NS_ConvertUTF16toUTF8,
       // so we know we have valid UTF-8 and don't need to check for
       // errors.
       uint32_t ch = UTF8CharEnumerator::NextChar(&p, end);
+      if (ch > 0xffff) {
+        u16Offset++;  // Skip surrogate pair
+      }
       ++attr;
 
       if (!ch) {
