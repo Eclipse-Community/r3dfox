@@ -26,6 +26,8 @@
 
 #define MAX_AUTO_THREADS 16
 
+pthread_mutex_t cond_locked;
+
 #if HAVE_PTHREADS || HAVE_W32THREADS || HAVE_OS2THREADS
 
 typedef struct WorkerContext {

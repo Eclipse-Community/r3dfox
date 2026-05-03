@@ -36,6 +36,8 @@
 #include "pthread_internal.h"
 #include "thread.h"
 
+pthread_mutex_t cond_locked;
+
 /**
  * Set the threading algorithms used.
  *
