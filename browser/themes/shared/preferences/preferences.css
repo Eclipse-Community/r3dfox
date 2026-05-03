@@ -223,6 +223,10 @@ radio {
   list-style-image: url("chrome://browser/skin/preferences/category-privacy-security.svg");
 }
 
+#category-librewolf > .category-icon {
+  list-style-image: url("chrome://browser/skin/preferences/category-general.svg");
+}
+
 #category-sync > .category-icon {
   list-style-image: url("chrome://browser/skin/preferences/category-sync.svg");
 }
