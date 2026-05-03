@@ -425,7 +425,7 @@ nsresult CollectCountryCode(nsAString& aCountryCode) {
 }
 
 }  // namespace
-
+/*
 #  ifndef __MINGW32__
 
 static HRESULT EnumWSCProductList(
@@ -527,7 +527,7 @@ static nsresult GetWindowsSecurityCenterInfo(nsAString& aAVInfo,
 }
 
 #  endif  // __MINGW32__
-
+*/
 #endif  // defined(XP_WIN)
 
 #ifdef XP_MACOSX
@@ -1413,7 +1413,7 @@ nsresult nsSystemInfo::Init() {
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
-
+/*
 #  ifndef __MINGW32__
   nsAutoString avInfo, antiSpyInfo, firewallInfo;
   if (NS_SUCCEEDED(
@@ -1440,7 +1440,7 @@ nsresult nsSystemInfo::Init() {
     }
   }
 #  endif  // __MINGW32__
-
+*/
   mozilla::DynamicallyLinkedFunctionPtr<
       decltype(&IsUserCetAvailableInEnvironment)>
       isUserCetAvailable(L"api-ms-win-core-sysinfo-l1-2-6.dll",
