@@ -15,9 +15,7 @@ ChromeUtils.defineLazyGetter(this, "L10n", () => {
 Preferences.addAll([
   // IPv6
   { id: "network.dns.disableIPv6", type: "bool" },
-  // ocsp hard-fail
-  { id: "security.OCSP.require", type: "bool" },
-  // ocsp hard-fail
+  // Firefox Accounts
   { id: "identity.fxaccounts.enabled", type: "bool" },
   // WebGL
   { id: "webgl.disabled", type: "bool" },
@@ -62,11 +60,6 @@ var gLibrewolfPane = {
       "librewolf-ipv6-checkbox",
       ["network.dns.disableIPv6"],
       [false,                   ],
-    );
-    setBoolSyncListeners(
-      "librewolf-ocsp-checkbox",
-      ["security.OCSP.require"],
-      [true,                   ],
     );
     setBoolSyncListeners(
       "librewolf-sync-checkbox",
