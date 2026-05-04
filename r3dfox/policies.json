@@ -41,7 +41,8 @@
                 "Bing",
                 "Amazon.com",
                 "eBay",
-                "Twitter"
+                "Twitter",
+                "Perplexity"
             ],
             "Default": "DuckDuckGo",
             "Add": [
@@ -90,6 +91,7 @@
                 }
             ]
         },
+        "SkipTermsOfUse": true,
         "SupportMenu": {
             "Title": "LibreWolf Issue Tracker",
             "URL": "https://codeberg.org/librewolf/issues"
