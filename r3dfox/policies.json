@@ -22,17 +22,27 @@
                 "https://localhost/*"
             ]
         },
-        "Extensions": {
-            "Install": [
-                "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
-            ],
-            "Uninstall": [
-                "google@search.mozilla.org",
-                "bing@search.mozilla.org",
-                "amazondotcom@search.mozilla.org",
-                "ebay@search.mozilla.org",
-                "twitter@search.mozilla.org"
-            ]
+        "ExtensionSettings": {
+            "uBlock0@raymondhill.net": {
+                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi",
+                "installation_mode": "normal_installed",
+                "private_browsing": true
+            },
+            "google@search.mozilla.org": {
+                "installation_mode": "blocked"
+            },
+            "bing@search.mozilla.org": {
+                "installation_mode": "blocked"
+            },
+            "amazondotcom@search.mozilla.org": {
+                "installation_mode": "blocked"
+            },
+            "ebay@search.mozilla.org": {
+                "installation_mode": "blocked"
+            },
+            "twitter@search.mozilla.org": {
+                "installation_mode": "blocked"
+            }
         },
         "SearchEngines": {
             "PreventInstalls": false,
