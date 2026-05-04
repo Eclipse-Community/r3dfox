@@ -376,3 +376,9 @@ toolkit/crashreporter/minidump-analyzer/analyzer-test/target/
 
 # Ignore personal preferences files
 CLAUDE.local.md
+
+# new shit idk?
+gfx/wr/swgl/flag_check.exe
+mozglue/static/rust/flag_check.exe
+third_party/rust/lmdb-rkv-sys/flag_check.exe
+third_party/rust/whatsys/flag_check.exe
