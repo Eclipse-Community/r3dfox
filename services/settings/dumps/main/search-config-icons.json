@@ -1,6 +1,40 @@
 {
   "data": [
     {
+      "schema": 1777407853575,
+      "imageSize": 24,
+      "attachment": {
+        "hash": "040cdf854e15b85607f80a7cad2c377ad3cb3ad6e97362fcb881bc440e6ca0a8",
+        "size": 1952,
+        "filename": "ecosia.svg",
+        "location": "main-workspace/search-config-icons/a4cafb55-0c81-4ef1-9608-7e9a153b791c.svg",
+        "mimetype": "image/svg+xml"
+      },
+      "engineIdentifiers": [
+        "ecosia"
+      ],
+      "filter_expression": "env.appinfo.OS != \"iOS\"",
+      "id": "001500a9-1a6c-3f5a-ba15-a5f5a075d256",
+      "last_modified": 1777561787670
+    },
+    {
+      "schema": 1777407836166,
+      "imageSize": 24,
+      "attachment": {
+        "hash": "23993567d31bf1ade034271e2eedd76bc3468897c9b01c9bbff5cb3b838d9caf",
+        "size": 1620,
+        "filename": "ecosia.pdf",
+        "location": "main-workspace/search-config-icons/bfc369f2-2a29-461f-850e-0964fd1d0565.pdf",
+        "mimetype": "application/pdf"
+      },
+      "engineIdentifiers": [
+        "ecosia"
+      ],
+      "filter_expression": "env.appinfo.OS == \"iOS\"",
+      "id": "2ecca3f8-c1ef-43cc-b053-886d1ae46c36",
+      "last_modified": 1777561787668
+    },
+    {
       "schema": 1773705608175,
       "imageSize": 16,
       "attachment": {
@@ -286,23 +320,6 @@
       "filter_expression": "env.appinfo.OS == \"iOS\" || env.appinfo.OS == \"Android\"",
       "id": "fe75ce3f-1545-400c-b28c-ad771054e69f",
       "last_modified": 1744118264953
-    },
-    {
-      "schema": 1743687932852,
-      "imageSize": 48,
-      "attachment": {
-        "hash": "774f0a7a613c6c5bea642e3628fa7436851de79e7da9713ad0c96d5db7f44300",
-        "size": 694,
-        "filename": "ecosia_mobile.png",
-        "location": "main-workspace/search-config-icons/f58670d9-93b2-413e-a2fa-ba29c401d669.png",
-        "mimetype": "image/png"
-      },
-      "engineIdentifiers": [
-        "ecosia"
-      ],
-      "filter_expression": "env.appinfo.OS == \"iOS\" || env.appinfo.OS == \"Android\"",
-      "id": "2ecca3f8-c1ef-43cc-b053-886d1ae46c36",
-      "last_modified": 1744118264951
     },
     {
       "schema": 1743687921559,
@@ -1024,23 +1041,6 @@
       "last_modified": 1744118264851
     },
     {
-      "schema": 1743687838278,
-      "imageSize": 16,
-      "attachment": {
-        "hash": "fdadf15c6eae7933c3d254ae6311112e0bc8a422c38c758189dbe6a4d7f6b718",
-        "size": 5430,
-        "filename": "ecosia-16-firefox.ico",
-        "location": "main-workspace/search-config-icons/d0ab8a9e-0dc4-476b-bdb0-81b1d9b8f6cf.ico",
-        "mimetype": "image/x-icon"
-      },
-      "engineIdentifiers": [
-        "ecosia"
-      ],
-      "filter_expression": "env.appinfo.OS != \"iOS\" && env.appinfo.OS != \"Android\"",
-      "id": "001500a9-1a6c-3f5a-ba15-a5f5a075d256",
-      "last_modified": 1744118264849
-    },
-    {
       "schema": 1743687839058,
       "imageSize": 16,
       "attachment": {
@@ -1207,5 +1207,5 @@
       "last_modified": 1744118264825
     }
   ],
-  "timestamp": 1774879272191
+  "timestamp": 1777561787670
 }
