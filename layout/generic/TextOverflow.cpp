@@ -28,7 +28,8 @@
 
 using mozilla::layout::TextDrawTarget;
 
-namespace mozilla::css {
+namespace mozilla {
+namespace css {
 
 static already_AddRefed<gfxTextRun> MakeEllipsisTextRun(nsIFrame* aFrame) {
   RefPtr<nsFontMetrics> fm =
@@ -816,10 +817,9 @@ bool TextOverflow::CanHaveOverflowMarkers(nsBlockFrame* aBlockFrame,
     return false;
   }
 
-  // Skip the combobox anonymous block because it would clip the drop-down
-  // arrow. The inner label inherits 'text-overflow' and does the right thing.
-  if (aBlockFrame->GetParent() &&
-      aBlockFrame->GetParent()->IsComboboxControlFrame()) {
+  // Skip ComboboxControlFrame because it would clip the drop-down arrow.
+  // Its anon block inherits 'text-overflow' and does what is expected.
+  if (aBlockFrame->IsComboboxControlFrame()) {
     return false;
   }
 
@@ -925,4 +925,5 @@ void TextOverflow::Marker::SetupString(nsIFrame* aFrame) {
   mInitialized = true;
 }
 
-}  // namespace mozilla::css
+}  // namespace css
+}  // namespace mozilla
