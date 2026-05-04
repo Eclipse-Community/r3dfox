@@ -16,13 +16,14 @@ use thiserror::Error;
 use windows_sys::Win32::{
     Foundation::{
         GetLastError, ERROR_BROKEN_PIPE, ERROR_IO_PENDING, ERROR_NOT_FOUND, ERROR_PIPE_CONNECTED,
-        FALSE, HANDLE, WAIT_TIMEOUT, WIN32_ERROR,
+        FALSE, HANDLE, TRUE, WAIT_OBJECT_0, WAIT_TIMEOUT, WIN32_ERROR,
     },
     Storage::FileSystem::{ReadFile, WriteFile},
     System::{
         Pipes::ConnectNamedPipe,
-        Threading::{CreateEventA, ResetEvent, SetEvent, INFINITE},
-        IO::{CancelIoEx, GetOverlappedResultEx, OVERLAPPED},
+        Threading::{CreateEventA, ResetEvent, SetEvent},
+        IO::{CancelIoEx, GetOverlappedResult, OVERLAPPED},
+        Threading::WaitForSingleObject,
     },
 };
 
@@ -128,12 +129,11 @@ fn cancel_overlapped_io(handle: BorrowedHandle, overlapped: &OVERLAPPED) -> bool
     let mut number_of_bytes_transferred = MaybeUninit::<u32>::uninit();
     // SAFETY: Same as above
     let res = unsafe {
-        GetOverlappedResultEx(
+        GetOverlappedResult(
             handle.as_raw_handle() as HANDLE,
             overlapped,
             number_of_bytes_transferred.as_mut_ptr(),
-            INFINITE,
-            /* bAlertable */ FALSE,
+            /* bWait */ TRUE,
         )
     };
 
@@ -190,12 +190,11 @@ impl OverlappedOperation {
         // SAFETY: The pointer to the OVERLAPPED structure is under our
         // control and thus guaranteed to be valid.
         let res = unsafe {
-            GetOverlappedResultEx(
+            GetOverlappedResult(
                 self.handle.as_raw_handle() as HANDLE,
                 overlapped.as_ref(),
                 number_of_bytes_transferred.as_mut_ptr(),
-                0,
-                /* bAlertable */ FALSE,
+                /* bWait */ FALSE,
             )
         };
 
@@ -215,13 +214,23 @@ impl OverlappedOperation {
         let mut number_of_bytes_transferred = MaybeUninit::<u32>::uninit();
         // SAFETY: All the pointers passed to this call are under our control
         // and thus guaranteed to be valid.
+        let wait_result = unsafe { WaitForSingleObject(overlapped.hEvent, if wait { IO_TIMEOUT as u32 } else { 0 }) };
+        if wait_result != WAIT_OBJECT_0 {
+            let error = get_last_error();
+            if (wait && (error == WAIT_TIMEOUT)) || (!wait && (error == ERROR_IO_INCOMPLETE)) {
+                // The I/O operation did not complete yet
+                self.cancel_or_leak(overlapped, Some(buffer));
+            }
+
+            return Err(IPCError::System(error));
+        }
+
         let res = unsafe {
-            GetOverlappedResultEx(
+            GetOverlappedResult(
                 self.handle.as_raw_handle() as HANDLE,
                 overlapped.as_ref(),
                 number_of_bytes_transferred.as_mut_ptr(),
-                IO_TIMEOUT as u32,
-                /* bAlertable */ FALSE,
+                /* bWait */ TRUE,
             )
         };
 
