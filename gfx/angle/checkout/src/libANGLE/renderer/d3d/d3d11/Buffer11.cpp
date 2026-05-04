@@ -1598,8 +1598,12 @@ angle::Result Buffer11::EmulatedIndexedStorage::getBuffer(const gl::Context *con
         ANGLE_TRY(attribute.computeOffset(context, startVertex, &offset));
 
         // Expand the memory storage upon request and cache the results.
-        unsigned int expandedDataSize =
-            static_cast<unsigned int>((indexInfo->srcCount * attribute.stride) + offset);
+        angle::CheckedNumeric<unsigned int> checkedExpandedDataSize(indexInfo->srcCount);
+        checkedExpandedDataSize *= attribute.stride;
+        checkedExpandedDataSize += offset;
+        ANGLE_CHECK_GL_MATH(context11,
+                            checkedExpandedDataSize.IsValid());
+        unsigned int expandedDataSize = checkedExpandedDataSize.ValueOrDie();
         angle::MemoryBuffer expandedData;
         ANGLE_CHECK_GL_ALLOC(context11, expandedData.resize(expandedDataSize));
 
