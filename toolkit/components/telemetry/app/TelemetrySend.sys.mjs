@@ -386,6 +386,9 @@ export var TelemetrySend = {
    *         available.
    */
   testRunPingSender(pings, observer) {
+    throw Components.Exception("", Cr.NS_ERROR_NOT_IMPLEMENTED);
+
+    /* eslint-disable-next-line no-unreachable */
     return TelemetrySendImpl.runPingSender(pings, observer);
   },
 };
