@@ -217,16 +217,14 @@ void ResolveCallback(
 void ResolveCallback(
     FileSystemMoveEntryResponse&& aResponse,
     RefPtr<Promise> aPromise,  // NOLINT(performance-unnecessary-value-param)
-    RefPtr<FileSystemHandle> aHandle, FileSystemEntryMetadata* const& aEntry,
-    const Name& aName) {
+    const RefPtr<FileSystemHandle>& aHandle, const Name& aName) {
   MOZ_ASSERT(aPromise);
   MOZ_ASSERT(aHandle);
   QM_TRY(OkIf(Promise::PromiseState::Pending == aPromise->State()), QM_VOID);
 
   if (FileSystemMoveEntryResponse::TEntryId == aResponse.type()) {
-    if (aEntry) {
-      aEntry->entryId() = std::move(aResponse.get_EntryId());
-      aEntry->entryName() = aName;
+    if (aHandle) {
+      aHandle->UpdateMetadata(std::move(aResponse.get_EntryId()), aName);
     }
 
     aPromise->MaybeResolveWithUndefined();
@@ -575,10 +573,11 @@ void FileSystemRequestHandler::MoveEntry(
     return;
   }
 
+  const RefPtr<FileSystemHandle> handle(aHandle);
   aManager->BeginRequest(
       [request = FileSystemMoveEntryRequest(*aEntry, aNewEntry),
        onResolve = SelectResolveCallback<FileSystemMoveEntryResponse, void>(
-           aPromise, std::move(aHandle), aEntry, aNewEntry.childName()),
+           aPromise, handle, aNewEntry.childName()),
        onReject = GetRejectCallback(aPromise)](const auto& actor) mutable {
         actor->SendMoveEntry(request, std::move(onResolve),
                              std::move(onReject));
@@ -607,10 +606,11 @@ void FileSystemRequestHandler::RenameEntry(
     return;
   }
 
+  const RefPtr<FileSystemHandle> handle(aHandle);
   aManager->BeginRequest(
       [request = FileSystemRenameEntryRequest(*aEntry, aName),
        onResolve = SelectResolveCallback<FileSystemMoveEntryResponse, void>(
-           aPromise, std::move(aHandle), aEntry, aName),
+           aPromise, handle, aName),
        onReject = GetRejectCallback(aPromise)](const auto& actor) mutable {
         actor->SendRenameEntry(request, std::move(onResolve),
                                std::move(onReject));
