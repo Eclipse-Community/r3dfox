@@ -512,13 +512,25 @@ void MutableBlobStorage::MaybeCreateTemporaryFileOnMainThread(
     return;
   }
 
-  mActor = new TemporaryIPCBlobChild(this);
-  actorChild->SendPTemporaryIPCBlobConstructor(mActor);
+  auto actor = MakeRefPtr<TemporaryIPCBlobChild>(this);
 
-  // We need manually to increase the reference for this actor because the
+  // We need to manually increase the reference for this actor because the
   // IPC allocator method is not triggered. The Release() is called by IPDL
-  // when the actor is deleted.
-  mActor.get()->AddRef();
+  // in DeallocPTemporaryIPCBlobChild on both normal teardown and synchronous
+  // constructor failure, so this must happen BEFORE Send.
+  // Here, actor.get() makes the programmer intention to manually increase the
+  // reference count explicit, and also avoids a trap which blocks adding such
+  // code accidentally.
+  actor.get()->AddRef();
+
+  if (!actorChild->SendPTemporaryIPCBlobConstructor(actor)) {
+    // Constructor failed synchronously (e.g. PBackground link already dead).
+    // IPDL has already called DeallocPTemporaryIPCBlobChild and released the
+    // manual ref; our local RefPtr holds the last reference and will clean up.
+    return;
+  }
+
+  mActor = std::move(actor);
 
   // The actor will call us when the FileDescriptor is received.
 }
