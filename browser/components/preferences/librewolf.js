@@ -19,6 +19,8 @@ Preferences.addAll([
   { id: "identity.fxaccounts.enabled", type: "bool" },
   // WebGL
   { id: "webgl.disabled", type: "bool" },
+  { id: "librewolf.webgl.prompt", type: "bool" },
+  { id: "librewolf.webgl.prompt.hide", type: "bool" },
   // Automatically Update Extensions
   { id: "extensions.update.enabled", type: "bool" },
   { id: "extensions.update.autoUpdateDefault", type: "bool" },
@@ -76,11 +78,15 @@ var gLibrewolfPane = {
       ["toolkit.legacyUserProfileCustomizations.stylesheets"],
       [true,                                                ],
     );
-
     setBoolSyncListeners(
       "librewolf-webgl-checkbox",
-      ["webgl.disabled"],
-      [false           ],
+      ["librewolf.webgl.prompt", "webgl.disabled"],
+      [true,                     false           ],
+    );
+    setBoolSyncListeners(
+      "librewolf-webgl-prompt-checkbox",
+      ["librewolf.webgl.prompt.hide"],
+      [true                         ],
     );
     setBoolSyncListeners(
       "librewolf-rfp-checkbox",
