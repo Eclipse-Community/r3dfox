@@ -1549,3 +1549,8 @@ richlistitem .text-link:hover {
 .mission-message-link {
   font-size: var(--font-size-small);
 }
+
+#support-firefox,
+.mission-message {
+  display: none;
+}
