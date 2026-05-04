@@ -17,12 +17,15 @@ namespace mozilla {
 namespace net {
 
 static uint16_t get16bit(const unsigned char* aData, unsigned int index) {
-  return ((aData[index] << 8) | aData[index + 1]);
+  return (static_cast<uint16_t>(aData[index]) << 8) |
+         static_cast<uint16_t>(aData[index + 1]);
 }
 
 static uint32_t get32bit(const unsigned char* aData, unsigned int index) {
-  return (aData[index] << 24) | (aData[index + 1] << 16) |
-         (aData[index + 2] << 8) | aData[index + 3];
+  return (static_cast<uint32_t>(aData[index]) << 24) |
+         (static_cast<uint32_t>(aData[index + 1]) << 16) |
+         (static_cast<uint32_t>(aData[index + 2]) << 8) |
+         static_cast<uint32_t>(aData[index + 3]);
 }
 
 // https://datatracker.ietf.org/doc/html/rfc8914#name-defined-extended-dns-errors
@@ -300,8 +303,12 @@ nsresult DOHresp::Add(uint32_t TTL, unsigned char const* dns,
 
   // While the DNS packet might return individual TTLs for each address,
   // we can only return one value in the AddrInfo class so pick the
-  // lowest number.
-  if (mTtl < TTL) {
+  // lowest number. Seed from the first successful add (mAddresses
+  // empty means no record's TTL is in mTtl yet), otherwise take the
+  // running minimum. mTtl stays at 0 if no record is ever added so
+  // downstream callers that read it as a "don't cache" sentinel
+  // continue to work.
+  if (mAddresses.IsEmpty() || TTL < mTtl) {
     mTtl = TTL;
   }
 
@@ -317,7 +324,7 @@ nsresult DOHresp::Add(uint32_t TTL, unsigned char const* dns,
 nsresult DNSPacket::OnDataAvailable(nsIRequest* aRequest,
                                     nsIInputStream* aInputStream,
                                     uint64_t aOffset, const uint32_t aCount) {
-  if (aCount + mBodySize > MAX_SIZE) {
+  if (aCount > MAX_SIZE - mBodySize) {
     LOG(("DNSPacket::OnDataAvailable:%d fail\n", __LINE__));
     return NS_ERROR_FAILURE;
   }
@@ -327,8 +334,7 @@ nsresult DNSPacket::OnDataAvailable(nsIRequest* aRequest,
   if (NS_FAILED(rv)) {
     return rv;
   }
-  MOZ_ASSERT(count == aCount);
-  mBodySize += aCount;
+  mBodySize += count;
   return NS_OK;
 }
 
@@ -625,7 +631,6 @@ nsresult DNSPacket::DecodeInternal(
   // 0000 0080 0004 5db8 d822
 
   unsigned int index = 12;
-  uint8_t length;
   nsAutoCString host;
   nsresult rv;
   uint16_t extendedError = UINT16_MAX;
@@ -648,26 +653,23 @@ nsresult DNSPacket::DecodeInternal(
   LOG(("TRR Decode %s RCODE %d\n", PromiseFlatCString(aHost).get(), rcode));
 
   uint16_t questionRecords = get16bit(aBuffer, 4);  // qdcount
-  // iterate over the single(?) host name in question
+  // iterate over the host name(s) in the question. Use GetQname so a
+  // server-side compression pointer (a label byte with the top two
+  // bits set, legal per RFC 1035 4.1.4) is followed instead of being
+  // treated as a 192-byte label, which would desync `index` and let
+  // the answer-section parsing below read at the wrong offset.
   while (questionRecords) {
-    do {
-      if (aLen < (index + 1)) {
-        LOG(("TRR Decode 1 index: %u size: %u", index, aLen));
-        return NS_ERROR_ILLEGAL_VALUE;
-      }
-      length = static_cast<uint8_t>(aBuffer[index]);
-      if (length) {
-        if (host.Length()) {
-          host.Append(".");
-        }
-        if (aLen < (index + 1 + length)) {
-          LOG(("TRR Decode 2 index: %u size: %u len: %u", index, aLen, length));
-          return NS_ERROR_ILLEGAL_VALUE;
-        }
-        host.Append(((char*)aBuffer) + index + 1, length);
-      }
-      index += 1 + length;  // skip length byte + label
-    } while (length);
+    nsAutoCString qname;
+    rv = GetQname(qname, index, aBuffer, mBodySize);
+    if (NS_FAILED(rv)) {
+      return rv;
+    }
+    if (host.IsEmpty()) {
+      host = qname;
+    } else if (!qname.IsEmpty()) {
+      host.Append(".");
+      host.Append(qname);
+    }
     if (aLen < (index + 4)) {
       LOG(("TRR Decode 3 index: %u size: %u", index, aLen));
       return NS_ERROR_ILLEGAL_VALUE;
