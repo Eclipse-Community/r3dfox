@@ -1208,6 +1208,12 @@ _cairo_dwrite_scaled_font_init_glyph_color_surface(cairo_dwrite_scaled_font_t *s
 	return _cairo_dwrite_error (hr, "EndDraw failed");
 
     cairo_surface_t *image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+    cairo_status_t status = cairo_surface_status (image);
+    if (_cairo_status_is_error (status)) {
+        cairo_surface_destroy (image);
+        return (cairo_int_status_t) status;
+    }
+
     int stride = cairo_image_surface_get_stride (image);
     WICRect rect = { 0, 0, width, height };
     bitmap->CopyPixels(&rect,

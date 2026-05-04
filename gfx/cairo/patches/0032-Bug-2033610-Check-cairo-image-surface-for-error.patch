@@ -1,0 +1,25 @@
+commit 4e68e5395a812a43f7bd122c56878034be85b60d
+Author: Jonathan Kew <jkew@mozilla.com>
+Date:   Sat May 2 22:05:16 2026 +0100
+
+    Bug 2033610 - Check cairo image surface for error. r=#gfx-reviewers
+    
+    Differential Revision: https://phabricator.services.mozilla.com/D298051
+
+diff --git a/gfx/cairo/cairo/src/win32/cairo-dwrite-font.cpp b/gfx/cairo/cairo/src/win32/cairo-dwrite-font.cpp
+index bf5191967e0f..7f5de8c58824 100644
+--- a/gfx/cairo/cairo/src/win32/cairo-dwrite-font.cpp
++++ b/gfx/cairo/cairo/src/win32/cairo-dwrite-font.cpp
+@@ -1301,6 +1301,12 @@ _cairo_dwrite_scaled_font_init_glyph_color_surface(cairo_dwrite_scaled_font_t *s
+ 	return _cairo_dwrite_error (hr, "EndDraw failed");
+ 
+     cairo_surface_t *image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
++    cairo_status_t status = cairo_surface_status (image);
++    if (_cairo_status_is_error (status)) {
++        cairo_surface_destroy (image);
++        return (cairo_int_status_t) status;
++    }
++
+     int stride = cairo_image_surface_get_stride (image);
+     WICRect rect = { 0, 0, width, height };
+     bitmap->CopyPixels(&rect,
