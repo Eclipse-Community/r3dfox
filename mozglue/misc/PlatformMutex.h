@@ -46,7 +46,6 @@ class MutexImpl {
   void mutexLock();
   bool mutexTryLock();
 
-  PlatformData* platformData();
 
 #if !defined(XP_WIN) && !defined(__wasi__)
   void* platformData_[sizeof(pthread_mutex_t) / sizeof(void*)];
@@ -54,6 +53,7 @@ class MutexImpl {
                     sizeof(pthread_mutex_t) % sizeof(void*) == 0,
                 "pthread_mutex_t must have pointer alignment");
 #else
+  PlatformData* platformData();
   void* platformData_[6];
 #endif
 
