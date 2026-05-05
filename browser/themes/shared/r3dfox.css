@@ -68,7 +68,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --in-content-page-background: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -129,7 +129,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --in-content-page-background: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -190,7 +190,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --in-content-page-background: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -227,7 +227,6 @@
 
     --tabpanel-background-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
     --in-content-page-background: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
-    --background-color-canvas: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
     --newtab-background-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
     --newtab-background-color-secondary: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
     --newtab-background-card: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
@@ -244,7 +243,6 @@
 
     @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
       --in-content-page-background: rgb(11, 10, 13) !important;
-      --background-color-canvas: rgb(11, 10, 13) !important;
     }
 
     @media not -moz-pref("r3dfox.translucent.navbar") {
@@ -281,7 +279,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --in-content-page-background: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -433,7 +431,7 @@
     }
 
     @media -moz-pref("r3dfox.drag-space.enabled") {
-      :root:has(#toolbar-menubar[autohide])[sizemode="normal"] {
+      :root:has(#toolbar-menubar[autohide="true"])[sizemode="normal"] {
         --drag-space: 15px;
           /*#TabsToolbar > :is(.titlebar-buttonbox-container, .titlebar-spacer) {
           display: none !important;
