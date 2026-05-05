@@ -12,7 +12,14 @@
 #include "modules/video_coding/codecs/h264/h264_encoder_impl.h"
 
 #include "api/environment/environment_factory.h"
+#include "api/make_ref_counted.h"
+#include "api/scoped_refptr.h"
+#include "api/test/create_frame_generator.h"
+#include "api/test/frame_generator_interface.h"
+#include "api/test/mock_video_encoder.h"
 #include "api/video/i420_buffer.h"
+#include "api/video/video_frame.h"
+#include "api/video/video_frame_buffer.h"
 #include "api/video_codecs/video_encoder.h"
 #include "modules/video_coding/include/video_error_codes.h"
 #include "test/gtest.h"
@@ -75,7 +82,7 @@ TEST(H264EncoderImplTest, CanInitializeWithSingleNalUnitModeExplicitly) {
             encoder.PacketizationModeForTesting());
 }
 
-TEST(H264EncoderImplTest, RejectsFramesWithUnequalChromaStrides) {
+TEST(H264EncoderImplTest, RejectsI420FramesWithUnequalChromaStrides) {
   H264EncoderImpl encoder(CreateEnvironment(), {});
   VideoCodec codec_settings;
   SetDefaultSettings(&codec_settings);
@@ -91,6 +98,43 @@ TEST(H264EncoderImplTest, RejectsFramesWithUnequalChromaStrides) {
       /*stride_y=*/codec_settings.width,
       /*stride_u=*/(codec_settings.width + 1) / 2,
       /*stride_v=*/(codec_settings.width + 1) / 2 + 1);
+
+  VideoFrame frame = VideoFrame::Builder()
+                         .set_video_frame_buffer(buffer)
+                         .set_rtp_timestamp(0)
+                         .build();
+
+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ENCODER_FAILURE, encoder.Encode(frame, nullptr));
+}
+
+TEST(H264EncoderImplTest, RejectsNativeFramesWithUnequalChromaStrides) {
+  H264EncoderImpl encoder(CreateEnvironment(), {});
+  VideoCodec codec_settings;
+  SetDefaultSettings(&codec_settings);
+  MockEncodedImageCallback callback;
+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
+            encoder.InitEncode(&codec_settings, kSettings));
+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
+            encoder.RegisterEncodeCompleteCallback(&callback));
+
+  class FakeNativeBuffer : public VideoFrameBuffer {
+   public:
+    FakeNativeBuffer(int width, int height) : width_(width), height_(height) {}
+    Type type() const override { return Type::kNative; }
+    int width() const override { return width_; }
+    int height() const override { return height_; }
+    scoped_refptr<I420BufferInterface> ToI420() override {
+      return I420Buffer::Create(width_, height_, width_, (width_ + 1) / 2,
+                                (width_ + 1) / 2 + 1);
+    }
+
+   private:
+    int width_;
+    int height_;
+  };
+
+  auto buffer = make_ref_counted<FakeNativeBuffer>(codec_settings.width,
+                                                   codec_settings.height);
 
   VideoFrame frame = VideoFrame::Builder()
                          .set_video_frame_buffer(buffer)

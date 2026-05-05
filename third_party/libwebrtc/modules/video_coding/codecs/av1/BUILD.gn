@@ -99,6 +99,8 @@ if (rtc_include_tests) {
         "../../../../api:create_frame_generator",
         "../../../../api:frame_generator_api",
         "../../../../api:mock_video_encoder",
+        "../../../../api:make_ref_counted",
+        "../../../../api:scoped_refptr",
         "../../../../api/environment",
         "../../../../api/environment:environment_factory",
         "../../../../api/units:data_size",

@@ -1453,6 +1453,13 @@ LibvpxVp8Encoder::PrepareBuffers(rtc::scoped_refptr<VideoFrameBuffer> buffer) {
                         << " image to I420. Can't encode frame.";
       return {};
     }
+
+    // TODO: crbug.com/492213293 - Remove once the root cause is fixed.
+    if (converted_buffer->StrideU() != converted_buffer->StrideV()) {
+      RTC_LOG(LS_ERROR) << "Libvpx requires the U and V strides to be equal.";
+      return {};
+    }
+
     RTC_CHECK(converted_buffer->type() == VideoFrameBuffer::Type::kI420 ||
               converted_buffer->type() == VideoFrameBuffer::Type::kI420A);
 
@@ -1524,6 +1531,21 @@ LibvpxVp8Encoder::PrepareBuffers(rtc::scoped_refptr<VideoFrameBuffer> buffer) {
     SetRawImagePlanes(&raw_images_[i], scaled_buffer.get());
     prepared_buffers.push_back(scaled_buffer);
   }
+
+  // TODO: crbug.com/492213293 - Remove once the root cause is fixed.
+  for (const scoped_refptr<VideoFrameBuffer>& prepared_buffer :
+       prepared_buffers) {
+    if (prepared_buffer->type() == VideoFrameBuffer::Type::kI420 ||
+        prepared_buffer->type() == VideoFrameBuffer::Type::kI420A) {
+      auto i420_buffer = prepared_buffer->GetI420();
+      RTC_DCHECK(i420_buffer);
+      if (i420_buffer->StrideU() != i420_buffer->StrideV()) {
+        RTC_LOG(LS_ERROR) << "Libvpx requires the U and V strides to be equal.";
+        return {};
+      }
+    }
+  }
+
   return prepared_buffers;
 }
 
