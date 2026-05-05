@@ -109,6 +109,20 @@ def split_python(config, jobs):
 
 
 @transforms.add
+def nightly_only_codereview(config, jobs):
+    for job in jobs:
+        # No easy way to determine if the try run is from nightly, or another
+        # branch like beta/release/esr
+        if "perfdocs-verify" in job["name"] and (
+            config.params.get("release_type", "").lower() != "nightly"
+            or "a" not in config.params.get("version", "150.0a0")
+        ):
+            job.setdefault("attributes", {})["code-review"] = False
+            job["always-target"] = False
+        yield job
+
+
+@transforms.add
 def split_jsshell(config, jobs):
     all_shells = {"sm": "Spidermonkey", "v8": "Google V8"}
 
