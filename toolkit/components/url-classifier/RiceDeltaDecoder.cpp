@@ -85,6 +85,15 @@ RiceDeltaDecoder::RiceDeltaDecoder(uint8_t* aEncodedData,
 
 bool RiceDeltaDecoder::Decode(uint32_t aRiceParameter, uint32_t aFirstValue,
                               uint32_t aNumEntries, uint32_t* aDecodedData) {
+  // V4: rice_parameter in [2, 28]
+  const uint32_t kMin = 2;
+  const uint32_t kMax = 28;
+  if (aNumEntries > 0 && (aRiceParameter < kMin || aRiceParameter > kMax)) {
+    LOG(("Decode32: rice_parameter %u out of range [%u,%u]", aRiceParameter,
+         kMin, kMax));
+    return false;
+  }
+
   // Reverse each byte before reading bits from the byte buffer.
   for (size_t i = 0; i < mEncodedDataSize; i++) {
     ReverseByte(mEncodedData[i]);
