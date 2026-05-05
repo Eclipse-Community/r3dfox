@@ -167,7 +167,7 @@ bool nsWindow::OnPaint() {
     return true;
   }
 
-  WindowRenderer* renderer = GetWindowRenderer();
+  RefPtr renderer = GetWindowRenderer();
   KnowsCompositor* knowsCompositor = renderer->AsKnowsCompositor();
   WebRenderLayerManager* layerManager = renderer->AsWebRender();
   const bool isFallback =
