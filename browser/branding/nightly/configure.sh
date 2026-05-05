@@ -4,7 +4,7 @@
 
 MOZ_APP_NAME=plasmafox
 
-MOZ_APP_BASENAME=Plasmafox
+MOZ_APP_BASENAME=plasmafox
 
 MOZ_APP_DISPLAYNAME=Plasmafox
 
