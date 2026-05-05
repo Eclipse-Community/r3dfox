@@ -193,6 +193,22 @@
     appearance: auto;
     -moz-default-appearance: -moz-window-titlebar-maximized;
   }
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media -moz-pref("sidebar.verticalTabs") {
+    :root[tabsintitlebar][sizemode="normal"] #titlebar,
+    :root[tabsintitlebar][sizemode="maximized"] #titlebar {
+      appearance: none;
+    }
+
+    :root[tabsintitlebar][sizemode="maximized"] .browser-titlebar {
+      appearance: auto;
+      -moz-default-appearance: -moz-window-titlebar-maximized;
+    }
+  }
+
+  :root[tabsintitlebar][sizemode="normal"] #titlebar:has(#toolbar-menubar[autohide="false"]) ~ #nav-bar.browser-titlebar > .titlebar-buttonbox-container {display: none} /* Hack for vertical tabs */
+  :root[tabsintitlebar][sizemode="maximized"] #titlebar:has(#toolbar-menubar[autohide="false"]) ~ #nav-bar.browser-titlebar > .titlebar-buttonbox-container {display: none}
 }
 
 @media not (-moz-windows-compositor) {
