@@ -14,6 +14,7 @@
 #include <time.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 
 #include "test/gtest.h"
@@ -142,6 +143,8 @@ TEST(RingBufferTest, PassingNulltoReadBufferForcesMemcpy) {
 TEST(RingBufferTest, CreateHandlesErrors) {
   EXPECT_TRUE(WebRtc_CreateBuffer(0, 1) == nullptr);
   EXPECT_TRUE(WebRtc_CreateBuffer(1, 0) == nullptr);
+  EXPECT_TRUE(WebRtc_CreateBuffer(SIZE_MAX, 2) == nullptr);
+  EXPECT_TRUE(WebRtc_CreateBuffer(2, SIZE_MAX) == nullptr);
   RingBuffer* buffer = WebRtc_CreateBuffer(1, 1);
   EXPECT_TRUE(buffer != nullptr);
   WebRtc_FreeBuffer(buffer);
