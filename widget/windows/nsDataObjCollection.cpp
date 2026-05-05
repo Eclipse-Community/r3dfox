@@ -5,6 +5,8 @@
 
 #include <shlobj.h>
 
+#include "mozilla/CheckedInt.h"
+#include "mozilla/ScopeExit.h"
 #include "nsDataObjCollection.h"
 #include "nsClipboard.h"
 #include "IEnumFE.h"
@@ -71,14 +73,16 @@ STDMETHODIMP nsDataObjCollection::GetData(LPFORMATETC pFE, LPSTGMEDIUM pSTM) {
 
   switch (pFE->cfFormat) {
     case CF_TEXT:
+      return GetText<char, nsAutoCString>(pFE, pSTM);
     case CF_UNICODETEXT:
-      return GetText(pFE, pSTM);
+      return GetText<char16_t, nsAutoString>(pFE, pSTM);
     case CF_HDROP:
       return GetFile(pFE, pSTM);
     default:
       if (pFE->cfFormat == fileDescriptorFlavorA ||
           pFE->cfFormat == fileDescriptorFlavorW) {
-        return GetFileDescriptors(pFE, pSTM);
+        return GetFileDescriptors(pFE, pSTM,
+                                  pFE->cfFormat == fileDescriptorFlavorW);
       }
       if (pFE->cfFormat == fileFlavor) {
         return GetFileContents(pFE, pSTM);
@@ -153,12 +157,13 @@ HRESULT nsDataObjCollection::GetFile(LPFORMATETC pFE, LPSTGMEDIUM pSTM) {
   HGLOBAL hGlobalMemory;
   HRESULT hr;
   // Make enough space for the header and the trailing null
-  uint32_t buffersize = sizeof(DROPFILES) + sizeof(char16_t);
-  uint32_t alloclen = 0;
+  size_t buffersize = sizeof(DROPFILES) + sizeof(char16_t);
   char16_t* realbuffer;
   nsAutoString filename;
 
   hGlobalMemory = GlobalAlloc(GHND, buffersize);
+  auto freeOnError =
+      mozilla::MakeScopeExit([&]() { GlobalFree(hGlobalMemory); });
 
   for (uint32_t i = 0; i < mDataObjects.Length(); ++i) {
     nsDataObj* dataObj = mDataObjects.ElementAt(i);
@@ -173,27 +178,45 @@ HRESULT nsDataObjCollection::GetFile(LPFORMATETC pFE, LPSTGMEDIUM pSTM) {
     }
     // Now we need to pull out the filename
     char16_t* buffer = (char16_t*)GlobalLock(workingmedium.hGlobal);
-    if (buffer == nullptr) return E_FAIL;
+    if (buffer == nullptr) {
+      return E_FAIL;
+    }
     buffer += sizeof(DROPFILES) / sizeof(char16_t);
     filename = buffer;
     GlobalUnlock(workingmedium.hGlobal);
     ReleaseStgMedium(&workingmedium);
     // Now put the filename into our buffer
-    alloclen = (filename.Length() + 1) * sizeof(char16_t);
-    hGlobalMemory = ::GlobalReAlloc(hGlobalMemory, buffersize + alloclen, GHND);
-    if (hGlobalMemory == nullptr) return E_FAIL;
-    realbuffer = (char16_t*)((char*)GlobalLock(hGlobalMemory) + buffersize);
-    if (!realbuffer) return E_FAIL;
+    mozilla::CheckedInt<size_t> alloclen =
+        mozilla::CheckedInt<size_t>(filename.Length() + 1) * sizeof(char16_t);
+    mozilla::CheckedInt<size_t> totalsize = alloclen + buffersize;
+    if (!totalsize.isValid()) {
+      return E_FAIL;
+    }
+    MOZ_ASSERT(alloclen.isValid());
+    HGLOBAL reallocedGlobalMemory =
+        ::GlobalReAlloc(hGlobalMemory, totalsize.value(), GHND);
+    if (reallocedGlobalMemory == nullptr) {
+      // hGlobalMemory is still allocated but will be freed here.
+      return E_FAIL;
+    }
+    hGlobalMemory = reallocedGlobalMemory;
+    auto* tmemory = (char*)::GlobalLock(hGlobalMemory);
+    if (!tmemory) {
+      return E_FAIL;
+    }
+    realbuffer = reinterpret_cast<char16_t*>(tmemory + buffersize);
     realbuffer--;  // Overwrite the preceding null
-    memcpy(realbuffer, filename.get(), alloclen);
+    memcpy(realbuffer, filename.get(), alloclen.value());
     GlobalUnlock(hGlobalMemory);
-    buffersize += alloclen;
+    buffersize = totalsize.value();
   }
   // We get the last null (on the double null terminator) for free since we used
   // the zero memory flag when we allocated.  All we need to do is fill the
   // DROPFILES structure
   DROPFILES* df = (DROPFILES*)GlobalLock(hGlobalMemory);
-  if (!df) return E_FAIL;
+  if (!df) {
+    return E_FAIL;
+  }
   df->pFiles = sizeof(DROPFILES);  // Offset to start of file name string
   df->fNC = 0;
   df->pt.x = 0;
@@ -204,106 +227,89 @@ HRESULT nsDataObjCollection::GetFile(LPFORMATETC pFE, LPSTGMEDIUM pSTM) {
   pSTM->tymed = TYMED_HGLOBAL;
   pSTM->pUnkForRelease = nullptr;  // Caller gets to free the data
   pSTM->hGlobal = hGlobalMemory;
+
+  freeOnError.release();
   return S_OK;
 }
 
+template <typename CharT, typename StringT>
 HRESULT nsDataObjCollection::GetText(LPFORMATETC pFE, LPSTGMEDIUM pSTM) {
   STGMEDIUM workingmedium;
   FORMATETC fe = *pFE;
   HGLOBAL hGlobalMemory;
   HRESULT hr;
-  uint32_t buffersize = 1;
-  uint32_t alloclen = 0;
+  size_t buffersize = sizeof(CharT);
 
   hGlobalMemory = GlobalAlloc(GHND, buffersize);
+  auto freeOnError =
+      mozilla::MakeScopeExit([&]() { GlobalFree(hGlobalMemory); });
 
-  if (pFE->cfFormat == CF_TEXT) {
-    nsAutoCString text;
-    for (uint32_t i = 0; i < mDataObjects.Length(); ++i) {
-      nsDataObj* dataObj = mDataObjects.ElementAt(i);
-      hr = dataObj->GetData(&fe, &workingmedium);
-      if (hr != S_OK) {
-        switch (hr) {
-          case DV_E_FORMATETC:
-            continue;
-          default:
-            return hr;
-        }
+  StringT text;
+  for (uint32_t i = 0; i < mDataObjects.Length(); ++i) {
+    nsDataObj* dataObj = mDataObjects.ElementAt(i);
+    hr = dataObj->GetData(&fe, &workingmedium);
+    if (hr != S_OK) {
+      switch (hr) {
+        case DV_E_FORMATETC:
+          continue;
+        default:
+          return hr;
       }
-      // Now we need to pull out the text
-      char* buffer = (char*)GlobalLock(workingmedium.hGlobal);
-      if (buffer == nullptr) return E_FAIL;
-      text = buffer;
-      GlobalUnlock(workingmedium.hGlobal);
-      ReleaseStgMedium(&workingmedium);
-      // Now put the text into our buffer
-      alloclen = text.Length();
-      hGlobalMemory =
-          ::GlobalReAlloc(hGlobalMemory, buffersize + alloclen, GHND);
-      if (hGlobalMemory == nullptr) return E_FAIL;
-      buffer = ((char*)GlobalLock(hGlobalMemory) + buffersize);
-      if (!buffer) return E_FAIL;
-      buffer--;  // Overwrite the preceding null
-      memcpy(buffer, text.get(), alloclen);
-      GlobalUnlock(hGlobalMemory);
-      buffersize += alloclen;
     }
-    pSTM->tymed = TYMED_HGLOBAL;
-    pSTM->pUnkForRelease = nullptr;  // Caller gets to free the data
-    pSTM->hGlobal = hGlobalMemory;
-    return S_OK;
-  }
-  if (pFE->cfFormat == CF_UNICODETEXT) {
-    buffersize = sizeof(char16_t);
-    nsAutoString text;
-    for (uint32_t i = 0; i < mDataObjects.Length(); ++i) {
-      nsDataObj* dataObj = mDataObjects.ElementAt(i);
-      hr = dataObj->GetData(&fe, &workingmedium);
-      if (hr != S_OK) {
-        switch (hr) {
-          case DV_E_FORMATETC:
-            continue;
-          default:
-            return hr;
-        }
-      }
-      // Now we need to pull out the text
-      char16_t* buffer = (char16_t*)GlobalLock(workingmedium.hGlobal);
-      if (buffer == nullptr) return E_FAIL;
-      text = buffer;
-      GlobalUnlock(workingmedium.hGlobal);
-      ReleaseStgMedium(&workingmedium);
-      // Now put the text into our buffer
-      alloclen = text.Length() * sizeof(char16_t);
-      hGlobalMemory =
-          ::GlobalReAlloc(hGlobalMemory, buffersize + alloclen, GHND);
-      if (hGlobalMemory == nullptr) return E_FAIL;
-      buffer = (char16_t*)((char*)GlobalLock(hGlobalMemory) + buffersize);
-      if (!buffer) return E_FAIL;
-      buffer--;  // Overwrite the preceding null
-      memcpy(buffer, text.get(), alloclen);
-      GlobalUnlock(hGlobalMemory);
-      buffersize += alloclen;
+    // Now we need to pull out the text
+    CharT* buffer = static_cast<CharT*>(GlobalLock(workingmedium.hGlobal));
+    if (buffer == nullptr) {
+      return E_FAIL;
     }
-    pSTM->tymed = TYMED_HGLOBAL;
-    pSTM->pUnkForRelease = nullptr;  // Caller gets to free the data
-    pSTM->hGlobal = hGlobalMemory;
-    return S_OK;
+    text = buffer;
+    GlobalUnlock(workingmedium.hGlobal);
+    ReleaseStgMedium(&workingmedium);
+    // Now put the text into our buffer
+    mozilla::CheckedInt<size_t> alloclen =
+        mozilla::CheckedInt<size_t>(text.Length()) * sizeof(CharT);
+    mozilla::CheckedInt<size_t> totalsize = alloclen + buffersize;
+    if (!totalsize.isValid()) {
+      return E_FAIL;
+    }
+    MOZ_ASSERT(alloclen.isValid());
+    HGLOBAL reallocedGlobalMemory =
+        ::GlobalReAlloc(hGlobalMemory, totalsize.value(), GHND);
+    if (reallocedGlobalMemory == nullptr) {
+      // hGlobalMemory is still allocated but will be freed here.
+      return E_FAIL;
+    }
+    hGlobalMemory = reallocedGlobalMemory;
+    auto* tmemory = (char*)::GlobalLock(hGlobalMemory);
+    if (!tmemory) {
+      return E_FAIL;
+    }
+    buffer = reinterpret_cast<CharT*>(tmemory + buffersize);
+    buffer--;  // Overwrite the preceding null
+    memcpy(buffer, text.get(), alloclen.value());
+    GlobalUnlock(hGlobalMemory);
+    buffersize = totalsize.value();
   }
-
-  return E_FAIL;
+  pSTM->tymed = TYMED_HGLOBAL;
+  pSTM->pUnkForRelease = nullptr;  // Caller gets to free the data
+  pSTM->hGlobal = hGlobalMemory;
+  freeOnError.release();
+  return S_OK;
 }
 
 HRESULT nsDataObjCollection::GetFileDescriptors(LPFORMATETC pFE,
-                                                LPSTGMEDIUM pSTM) {
+                                                LPSTGMEDIUM pSTM,
+                                                bool aIsWideChar) {
   STGMEDIUM workingmedium;
   FORMATETC fe = *pFE;
   HGLOBAL hGlobalMemory;
   HRESULT hr;
-  uint32_t buffersize = sizeof(UINT);
-  uint32_t alloclen = sizeof(FILEDESCRIPTOR);
+  size_t buffersize = sizeof(UINT);
+  size_t alloclen =
+      aIsWideChar ? sizeof(FILEDESCRIPTORW) : sizeof(FILEDESCRIPTORA);
 
   hGlobalMemory = GlobalAlloc(GHND, buffersize);
+  auto freeOnError =
+      mozilla::MakeScopeExit([&]() { GlobalFree(hGlobalMemory); });
 
   for (uint32_t i = 0; i < mDataObjects.Length(); ++i) {
     nsDataObj* dataObj = mDataObjects.ElementAt(i);
@@ -316,27 +322,44 @@ HRESULT nsDataObjCollection::GetFileDescriptors(LPFORMATETC pFE,
           return hr;
       }
     }
+    auto releaseStgMedium =
+        mozilla::MakeScopeExit([&]() { ReleaseStgMedium(&workingmedium); });
     // Now we need to pull out the filedescriptor
+    auto* tmemory = (char*)::GlobalLock(workingmedium.hGlobal);
+    if (tmemory == nullptr) {
+      return E_FAIL;
+    }
     FILEDESCRIPTOR* buffer =
-        (FILEDESCRIPTOR*)((char*)GlobalLock(workingmedium.hGlobal) +
-                          sizeof(UINT));
-    if (buffer == nullptr) return E_FAIL;
-    hGlobalMemory = ::GlobalReAlloc(hGlobalMemory, buffersize + alloclen, GHND);
-    if (hGlobalMemory == nullptr) return E_FAIL;
+        reinterpret_cast<FILEDESCRIPTOR*>(tmemory + sizeof(UINT));
+    auto unlockStgMedium =
+        mozilla::MakeScopeExit([&]() { GlobalUnlock(workingmedium.hGlobal); });
+    mozilla::CheckedInt<size_t> totalsize =
+        mozilla::CheckedInt<size_t>(buffersize) + alloclen;
+    if (!totalsize.isValid()) {
+      return E_FAIL;
+    }
+    HGLOBAL reallocedGlobalMemory =
+        ::GlobalReAlloc(hGlobalMemory, totalsize.value(), GHND);
+    if (reallocedGlobalMemory == nullptr) {
+      // hGlobalMemory is still allocated but will be freed here.
+      return E_FAIL;
+    }
+    hGlobalMemory = reallocedGlobalMemory;
     FILEGROUPDESCRIPTOR* realbuffer =
         (FILEGROUPDESCRIPTOR*)GlobalLock(hGlobalMemory);
-    if (!realbuffer) return E_FAIL;
+    if (!realbuffer) {
+      return E_FAIL;
+    }
     FILEDESCRIPTOR* copyloc = (FILEDESCRIPTOR*)((char*)realbuffer + buffersize);
     memcpy(copyloc, buffer, alloclen);
     realbuffer->cItems++;
     GlobalUnlock(hGlobalMemory);
-    GlobalUnlock(workingmedium.hGlobal);
-    ReleaseStgMedium(&workingmedium);
-    buffersize += alloclen;
+    buffersize = totalsize.value();
   }
   pSTM->tymed = TYMED_HGLOBAL;
   pSTM->pUnkForRelease = nullptr;  // Caller gets to free the data
   pSTM->hGlobal = hGlobalMemory;
+  freeOnError.release();
   return S_OK;
 }
 

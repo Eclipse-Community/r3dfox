@@ -45,10 +45,13 @@ class nsDataObjCollection final : public nsIDataObjCollection,
 
  private:  // DataGet and DataSet helper methods
   HRESULT GetFile(LPFORMATETC pFE, LPSTGMEDIUM pSTM);
-  HRESULT GetText(LPFORMATETC pFE, LPSTGMEDIUM pSTM);
-  HRESULT GetFileDescriptors(LPFORMATETC pFE, LPSTGMEDIUM pSTM);
+  HRESULT GetFileDescriptors(LPFORMATETC pFE, LPSTGMEDIUM pSTM,
+                             bool aIsWideChar);
   HRESULT GetFileContents(LPFORMATETC pFE, LPSTGMEDIUM pSTM);
   HRESULT GetFirstSupporting(LPFORMATETC pFE, LPSTGMEDIUM pSTM);
+
+  template <typename CharT, typename StringT>
+  HRESULT GetText(LPFORMATETC pFE, LPSTGMEDIUM pSTM);
 
   using nsDataObj::GetFile;
   using nsDataObj::GetFileContents;
