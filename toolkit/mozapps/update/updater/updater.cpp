@@ -3700,32 +3700,36 @@ int NS_main(int argc, NS_tchar** argv) {
       threadArgs.argc = suiArgc;
       threadArgs.argv = suiArgv.get();
       threadArgs.marChannelID = "";
-      bool shouldServeElevatedUpdate = true;
 
 #  ifdef MOZ_VERIFY_MAR_SIGNATURE
-      int rv = PopulategMARStrings();
-      if (rv != OK) {
-        shouldServeElevatedUpdate = false;
-        WriteStatusFile(UPDATE_SETTINGS_FILE_CHANNEL);
-        fprintf(stderr,
-                "Unable to start unelevated update process to serve elevated "
-                "updater due to inability to retrieve MAR channels.");
-      } else {
+      // Try to populate gMARStrings so that we can pass the resulting MAR
+      // channel ID to the elevated updater via IPC. If this fails (observed on
+      // some macOS standard-profile elevated updates where the unelevated
+      // updater cannot resolve the weak UpdateSettingsGetAcceptedMARChannels
+      // symbol from UpdateSettings.framework), proceed with an empty channel
+      // ID rather than aborting the elevated update.
+      // ArchiveReader::VerifyProductInformation skips the channel-match check
+      // when the channel ID is empty; the MAR's cryptographic signature is
+      // still verified, preserving the security posture that existed prior to
+      // bug 2028575.
+      if (PopulategMARStrings() == OK) {
         threadArgs.marChannelID = gMARStrings.MARChannelID.get();
+      } else {
+        fprintf(stderr,
+                "Unable to retrieve MAR channels in unelevated updater; "
+                "proceeding with elevation using an empty channel ID.\n");
       }
 #  endif  // MOZ_VERIFY_MAR_SIGNATURE
 
-      if (shouldServeElevatedUpdate) {
-        Thread t1;
-        if (t1.Run(ServeElevatedUpdateThreadFunc, &threadArgs) == 0) {
-          // Show an indeterminate progress bar while an elevated update is in
-          // progress.
-          if (!isDMGInstall) {
-            ShowProgressUI(true);
-          }
+      Thread t1;
+      if (t1.Run(ServeElevatedUpdateThreadFunc, &threadArgs) == 0) {
+        // Show an indeterminate progress bar while an elevated update is in
+        // progress.
+        if (!isDMGInstall) {
+          ShowProgressUI(true);
         }
-        t1.Join();
       }
+      t1.Join();
     }
 
     LaunchCallbackAndPostProcessApps(argc, argv, std::move(umaskContext));
