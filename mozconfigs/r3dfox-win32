@@ -6,9 +6,9 @@ ac_add_options --disable-sandbox
 ac_add_options --disable-cargo-incremental
 
 # Please do not redistribute this build with official branding if you are not part of Eclipse Community.
-ac_add_options --enable-official-branding
+#ac_add_options --enable-official-branding
 # For ESR enable the below and disable the above
-#ac_add_options --with-branding=browser/branding/esr
+ac_add_options --with-branding=browser/branding/esr
 # For potential nightly experimentation enable the below and disable the above.
 #ac_add_options --with-branding=browser/branding/nightly
 
