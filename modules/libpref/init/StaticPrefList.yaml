@@ -15731,22 +15731,14 @@
 # be found in AppShutdown.h in the AppShutdownPhase enum.
 - name: toolkit.shutdown.lateWriteChecksStage
   type: int32_t
-#ifdef MOZ_CODE_COVERAGE
   value: 0
-#else
-  value: 2
-#endif
   mirror: always
 
 # See the comment above toolkit.shutdown.lateWriteChecksStage. A higher value
 # for this pref means we call _exit(0) earlier during shutdown.
 - name: toolkit.shutdown.fastShutdownStage
   type: int32_t
-#if !defined(DEBUG) && !defined(MOZ_ASAN) && !defined(MOZ_TSAN) && !defined(MOZ_CODE_COVERAGE) && !defined(MOZ_VALGRIND) && !defined(MOZ_PROFILE_GENERATE) && !defined(JS_STRUCTURED_SPEW)
-  value: 1
-#else
   value: 0
-#endif
   mirror: always
 
 # Sending each remote accumulation immediately places undue strain on the IPC
