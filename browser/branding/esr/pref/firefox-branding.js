@@ -35,5 +35,5 @@ pref("app.update.badgeWaitTime", 345600);
 pref("devtools.selfxss.count", 5);
 
 // r3dfox ESR customizations
-pref("r3dfox.browser.plasmafox", true);
+pref("r3dfox.browser.esr", true);
 pref("r3dfox.colors", 2);
