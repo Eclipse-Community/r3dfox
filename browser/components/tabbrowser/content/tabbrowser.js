@@ -12,9 +12,9 @@
    * start loading them faster than FaviconLoader would normally find them.
    */
   const FAVICON_DEFAULTS = {
-    "about:newtab": "chrome://branding/content/icon32.png",
-    "about:home": "chrome://branding/content/icon32.png",
-    "about:welcome": "chrome://branding/content/icon32.png",
+    "about:newtab": "chrome://branding/content/favicon.ico",
+    "about:home": "chrome://branding/content/favicon.ico",
+    "about:welcome": "chrome://branding/content/favicon.ico",
     "about:privatebrowsing":
       "chrome://browser/skin/privatebrowsing/favicon.svg",
   };
