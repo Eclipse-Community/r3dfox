@@ -441,6 +441,9 @@ class Console final : public nsIObserver, public nsSupportsWeakReference {
   // console instance.
   mozilla::TimeStamp mCreationTimeStamp;
 
+  // Touch on the owning thread only.
+  bool mIsRetrievingConsoleEvent = false;
+
   friend class ConsoleCallData;
   friend class ConsoleCallDataWorkletRunnable;
   friend class ConsoleInstance;

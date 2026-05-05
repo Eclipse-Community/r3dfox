@@ -29,6 +29,7 @@
 #include "mozilla/dom/WorkletImpl.h"
 #include "mozilla/dom/WorkletThread.h"
 #include "mozilla/dom/RootedDictionary.h"
+#include "mozilla/AutoRestore.h"
 #include "mozilla/BasePrincipal.h"
 #include "mozilla/HoldDropJSObjects.h"
 #include "mozilla/JSObjectHolder.h"
@@ -2419,6 +2420,10 @@ bool Console::StoreCallData(JSContext* aCx, ConsoleCallData* aCallData,
                             const Sequence<JS::Value>& aArguments) {
   AssertIsOnOwningThread();
 
+  if (mIsRetrievingConsoleEvent) {
+    return false;
+  }
+
   if (NS_WARN_IF(!mArgumentStorage.growBy(1))) {
     return false;
   }
@@ -2446,6 +2451,10 @@ void Console::UnstoreCallData(ConsoleCallData* aCallData) {
 
   MOZ_ASSERT(aCallData);
   MOZ_ASSERT(mCallDataStorage.Length() == mArgumentStorage.length());
+
+  if (mIsRetrievingConsoleEvent) {
+    return;
+  }
 
   size_t index = mCallDataStorage.IndexOf(aCallData);
   // It can be that mCallDataStorage has been already cleaned in case the
@@ -2502,6 +2511,9 @@ void Console::RetrieveConsoleEvents(JSContext* aCx,
 
   JS::Rooted<JSObject*> targetScope(aCx, JS::CurrentGlobalOrNull(aCx));
 
+  AutoRestore<bool> retrievingGuard(mIsRetrievingConsoleEvent);
+  mIsRetrievingConsoleEvent = true;
+
   for (uint32_t i = 0; i < mArgumentStorage.length(); ++i) {
     JS::Rooted<JS::Value> value(aCx);
 
@@ -2520,10 +2532,10 @@ void Console::RetrieveConsoleEvents(JSContext* aCx,
     // targetScope is the destination scope and value will be populated in its
     // compartment.
     {
-      MutexAutoLock lock(mCallDataStorage[i]->mMutex);
+      RefPtr<ConsoleCallData> callData = mCallDataStorage[i];
+      MutexAutoLock lock(callData->mMutex);
       if (NS_WARN_IF(!PopulateConsoleNotificationInTheTargetScope(
-              aCx, sequence, targetScope, &value, mCallDataStorage[i],
-              &mGroupStack))) {
+              aCx, sequence, targetScope, &value, callData, &mGroupStack))) {
         aRv.Throw(NS_ERROR_FAILURE);
         return;
       }
