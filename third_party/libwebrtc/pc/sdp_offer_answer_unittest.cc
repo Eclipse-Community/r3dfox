@@ -758,6 +758,46 @@ TEST_F(SdpOfferAnswerTest, SimulcastAnswerWithPayloadType) {
   EXPECT_TRUE(pc->SetLocalDescription(std::move(answer)));
 }
 
+TEST_F(SdpOfferAnswerTest, SimulcastOfferWithExcessiveRidsClamped) {
+  auto pc = CreatePeerConnection();
+
+  std::string sdp =
+      "v=0\r\n"
+      "o=- 4131505339648218884 3 IN IP4 127.0.0.1\r\n"
+      "s=-\r\n"
+      "t=0 0\r\n"
+      "a=ice-ufrag:zGWFZ+fVXDeN6UoI/136\r\n"
+      "a=ice-pwd:9AUNgUqRNI5LSIrC1qFD2iTR\r\n"
+      "a=fingerprint:sha-256 "
+      "AD:52:52:E0:B1:37:34:21:0E:15:8E:B7:56:56:7B:B4:39:0E:6D:1C:F5:84:A7:EE:"
+      "B5:27:3E:30:B1:7D:69:42\r\n"
+      "a=setup:passive\r\n"
+      "m=video 9 UDP/TLS/RTP/SAVPF 96\r\n"
+      "c=IN IP4 0.0.0.0\r\n"
+      "a=rtcp:9 IN IP4 0.0.0.0\r\n"
+      "a=mid:0\r\n"
+      "a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid\r\n"
+      "a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id\r\n"
+      "a=recvonly\r\n"
+      "a=rtcp-mux\r\n"
+      "a=rtcp-rsize\r\n"
+      "a=rtpmap:96 VP8/90000\r\n";
+
+  for (int i = 1; i <= 9; ++i) {
+    sdp += "a=rid:" + std::to_string(i) + " recv\r\n";
+  }
+  sdp += "a=simulcast:recv 1;2;3;4;5;6;7;8;9\r\n";
+
+  std::unique_ptr<SessionDescriptionInterface> offer =
+      CreateSessionDescription(SdpType::kOffer, sdp);
+  EXPECT_TRUE(pc->SetRemoteDescription(std::move(offer)));
+
+  auto transceiver = pc->pc()->GetTransceivers()[0];
+  // Verify that the number of send encodings is clamped to 3
+  // (kMaxSimulcastStreams)
+  EXPECT_THAT(transceiver->sender()->GetParameters().encodings, SizeIs(3));
+}
+
 TEST_F(SdpOfferAnswerTest, ExpectAllSsrcsSpecifiedInSsrcGroupFid) {
   auto pc = CreatePeerConnection();
   std::string sdp =

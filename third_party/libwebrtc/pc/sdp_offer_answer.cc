@@ -633,6 +633,12 @@ std::vector<RtpEncodingParameters> GetSendEncodingsFromRemoteDescription(
   // This is a remote description, the parameters we are after should appear
   // as receive streams.
   for (const auto& alternatives : simulcast.receive_layers()) {
+    if (result.size() >= kMaxSimulcastStreams) {
+      RTC_LOG(LS_WARNING)
+          << "Excessive simulcast layers in remote description. Clamping to "
+          << kMaxSimulcastStreams;
+      break;
+    }
     RTC_DCHECK(!alternatives.empty());
     // There is currently no way to specify or choose from alternatives.
     // We will always use the first alternative, which is the most preferred.
