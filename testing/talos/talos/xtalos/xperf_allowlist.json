@@ -212,6 +212,12 @@
     "minbytes": 0,
     "maxbytes": 96256
   },
+  "c:\\windows\\system32\\directmanipulation.dll::$ea": {
+    "mincount": 0,
+    "maxcount": 2,
+    "minbytes": 0,
+    "maxbytes": 8191
+  },
   "c:\\windows\\system32\\dwrite.dll": {
     "mincount": 4,
     "maxcount": 4,
@@ -260,6 +266,12 @@
     "minbytes": 0,
     "maxbytes": 126976
   },
+  "c:\\windows\\system32\\windows.globalization.dll::$ea": {
+    "mincount": 0,
+    "maxcount": 2,
+    "minbytes": 0,
+    "maxbytes": 8192
+  },
   "c:\\windows\\system32\\spool\\drivers\\color": {
     "mincount": 0,
     "maxcount": 2,
@@ -270,6 +282,18 @@
     "mincount": 2,
     "maxcount": 2,
     "minbytes": 8192,
+    "maxbytes": 8192
+  },
+  "c:\\windows\\system32\\microsoft.internal.frameworkudk.system.dll::$ea": {
+    "mincount": 0,
+    "maxcount": 2,
+    "minbytes": 0,
+    "maxbytes": 8192
+  },
+  "c:\\windows\\system32\\windows.ui.immersive.dll::$ea": {
+    "mincount": 0,
+    "maxcount": 2,
+    "minbytes": 0,
     "maxbytes": 8192
   },
   "z:\\$logfile": {
