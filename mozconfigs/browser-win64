@@ -95,7 +95,7 @@ fi
 export CFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero $CFLAGS"
 export CPPFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero $CPPFLAGS"
 export CXXFLAGS="-Qunused-arguments -O2 -msse2 /clang:-O3 -ftrivial-auto-var-init=zero $CXXFLAGS"
-export LDFLAGS="-Wl,-O3 -msse2"
+export LDFLAGS="/opt:REF,ICF"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
 export RUSTFLAGS="-C target-cpu=athlon64 -C target-feature=+sse2 -C codegen-units=1 -C opt-level=3 -Z tune-cpu=athlon64"
 export VERBOSE=1
