@@ -114,6 +114,7 @@ case "$target" in
             MSVC_C_RUNTIME_1_DLL=vcruntime140_1.dll
         fi
         MSVC_CXX_RUNTIME_DLL=msvcp140.dll
+//        MSVC_CONCUR_RUNTIME_DLL=concrt140.dll
 
         # -Zc:sizedDealloc- disables C++14 global sized deallocation (see bug 1160146)
         CXXFLAGS="$CXXFLAGS -Zc:sizedDealloc-"
@@ -125,6 +126,7 @@ case "$target" in
         AC_SUBST(MSVC_C_RUNTIME_DLL)
         AC_SUBST(MSVC_C_RUNTIME_1_DLL)
         AC_SUBST(MSVC_CXX_RUNTIME_DLL)
+//        AC_SUBST(MSVC_CONCUR_RUNTIME_DLL)
 
         CFLAGS="$CFLAGS -D_HAS_EXCEPTIONS=0"
         CXXFLAGS="$CXXFLAGS -D_HAS_EXCEPTIONS=0"
