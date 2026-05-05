@@ -6,6 +6,7 @@
 
 #include "MFMediaEngineUtils.h"
 #include "RemoteDecoderManagerChild.h"
+#include "mozilla/SyncRunnable.h"
 
 #ifdef MOZ_WMF_CDM
 #  include "WMFCDMProxy.h"
@@ -149,7 +150,7 @@ mozilla::ipc::IPCResult MFMediaEngineChild::RecvUpdateCurrentTime(
 mozilla::ipc::IPCResult MFMediaEngineChild::RecvNotifyEvent(
     MFMediaEngineEvent aEvent) {
   AssertOnManagerThread();
-  if (mShutdown) {
+  if (mShutdown || !mOwner) {
     return IPC_OK();
   }
   switch (aEvent) {
@@ -189,7 +190,7 @@ mozilla::ipc::IPCResult MFMediaEngineChild::RecvNotifyEvent(
 mozilla::ipc::IPCResult MFMediaEngineChild::RecvNotifyError(
     const MediaResult& aError) {
   AssertOnManagerThread();
-  if (mShutdown) {
+  if (mShutdown || !mOwner) {
     return IPC_OK();
   }
   mOwner->NotifyError(aError);
@@ -219,7 +220,7 @@ mozilla::ipc::IPCResult MFMediaEngineChild::RecvUpdateStatisticData(
 mozilla::ipc::IPCResult MFMediaEngineChild::RecvNotifyResizing(
     uint32_t aWidth, uint32_t aHeight) {
   AssertOnManagerThread();
-  if (mShutdown) {
+  if (mShutdown || !mOwner) {
     return IPC_OK();
   }
   mOwner->NotifyResizing(aWidth, aHeight);
@@ -243,19 +244,27 @@ uint64_t MFMediaEngineChild::GetUpdatedDroppedFrames(
 }
 
 void MFMediaEngineChild::OwnerDestroyed() {
-  Unused << ManagerThread()->Dispatch(NS_NewRunnableFunction(
-      "MFMediaEngineChild::OwnerDestroy", [self = RefPtr{this}, this] {
-        self->mOwner = nullptr;
-        // Ask to destroy IPDL.
-        if (CanSend()) {
-          MFMediaEngineChild::Send__delete__(this);
-        }
-      }));
+  if (mManagerThread->IsOnCurrentThread()) {
+    mOwner = nullptr;
+    if (CanSend()) {
+      MFMediaEngineChild::Send__delete__(this);
+    }
+    return;
+  }
+  SyncRunnable::DispatchToThread(
+      mManagerThread,
+      NS_NewRunnableFunction("MFMediaEngineChild::OwnerDestroyed",
+                             [self = RefPtr{this}, this] {
+                               mOwner = nullptr;
+                               if (CanSend()) {
+                                 MFMediaEngineChild::Send__delete__(this);
+                               }
+                             }));
 }
 
 void MFMediaEngineChild::IPDLActorDestroyed() {
   AssertOnManagerThread();
-  if (!mShutdown) {
+  if (!mShutdown && mOwner) {
     CLOG("Destroyed actor without shutdown, remote process has crashed!");
     mOwner->NotifyError(NS_ERROR_DOM_MEDIA_REMOTE_DECODER_CRASHED_MF_CDM_ERR);
   }
