@@ -540,8 +540,7 @@ void VideoReceiveStream2::CreateAndRegisterExternalDecoder(
   // dumped video, since it's developers-only feature for debugging.
   absl::c_replace(decoded_output_file, ';', '/');
   if (!decoded_output_file.empty()) {
-    char filename_buffer[256];
-    SimpleStringBuilder ssb(filename_buffer);
+    StringBuilder ssb;
     ssb << decoded_output_file << "/webrtc_receive_stream_" << remote_ssrc()
         << "-" << rtc::TimeMicros() << ".ivf";
     video_decoder = CreateFrameDumpingDecoderWrapper(
