@@ -726,24 +726,28 @@ main section {
 }
 .logo-and-wordmark .logo {
   display: inline-block;
-  height: 82px;
-  width: 82px;
-  background: image-set(url("chrome://branding/content/about-logo.png"), url("chrome://branding/content/about-logo@2x.png") 2x) no-repeat center;
-  background-size: 82px;
+  height: 64px;
+  width: 64px;
+  background: image-set(url("chrome://branding/content/icon64.png"), url("chrome://branding/content/icon128.png") 2x) no-repeat center;
+  background-size: 64px;
 }
 .logo-and-wordmark .wordmark {
   background: url("chrome://branding/content/firefox-wordmark.svg") no-repeat center center;
-  background-size: 134px;
+  background-size: 155px;
   -moz-context-properties: fill;
   display: inline-block;
   fill: var(--newtab-wordmark-color);
-  height: 82px;
+  height: 64px;
   margin-inline-start: 16px;
-  width: 134px;
+  width: 155px;
 
   @media -moz-pref("r3dfox.browser.plasmafox") {
-    background-size: 220px;
-    width: 220px;
+    background-size: 244px;
+    width: 244px;
+  }
+  @media -moz-pref("r3dfox.browser.esr") {
+    background-size: 265px;
+    width: 265px;
   }
 }
 .lightWallpaper .logo-and-wordmark .wordmark {
