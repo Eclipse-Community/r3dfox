@@ -16,17 +16,17 @@ inTimeZone("Europe/London", () => {
 // bug 637244
 inTimeZone("Asia/Novosibirsk", () => {
     let dt1 = new Date("1942-03-01T00:00:00");
-    assertDateTime(dt1, "Sun Mar 01 1942 00:00:00 GMT+0700 (Novosibirsk Standard Time)");
+    assertDateTime(dt1, "Sun Mar 01 1942 00:00:00 GMT+0700 (Krasnoyarsk Standard Time)");
     dt1.setMonth(Month.April);
-    assertDateTime(dt1, "Wed Apr 01 1942 00:00:00 GMT+0700 (Novosibirsk Standard Time)");
+    assertDateTime(dt1, "Wed Apr 01 1942 00:00:00 GMT+0700 (Krasnoyarsk Standard Time)");
 
     let dt2 = new Date(2010, Month.October, 31);
-    assertDateTime(dt2, "Sun Oct 31 2010 00:00:00 GMT+0700 (Novosibirsk Summer Time)");
+    assertDateTime(dt2, "Sun Oct 31 2010 00:00:00 GMT+0700 (Krasnoyarsk Summer Time)");
     dt2.setMonth(Month.November);
-    assertDateTime(dt2, "Wed Dec 01 2010 00:00:00 GMT+0600 (Novosibirsk Standard Time)");
+    assertDateTime(dt2, "Wed Dec 01 2010 00:00:00 GMT+0600 (Krasnoyarsk Standard Time)");
 
     let dt3 = new Date(1942, Month.April, 1);
-    assertDateTime(dt3, "Wed Apr 01 1942 00:00:00 GMT+0700 (Novosibirsk Standard Time)");
+    assertDateTime(dt3, "Wed Apr 01 1942 00:00:00 GMT+0700 (Krasnoyarsk Standard Time)");
 
     function getNumberOfDaysInMonth(year, month) {
         switch (month) {
@@ -62,10 +62,10 @@ inTimeZone("Asia/Novosibirsk", () => {
     }
 
     let dt4 = new Date(1984, Month.April, 1);
-    assertDateTime(dt4, "Sun Apr 01 1984 01:00:00 GMT+0800 (Novosibirsk Summer Time)");
+    assertDateTime(dt4, "Sun Apr 01 1984 01:00:00 GMT+0800 (Krasnoyarsk Summer Time)");
 
     let dt5 = new Date(1984, Month.March, 1);
-    assertDateTime(dt5, "Thu Mar 01 1984 00:00:00 GMT+0700 (Novosibirsk Standard Time)");
+    assertDateTime(dt5, "Thu Mar 01 1984 00:00:00 GMT+0700 (Krasnoyarsk Standard Time)");
 
     let dt6 = new Date(1984, Month.April, 1);
     assertEq(dt6.toUTCString(), "Sat, 31 Mar 1984 17:00:00 GMT");
