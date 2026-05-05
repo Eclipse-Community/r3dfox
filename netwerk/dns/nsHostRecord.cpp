@@ -225,14 +225,17 @@ size_t AddrHostRecord::SizeOfIncludingThis(MallocSizeOf mallocSizeOf) const {
 
   n += nsHostKey::SizeOfExcludingThis(mallocSizeOf);
   n += SizeOfResolveHostCallbackListExcludingHead(mCallbacks, mallocSizeOf);
-
-  n += addr_info ? addr_info->SizeOfIncludingThis(mallocSizeOf) : 0;
   n += mallocSizeOf(addr.get());
 
-  n += mUnusableItems.ShallowSizeOfExcludingThis(mallocSizeOf);
-  for (size_t i = 0; i < mUnusableItems.Length(); i++) {
-    n += mUnusableItems[i].SizeOfExcludingThisIfUnshared(mallocSizeOf);
+  {
+    MutexAutoLock lock(addr_info_lock);
+    n += addr_info ? addr_info->SizeOfIncludingThis(mallocSizeOf) : 0;
+    n += mUnusableItems.ShallowSizeOfExcludingThis(mallocSizeOf);
+    for (size_t i = 0; i < mUnusableItems.Length(); i++) {
+      n += mUnusableItems[i].SizeOfExcludingThisIfUnshared(mallocSizeOf);
+    }
   }
+
   return n;
 }
 
@@ -251,6 +254,7 @@ bool AddrHostRecord::HasUsableResultInternal(
     return true;
   }
 
+  MutexAutoLock lock(addr_info_lock);
   return addr_info || addr;
 }
 
