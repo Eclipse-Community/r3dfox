@@ -2434,14 +2434,6 @@ void UpdateReflectorGlobal(JSContext* aCx, JS::Handle<JSObject*> aObjArg,
     expandoObject =
         DOMProxyHandler::GetAndClearExpandoObject(aObj, &expandoRollbackToken);
   }
-  auto resetExpando = MakeScopeExit([&]() {
-    // We must clear the expando object from `aObj`, since otherwise it will be
-    // copied as part of JS_CloneObject. But on an error, it needs to be
-    // restored.
-    if (expandoObject) {
-      DOMProxyHandler::RestoreExpando(aObj, expandoRollbackToken);
-    }
-  });
 
   JSAutoRealm newAr(aCx, newGlobal);
 
@@ -2459,6 +2451,30 @@ void UpdateReflectorGlobal(JSContext* aCx, JS::Handle<JSObject*> aObjArg,
     aError.StealExceptionFromJSContext(aCx);
     return;
   }
+
+  // JS_CloneObject copies all reserved slots over for proxies, and no slots for
+  // non-proxies. That means that for both, the DOM_OBJECT_SLOT value needs to
+  // be transferred from aObj to newobj, and that slots need to be cleared from
+  // newobj on an error, and from aObj on success.
+  auto clearSlots = [=](JSObject* obj) {
+    JS::SetReservedSlot(obj, DOM_OBJECT_SLOT, JS::PrivateValue(nullptr));
+    MOZ_ASSERT(isProxy == js::IsProxy(obj), "Cloning preserves proxy-ness");
+    if (isProxy) {
+      size_t nslots = JSCLASS_RESERVED_SLOTS(JS::GetClass(obj));
+      for (size_t slot = DOM_INSTANCE_RESERVED_SLOTS; slot < nslots; ++slot) {
+        JS::SetReservedSlot(obj, slot, JS::UndefinedValue());
+      }
+    }
+  };
+
+  auto resetOnError = MakeScopeExit([&]() {
+    if (isProxy) {
+      // Also, the expando will have been pulled off of aObj in the proxy case.
+      // Put it back on an error.
+      DOMProxyHandler::RestoreExpando(aObj, expandoRollbackToken);
+      clearSlots(newobj);
+    }
+  });
 
   // Assert it's possible to create wrappers when |aObj| and |newobj| are in
   // different compartments.
@@ -2484,7 +2500,7 @@ void UpdateReflectorGlobal(JSContext* aCx, JS::Handle<JSObject*> aObjArg,
 
   // We've made it far enough to be able to mutate the source. Cleared slots
   // will not be observed even if a failure occurs after this point.
-  resetExpando.release();
+  resetOnError.release();
 
   // We've set up |newobj|, so we make it own the native by setting its reserved
   // slot and nulling out the reserved slot of |obj|.
@@ -2495,18 +2511,17 @@ void UpdateReflectorGlobal(JSContext* aCx, JS::Handle<JSObject*> aObjArg,
   // foo.x.
   JS::SetReservedSlot(newobj, DOM_OBJECT_SLOT,
                       JS::GetReservedSlot(aObj, DOM_OBJECT_SLOT));
-  JS::SetReservedSlot(aObj, DOM_OBJECT_SLOT, JS::PrivateValue(nullptr));
   size_t nslots = JSCLASS_RESERVED_SLOTS(JS::GetClass(aObj));
   for (size_t slot = DOM_INSTANCE_RESERVED_SLOTS; slot < nslots; ++slot) {
-    const JS::Value& slotValue = JS::GetReservedSlot(aObj, slot);
+    JS::Value slotValue = JS::GetReservedSlot(aObj, slot);
     if (slotValue.isObject()) {
       JSObject* slotObj = &slotValue.toObject();
       if (IsObservableArrayProxy(slotObj)) {
         JS::SetReservedSlot(newobj, slot, slotValue);
-        JS::SetReservedSlot(aObj, slot, JS::UndefinedValue());
       }
     }
   }
+  clearSlots(aObj);
 
   nsWrapperCache* cache = nullptr;
   CallQueryInterface(native, &cache);
