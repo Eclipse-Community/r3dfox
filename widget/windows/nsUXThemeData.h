@@ -19,7 +19,6 @@
 enum nsUXThemeClass {
   eUXButton = 0,
   eUXEdit,
-  eUXTooltip,
   eUXRebar,
   eUXMediaRebar,
   eUXCommunicationsRebar,
@@ -29,10 +28,8 @@ enum nsUXThemeClass {
   eUXCommunicationsToolbar,
   eUXProgress,
   eUXTab,
-  eUXScrollbar,
   eUXTrackbar,
   eUXSpin,
-  eUXStatus,
   eUXCombobox,
   eUXHeader,
   eUXListview,
