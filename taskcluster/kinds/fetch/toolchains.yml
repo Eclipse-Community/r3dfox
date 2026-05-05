@@ -795,6 +795,13 @@ uv:
         repo: https://github.com/astral-sh/uv
         revision: 481d05d8dfb8627612dec72840a02c17b926b263
 
+dxc-src:
+    description: Source code for mozilla's DXC fork
+    fetch:
+        type: git
+        repo: https://github.com/FirefoxGraphics/DirectXShaderCompiler
+        revision: dc9cb8960f8d4fbb5f904eac1e3bf7f1821e4be1
+
 jj:
     description: jj 0.38.0 source code
     fetch:
@@ -809,3 +816,12 @@ firefox-profiler:
         repo: https://github.com/firefox-devtools/profiler
         revision: f37398ff0376cbab4d3d58faa3a00a04bee5f737
 
+# See https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
+windowsappsdk-redist:
+    description: Windows App SDK Redistributable
+    fetch:
+        type: static-url
+        url: https://aka.ms/windowsappsdk/1.8/1.8.251106002/Microsoft.WindowsAppRuntime.Redist.1.8.zip
+        sha256: 57748c37e2b0ce381518bbe7ac72e015c150771a343af89f9f0bd95aa5e9bbc0
+        size: 465986932
+        artifact-name: Microsoft.WindowsAppRuntime.Redist.tar.zst
