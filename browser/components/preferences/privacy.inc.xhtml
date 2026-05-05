@@ -49,6 +49,20 @@
                 permissions-exceptions-manage-etp-desc,
               "/>
     </hbox>
+    <hbox id="rfpIncompatibilityWarning" class="info-box-container" hidden="true">
+      <vbox class="info-icon-container">
+        <html:img class="info-icon"></html:img>
+      </vbox>
+      <vbox flex="1">
+        <description>
+          <html:span data-l10n-id="content-blocking-rfp-incompatibility-warning"/>
+          <html:a is="moz-support-link"
+                  class="learnMore"
+                  support-page="resist-fingerprinting"
+          />
+        </description>
+      </vbox>
+    </hbox>
     <hbox id="fpiIncompatibilityWarning" class="info-box-container" hidden="true">
       <vbox class="info-icon-container">
         <html:img class="info-icon"></html:img>
@@ -377,20 +391,6 @@
         </vbox>
       </radiogroup>
     </vbox>
-    <hbox id="rfpIncompatibilityWarning" class="info-box-container" hidden="true">
-      <vbox class="info-icon-container">
-        <html:img class="info-icon"></html:img>
-      </vbox>
-      <vbox flex="1">
-        <description>
-          <html:span data-l10n-id="content-blocking-rfp-incompatibility-warning"/>
-          <html:a is="moz-support-link"
-                  class="learnMore"
-                  support-page="resist-fingerprinting"
-          />
-        </description>
-      </vbox>
-    </hbox>
   </vbox>
 </groupbox>
 <html:setting-group id="nonTechnicalPrivacyGroup" groupid="nonTechnicalPrivacy" data-category="panePrivacy" hidden="true" data-srd-groupid="nonTechnicalPrivacy2"/>
