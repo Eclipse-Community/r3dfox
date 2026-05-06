@@ -11,6 +11,7 @@
 
 #include <functional>
 
+#include "mozilla/Atomics.h"
 #include "mozilla/Mutex.h"
 #include "nsSocketTransportService2.h"
 #include "nsString.h"
@@ -230,7 +231,7 @@ class nsSocketTransport final : public nsASocketHandler,
   bool mProxyTransparent{false};
   bool mProxyTransparentResolvesHost{false};
   bool mHttpsProxy{false};
-  uint32_t mConnectionFlags{0};
+  Atomic<uint32_t, Relaxed> mConnectionFlags{0};
   // When we fail to connect using a prefered IP family, we tell the consumer to
   // reset the IP family preference on the connection entry.
   bool mResetFamilyPreference{false};
