@@ -5474,7 +5474,7 @@ function* runAltRightKeyOnWindows()
     return synthesizeKey({layout: aKeyboardLayout.layout, keyCode: WIN_VK_RMENU,
                           modifiers: {}, chars: ""}, "button", function() {
       const kDescription =
-        "runAltRightKeyOnWindows(" + aKeyboardLayout.layout.currentTestName + "): ";
+        `runAltRightKeyOnWindows(${aKeyboardLayout.layout.name}): `;
       if (aKeyboardLayout.layout.hasAltGrOnWin) {
         is(events.length, 4,
            kDescription + "AltRight should fire 2 pairs of keydown and keyup events");
