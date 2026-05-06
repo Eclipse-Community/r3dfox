@@ -73,16 +73,20 @@ p {
 .wordmark {
   display: inline-block;
   background: url("chrome://branding/content/firefox-wordmark.svg") no-repeat center center;
-  background-size: 172px;
+  background-size: 174px;
   margin-inline-start: 15px;
   -moz-context-properties: fill;
   fill: currentColor;
   height: 96px;
-  width: 172px;
+  width: 174px;
 
   @media -moz-pref("r3dfox.browser.plasmafox") {
-    background-size: 220px;
-    width: 220px;
+    background-size: 273px;
+    width: 273px;
+  }
+  @media -moz-pref("r3dfox.browser.esr") {
+    background-size: 297px;
+    width: 297px;
   }
 }
 
