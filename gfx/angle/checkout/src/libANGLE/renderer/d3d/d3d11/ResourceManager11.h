@@ -318,12 +318,7 @@ class SharedResource11 : public Resource11Base<T, std::shared_ptr, TypedData<T>>
     friend class ResourceManager11;
     SharedResource11(Resource11<T> &&obj) : Resource11Base<T, std::shared_ptr, TypedData<T>>()
     {
-        std::swap(this->mData->manager, obj.mData->manager);
-
-        // Can't use std::swap because of ID3D11Resource.
-        auto temp           = this->mData->object;
-        this->mData->object = obj.mData->object;
-        obj.mData->object   = static_cast<T *>(temp);
+        this->mData = std::move(obj.mData);
     }
 };
 

@@ -352,7 +352,9 @@ class [[nodiscard]] ScopedUnmapper final : angle::NonCopyable
 struct GenericData
 {
     GenericData() {}
-    ~GenericData()
+    ~GenericData() { reset(); }
+
+    void reset()
     {
         if (object)
         {
@@ -395,12 +397,13 @@ class TextureHelper11 : public Resource11Base<ID3D11Resource, std::shared_ptr, G
     template <typename DescT, typename ResourceT>
     void init(Resource11<ResourceT> &&texture, const DescT &desc, const d3d11::Format &format)
     {
-        std::swap(mData->manager, texture.mData->manager);
+        // Release previous resource, if any.
+        mData->reset();
 
-        // Can't use std::swap because texture is typed, and here we use ID3D11Resource.
-        ID3D11Resource *temp  = mData->object;
-        mData->object         = texture.mData->object;
-        texture.mData->object = static_cast<ResourceT *>(temp);
+        mData->manager         = texture.mData->manager;
+        texture.mData->manager = nullptr;
+        mData->object          = texture.mData->object;
+        texture.mData->object  = nullptr;
 
         mFormatSet = &format;
         initDesc(desc);
