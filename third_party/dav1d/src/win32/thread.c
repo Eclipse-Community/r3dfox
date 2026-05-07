@@ -85,11 +85,28 @@ COLD int dav1d_pthread_join(pthread_t *const thread, void **const res) {
 COLD int dav1d_pthread_once(pthread_once_t *const once_control,
                             void (*const init_routine)(void))
 {
-    static LONG counter = 0;
-
-    if (InterlockedCompareExchange(&counter, 1, 0) == 0) {
+    /* state values:
+       0 = not initialized
+       1 = initialization in progress
+       2 = initialized
+    */
+    LONG expected = 0;
+    if (InterlockedCompareExchange(once_control, 1L, expected) == expected) {
+        /* we won the race: perform initialization */
         init_routine();
-        InterlockedIncrement(&counter);
+        /* publish initialized state */
+        InterlockedExchange(once_control, 2L);
+        return 0;
+    }
+
+    /* another thread is initializing or already did; wait until done */
+    for (;;) {
+        LONG state = InterlockedCompareExchange(once_control, 2L, 2L);
+        if (state == 2L)
+            break; /* initialized */
+
+        /* optional backoff: yield CPU to avoid busy spin */
+        SwitchToThread(); /* available on XP; yields to other threads */
     }
 
     return 0;
