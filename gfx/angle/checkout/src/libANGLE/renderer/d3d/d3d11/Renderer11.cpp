@@ -698,6 +698,28 @@ egl::Error Renderer11::initialize()
     return egl::NoError();
 }
 
+#include <strsafe.h>
+
+static HMODULE load_dxgi_module() {
+    TCHAR systemPath[MAX_PATH] = TEXT("");
+    GetSystemDirectory(systemPath, MAX_PATH);
+    StringCchCat(systemPath, MAX_PATH, TEXT("\\dxgi.dll"));
+
+    return LoadLibrary(systemPath);
+}
+
+typedef HRESULT (APIENTRY *PFN_CreateDXGIFactory1)(REFIID riid, void **ppFactory);
+
+HRESULT dyn_CreateDXGIFactory1(REFIID riid, void **ppFactory) {
+    PFN_CreateDXGIFactory1 fpCreateDXGIFactory1 =
+        (PFN_CreateDXGIFactory1)GetProcAddress(load_dxgi_module(), "CreateDXGIFactory1");
+
+    if (fpCreateDXGIFactory1 != NULL)
+        return fpCreateDXGIFactory1(riid, ppFactory);
+
+    return DXGI_ERROR_NOT_FOUND;
+}
+
 HRESULT Renderer11::callD3D11CreateDevice(PFN_D3D11_CREATE_DEVICE createDevice, bool debug)
 {
     angle::ComPtr<IDXGIAdapter> adapter;
@@ -716,7 +738,7 @@ HRESULT Renderer11::callD3D11CreateDevice(PFN_D3D11_CREATE_DEVICE createDevice, 
     if (high != 0 || low != 0)
     {
         angle::ComPtr<IDXGIFactory1> factory;
-        if (SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
+        if (SUCCEEDED(dyn_CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
         {
             angle::ComPtr<IDXGIAdapter> temp;
             for (UINT i = 0; SUCCEEDED(factory->EnumAdapters(i, &temp)); i++)
@@ -760,7 +782,7 @@ HRESULT Renderer11::callD3D11On12CreateDevice(PFN_D3D12_CREATE_DEVICE createDevi
                                               bool debug)
 {
     angle::ComPtr<IDXGIFactory4> factory;
-    HRESULT result = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+    HRESULT result = dyn_CreateDXGIFactory1(IID_PPV_ARGS(&factory));
     if (FAILED(result))
     {
         return result;
