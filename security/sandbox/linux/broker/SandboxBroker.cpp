@@ -141,7 +141,7 @@ SandboxBroker::Policy::~Policy() = default;
 SandboxBroker::Policy::Policy(const Policy& aOther)
     : mMap(aOther.mMap.Clone()) {}
 
-// Chromium
+// See also Chromium BrokerFilePermission::ValidatePath in
 // sandbox/linux/syscall_broker/broker_file_permission.cc
 // Async signal safe
 bool SandboxBroker::Policy::ValidatePath(const char* path) const {
@@ -160,13 +160,11 @@ bool SandboxBroker::Policy::ValidatePath(const char* path) const {
   if (len >= 3 && path[len - 3] == '/' && path[len - 2] == '.' &&
       path[len - 1] == '.')
     return false;
-  // No /../ anywhere
-  for (size_t i = 0; i < len; i++) {
-    if (path[i] == '/' && (len - i) > 3) {
-      if (path[i + 1] == '.' && path[i + 2] == '.' && path[i + 3] == '/') {
-        return false;
-      }
-    }
+  // No special path components anywhere.
+  // Assume libc's strstr is good enough that we don't need to optimize.
+  // strstr is officially async signal safe as of POSIX.1-2017
+  if (strstr(path, "//") || strstr(path, "/./") || strstr(path, "/../")) {
+    return false;
   }
   return true;
 }
