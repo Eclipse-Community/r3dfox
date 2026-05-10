@@ -76,7 +76,7 @@ class XULContentSinkImpl final : public nsIXMLContentSink, public nsIExpatSink {
   // element.
   nsresult OpenScript(const char16_t** aAttributes, const uint32_t aLineNumber);
 
-  static bool IsDataInBuffer(char16_t* aBuffer, int32_t aLength);
+  bool IsDataInBuffer() const;
 
   // Text management
   nsresult FlushText(bool aCreateTextNode = true);

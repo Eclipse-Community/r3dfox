@@ -230,10 +230,10 @@ nsresult XULContentSinkImpl::Init(Document* aDocument,
 // Text buffering
 //
 
-bool XULContentSinkImpl::IsDataInBuffer(char16_t* buffer, int32_t length) {
-  for (int32_t i = 0; i < length; ++i) {
-    if (buffer[i] == ' ' || buffer[i] == '\t' || buffer[i] == '\n' ||
-        buffer[i] == '\r')
+bool XULContentSinkImpl::IsDataInBuffer() const {
+  for (int32_t i = 0; i < mTextLength; ++i) {
+    if (mText[i] == ' ' || mText[i] == '\t' || mText[i] == '\n' ||
+        mText[i] == '\r')
       continue;
 
     return true;
@@ -266,7 +266,7 @@ nsresult XULContentSinkImpl::FlushText(bool aCreateTextNode) {
     }
 
     // Don't bother if there's nothing but whitespace.
-    if (stripWhitespace && !IsDataInBuffer(mText, mTextLength)) break;
+    if (stripWhitespace && !IsDataInBuffer()) break;
 
     // Don't bother if we're not in XUL document body
     if (mState != eInDocumentElement || mContextStack.Depth() == 0) break;
