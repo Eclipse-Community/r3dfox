@@ -975,13 +975,15 @@ class HTTP3Server {
     // Execute the regex on the input string
     let match = regex.exec(result.output);
 
-    if (match) {
-      // Extract the ports as an array of numbers
-      let ports = match.slice(1, 6).map(Number);
-      this._port = ports[0];
-      return ports[0];
+    if (!match) {
+      throw new Error(
+        `HTTP3Server: unexpected server output: ${result.output.slice(0, 500)}`
+      );
     }
 
-    return -1;
+    // Extract the ports as an array of numbers
+    let ports = match.slice(1, 6).map(Number);
+    this._port = ports[0];
+    return ports[0];
   }
 }
