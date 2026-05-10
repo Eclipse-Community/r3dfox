@@ -7,11 +7,13 @@
 #define nsXULContentSink_h__
 
 #include "mozilla/Attributes.h"
+#include "mozilla/Span.h"
 #include "mozilla/WeakPtr.h"
 #include "nsIExpatSink.h"
 #include "nsIWeakReferenceUtils.h"
 #include "nsIXMLContentSink.h"
 #include "nsNodeInfoManager.h"
+#include "nsTArray.h"
 #include "nsXULElement.h"
 #include "nsIDTD.h"
 
@@ -53,9 +55,7 @@ class XULContentSinkImpl final : public nsIXMLContentSink, public nsIExpatSink {
   virtual ~XULContentSinkImpl();
 
   // pseudo-constants
-  char16_t* mText;
-  int32_t mTextLength;
-  int32_t mTextSize;
+  nsTArray<char16_t> mText;
   bool mConstrainSize;
 
   nsresult AddAttributes(const char16_t** aAttributes, const uint32_t aAttrLen,
@@ -80,7 +80,7 @@ class XULContentSinkImpl final : public nsIXMLContentSink, public nsIExpatSink {
 
   // Text management
   nsresult FlushText(bool aCreateTextNode = true);
-  nsresult AddText(const char16_t* aText, int32_t aLength);
+  nsresult AddText(mozilla::Span<const char16_t> aNewText);
 
   RefPtr<nsNodeInfoManager> mNodeInfoManager;
 

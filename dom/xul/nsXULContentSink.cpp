@@ -121,18 +121,12 @@ void XULContentSinkImpl::ContextStack::Traverse(
 //----------------------------------------------------------------------
 
 XULContentSinkImpl::XULContentSinkImpl()
-    : mText(nullptr),
-      mTextLength(0),
-      mTextSize(0),
-      mConstrainSize(true),
-      mState(eInProlog) {}
+    : mConstrainSize(true), mState(eInProlog) {}
 
 XULContentSinkImpl::~XULContentSinkImpl() {
   // The context stack _should_ be empty, unless something has gone wrong.
   NS_ASSERTION(mContextStack.Depth() == 0, "Context stack not empty?");
   mContextStack.Clear();
-
-  free(mText);
 }
 
 //----------------------------------------------------------------------
@@ -231,7 +225,7 @@ nsresult XULContentSinkImpl::Init(Document* aDocument,
 //
 
 bool XULContentSinkImpl::IsDataInBuffer() const {
-  for (int32_t i = 0; i < mTextLength; ++i) {
+  for (size_t i = 0; i < mText.Length(); ++i) {
     if (mText[i] == ' ' || mText[i] == '\t' || mText[i] == '\n' ||
         mText[i] == '\r')
       continue;
@@ -247,7 +241,9 @@ nsresult XULContentSinkImpl::FlushText(bool aCreateTextNode) {
   do {
     // Don't do anything if there's no text to create a node from, or
     // if they've told us not to create a text node
-    if (!mTextLength) break;
+    if (mText.IsEmpty()) {
+      break;
+    }
 
     if (!aCreateTextNode) break;
 
@@ -272,7 +268,7 @@ nsresult XULContentSinkImpl::FlushText(bool aCreateTextNode) {
     if (mState != eInDocumentElement || mContextStack.Depth() == 0) break;
 
     RefPtr<nsXULPrototypeText> text = new nsXULPrototypeText();
-    text->mValue.Assign(mText, mTextLength);
+    text->mValue.Assign(mText.Elements(), mText.Length());
     if (stripWhitespace) text->mValue.Trim(" \t\n\r");
 
     // hook it up
@@ -284,7 +280,7 @@ nsresult XULContentSinkImpl::FlushText(bool aCreateTextNode) {
   } while (0);
 
   // Reset our text buffer
-  mTextLength = 0;
+  mText.ClearAndRetainStorage();
   return NS_OK;
 }
 
@@ -412,8 +408,8 @@ XULContentSinkImpl::HandleEndElement(const char16_t* aName) {
 
         script->mOutOfLine = false;
         if (doc) {
-          script->Compile(mText, mTextLength, mDocumentURL, script->mLineNo,
-                          doc);
+          script->Compile(mText.Elements(), mText.Length(), mDocumentURL,
+                          script->mLineNo, doc);
         }
       }
 
@@ -460,7 +456,7 @@ NS_IMETHODIMP
 XULContentSinkImpl::HandleCDataSection(const char16_t* aData,
                                        uint32_t aLength) {
   FlushText();
-  return AddText(aData, aLength);
+  return AddText(Span(aData, aLength));
 }
 
 NS_IMETHODIMP
@@ -476,7 +472,7 @@ NS_IMETHODIMP
 XULContentSinkImpl::HandleCharacterData(const char16_t* aData,
                                         uint32_t aLength) {
   if (aData && mState != eInProlog && mState != eInEpilog) {
-    return AddText(aData, aLength);
+    return AddText(Span(aData, aLength));
   }
   return NS_OK;
 }
@@ -537,10 +533,8 @@ XULContentSinkImpl::ReportError(const char16_t* aErrorText,
 
   mState = eInProlog;
 
-  // Clear any buffered-up text we have.  It's enough to set the length to 0.
-  // The buffer itself is allocated when we're created and deleted in our
-  // destructor, so don't mess with it.
-  mTextLength = 0;
+  // Clear any buffered-up text we have.
+  mText.ClearAndRetainStorage();
 
   // return leaving the document empty if we're asked to not add a <parsererror>
   // root node
@@ -812,48 +806,34 @@ nsresult XULContentSinkImpl::AddAttributes(const char16_t** aAttributes,
   return NS_OK;
 }
 
-nsresult XULContentSinkImpl::AddText(const char16_t* aText, int32_t aLength) {
+nsresult XULContentSinkImpl::AddText(Span<const char16_t> aNewText) {
   // Create buffer when we first need it
-  if (0 == mTextSize) {
-    mText = (char16_t*)malloc(sizeof(char16_t) * 4096);
-    if (nullptr == mText) {
+  if (mText.Capacity() == 0) {
+    if (!mText.SetCapacity(4096, mozilla::fallible)) {
       return NS_ERROR_OUT_OF_MEMORY;
     }
-    mTextSize = 4096;
   }
 
   // Copy data from string into our buffer; flush buffer when it fills up
-  int32_t offset = 0;
-  while (0 != aLength) {
-    int32_t amount = mTextSize - mTextLength;
-    if (amount > aLength) {
-      amount = aLength;
-    }
-    if (0 == amount) {
+  while (!aNewText.IsEmpty()) {
+    size_t spaceRemaining = mText.Capacity() - mText.Length();
+    if (spaceRemaining == 0) {
       if (mConstrainSize) {
         nsresult rv = FlushText();
         if (NS_OK != rv) {
           return rv;
         }
-      } else {
-        CheckedInt32 size = mTextSize;
-        size += aLength;
-        if (!size.isValid()) {
-          return NS_ERROR_OUT_OF_MEMORY;
-        }
-        mTextSize = size.value();
-
-        mText = (char16_t*)realloc(mText, sizeof(char16_t) * mTextSize);
-        if (nullptr == mText) {
-          return NS_ERROR_OUT_OF_MEMORY;
-        }
+      } else if (!mText.SetCapacity(mText.Capacity() + aNewText.Length(),
+                                    mozilla::fallible)) {
+        return NS_ERROR_OUT_OF_MEMORY;
       }
+      continue;
     }
-    memcpy(&mText[mTextLength], aText + offset, sizeof(char16_t) * amount);
 
-    mTextLength += amount;
-    offset += amount;
-    aLength -= amount;
+    size_t numCharsToCopy = std::min(spaceRemaining, aNewText.Length());
+    const auto [newText1, newText2] = aNewText.SplitAt(numCharsToCopy);
+    mText.AppendElements(newText1);
+    aNewText = newText2;
   }
 
   return NS_OK;
