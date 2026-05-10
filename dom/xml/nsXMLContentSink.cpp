@@ -89,15 +89,12 @@ nsresult NS_NewXMLContentSink(nsIXMLContentSink** aResult, Document* aDoc,
 
 nsXMLContentSink::nsXMLContentSink()
     : mState(eXMLContentSinkState_InProlog),
-      mTextLength(0),
       mNotifyLevel(0),
       mPrettyPrintXML(true),
       mPrettyPrintHasSpecialRoot(0),
       mPrettyPrintHasFactoredElements(0),
       mPrettyPrinting(0),
-      mPreventScriptExecution(0) {
-  PodArrayZero(mText);
-}
+      mPreventScriptExecution(0) {}
 
 nsXMLContentSink::~nsXMLContentSink() = default;
 
