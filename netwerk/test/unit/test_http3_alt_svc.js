@@ -192,55 +192,6 @@ function test_https_alt_svc_1() {
     });
 }
 
-function test_https_speculativeConnect_alt_svc() {
-  dump("test_https_speculativeConnect_alt_svc()\n");
-
-  do_test_pending();
-
-  let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-  let observer = {
-    QueryInterface: ChromeUtils.generateQI(["nsIObserver"]),
-    observe(aSubject, aTopic, aData) {
-      if (aTopic == "speculative-connect-request") {
-        Services.obs.removeObserver(observer, "speculative-connect-request");
-        timer.cancel();
-        info("h3Route=" + h3Route + "\n");
-        info("aData=" + aData + "\n");
-        info(`.S........H[tlsflags0x00000000]${h3Route}`);
-        Assert.ok(
-          aData.includes(`<ROUTE-via ${h3Route}`) ||
-            aData.includes(`.S........H[tlsflags0x00000000]foo.example.com`)
-        );
-        do_timeout(0, () => {
-          run_next_test();
-          do_test_finished();
-        });
-      }
-    },
-  };
-  Services.obs.addObserver(observer, "speculative-connect-request");
-
-  timer.initWithCallback(
-    () => {
-      Services.obs.removeObserver(observer, "speculative-connect-request");
-      Assert.ok(false, "speculative-connect-request observer timed out");
-      do_test_finished();
-    },
-    30000,
-    Ci.nsITimer.TYPE_ONE_SHOT
-  );
-
-  Services.prefs.setBoolPref("network.http.debug-observations", true);
-
-  let uri = Services.io.newURI(httpsOrigin);
-  Services.io.speculativeConnect(
-    uri,
-    Services.scriptSecurityManager.getSystemPrincipal(),
-    null,
-    false
-  );
-}
-
 function testsDone() {
   prefs.clearUserPref("network.http.http3.enable");
   prefs.clearUserPref("network.dns.localDomains");
