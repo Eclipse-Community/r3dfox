@@ -157,6 +157,11 @@ class ChannelEventQueue final {
     mOwner = nullptr;
   }
 
+  void DiscardQueuedEvents() {
+    MutexAutoLock lock(mMutex);
+    mEventQueue.Clear();
+  }
+
 #ifdef MOZ_DIAGNOSTIC_ASSERT_ENABLED
   bool IsEmpty() {
     MutexAutoLock lock(mMutex);
