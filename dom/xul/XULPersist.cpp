@@ -217,6 +217,11 @@ nsresult XULPersist::ApplyPersistentAttributesToElements(
       return NS_ERROR_OUT_OF_MEMORY;
     }
 
+    if (NS_WARN_IF(
+            nsContentUtils::IsEventAttributeName(attr, EventNameType_All))) {
+      continue;
+    }
+
     uint32_t cnt = aElements.Length();
     for (int32_t i = int32_t(cnt) - 1; i >= 0; --i) {
       Element* element = aElements.SafeElementAt(i);
