@@ -171,6 +171,7 @@ class MigrationUtils {
         "chrome://browser/content/spotlight.html",
         "about:firefoxview",
       ],
+      remoteTypes: ["parent", "privilegedabout"],
     });
 
     ChromeUtils.defineLazyGetter(this, "IS_LINUX_SNAP_PACKAGE", () => {

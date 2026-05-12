@@ -257,6 +257,7 @@ let JSWINDOWACTORS = {
     },
     matches: ["about:preferences*", "about:settings*"],
     enablePreference: "browser.backup.preferences.ui.enabled",
+    remoteTypes: ["parent", "privilegedabout"],
   },
 
   BlockedSite: {

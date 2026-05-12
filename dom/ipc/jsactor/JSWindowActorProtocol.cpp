@@ -309,16 +309,6 @@ extensions::MatchPatternSetCore* JSWindowActorProtocol::GetURIMatcher() {
   return mURIMatcher;
 }
 
-bool JSWindowActorProtocol::RemoteTypePrefixMatches(
-    const nsDependentCSubstring& aRemoteType) {
-  for (auto& remoteType : mRemoteTypes) {
-    if (StringBeginsWith(aRemoteType, remoteType)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool JSWindowActorProtocol::MessageManagerGroupMatches(
     BrowsingContext* aBrowsingContext) {
   BrowsingContext* top = aBrowsingContext->Top();
@@ -349,8 +339,7 @@ bool JSWindowActorProtocol::Matches(BrowsingContext* aBrowsingContext,
     return false;
   }
 
-  if (!mRemoteTypes.IsEmpty() &&
-      !RemoteTypePrefixMatches(RemoteTypePrefix(aRemoteType))) {
+  if (!RemoteTypePrefixMatches(aRemoteType)) {
     aRv.ThrowNotSupportedError(
         nsPrintfCString("Window protocol '%s' doesn't match remote type '%s'",
                         mName.get(), PromiseFlatCString(aRemoteType).get()));
