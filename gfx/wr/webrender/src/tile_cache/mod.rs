@@ -32,6 +32,7 @@ use crate::picture::{SurfaceTextureDescriptor, PictureCompositeMode, SurfaceInde
 use crate::picture::{get_relative_scale_offset, PictureInstance};
 use crate::picture::MAX_COMPOSITOR_SURFACES_SIZE;
 use crate::prim_store::{PrimitiveInstance, PrimitiveKind, PrimitiveScratchBuffer, PictureIndex};
+use crate::prim_store::PrimitiveTemplateKind;
 use crate::prim_store::PrimitiveInstanceIndex;
 use crate::print_tree::{PrintTreePrinter, PrintTree};
 use crate::{profiler, render_backend::DataStores};
@@ -2306,7 +2307,7 @@ impl TileCacheInstance {
                 // Rectangles can only form a backdrop candidate if they are known opaque.
                 // TODO(gw): We could resolve the opacity binding here, but the common
                 //           case for background rects is that they don't have animated opacity.
-                let prim_color = data_stores.prim[data_handle].kind.color;
+                let PrimitiveTemplateKind::Rectangle { color: prim_color, .. } = data_stores.prim[data_handle].kind else { unreachable!() };
                 let resolved = frame_context.scene_properties.resolve_color(&prim_color);
                 if resolved.a >= 1.0 {
                     backdrop_candidate = Some(BackdropInfo {
