@@ -2,28 +2,33 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use api::{BorderRadius, ClipMode, ColorF, ColorU};
+use api::{BorderRadius, ClipMode, ColorF, ColorU, RasterSpace};
 use api::{ImageRendering, RepeatMode, PrimitiveFlags};
 use api::{PropertyBinding};
-use api::{FillRule, POLYGON_CLIP_VERTEX_MAX};
+use api::{Shadow};
+use api::{PrimitiveKeyKind, FillRule, POLYGON_CLIP_VERTEX_MAX};
 use api::units::*;
 use euclid::{SideOffsets2D, Size2D};
 use malloc_size_of::MallocSizeOf;
 use crate::composite::CompositorSurfaceKind;
 use crate::clip::ClipLeafId;
+use crate::pattern::{Pattern, PatternBuilder, PatternBuilderContext, PatternBuilderState};
 use crate::quad::QuadTileClassifier;
 use crate::renderer::{GpuBufferAddress, GpuBufferHandle, GpuBufferWriterF};
 use crate::segment::EdgeMask;
 use crate::border::BorderSegmentCacheKey;
 use crate::debug_item::{DebugItem, DebugMessage};
 use crate::debug_colors;
+use crate::scene_building::{CreateShadow, IsVisible};
+use crate::frame_builder::FrameBuildingState;
 use glyph_rasterizer::GlyphKey;
 use crate::gpu_types::{BrushFlags, BrushSegmentGpuData, QuadSegment};
 use crate::intern;
 use crate::picture::{PictureInstance, PictureScratch};
 use crate::render_task_graph::RenderTaskId;
 use crate::resource_cache::ImageProperties;
-use std::{hash, u32, usize};
+use crate::scene::SceneProperties;
+use std::{hash, ops, u32, usize};
 use crate::util::Recycler;
 use crate::internal_types::{FastHashSet, LayoutPrimitiveInfo};
 use crate::visibility::PrimitiveDrawHeader;
@@ -34,7 +39,6 @@ pub mod gradient;
 pub mod image;
 pub mod line_dec;
 pub mod picture;
-pub mod rectangle;
 pub mod text_run;
 pub mod interned;
 
@@ -46,7 +50,6 @@ use gradient::{LinearGradientDataHandle, RadialGradientDataHandle, ConicGradient
 use image::{ImageDataHandle, ImageScratch, VisibleImageTile, YuvImageDataHandle};
 use line_dec::{LineDecorationDataHandle, LineDecorationScratch};
 use picture::PictureDataHandle;
-use rectangle::RectangleDataHandle;
 use text_run::{TextRunDataHandle, TextRunScratch};
 use crate::box_shadow::BoxShadowDataHandle;
 
@@ -114,14 +117,14 @@ impl PictureIndex {
 #[cfg_attr(feature = "capture", derive(Serialize))]
 #[cfg_attr(feature = "replay", derive(Deserialize))]
 #[derive(Copy, Debug, Clone, MallocSizeOf, PartialEq)]
-pub struct RectKey {
+pub struct RectangleKey {
     pub x0: f32,
     pub y0: f32,
     pub x1: f32,
     pub y1: f32,
 }
 
-impl RectKey {
+impl RectangleKey {
     pub fn intersects(&self, other: &Self) -> bool {
         self.x0 < other.x1
             && other.x0 < self.x1
@@ -130,9 +133,9 @@ impl RectKey {
     }
 }
 
-impl Eq for RectKey {}
+impl Eq for RectangleKey {}
 
-impl hash::Hash for RectKey {
+impl hash::Hash for RectangleKey {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.x0.to_bits().hash(state);
         self.y0.to_bits().hash(state);
@@ -141,8 +144,8 @@ impl hash::Hash for RectKey {
     }
 }
 
-impl From<RectKey> for LayoutRect {
-    fn from(key: RectKey) -> LayoutRect {
+impl From<RectangleKey> for LayoutRect {
+    fn from(key: RectangleKey) -> LayoutRect {
         LayoutRect {
             min: LayoutPoint::new(key.x0, key.y0),
             max: LayoutPoint::new(key.x1, key.y1),
@@ -150,8 +153,8 @@ impl From<RectKey> for LayoutRect {
     }
 }
 
-impl From<RectKey> for WorldRect {
-    fn from(key: RectKey) -> WorldRect {
+impl From<RectangleKey> for WorldRect {
+    fn from(key: RectangleKey) -> WorldRect {
         WorldRect {
             min: WorldPoint::new(key.x0, key.y0),
             max: WorldPoint::new(key.x1, key.y1),
@@ -159,9 +162,9 @@ impl From<RectKey> for WorldRect {
     }
 }
 
-impl From<LayoutRect> for RectKey {
-    fn from(rect: LayoutRect) -> RectKey {
-        RectKey {
+impl From<LayoutRect> for RectangleKey {
+    fn from(rect: LayoutRect) -> RectangleKey {
+        RectangleKey {
             x0: rect.min.x,
             y0: rect.min.y,
             x1: rect.max.x,
@@ -170,9 +173,9 @@ impl From<LayoutRect> for RectKey {
     }
 }
 
-impl From<PictureRect> for RectKey {
-    fn from(rect: PictureRect) -> RectKey {
-        RectKey {
+impl From<PictureRect> for RectangleKey {
+    fn from(rect: PictureRect) -> RectangleKey {
+        RectangleKey {
             x0: rect.min.x,
             y0: rect.min.y,
             x1: rect.max.x,
@@ -181,9 +184,9 @@ impl From<PictureRect> for RectKey {
     }
 }
 
-impl From<WorldRect> for RectKey {
-    fn from(rect: WorldRect) -> RectKey {
-        RectKey {
+impl From<WorldRect> for RectangleKey {
+    fn from(rect: WorldRect) -> RectangleKey {
+        RectangleKey {
             x0: rect.min.x,
             y0: rect.min.y,
             x1: rect.max.x,
@@ -441,6 +444,69 @@ pub struct PrimKey<T: MallocSizeOf> {
 
 #[cfg_attr(feature = "capture", derive(Serialize))]
 #[cfg_attr(feature = "replay", derive(Deserialize))]
+#[derive(Debug, Clone, Eq, MallocSizeOf, PartialEq, Hash)]
+pub struct PrimitiveKey {
+    pub common: PrimKeyCommonData,
+    pub kind: PrimitiveKeyKind,
+}
+
+impl PrimitiveKey {
+    pub fn new(
+        info: &LayoutPrimitiveInfo,
+        kind: PrimitiveKeyKind,
+    ) -> Self {
+        PrimitiveKey {
+            common: info.into(),
+            kind,
+        }
+    }
+}
+
+impl intern::InternDebug for PrimitiveKey {}
+
+/// The shared information for a given primitive. This is interned and retained
+/// both across frames and display lists, by comparing the matching PrimitiveKey.
+#[cfg_attr(feature = "capture", derive(Serialize))]
+#[cfg_attr(feature = "replay", derive(Deserialize))]
+#[derive(MallocSizeOf)]
+pub enum PrimitiveTemplateKind {
+    Rectangle {
+        color: PropertyBinding<ColorF>,
+    },
+}
+
+impl PrimitiveTemplateKind {
+    /// Write any GPU blocks for the primitive template to the given request object.
+    pub fn write_prim_gpu_blocks(
+        &self,
+        writer: &mut GpuBufferWriterF,
+        scene_properties: &SceneProperties,
+    ) {
+        match *self {
+            PrimitiveTemplateKind::Rectangle { ref color, .. } => {
+                writer.push_one(scene_properties.resolve_color(color).premultiplied())
+            }
+        }
+    }
+}
+
+/// Construct the primitive template data from a primitive key. This
+/// is invoked when a primitive key is created and the interner
+/// doesn't currently contain a primitive with this key.
+impl From<PrimitiveKeyKind> for PrimitiveTemplateKind {
+    fn from(kind: PrimitiveKeyKind) -> Self {
+        match kind {
+            PrimitiveKeyKind::Rectangle { color, .. } => {
+                PrimitiveTemplateKind::Rectangle {
+                    color: color.into(),
+                }
+            }
+        }
+    }
+}
+
+#[cfg_attr(feature = "capture", derive(Serialize))]
+#[cfg_attr(feature = "replay", derive(Deserialize))]
 #[derive(MallocSizeOf)]
 #[derive(Debug)]
 pub struct PrimTemplateCommonData {
@@ -478,6 +544,114 @@ impl PrimTemplateCommonData {
 pub struct PrimTemplate<T> {
     pub common: PrimTemplateCommonData,
     pub kind: T,
+}
+
+#[cfg_attr(feature = "capture", derive(Serialize))]
+#[cfg_attr(feature = "replay", derive(Deserialize))]
+#[derive(MallocSizeOf)]
+pub struct PrimitiveTemplate {
+    pub common: PrimTemplateCommonData,
+    pub kind: PrimitiveTemplateKind,
+}
+
+impl PatternBuilder for PrimitiveTemplate {
+    fn build(
+        &self,
+        _sub_rect: Option<DeviceRect>,
+        _offset: LayoutVector2D,
+        ctx: &PatternBuilderContext,
+        _state: &mut PatternBuilderState,
+    ) -> crate::pattern::Pattern {
+        match self.kind {
+            PrimitiveTemplateKind::Rectangle { ref color, .. } => {
+                let color = ctx.scene_properties.resolve_color(color);
+                Pattern::color(color)
+            }
+        }
+    }
+}
+
+impl ops::Deref for PrimitiveTemplate {
+    type Target = PrimTemplateCommonData;
+    fn deref(&self) -> &Self::Target {
+        &self.common
+    }
+}
+
+impl ops::DerefMut for PrimitiveTemplate {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.common
+    }
+}
+
+impl From<PrimitiveKey> for PrimitiveTemplate {
+    fn from(item: PrimitiveKey) -> Self {
+        PrimitiveTemplate {
+            common: PrimTemplateCommonData::with_key_common(item.common),
+            kind: item.kind.into(),
+        }
+    }
+}
+
+impl PrimitiveTemplate {
+    /// Update the GPU cache for a given primitive template. This may be called multiple
+    /// times per frame, by each primitive reference that refers to this interned
+    /// template. The initial request call to the GPU cache ensures that work is only
+    /// done if the cache entry is invalid (due to first use or eviction).
+    pub fn update(
+        &mut self,
+        frame_state: &mut FrameBuildingState,
+        scene_properties: &SceneProperties,
+    ) {
+        let mut writer = frame_state.frame_gpu_data.f32.write_blocks(1);
+        self.kind.write_prim_gpu_blocks(&mut writer, scene_properties);
+        self.common.gpu_buffer_address = writer.finish();
+
+        self.opacity = match self.kind {
+            PrimitiveTemplateKind::Rectangle { ref color, .. } => {
+                PrimitiveOpacity::from_alpha(scene_properties.resolve_color(color).a)
+            }
+        };
+    }
+}
+
+type PrimitiveDataHandle = intern::Handle<PrimitiveKeyKind>;
+
+impl intern::Internable for PrimitiveKeyKind {
+    type Key = PrimitiveKey;
+    type StoreData = PrimitiveTemplate;
+    type InternData = ();
+    const PROFILE_COUNTER: usize = crate::profiler::INTERNED_PRIMITIVES;
+}
+
+impl InternablePrimitive for PrimitiveKeyKind {
+    fn into_key(
+        self,
+        info: &LayoutPrimitiveInfo,
+    ) -> PrimitiveKey {
+        PrimitiveKey::new(info, self)
+    }
+
+    fn make_instance_kind(
+        key: PrimitiveKey,
+        data_handle: PrimitiveDataHandle,
+        prim_store: &mut PrimitiveStore,
+    ) -> PrimitiveKind {
+        match key.kind {
+            PrimitiveKeyKind::Rectangle { color, .. } => {
+                let color_binding_index = match color {
+                    PropertyBinding::Binding(..) => {
+                        prim_store.color_bindings.push(color)
+                    }
+                    PropertyBinding::Value(..) => ColorBindingIndex::INVALID,
+                };
+                PrimitiveKind::Rectangle {
+                    data_handle,
+                    color_binding_index,
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug, MallocSizeOf)]
@@ -727,6 +901,46 @@ pub struct NinePatchDescriptor {
     pub widths: SideOffsetsKey,
 }
 
+impl IsVisible for PrimitiveKeyKind {
+    // Return true if the primary primitive is visible.
+    // Used to trivially reject non-visible primitives.
+    // TODO(gw): Currently, primitives other than those
+    //           listed here are handled before the
+    //           add_primitive() call. In the future
+    //           we should move the logic for all other
+    //           primitive types to use this.
+    fn is_visible(&self) -> bool {
+        match *self {
+            PrimitiveKeyKind::Rectangle { ref color, .. } => {
+                match *color {
+                    PropertyBinding::Value(value) => value.a > 0,
+                    PropertyBinding::Binding(..) => true,
+                }
+            }
+        }
+    }
+}
+
+impl CreateShadow for PrimitiveKeyKind {
+    // Create a clone of this PrimitiveContainer, applying whatever
+    // changes are necessary to the primitive to support rendering
+    // it as part of the supplied shadow.
+    fn create_shadow(
+        &self,
+        shadow: &Shadow,
+        _: bool,
+        _: RasterSpace,
+    ) -> PrimitiveKeyKind {
+        match *self {
+            PrimitiveKeyKind::Rectangle { .. } => {
+                PrimitiveKeyKind::Rectangle {
+                    color: PropertyBinding::Value(shadow.color.into()),
+                }
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 #[cfg_attr(feature = "capture", derive(Serialize))]
 pub enum PrimitiveKind {
@@ -757,7 +971,7 @@ pub enum PrimitiveKind {
     },
     Rectangle {
         /// Handle to the common interned data for this primitive.
-        data_handle: RectangleDataHandle,
+        data_handle: PrimitiveDataHandle,
         color_binding_index: ColorBindingIndex,
     },
     YuvImage {
