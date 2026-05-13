@@ -601,9 +601,6 @@ class nsWindow final : public nsIWidget {
   bool IsSimulatedClientArea(int32_t clientX, int32_t clientY);
   bool IsWindowButton(int32_t hitTestResult);
 
-  void UpdateOpaqueRegion(const LayoutDeviceIntRegion&) override;
-  void UpdateOpaqueRegionInternal();
-
   void SetColorScheme(const mozilla::Maybe<mozilla::ColorScheme>&) override;
   void SetMicaBackdrop(bool) override;
 
@@ -803,9 +800,6 @@ class nsWindow final : public nsIWidget {
 
   // Draggable titlebar region maintained by UpdateWindowDraggingRegion
   LayoutDeviceIntRegion mDraggableRegion;
-  // Opaque region maintained by UpdateOpaqueRegion (relative to the client
-  // area).
-  LayoutDeviceIntRegion mOpaqueRegion;
 
   LayoutDeviceIntRect mBounds;
 
@@ -816,6 +810,7 @@ class nsWindow final : public nsIWidget {
 
   // Transparency
   TransparencyMode mTransparencyMode = TransparencyMode::Opaque;
+  nsIntRegion mPossiblyTransparentRegion;
 
   // Win7 Gesture processing and management
   nsWinGesture mGesture;
