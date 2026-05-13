@@ -239,3 +239,6 @@ if CONFIG["MOZ_WINDOWSAPPSDK_DIR"]:
             "Microsoft.UI.Windowing.dll",
         )
     ]
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"
