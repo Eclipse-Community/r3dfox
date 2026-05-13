@@ -34,9 +34,13 @@
       var(--toolbarbutton-icon-fill-attention-text-dark)
     );
 
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
     --toolbox-background-color: var(--lwt-accent-color);
     --toolbox-background-color-inactive: var(--lwt-accent-color-inactive, var(--lwt-accent-color));
     --toolbox-text-color: var(--lwt-text-color, currentColor);
     --toolbox-text-color-inactive: var(--lwt-text-color, currentColor);
+  }
+}
   }
 }
