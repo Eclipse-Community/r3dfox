@@ -823,10 +823,9 @@ fn prepare_interned_prim_for_render(
             } else {
                 let prim_data = &data_stores.prim[*data_handle];
                 let prim_rect = prim_instance.prim_rect;
-                let color = prim_data.resolve(frame_context.scene_properties);
 
                 quad::prepare_quad(
-                    &color,
+                    prim_data,
                     &prim_rect,
                     prim_data.common.aligned_aa_edges,
                     prim_data.common.transformed_aa_edges,

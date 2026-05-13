@@ -10,6 +10,8 @@ use crate::prim_store::{
     PrimKey, InternablePrimitive, PrimitiveStore, PrimitiveKind,
     PrimTemplate, PrimTemplateCommonData, PrimitiveOpacity,
 };
+use api::units::{DeviceRect, LayoutVector2D};
+use crate::pattern::{Pattern, PatternBuilder, PatternBuilderContext, PatternBuilderState};
 use crate::frame_builder::FrameBuildingState;
 use crate::scene::SceneProperties;
 use std::ops;
@@ -90,12 +92,6 @@ pub struct RectangleData {
 
 pub type RectangleTemplate = PrimTemplate<RectangleData>;
 
-impl RectangleTemplate {
-    pub fn resolve(&self, scene_properties: &SceneProperties) -> ColorF {
-        scene_properties.resolve_color(&self.kind.color)
-    }
-}
-
 impl ops::Deref for RectangleTemplate {
     type Target = PrimTemplateCommonData;
     fn deref(&self) -> &Self::Target {
@@ -106,6 +102,18 @@ impl ops::Deref for RectangleTemplate {
 impl ops::DerefMut for RectangleTemplate {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.common
+    }
+}
+
+impl PatternBuilder for RectangleTemplate {
+    fn build(
+        &self,
+        _sub_rect: Option<DeviceRect>,
+        _offset: LayoutVector2D,
+        ctx: &PatternBuilderContext,
+        _state: &mut PatternBuilderState,
+    ) -> Pattern {
+        Pattern::color(ctx.scene_properties.resolve_color(&self.kind.color))
     }
 }
 
