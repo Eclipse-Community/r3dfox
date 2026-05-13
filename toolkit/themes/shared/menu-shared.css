@@ -199,12 +199,6 @@ menubar  > menu {
   }
 
   @media (-moz-platform: windows) {
-    padding: 0;
-
-    &:-moz-window-inactive {
-      color: var(--text-color-deemphasized);
-    }
-
     &:not([disabled]) {
       color: inherit;
     }
