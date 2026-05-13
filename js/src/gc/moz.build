@@ -64,3 +64,6 @@ SOURCES += [
 
 if CONFIG["FUZZING_JS_FUZZILLI"]:
     include("/tools/fuzzing/libfuzzer-config.mozbuild")
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"
