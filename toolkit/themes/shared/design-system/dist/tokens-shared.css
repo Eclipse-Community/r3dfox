@@ -442,10 +442,14 @@
     --toolbarseparator-color: var(--text-color-deemphasized);
 
     /** toolbox **/
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
     --toolbox-bgcolor: -moz-headerbar;
     --toolbox-bgcolor-inactive: -moz-headerbarinactive;
     --toolbox-textcolor: -moz-headerbartext;
     --toolbox-textcolor-inactive: -moz-headerbarinactivetext;
+  }
+}
   }
 }
 
@@ -613,9 +617,11 @@
     :root:not([lwtheme]),
     :host(.anonymous-content-host) {
       /** toolbar **/
-  @media (-moz-windows-default-theme) {
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
       --toolbar-bgcolor: light-dark(#f9f9fb, rgb(43, 42, 51));
   }
+}
       --toolbar-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-focus-background-color: light-dark(var(--color-white), rgb(66, 65, 77));
@@ -627,11 +633,13 @@
       --toolbarbutton-icon-fill-attention-text: light-dark(var(--color-gray-20), var(--color-gray-90));
 
       /** toolbox **/
-@media not (-moz-windows-default-theme) {
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
       --toolbox-bgcolor: light-dark(rgb(234, 234, 237), var(--color-gray-90));
       --toolbox-bgcolor-inactive: var(--toolbox-bgcolor);
       --toolbox-textcolor: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbox-textcolor-inactive: var(--toolbox-textcolor);
+  }
 }
     }
   }
