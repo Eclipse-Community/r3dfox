@@ -179,12 +179,11 @@ menubar {
   font: menu;
 }
 
-menubar > menu {
+menubar  > menu {
   @media (-moz-platform: linux) {
     color: inherit;
     background-color: transparent;
     border-radius: 0;
-    padding: 0.25em 0.5em;
     padding-bottom: 1px;
     border-bottom: 3px solid transparent;
 
@@ -200,7 +199,7 @@ menubar > menu {
   }
 
   @media (-moz-platform: windows) {
-    padding: 1px var(--space-small) var(--space-xxsmall);
+    padding: 0;
 
     &:-moz-window-inactive {
       color: var(--text-color-deemphasized);
@@ -221,10 +220,6 @@ menubar > menu {
       }
     }
   }
-}
-
-.menubar-text {
-  margin: 0;
 }
 
 menu,
@@ -296,45 +291,13 @@ menucaption {
   }
 }
 
-.menu-text,
-.menu-iconic-text,
-.menu-accel,
-.menu-iconic-accel {
-  margin: 0;
-  @media (-moz-platform: windows) {
-    padding: 1px 0;
-  }
-  @media (-moz-platform: linux) {
-    /* --space-xxsmall (0.125rem) only equals 2px at a 16px root font, causing
-     * rounding differences in layout at other font sizes.
-     */
-    /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
-    margin-inline: 0 2px;
-  }
-}
-
-.menu-accel,
-.menu-iconic-accel {
-  margin-inline: 0.74em 1.35em;
-  @media (-moz-platform: macos) {
-    /* margin-inline mimics natively-rendered menus */
-    /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
-    margin-inline: 25px 0;
-  }
-  @media (-moz-platform: linux) {
-    /* Matches the margin-inline-end on iconic-left */
-    margin-inline: var(--space-small) 0;
-  }
-}
-
 @media (-moz-platform: macos) {
+  :is(.menu-accel, .menu-iconic-accel)[value] {
+    margin-inline-start: 25px;
+  }
+
   /* On macOS, empty acceltext shouldn't take up any space */
   :is(menu, menuitem):not([acceltext]) > .menu-accel-container {
     display: none;
   }
-}
-
-.menu-iconic-icon {
-  width: var(--icon-size);
-  height: var(--icon-size);
 }
