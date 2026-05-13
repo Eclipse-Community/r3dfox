@@ -144,6 +144,17 @@ impl Pattern {
 
         Some(self.texture_input.task_id)
     }
+
+    pub fn clear() -> Self {
+        // Opaque black with operator dest out
+        Pattern {
+            kind: PatternKind::ColorOrTexture,
+            shader_input: PatternShaderInput::default(),
+            texture_input: PatternTextureInput::default(),
+            base_color: ColorF::BLACK,
+            is_opaque: false,
+        }
+    }
 }
 
 pub const TEXTURED_SHADER_MODE_COLOR: i32 = 0;

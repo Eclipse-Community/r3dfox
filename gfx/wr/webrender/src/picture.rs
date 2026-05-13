@@ -2030,6 +2030,10 @@ fn prepare_tiled_picture_surface(
                 TileSurface::Color { color } => {
                     (CompositeTileSurface::Color { color: *color }, true)
                 }
+                            TileSurface::Clear => {
+                                // Clear tiles are rendered with blend mode pre-multiply-dest-out.
+                                (CompositeTileSurface::Clear, false)
+                            }
                 TileSurface::Texture { descriptor, .. } => {
                     let surface = descriptor.resolve(frame_state.resource_cache, tile_cache.current_tile_size);
                     (
