@@ -122,10 +122,10 @@ bool WMFAudioMFTManager::Init() {
   hr = outputType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
   NS_ENSURE_TRUE(SUCCEEDED(hr), false);
 
-  hr = outputType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
+  hr = outputType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
   NS_ENSURE_TRUE(SUCCEEDED(hr), false);
 
-  hr = outputType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, 32);
+  hr = outputType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, 16);
   NS_ENSURE_TRUE(SUCCEEDED(hr), false);
 
   hr = decoder->SetMediaTypes(inputType, outputType);
@@ -245,8 +245,8 @@ WMFAudioMFTManager::Output(int64_t aStreamOffset, RefPtr<MediaData>& aOutput) {
   ScopeExit exit([buffer] { buffer->Unlock(); });
   NS_ENSURE_TRUE(SUCCEEDED(hr), hr);
 
-  // Output is made of floats.
-  uint32_t numSamples = currentLength / sizeof(float);
+  // We can assume PCM 16 output.
+  uint32_t numSamples = currentLength / 2;
   uint32_t numFrames = numSamples / mAudioChannels;
   MOZ_ASSERT(numFrames >= 0);
   MOZ_ASSERT(numSamples >= 0);
@@ -266,8 +266,10 @@ WMFAudioMFTManager::Output(int64_t aStreamOffset, RefPtr<MediaData>& aOutput) {
     return E_OUTOFMEMORY;
   }
 
-  float* floatData = reinterpret_cast<float*>(data);
-  PodCopy(audioData.Data(), floatData, numSamples);
+  int16_t* pcm = (int16_t*)data;
+  for (int32_t i = 0; i < numSamples; ++i) {
+    audioData[i] = ConvertAudioSample<float>(pcm[i]);
+  }
 
   TimeUnit duration(numFrames, mAudioRate);
   NS_ENSURE_TRUE(duration.IsValid(), E_FAIL);
