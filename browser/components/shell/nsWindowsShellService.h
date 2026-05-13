@@ -27,6 +27,8 @@ class nsWindowsShellService : public nsToolkitShellService,
 
  protected:
   nsresult LaunchControlPanelDefaultsSelectionUI();
+  nsresult LaunchControlPanelDefaultPrograms();
+  nsresult InvokeHTTPOpenAsVerb();
 };
 
 #endif  // nswindowsshellservice_h_
