@@ -7232,7 +7232,7 @@
 #ifdef XP_WIN
 - name: gfx.canvas.remote.use-draw-image-fast-path-d3d
   type: RelaxedAtomicBool
-  value: true
+  value: false
   mirror: always
 #endif
 
