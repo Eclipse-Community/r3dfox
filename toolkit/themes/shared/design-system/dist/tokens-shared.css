@@ -641,7 +641,9 @@
       --panel-text-color: light-dark(var(--color-black), rgb(251, 251, 254));
 
       /** toolbar **/
+  @media (-moz-windows-default-theme) {
       --toolbar-background-color: light-dark(#f9f9fb, rgb(43, 42, 51));
+  }
       --toolbar-field-background-color-focus: light-dark(var(--color-white), rgb(66, 65, 77));
       --toolbar-field-text-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-text-color-focus: light-dark(var(--color-black), var(--color-gray-05));
@@ -653,10 +655,12 @@
       --toolbarbutton-icon-fill-attention-text: light-dark(var(--color-gray-20), var(--color-gray-90));
 
       /** toolbox **/
+@media not (-moz-windows-default-theme) {
       --toolbox-background-color: light-dark(rgb(234, 234, 237), var(--color-gray-90));
       --toolbox-background-color-inactive: var(--toolbox-background-color);
       --toolbox-text-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbox-text-color-inactive: var(--toolbox-text-color);
+}
     }
   }
 }
@@ -1066,5 +1070,11 @@
         --toolbarbutton-outline-color-active: var(--button-border-color-active);
       }
     }
+  }
+}
+
+@media (-moz-windows-default-theme) {
+  :root {
+    --toolbar-bgcolor: -moz-dialog;
   }
 }
