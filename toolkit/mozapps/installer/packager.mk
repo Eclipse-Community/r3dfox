@@ -173,13 +173,16 @@ endif
 	ln -s $(installdir)/$(MOZ_APP_NAME) $(DESTDIR)$(bindir)
 
 upload:
-	$(PYTHON3) -u $(MOZILLA_DIR)/build/upload.py --base-path $(ABS_DIST) $(UPLOAD_FILES)
+	$(PYTHON3) -u $(MOZILLA_DIR)/build/upload.py --base-path $(DIST) $(UPLOAD_FILES)
 	mkdir -p `dirname $(CHECKSUM_FILE)`
-	$(PYTHON3) $(MOZILLA_DIR)/build/checksums.py \
+	@$(PYTHON3) $(MOZILLA_DIR)/build/checksums.py \
 		-o $(CHECKSUM_FILE) \
 		$(CHECKSUM_ALGORITHM_PARAM) \
 		$(UPLOAD_PATH)
-	$(PYTHON3) -u $(MOZILLA_DIR)/build/upload.py --base-path $(ABS_DIST) $(CHECKSUM_FILE)
+	@echo 'CHECKSUM FILE START'
+	@cat $(CHECKSUM_FILE)
+	@echo 'CHECKSUM FILE END'
+	$(PYTHON3) -u $(MOZILLA_DIR)/build/upload.py --base-path $(DIST) $(CHECKSUM_FILES)
 
 hg-bundle:
 	$(MKDIR) -p $(DIST)/$(PKG_SRCPACK_PATH)
