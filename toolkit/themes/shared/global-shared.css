@@ -69,9 +69,6 @@
 }
 
 :is(menupopup, panel):where([type="arrow"]) {
-  --menuitem-border-radius: var(--panel-menuitem-border-radius);
-  --menuitem-padding: var(--panel-menuitem-padding);
-  --menuitem-margin: var(--panel-menuitem-margin);
 }
 
 /* Lightweight theme roots */
