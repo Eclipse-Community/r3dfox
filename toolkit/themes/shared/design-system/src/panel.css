@@ -20,15 +20,6 @@
   --panel-header-info-icon-padding: var(--dimension-4);
   --panel-header-info-icon-full-width: calc(var(--icon-size-small) + (2 * var(--panel-header-info-icon-padding)));
 
-  /* Panel Menuitem */
-  --panel-menuitem-border-radius: var(--border-radius-small);
-  --panel-menuitem-margin-block: 0px;
-  --panel-menuitem-margin-inline: var(--dimension-8);
-  --panel-menuitem-margin: var(--panel-menuitem-margin-block) var(--panel-menuitem-margin-inline);
-  --panel-menuitem-padding-block: var(--dimension-8);
-  --panel-menuitem-padding-inline: var(--dimension-8);
-  --panel-menuitem-padding: var(--panel-menuitem-padding-block) var(--panel-menuitem-padding-inline);
-
   /* Compact mode */
   &[uidensity="compact"] {
     --panel-menuitem-margin-inline: var(--dimension-4);
