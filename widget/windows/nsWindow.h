@@ -142,7 +142,7 @@ class nsWindow final : public nsIWidget {
 
   NS_INLINE_DECL_REFCOUNTING_INHERITED(nsWindow, nsIWidget)
 
-  nsWindow();
+  explicit nsWindow(bool aIsChildWindow = false);
 
   void SendAnAPZEvent(mozilla::InputData& aEvent);
 
@@ -863,6 +863,9 @@ class nsWindow final : public nsIWidget {
 
   // Whether we're in the process of sending a WM_SETTEXT ourselves
   bool mSendingSetText = false;
+
+  // Whether we were created as a child window (aka ChildWindow) or not.
+  bool mIsChildWindow : 1;
 
   // Whether we are asked to render a mica backdrop.
   bool mMicaBackdrop : 1;
