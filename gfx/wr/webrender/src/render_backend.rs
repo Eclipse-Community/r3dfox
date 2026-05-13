@@ -237,7 +237,8 @@ impl DataStores {
         prim_inst: &PrimitiveInstance
     ) -> &PrimTemplateCommonData {
         match prim_inst.kind {
-            PrimitiveKind::Rectangle { data_handle, .. } => {
+            PrimitiveKind::Rectangle { data_handle, .. } |
+            PrimitiveKind::Clear { data_handle, .. } => {
                 let prim_data = &self.prim[data_handle];
                 &prim_data.common
             }
