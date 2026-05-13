@@ -26,7 +26,6 @@
 #include "mozilla/ScrollContainerFrame.h"
 #include "mozilla/StaticPrefs_layout.h"
 #include "mozilla/dom/DocumentInlines.h"
-#include "nsXULElement.h"
 #include <algorithm>
 
 using namespace mozilla;
@@ -59,24 +58,20 @@ static HTMLInputElement* GetContainingNumberInput(nsIContent* aContent) {
     return ElementState();
   }
 
-  bool isXULElement = frameContent->IsXULElement();
+  const bool isXULElement = frameContent->IsXULElement();
   if (isXULElement) {
     if (aAppearance == StyleAppearance::CheckboxLabel ||
         aAppearance == StyleAppearance::RadioLabel) {
       aFrame = aFrame->GetParent()->GetParent();
       frameContent = aFrame->GetContent();
-    }
-  }
-  if (aAppearance == StyleAppearance::Checkbox ||
-        aAppearance == StyleAppearance::Treeheadersortarrow ||
-      aAppearance == StyleAppearance::Radio) {
-    if (nsXULElement::FromNodeOrNull(frameContent->GetParent())) {
+    } else if (aAppearance == StyleAppearance::Checkbox ||
+               aAppearance == StyleAppearance::Treeheadersortarrow ||
+               aAppearance == StyleAppearance::Radio) {
       aFrame = aFrame->GetParent();
-      frameContent = frameContent->GetParent();
-      isXULElement = true;
+      frameContent = aFrame->GetContent();
     }
+    MOZ_ASSERT(frameContent && frameContent->IsElement());
   }
-  MOZ_ASSERT(frameContent && frameContent->IsElement());
 
   ElementState flags = frameContent->AsElement()->StyleState();
   if (aAppearance == StyleAppearance::SpinnerDownbutton ||
