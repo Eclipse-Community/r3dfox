@@ -10,13 +10,19 @@
 }
 
 #webRTC-sharingCamera-menu {
-  --menuitem-icon: url("chrome://browser/skin/notification-icons/camera.svg");
+  list-style-image: url("chrome://browser/skin/notification-icons/camera.svg");
 }
 
 #webRTC-sharingMicrophone-menu {
-  --menuitem-icon: url("chrome://browser/skin/notification-icons/microphone.svg");
+  list-style-image: url("chrome://browser/skin/notification-icons/microphone.svg");
 }
 
 #webRTC-sharingScreen-menu {
-  --menuitem-icon: url("chrome://browser/skin/notification-icons/screen.svg");
+  list-style-image: url("chrome://browser/skin/notification-icons/screen.svg");
+}
+
+#webRTC-sharingCamera-menu > menupopup,
+#webRTC-sharingMicrophone-menu > menupopup,
+#webRTC-sharingScreen-menu > menupopup {
+  list-style-image: none; /* don't inherit into menu items */
 }
