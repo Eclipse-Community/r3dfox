@@ -69,9 +69,6 @@
 }
 
 :is(menupopup, panel):where([type="arrow"]) {
-  --menuitem-border-radius: var(--panel-menuitem-border-radius);
-  --menuitem-padding: var(--panel-menuitem-padding);
-  --menuitem-margin: var(--panel-menuitem-margin);
 }
 
 @media -moz-pref("widget.macos.native-popovers") and (-moz-platform: macos) {
