@@ -452,7 +452,7 @@ body {
 /* Profiles menu */
 
 #menu_newProfile {
-  --menuitem-icon: url(chrome://global/skin/icons/plus.svg);
+  list-style-image: url(chrome://global/skin/icons/plus.svg);
 }
 
 .menuitem-iconic-profile {
@@ -1619,11 +1619,4 @@ popupnotificationcontent {
       }
     }
   }
-}
-
-/* Bookmarks roots menu-items */
-
-#BMB_bookmarksToolbar,
-#bookmarksToolbarFolderMenu {
-  --menuitem-icon: url("chrome://browser/skin/places/bookmarksToolbar.svg");
 }
