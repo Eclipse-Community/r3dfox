@@ -290,6 +290,10 @@ menucaption {
   @media (-moz-platform: macos) {
     margin-inline: var(--space-xlarge) calc(-1 * var(--space-xxsmall));
   }
+
+  @media (-moz-platform: windows) {
+    margin-inline-end: 1em;
+  }
 }
 
 .menu-text,
@@ -311,7 +315,7 @@ menucaption {
 
 .menu-accel,
 .menu-iconic-accel {
-  margin-inline: 0.74em 0.35em;
+  margin-inline: 0.74em 1.35em;
   @media (-moz-platform: macos) {
     /* margin-inline mimics natively-rendered menus */
     /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
