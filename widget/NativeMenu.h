@@ -8,7 +8,6 @@
 #include "nsISupportsImpl.h"
 #include "Units.h"
 
-class nsIURI;
 class nsIFrame;
 class nsMenuPopupFrame;
 class nsPresContext;
@@ -16,27 +15,17 @@ class nsPresContext;
 namespace mozilla {
 using Modifiers = uint16_t;
 class ErrorResult;
-class ComputedStyle;
+}  // namespace mozilla
 
-namespace dom {
+namespace mozilla::dom {
 class Element;
 }
 
-namespace widget {
-
-struct NativeMenuIcon {
-  RefPtr<nsIURI> mURI;
-  RefPtr<const ComputedStyle> mStyle;
-
-  explicit operator bool() const { return !!mURI; }
-};
+namespace mozilla::widget {
 
 class NativeMenu {
  public:
   NS_INLINE_DECL_REFCOUNTING(NativeMenu)
-
-  // Given a <menu> or <menuitem> element, get the relevant icon's URI.
-  static NativeMenuIcon GetIcon(dom::Element&);
 
   // Show this menu anchored to the specified rect and position.
   // This call assumes that the popupshowing event for the root popup has
@@ -113,7 +102,6 @@ class NativeMenu {
   virtual ~NativeMenu() = default;
 };
 
-}  // namespace widget
-}  // namespace mozilla
+}  // namespace mozilla::widget
 
 #endif  // mozilla_widget_NativeMenu_h
