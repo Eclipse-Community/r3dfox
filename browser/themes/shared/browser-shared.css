@@ -607,20 +607,6 @@ toolbarpaletteitem > #personal-bookmarks > #PlacesToolbar,
   flex-direction: column;
 }
 
-.bookmark-item[cutting] {
-  > .toolbarbutton-icon,
-  > .menu-icon {
-    /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens -- to be addressed in 2033919 */
-    opacity: 0.5;
-  }
-
-  > .toolbarbutton-text,
-  > .menu-text {
-    /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens -- to be addressed in 2033919 */
-    opacity: 0.7;
-  }
-}
-
 /* Menupopup drop indicators */
 
 menupopup::part(drop-indicator-container) {
