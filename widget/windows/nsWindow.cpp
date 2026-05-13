@@ -4745,6 +4745,17 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
     return true;
   }
 
+  // Glass hit testing w/custom transparent margins.
+  //
+  // FIXME(emilio): is this needed? We deal with titlebar buttons non-natively
+  // now.
+  LRESULT dwmHitResult;
+  if (mCustomNonClient &&
+      DwmDefWindowProc(mWnd, msg, wParam, lParam, &dwmHitResult)) {
+    *aRetValue = dwmHitResult;
+    return true;
+  }
+
   // The preference whether to use a different keyboard layout for each
   // window is cached, and updating it will not take effect until the
   // next restart. We read the preference here and not upon WM_ACTIVATE to make
@@ -4956,9 +4967,14 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
         }
       }
 
-      /* If an nc client area margin has been moved, we are responsible
+      /*
+       * If an nc client area margin has been moved, we are responsible
        * for calculating where the resize margins are and returning the
-       * appropriate set of hit test constants. */
+       * appropriate set of hit test constants. DwmDefWindowProc (above)
+       * will handle hit testing on it's command buttons if we are on a
+       * composited desktop.
+       */
+
       if (!mCustomNonClient) {
         break;
       }
