@@ -267,7 +267,7 @@ RefPtr<TextureHost> TextureHostWrapperD3D11::CreateFromBufferTexture(
   auto colorSpace = ToColorSpace2(bufferTexture->GetYUVColorSpace());
 
   auto descD3D10 = SurfaceDescriptorD3D10(
-      nullptr, Some(id),
+      WindowsHandle(nullptr), Some(id),
       /* arrayIndex */ 0, outputFormat, size, colorSpace, colorRange,
       transferFunction, /* hasKeyedMutex */ false,
       /* fencesHolderId */ Nothing());
