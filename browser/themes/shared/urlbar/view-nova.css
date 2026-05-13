@@ -79,7 +79,9 @@
   }
 
   &[lwtheme] {
+@media not (-moz-windows-default-theme) {
     --urlbarview-text-color-action: light-dark(rgb(91, 91, 102), rgb(191, 191, 201));
+}
     --urlbarview-background-color-selected: light-dark(rgb(0, 99, 255), rgb(0, 99, 225));
     --urlbarview-text-color-selected: white;
   }

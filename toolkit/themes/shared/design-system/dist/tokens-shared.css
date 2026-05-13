@@ -613,7 +613,9 @@
     :root:not([lwtheme]),
     :host(.anonymous-content-host) {
       /** toolbar **/
+  @media (-moz-windows-default-theme) {
       --toolbar-bgcolor: light-dark(#f9f9fb, rgb(43, 42, 51));
+  }
       --toolbar-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-focus-background-color: light-dark(var(--color-white), rgb(66, 65, 77));
@@ -625,10 +627,12 @@
       --toolbarbutton-icon-fill-attention-text: light-dark(var(--color-gray-20), var(--color-gray-90));
 
       /** toolbox **/
+@media not (-moz-windows-default-theme) {
       --toolbox-bgcolor: light-dark(rgb(234, 234, 237), var(--color-gray-90));
       --toolbox-bgcolor-inactive: var(--toolbox-bgcolor);
       --toolbox-textcolor: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbox-textcolor-inactive: var(--toolbox-textcolor);
+}
     }
   }
 }
@@ -925,5 +929,11 @@
         --text-color-error: CanvasText;
       }
     }
+  }
+}
+
+@media (-moz-windows-default-theme) {
+  :root {
+    --toolbar-bgcolor: -moz-dialog;
   }
 }
