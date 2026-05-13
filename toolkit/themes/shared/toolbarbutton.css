@@ -12,6 +12,12 @@ toolbarbutton {
     outline: auto;
   }
 
+  @media not (prefers-contrast) {
+    :root[lwtheme-image] & {
+      text-shadow: none;
+    }
+  }
+
   @media not (-moz-platform: macos) {
     &:where(:hover) {
       color: -moz-buttonhovertext;
