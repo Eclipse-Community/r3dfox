@@ -85,8 +85,8 @@ class TimerThread final : public mozilla::Runnable, public nsIObserver {
 
    private:
     void WaitHiRes(const LARGE_INTEGER* aDuration) MOZ_REQUIRES(this) {
-      const BOOL b = SetWaitableTimerEx(GetHiResTimer(), aDuration, 0, nullptr,
-                                        nullptr, nullptr, 0);
+      const BOOL b = SetWaitableTimer(GetHiResTimer(), aDuration, 0, nullptr,
+                                        nullptr, 0);
       MOZ_RELEASE_ASSERT(b != 0);
       mMutex.AssertCurrentThreadOwns();
       Unlock();
@@ -97,8 +97,18 @@ class TimerThread final : public mozilla::Runnable, public nsIObserver {
 
     void WaitLoRes(const LARGE_INTEGER* aDuration, const uint64_t aTolerance_ms)
         MOZ_REQUIRES(this) {
-      const BOOL b = SetWaitableTimerEx(GetLoResTimer(), aDuration, 0, nullptr,
-                                        nullptr, nullptr, aTolerance_ms);
+typedef BOOL (WINAPI *pfnSetWaitableTimerEx)(HANDLE hTimer, const LARGE_INTEGER *lpDueTime, LONG lPeriod, PTIMERAPCROUTINE pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, PREASON_CONTEXT WakeContext, ULONG TolerableDelay);
+static pfnSetWaitableTimerEx pSetWaitableTimerEx;
+
+typedef BOOL (WINAPI *pfnSetWaitableTimer)(HANDLE hTimer, const LARGE_INTEGER *lpDueTime, LONG lPeriod, PTIMERAPCROUTINE pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, BOOL fResume);
+static pfnSetWaitableTimer pSetWaitableTimer;
+
+      HMODULE module = GetModuleHandleW(L"kernel32.dll");
+      pSetWaitableTimerEx = (pfnSetWaitableTimerEx)GetProcAddress(module, "SetWaitableTimerEx"); // Windows Vista and up
+      if (!pSetWaitableTimerEx) {
+          pSetWaitableTimer = (pfnSetWaitableTimer)GetProcAddress(module, "SetWaitableTimer");
+      }
+      const BOOL b = (pSetWaitableTimerEx && pSetWaitableTimerEx(GetLoResTimer(), aDuration, 0, nullptr, nullptr, nullptr, aTolerance_ms)) || pSetWaitableTimer(GetLoResTimer(), aDuration, 0, nullptr, nullptr, 0);
       MOZ_RELEASE_ASSERT(b != 0);
       mMutex.AssertCurrentThreadOwns();
       Unlock();
