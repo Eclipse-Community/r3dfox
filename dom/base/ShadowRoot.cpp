@@ -105,6 +105,8 @@ ShadowRoot::~ShadowRoot() {
 
   MOZ_DIAGNOSTIC_ASSERT(!OwnerDoc()->IsComposedDocShadowRoot(*this));
 
+  DocumentOrShadowRoot::Unlink(this);
+
   UnsetFlags(NODE_IS_IN_SHADOW_TREE);
 
   // nsINode destructor expects mSubtreeRoot == this.
