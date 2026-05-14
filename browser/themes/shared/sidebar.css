@@ -45,6 +45,12 @@
      * #sidebar browser. We still need the #sidebar-box background to match the
      * toolbar tho - this background is set on the #browser ancestor rather than here */
   }
+  @media (-moz-platform: windows-win7),
+         (-moz-platform: windows-win8) {
+    @media -moz-pref("sidebar.verticalTabs") {
+      background-color: -moz-headerbar;
+    }
+  }
 }
 
 .sidebar-browser-stack > .dialogStack > .dialogTemplate > .dialogBox {
@@ -320,6 +326,10 @@ sidebar-main,
        * backdrop on Windows 11, which is as good as we can make it. */
       background-image: linear-gradient(var(--toolbox-background-color));
       background-color: light-dark(#e8e8e8, #202020);
+      @media (-moz-platform: windows-win7),
+             (-moz-platform: windows-win8) {
+        background-color: -moz-headerbar;
+      }
 
       &:not([sidebar-positionend]) {
         border-inline-end: 0.01px solid var(--sidebar-border-color);
@@ -335,10 +345,18 @@ sidebar-main,
       border-inline: unset;
       color: var(--toolbox-text-color);
       background-color: var(--toolbox-background-color);
+      @media (-moz-platform: windows-win7),
+             (-moz-platform: windows-win8) {
+        background-color: -moz-headerbar;
+      }
 
       &:-moz-window-inactive {
         color: var(--toolbox-text-color-inactive);
         background-color: var(--toolbox-background-color-inactive);
+        @media (-moz-platform: windows-win7),
+               (-moz-platform: windows-win8) {
+          background-color: -moz-headerbarinactive;
+        }
       }
     }
 
