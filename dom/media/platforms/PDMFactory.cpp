@@ -34,6 +34,7 @@
 
 #ifdef XP_WIN
 #  include "WMFDecoderModule.h"
+#  include "mozilla/WindowsVersion.h"
 #  ifdef MOZ_WMF_MEDIA_ENGINE
 #    include "MFMediaEngineDecoderModule.h"
 #  endif
@@ -85,7 +86,9 @@ class PDMInitializer final {
  private:
   static void InitGpuPDMs() {
 #ifdef XP_WIN
-    WMFDecoderModule::Init();
+    if (!IsWin7AndPre2000Compatible()) {
+      WMFDecoderModule::Init();
+    }
     if (StaticPrefs::media_ffvpx_hw_enabled()) {
       FFVPXRuntimeLinker::Init();
     }
@@ -94,7 +97,9 @@ class PDMInitializer final {
 
   static void InitRddPDMs() {
 #ifdef XP_WIN
-    WMFDecoderModule::Init();
+    if (!IsWin7AndPre2000Compatible()) {
+      WMFDecoderModule::Init();
+    }
 #endif
 #ifdef MOZ_APPLEMEDIA
     AppleDecoderModule::Init();
@@ -110,11 +115,12 @@ class PDMInitializer final {
   static void InitUtilityPDMs() {
     const ipc::SandboxingKind kind = GetCurrentSandboxingKind();
 #ifdef XP_WIN
-    if (kind == ipc::SandboxingKind::UTILITY_AUDIO_DECODING_WMF) {
+    if (!IsWin7AndPre2000Compatible() &&
+        kind == ipc::SandboxingKind::UTILITY_AUDIO_DECODING_WMF) {
       WMFDecoderModule::Init();
     }
 #  ifdef MOZ_WMF_MEDIA_ENGINE
-    if (StaticPrefs::media_wmf_media_engine_enabled() &&
+    if (IsWin10OrLater() && StaticPrefs::media_wmf_media_engine_enabled() &&
         kind == ipc::SandboxingKind::MF_MEDIA_ENGINE_CDM) {
       MFMediaEngineDecoderModule::Init();
     }
@@ -140,12 +146,14 @@ class PDMInitializer final {
     if (StaticPrefs::media_allow_audio_non_utility()) {
 #endif  // !defined(MOZ_WIDGET_ANDROID)
 #ifdef XP_WIN
+      if (!IsWin7AndPre2000Compatible()) {
 #  ifdef MOZ_WMF
-      if (!StaticPrefs::media_rdd_process_enabled() ||
-          !StaticPrefs::media_rdd_wmf_enabled()) {
-        WMFDecoderModule::Init();
-      }
+        if (!StaticPrefs::media_rdd_process_enabled() ||
+            !StaticPrefs::media_rdd_wmf_enabled()) {
+          WMFDecoderModule::Init();
+        }
 #  endif
+      }
 #endif
 #ifdef MOZ_APPLEMEDIA
       AppleDecoderModule::Init();
@@ -166,7 +174,9 @@ class PDMInitializer final {
 
   static void InitDefaultPDMs() {
 #ifdef XP_WIN
-    WMFDecoderModule::Init();
+    if (!IsWin7AndPre2000Compatible()) {
+      WMFDecoderModule::Init();
+    }
 #endif
 #ifdef MOZ_APPLEMEDIA
     AppleDecoderModule::Init();
@@ -523,7 +533,7 @@ void PDMFactory::CreateGpuPDMs() {
   if (StaticPrefs::media_ffvpx_hw_enabled()) {
     StartupPDM(FFVPXRuntimeLinker::CreateDecoder());
   }
-  if (StaticPrefs::media_wmf_enabled()) {
+  if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
     StartupPDM(WMFDecoderModule::Create());
   }
 #endif
@@ -613,7 +623,7 @@ void PDMFactory::CreateUtilityPDMs() {
   }
 #ifdef MOZ_WMF_MEDIA_ENGINE
   if (aKind == ipc::SandboxingKind::MF_MEDIA_ENGINE_CDM) {
-    if (StaticPrefs::media_wmf_media_engine_enabled()) {
+    if (IsWin10OrLater() && StaticPrefs::media_wmf_media_engine_enabled()) {
       StartupPDM(MFMediaEngineDecoderModule::Create());
     }
   }
@@ -659,7 +669,7 @@ void PDMFactory::CreateContentPDMs() {
   if (StaticPrefs::media_allow_audio_non_utility()) {
 #endif  // !defined(MOZ_WIDGET_ANDROID)
 #ifdef XP_WIN
-    if (StaticPrefs::media_wmf_enabled()) {
+    if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
 #  ifdef MOZ_WMF
       if (!StaticPrefs::media_rdd_process_enabled() ||
           !StaticPrefs::media_rdd_wmf_enabled()) {
@@ -718,7 +728,7 @@ void PDMFactory::CreateContentPDMs() {
 
 void PDMFactory::CreateDefaultPDMs() {
 #ifdef XP_WIN
-  if (StaticPrefs::media_wmf_enabled()) {
+  if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
     if (!StartupPDM(WMFDecoderModule::Create())) {
       mFailureFlags += DecoderDoctorDiagnostics::Flags::WMFFailedToLoad;
     }
