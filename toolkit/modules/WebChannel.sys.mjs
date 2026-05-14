@@ -170,6 +170,9 @@ WebChannel.prototype = {
    *               @param sendingContext.principal {Principal}
    *                      The <Principal> of the EventTarget where the
    *                      message was sent.
+   *               @param sendingContext.remoteType {String}
+   *                      The remoteType from which the
+   *                      WebChannelMessageToChrome was sent.
    */
   listen(callback) {
     if (this._deliverCallback) {

@@ -165,19 +165,23 @@ const Hub = {
     let windowGlobal = actor.manager;
 
     while (windowGlobal) {
-      let { browsingContext: bc, documentPrincipal: prin } = windowGlobal;
+      let {
+        parentWindowContext: parent,
+        documentPrincipal: prin,
+        remoteType,
+      } = windowGlobal;
 
       if (prin.addonId !== extensionId) {
         throw new Error(`Bad ${extensionId} principal: ${prin.URI.spec}`);
       }
-      if (bc.currentRemoteType !== prin.addonPolicy.extension.remoteType) {
-        throw new Error(`Bad ${extensionId} process: ${bc.currentRemoteType}`);
+      if (remoteType !== prin.addonPolicy.extension.remoteType) {
+        throw new Error(`Bad ${extensionId} process: ${remoteType}`);
       }
 
-      if (!bc.parent) {
+      if (!parent) {
         return true;
       }
-      windowGlobal = bc.embedderWindowGlobal;
+      windowGlobal = parent;
     }
     throw new Error(`Missing WindowGlobalParent for ${extensionId}`);
   },

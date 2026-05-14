@@ -62,9 +62,8 @@ export class MigrationWizardParent extends JSWindowActorParent {
     // make sure that any messages from content are coming from the privileged
     // about content process type.
     if (
-      !this.browsingContext.currentWindowGlobal.isInProcess &&
-      this.browsingContext.currentRemoteType !=
-        E10SUtils.PRIVILEGEDABOUT_REMOTE_TYPE
+      !this.manager.isInProcess &&
+      this.manager.remoteType != E10SUtils.PRIVILEGEDABOUT_REMOTE_TYPE
     ) {
       throw new Error(
         "MigrationWizardParent: received message from the wrong content process type."

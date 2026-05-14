@@ -86,12 +86,9 @@ export class AboutLoginsParent extends JSWindowActorParent {
     // Only respond to messages sent from a privlegedabout process. Ideally
     // we would also check the contentPrincipal.originNoSuffix but this
     // check has been removed due to bug 1576722.
-    if (
-      this.browsingContext.embedderElement.remoteType !=
-      EXPECTED_ABOUTLOGINS_REMOTE_TYPE
-    ) {
+    if (this.manager.remoteType != EXPECTED_ABOUTLOGINS_REMOTE_TYPE) {
       throw new Error(
-        `AboutLoginsParent: Received ${message.name} message the remote type didn't match expectations: ${this.browsingContext.embedderElement.remoteType} == ${EXPECTED_ABOUTLOGINS_REMOTE_TYPE}`
+        `AboutLoginsParent: Received ${message.name} message the remote type didn't match expectations: ${this.manager.remoteType} == ${EXPECTED_ABOUTLOGINS_REMOTE_TYPE}`
       );
     }
 

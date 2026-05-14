@@ -80,6 +80,9 @@ interface WindowGlobalParent : WindowContext {
 
   readonly attribute long osPid;
 
+  // The remote type of `this.domProcess`.
+  readonly attribute UTF8String? remoteType;
+
   // A WindowGlobalParent is the root in its process if it has no parent, or its
   // embedder is in a different process.
   readonly attribute boolean isProcessRoot;
