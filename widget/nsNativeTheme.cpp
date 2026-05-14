@@ -60,6 +60,13 @@ static HTMLInputElement* GetContainingNumberInput(nsIContent* aContent) {
   }
 
   bool isXULElement = frameContent->IsXULElement();
+  if (isXULElement) {
+    if (aAppearance == StyleAppearance::CheckboxLabel ||
+        aAppearance == StyleAppearance::RadioLabel) {
+      aFrame = aFrame->GetParent()->GetParent();
+      frameContent = aFrame->GetContent();
+    }
+  }
   if (aAppearance == StyleAppearance::Checkbox ||
         aAppearance == StyleAppearance::Treeheadersortarrow ||
       aAppearance == StyleAppearance::Radio) {
