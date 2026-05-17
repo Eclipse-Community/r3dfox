@@ -424,6 +424,9 @@ static void AddLLVMProfilePathDirectoryToPolicy(
 #undef WSTRING
 
 static void EnsureAppLockerAccess(sandbox::TargetConfig* aConfig) {
+  if (!IsWin7OrLater()) {
+    return;
+  }
   // At USER_LIMITED and above AppLocker is not blocked.
   if (aConfig->GetLockdownTokenLevel() >= sandbox::USER_LIMITED) {
     return;
