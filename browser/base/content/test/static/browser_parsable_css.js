@@ -326,6 +326,7 @@ function neverMatches(mediaList) {
       "(-moz-platform: windows-win7)",
       "(-moz-platform: windows-win8)",
       "(-moz-platform: windows-win10)",
+      "(-moz-platform: windows-winxp)",
     ],
     linux: ["(-moz-platform: linux)"],
     android: ["(-moz-platform: android)"],
