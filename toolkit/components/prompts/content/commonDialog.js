@@ -17,6 +17,17 @@ ChromeUtils.defineESModuleGetters(lazy, {
   ContentAnalysisUtils: "resource://gre/modules/ContentAnalysisUtils.sys.mjs",
 });
 
+XPCOMUtils.defineLazyPreferenceGetter(
+  lazy,
+  "headerAppIconEnabled",
+  "prompts.headerAppIcon.enabled",
+  true
+);
+
+XPCOMUtils.defineLazyServiceGetters(lazy, {
+  WindowsUIUtils: ["@mozilla.org/windows-ui-utils;1", "nsIWindowsUIUtils"],
+});
+
 // imported by adjustableTitle.js loaded in the same context:
 /* globals PromptUtils, goDoCommand, goUpdateCommand */
 
@@ -31,6 +42,7 @@ function commonDialogOnLoad() {
   for (let prop of propBag.enumerator) {
     args[prop.name] = prop.value;
   }
+  let hideHeaderAppIcon = !lazy.headerAppIconEnabled;
 
   let dialog = document.getElementById("commonDialog");
 
@@ -44,13 +56,14 @@ function commonDialogOnLoad() {
   }
   let title = { raw: args.title };
   let { useTitle, promptPrincipal } = args;
+  let headerIconCSSValue = args.headerIconCSSValue;
   if (!useTitle) {
     if (promptPrincipal) {
       if (promptPrincipal.isNullPrincipal) {
         title = { l10nId: "common-dialog-title-null" };
       } else if (promptPrincipal.isSystemPrincipal) {
         title = { l10nId: "common-dialog-title-system" };
-        root.style.setProperty("--icon-url", CommonDialog.DEFAULT_APP_ICON_CSS);
+        headerIconCSSValue ||= CommonDialog.DEFAULT_APP_ICON_CSS;
       } else if (promptPrincipal.addonPolicy) {
         title.raw = promptPrincipal.addonPolicy.name;
       } else if (promptPrincipal.isContentPrincipal) {
@@ -71,9 +84,19 @@ function commonDialogOnLoad() {
       title = { raw: args.authOrigin };
     }
   }
-  if (args.headerIconCSSValue) {
-    root.style.setProperty("--icon-url", args.headerIconCSSValue);
+  if (headerIconCSSValue) {
+    if (headerIconCSSValue == CommonDialog.DEFAULT_APP_ICON_CSS &&
+      hideHeaderAppIcon) {
+      root.setAttribute("hideheadericon", "true");
+    } else {
+      root.style.setProperty("--icon-url", headerIconCSSValue);
+    }
   }
+  if (hideHeaderAppIcon && AppConstants.platform == "win" &&
+    !window.docShell.chromeEventHandler) {
+    lazy.WindowsUIUtils.setWindowIconNoData(window);
+  }
+
   // Fade and crop potentially long raw titles, e.g., origins and hostnames.
   title.shouldUseMaskFade =
     !useTitle && title.raw && (args.authOrigin || promptPrincipal);
