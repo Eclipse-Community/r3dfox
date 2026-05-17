@@ -260,6 +260,17 @@ r3dfox-switch-to-tab =
 
 r3dfox-switch-to-tab-desc = This changes switching to an already open tab in the urlbar to be a button instead of being the default when you click the item.
 
+r3dfox-prompt-tab-modal =
+    .label = Use the native system message box for prompts
+
+r3dfox-prompt-tab-modal-desc = This changes website and authentication prompts to use the native system message box instead of a modal inside the browser.
+
+r3dfox-prompt-header-icon =
+    .label = Show the browser icon in the titlebar for system message box prompts
+
+r3dfox-prompt-sound =
+    .label = Play sounds for native system message box prompts
+
 r3dfox-advanced-header = Advanced configurations
 
 r3dfox-accessibility = Accessibility services
