@@ -361,7 +361,7 @@ this.runtime = class extends ExtensionAPIPersistent {
         },
 
         setUninstallURL: function (url) {
-          if (url === null || url.length === 0) {
+          if (true) {
             extension.uninstallURL = null;
             return Promise.resolve();
           }
