@@ -17572,6 +17572,12 @@
   value: true
   mirror: always
 
+# Show the application branding icon in prompt dialog headers when used.
+- name: prompts.headerAppIcon.enabled
+  type: bool
+  value: false
+  mirror: always
+
 # Insecure form submit warning.
 - name: prompts.modalType.insecureFormSubmit
   type: int32_t

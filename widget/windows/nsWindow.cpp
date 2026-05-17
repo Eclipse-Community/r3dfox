@@ -4081,15 +4081,11 @@ void nsWindow::SetIcon(const nsAString& aIconSpec) {
 }
 
 void nsWindow::SetBigIconNoData() {
-  HICON bigIcon =
-      ::LoadIconW(::GetModuleHandleW(nullptr), gStockApplicationIcon);
-  SetBigIcon(bigIcon);
+  SetBigIcon(nullptr);
 }
 
 void nsWindow::SetSmallIconNoData() {
-  HICON smallIcon =
-      ::LoadIconW(::GetModuleHandleW(nullptr), gStockApplicationIcon);
-  SetSmallIcon(smallIcon);
+  SetSmallIcon(nullptr);
 }
 
 /**************************************************************
