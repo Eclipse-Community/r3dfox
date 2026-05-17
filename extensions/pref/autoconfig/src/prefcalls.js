@@ -9,6 +9,54 @@ const LDAPSyncQueryContractID = "@mozilla.org/ldapsyncquery;1";
 
 var gIsUTF8;
 
+{
+    let profile_directory = null;
+    let defaults = Services.prefs.getDefaultBranch(null);
+
+    let supportsXDG = Services.prefs.getBoolPref("widget.support-xdg-config", false);
+
+    if (supportsXDG) {
+      let isLegacy = false;
+      {
+        let dirSvc = Cc["@mozilla.org/file/directory_service;1"]
+                     .getService(Ci.nsIProperties || Ci.nsIDirectoryService);
+        let profDir = dirSvc.get("ProfD", Ci.nsIFile);
+        let path = profDir.path || "";
+        isLegacy = path.includes(".librewolf");
+      }
+
+      if (!isLegacy) {
+        let xdg = Services.env.get("XDG_CONFIG_HOME");
+        if (xdg) {
+          profile_directory = xdg;
+        } else {
+          let home = Services.env.get("HOME");
+          profile_directory = home ? (home + "/.config") : null;
+        }
+        if (profile_directory) {
+          defaults.setCharPref(
+            "autoadmin.global_config_url",
+            `file://${profile_directory}/librewolf/librewolf/librewolf.overrides.cfg`
+          );
+        }
+      } else {
+        if (profile_directory = Services.env.get("HOME")) {
+          defaults.setCharPref(
+            "autoadmin.global_config_url",
+            `file://${profile_directory}/.librewolf/librewolf.overrides.cfg`
+          );
+        }
+      }
+    } else {
+      if ((profile_directory = Services.env.get("USERPROFILE") || Services.env.get("HOME"))) {
+        defaults.setCharPref(
+          "autoadmin.global_config_url",
+          `file://${profile_directory}/.librewolf/librewolf.overrides.cfg`
+        );
+      }
+    }
+}
+
 function getPrefBranch() {
   return Services.prefs.getBranch(null);
 }
