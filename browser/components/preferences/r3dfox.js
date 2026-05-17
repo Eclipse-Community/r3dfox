@@ -47,4 +47,7 @@ Preferences.addAll([
   { id: "browser.urlbar.formatting.enabled", type: "bool",  inverted: true },
   { id: "geo.enabled", type: "bool",  inverted: true },
   { id: "r3dfox.ui.oldaboutconfig", type: "bool" },
+  { id: "prompts.tab_modal.enabled", type: "bool",  inverted: true },
+  { id: "prompts.headerAppIcon.enabled", type: "bool" },
+  { id: "prompts.tab_modal.sound.enabled", type: "bool" },
 ]);
