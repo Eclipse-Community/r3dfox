@@ -22,7 +22,8 @@ const BROKEN_FAVICON = "chrome://global/skin/icons/security-broken.svg";
 async function checkAlert(
   pageToLoad,
   expectedTitle,
-  expectedIcon = DEFAULT_FAVICON
+  expectedIcon = DEFAULT_FAVICON,
+  modalType = Ci.nsIPrompt.MODAL_TYPE_CONTENT
 ) {
   function openFn(browser) {
     return SpecialPowers.spawn(browser, [], () => {
@@ -35,13 +36,14 @@ async function checkAlert(
       }
     });
   }
-  return checkDialog(pageToLoad, openFn, expectedTitle, expectedIcon);
+  return checkDialog(pageToLoad, openFn, expectedTitle, expectedIcon, modalType);
 }
 
 async function checkBeforeunload(
   pageToLoad,
   expectedTitle,
-  expectedIcon = DEFAULT_FAVICON
+  expectedIcon = DEFAULT_FAVICON,
+  modalType = Ci.nsIPrompt.MODAL_TYPE_CONTENT
 ) {
   async function openFn(browser) {
     let tab = gBrowser.getTabForBrowser(browser);
@@ -52,7 +54,7 @@ async function checkBeforeunload(
     );
     return gBrowser.removeTab(tab); // trigger beforeunload.
   }
-  return checkDialog(pageToLoad, openFn, expectedTitle, expectedIcon);
+  return checkDialog(pageToLoad, openFn, expectedTitle, expectedIcon, modalType);
 }
 
 async function checkDialog(
@@ -130,6 +132,39 @@ async function checkDialog(
   });
 }
 
+async function withAuthServer(taskFn) {
+  let server = new HttpServer();
+  registerCleanupFunction(() => {
+    return new Promise(resolve => {
+      server.stop(() => {
+        server = null;
+        resolve();
+      });
+    });
+  });
+
+  function forbiddenHandler(meta, res) {
+    res.setStatusLine(meta.httpVersion, 401, "Unauthorized");
+    res.setHeader("WWW-Authenticate", 'Basic realm="Realm"');
+  }
+  function pageHandler(meta, res) {
+    res.setStatusLine(meta.httpVersion, 200, "OK");
+    res.setHeader("Content-Type", "text/html");
+    let body = "<html><body></body></html>";
+    res.bodyOutputStream.write(body, body.length);
+  }
+
+  server.registerPathHandler("/forbidden", forbiddenHandler);
+  server.registerPathHandler("/page", pageHandler);
+  server.start(-1);
+
+  const host = `localhost:${server.identity.primaryPort}`;
+  await taskFn({
+    host,
+    authURI: `http://${host}/forbidden`,
+  });
+}
+
 add_task(async function test_check_prompt_origin_display() {
   await checkAlert("https://example.com/", { value: "example.com" });
   // eslint-disable-next-line @microsoft/sdl/no-insecure-url
@@ -154,59 +189,63 @@ add_task(async function test_check_prompt_origin_display() {
 });
 
 add_task(async function test_check_auth() {
-  let server = new HttpServer();
-  registerCleanupFunction(() => {
-    return new Promise(resolve => {
-      server.stop(() => {
-        server = null;
-        resolve();
+  await withAuthServer(async ({ host, authURI }) => {
+    // Try a simple load:
+    // Should be broken favicon since authURI's spec is http
+    await checkDialog(
+      "https://example.com/",
+      browser => BrowserTestUtils.startLoadingURIString(browser, authURI),
+      host,
+      BROKEN_FAVICON,
+      Ci.nsIPrompt.MODAL_TYPE_TAB
+    );
+
+    let subframeLoad = function (browser, uri) {
+      return SpecialPowers.spawn(browser, [uri], frameUri => {
+        let f = content.document.createElement("iframe");
+        f.src = frameUri;
+        content.document.body.appendChild(f);
       });
-    });
+    };
+
+    // Try x-origin subframe:
+    await checkDialog(
+      // eslint-disable-next-line @microsoft/sdl/no-insecure-url
+      "http://example.org/1",
+      browser => subframeLoad(browser, authURI),
+      host,
+      BROKEN_FAVICON,
+      Ci.nsIPrompt.MODAL_TYPE_TAB
+    );
+  });
+});
+
+add_task(async function test_window_modal_pref_routes_content_prompts() {
+  await SpecialPowers.pushPrefEnv({
+    set: [["prompts.tab_modal.enabled", false]],
   });
 
-  function forbiddenHandler(meta, res) {
-    res.setStatusLine(meta.httpVersion, 401, "Unauthorized");
-    res.setHeader("WWW-Authenticate", 'Basic realm="Realm"');
-  }
-  function pageHandler(meta, res) {
-    res.setStatusLine(meta.httpVersion, 200, "OK");
-    res.setHeader("Content-Type", "text/html");
-    let body = "<html><body></body></html>";
-    res.bodyOutputStream.write(body, body.length);
-  }
-  server.registerPathHandler("/forbidden", forbiddenHandler);
-  server.registerPathHandler("/page", pageHandler);
-  server.start(-1);
-
-  const HOST = `localhost:${server.identity.primaryPort}`;
-  // eslint-disable-next-line @microsoft/sdl/no-insecure-url
-  const AUTH_URI = `http://${HOST}/forbidden`;
-
-  // Try a simple load:
-  // Should be broken favicon since AUTH_URI's spec is http
-  await checkDialog(
+  await checkAlert(
     "https://example.com/",
-    browser => BrowserTestUtils.startLoadingURIString(browser, AUTH_URI),
-    HOST,
-    BROKEN_FAVICON,
-    Ci.nsIPrompt.MODAL_TYPE_TAB
+    { value: "example.com" },
+    DEFAULT_FAVICON,
+    Ci.nsIPrompt.MODAL_TYPE_WINDOW
   );
 
-  let subframeLoad = function (browser, uri) {
-    return SpecialPowers.spawn(browser, [uri], frameUri => {
-      let f = content.document.createElement("iframe");
-      f.src = frameUri;
-      content.document.body.appendChild(f);
-    });
-  };
-
-  // Try x-origin subframe:
-  await checkDialog(
-    // eslint-disable-next-line @microsoft/sdl/no-insecure-url
-    "http://example.org/1",
-    browser => subframeLoad(browser, AUTH_URI),
-    HOST,
-    BROKEN_FAVICON,
-    Ci.nsIPrompt.MODAL_TYPE_TAB
+  await checkBeforeunload(
+    TEST_ROOT + "file_beforeunload_stop.html",
+    { value: "example.com" },
+    DEFAULT_FAVICON,
+    Ci.nsIPrompt.MODAL_TYPE_WINDOW
   );
+
+  await withAuthServer(async ({ host, authURI }) => {
+    await checkDialog(
+      "https://example.com/",
+      browser => BrowserTestUtils.startLoadingURIString(browser, authURI),
+      host,
+      BROKEN_FAVICON,
+      Ci.nsIPrompt.MODAL_TYPE_WINDOW
+    );
+  });
 });

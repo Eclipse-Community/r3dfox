@@ -16436,6 +16436,12 @@
 # Prompt modal type prefs
 # See nsIPromptService::MODAL_TYPE fields for possible values.
 
+# Global tab/content modal prompt toggle.
+- name: prompts.tab_modal.enabled
+  type: bool
+  value: true
+  mirror: always
+
 # Insecure form submit warning.
 - name: prompts.modalType.insecureFormSubmit
   type: int32_t
