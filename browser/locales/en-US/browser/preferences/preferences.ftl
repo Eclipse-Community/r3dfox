@@ -1833,7 +1833,7 @@ category-librewolf =
     .tooltiptext = about:config changes, logically grouped and easily accessible
 # Main content
 librewolf-header = Extra Privacy Configurations
-librewolf-settings-about = These settings are from Librewolf, now included in { -brand-short-name }. This page is kept as stock as possible to make future updates easier. Totally not because I'm too dumb to integrate these into the r3dfox configurations page.
+librewolf-settings-about = These settings are from Librewolf, now included in { -brand-short-name }. This page is kept as stock as possible to make future updates easier.
 librewolf-warning-title = Heads up!
 librewolf-warning-description = We carefully choose default settings to focus on privacy and security. When changing these settings, read the descriptions to understand the implications of those changes.
 # Page Layout
