@@ -241,3 +241,31 @@ add_task(async function test_closed_callback() {
 
   ok(!gDialogBox._dialog, "gDialogBox should no longer have a dialog");
 });
+
+add_task(async function test_hide_app_icon_pref_standalone_window_prompt() {
+  if (AppConstants.platform != "win") {
+    return;
+  }
+
+  await SpecialPowers.pushPrefEnv({
+    set: [["prompts.headerAppIcon.enabled", false]],
+  });
+
+  let dialogPromise = BrowserTestUtils.promiseAlertDialogOpen();
+  setTimeout(() => Services.prompt.alert(null, "Some title", "some message"), 0);
+  let dialogWin = await dialogPromise;
+
+  ok(
+    !dialogWin?.docShell?.chromeEventHandler,
+    "Should open a standalone window prompt."
+  );
+  is(
+    dialogWin.document.getElementById("infoBody").textContent,
+    "some message",
+    "Body text should be correct."
+  );
+
+  let closedPromise = BrowserTestUtils.windowClosed(dialogWin);
+  dialogWin.document.querySelector("dialog").acceptDialog();
+  await closedPromise;
+});
