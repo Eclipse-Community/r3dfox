@@ -154,8 +154,12 @@ const AdjustableTitle = {
       document.l10n.setAttributes(this._titleEl, title.l10nId);
     }
 
-    if (!document.documentElement.hasAttribute("neediconheader")) {
-      this._containerEl.setAttribute("noicon", "true");
+    let showIcon =
+      document.documentElement.hasAttribute("neediconheader") &&
+      !document.documentElement.hasAttribute("hideheadericon");
+    this._containerEl.toggleAttribute("noicon", !showIcon);
+    if (!showIcon) {
+      this._titleCropEl.removeAttribute("nomaskfade");
     } else if (title.shouldUseMaskFade) {
       this._overflowHandler();
     } else {
