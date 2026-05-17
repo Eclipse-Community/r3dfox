@@ -92,6 +92,8 @@ async function checkDialog(
       BrowserTestUtils.isHidden(doc.getElementById("infoTitle")),
       "Old title should be hidden."
     );
+    let titleIcon = doc.querySelector(".titleIcon");
+    if (expectedIcon) {
     let iconCS = doc.documentGlobal.getComputedStyle(
       doc.querySelector(".titleIcon")
     );
@@ -100,6 +102,9 @@ async function checkDialog(
       expectedIcon,
       "Icon is as expected."
     );
+    } else {
+      ok(BrowserTestUtils.isHidden(titleIcon), "Title icon should be hidden.");
+    }
 
     // This is not particularly neat, but we want to also test overflow
     // Our test systems don't have hosts that long, so just fake it:
@@ -186,6 +191,14 @@ add_task(async function test_check_prompt_origin_display() {
   await checkBeforeunload(TEST_ROOT + "file_beforeunload_stop.html", {
     value: "example.com",
   });
+});
+
+add_task(async function test_header_app_icon_pref() {
+  await SpecialPowers.pushPrefEnv({
+    set: [["prompts.headerAppIcon.enabled", false]],
+  });
+
+  await checkAlert("about:config", { l10nId: "common-dialog-title-system" }, null);
 });
 
 add_task(async function test_check_auth() {
