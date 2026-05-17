@@ -562,6 +562,7 @@ pub enum Platform {
     /// Matches any Windows version.
     Windows,
     /// Matches only Windows XP.
+    #[css(keyword = "windows-winxp")]
     WindowsWinXP,
     /// Matches Windows 7 and actually matches Windows Vista too, as of right now.
     WindowsWin7,
