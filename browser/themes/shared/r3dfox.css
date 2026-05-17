@@ -513,39 +513,54 @@
     }
 
     :root {
-        --tab-min-height: 32px !important;
-        --tabstrip-min-height: unset !important;
+      --tab-min-height: 32px !important;
+      --tabstrip-min-height: unset !important;
+      --all-tabs-padding: 8px 8px 8px 0px;
+  
+      @media (-moz-platform: windows-winxp), (-moz-windows-classic) {
+        --all-tabs-padding: 10px 9px 9px 0px;
+      }
 
       #nav-bar {
         height: 32px !important;
       }
-    }
 
-    :root[uidensity="compact"] {
+      &[uidensity=compact] {
         --tab-min-height: 24px !important;
+        --all-tabs-padding: 4px 4px 4px 0px;
 
-      .tab-label-container {
-        #tabbrowser-tabs:not([secondarytext-unsupported], [orient=vertical]) & {
-          height: 2em !important;
+        @media (-moz-platform: windows-winxp), (-moz-windows-classic) {
+          --all-tabs-padding: 6px 5px 5px 0px;
+        }
+
+        .tab-label-container {
+          #tabbrowser-tabs:not([secondarytext-unsupported], [orient=vertical]) & {
+            height: 2em !important;
+          }
+        }
+
+        #nav-bar {
+          height: 27px !important;
+        }
+
+        #PersonalToolbar .toolbarbutton-1 > .toolbarbutton-icon {
+          margin-top: -4px !important;
+          margin-bottom: -4px !important;
+        }
+
+        #urlbar-container {
+          min-height: 20px !important; height: 28px !important;
         }
       }
 
-      #nav-bar {
-        height: 27px !important;
-      }
-
-      #PersonalToolbar .toolbarbutton-1 > .toolbarbutton-icon {
-        margin-top: -4px !important;
-        margin-bottom: -4px !important;
-      }
-
-      #urlbar-container {
-        min-height: 20px !important; height: 28px !important;
-      }
-    }
-
-    :root[uidensity="touch"] {
+      &[uidensity=touch] {
         --tab-min-height: 40px !important;
+        --all-tabs-padding: 12px 12px 12px 0px;
+
+        @media (-moz-platform: windows-winxp), (-moz-windows-classic) {
+          --all-tabs-padding: 14px 13px 13px 0px;
+        }
+      }
     }
 
     @media not (prefers-contrast) {
@@ -720,11 +735,7 @@
   }
 
   #alltabs-button::after {
-    padding: 4px 4px 4px 0px !important;
-
-    @media (-moz-platform: windows-winxp), (-moz-windows-classic) {
-      padding: 6px 5px 5px 0px !important;
-    }
+    padding: var(--all-tabs-padding) !important;
 
     border-radius: 0px 4px 4px 0px !important;
     background-clip: padding-box !important;
