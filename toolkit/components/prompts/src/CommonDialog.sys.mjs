@@ -7,6 +7,8 @@ ChromeUtils.defineESModuleGetters(lazy, {
   EnableDelayHelper: "resource://gre/modules/PromptUtils.sys.mjs",
 });
 
+import { XPCOMUtils } from "resource://gre/modules/XPCOMUtils.sys.mjs";
+
 import { AppConstants } from "resource://gre/modules/AppConstants.sys.mjs";
 
 export class CommonDialog {
@@ -209,10 +211,10 @@ export class CommonDialog {
       });
     }
 
-    // Play a sound (unless we're showing a content prompt -- don't want those
-    //               to feel like OS prompts).
+    // Play a sound for window prompts, and optionally for tab/content prompts.
     try {
-      if (this.soundID && !this.args.openedWithTabDialog) {
+      if (this.soundID && (!this.args.openedWithTabDialog || 
+        CommonDialog.tabModalSoundEnabled)) {
         Cc["@mozilla.org/sound;1"]
           .getService(Ci.nsISound)
           .playEventSound(this.soundID);
@@ -354,3 +356,10 @@ export class CommonDialog {
     this.args.promptAborted = true;
   }
 }
+
+XPCOMUtils.defineLazyPreferenceGetter(
+  CommonDialog,
+  "tabModalSoundEnabled",
+  "prompts.tab_modal.sound.enabled",
+  false
+);
