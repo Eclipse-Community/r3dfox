@@ -17578,6 +17578,12 @@
   value: false
   mirror: always
 
+# Play prompt sounds for tab/content modal prompt dialogs.
+- name: prompts.tab_modal.sound.enabled
+  type: bool
+  value: false
+  mirror: always
+
 # Insecure form submit warning.
 - name: prompts.modalType.insecureFormSubmit
   type: int32_t
