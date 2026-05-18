@@ -653,11 +653,7 @@
       --panel-text-color: light-dark(var(--color-black), rgb(251, 251, 254));
 
       /** toolbar **/
-@media not (-moz-platform: windows-win7) {
-  @media not (-moz-platform: windows-win8) {
       --toolbar-background-color: light-dark(#f9f9fb, rgb(43, 42, 51));
-  }
-}
       --toolbar-field-background-color-focus: light-dark(var(--color-white), rgb(66, 65, 77));
       --toolbar-field-text-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-text-color-focus: light-dark(var(--color-black), var(--color-gray-05));
@@ -1086,11 +1082,5 @@
         --toolbarbutton-outline-color-active: var(--button-border-color-active);
       }
     }
-  }
-}
-
-@media (-moz-windows-default-theme) {
-  :root {
-    --toolbar-bgcolor: -moz-dialog;
   }
 }
