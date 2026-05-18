@@ -617,11 +617,7 @@
     :root:not([lwtheme]),
     :host(.anonymous-content-host) {
       /** toolbar **/
-@media not (-moz-platform: windows-win7) {
-  @media not (-moz-platform: windows-win8) {
       --toolbar-bgcolor: light-dark(#f9f9fb, rgb(43, 42, 51));
-  }
-}
       --toolbar-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-color: light-dark(var(--color-gray-100), var(--color-gray-05));
       --toolbar-field-focus-background-color: light-dark(var(--color-white), rgb(66, 65, 77));
@@ -937,11 +933,5 @@
         --text-color-error: CanvasText;
       }
     }
-  }
-}
-
-@media (-moz-windows-default-theme) {
-  :root {
-    --toolbar-bgcolor: -moz-dialog;
   }
 }
