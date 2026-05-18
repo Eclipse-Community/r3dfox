@@ -40,5 +40,4 @@ toolkit.jar:
     content/global/ml/ort.webgpu-dev.mjs        	        (vendor/ort.webgpu-dev.mjs)
     content/global/ml/transformers-dev.js       	        (vendor/transformers-dev.js)
     content/global/ml/wllama-module-dev.mjs               (vendor/wllama-module-dev.mjs)
-    content/global/ml/openai-dev.mjs                      (vendor/openai/dist/openai-dev.mjs)
 #endif
