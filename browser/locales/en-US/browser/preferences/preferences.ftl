@@ -2909,4 +2909,8 @@ content-blocking-section-top-level-description = { -brand-short-name } supports 
 ## Permissions
 
 permissions-webgl2 =
-    .label = WebGL
+.label = WebGL
+
+## General
+librewolf-rfp-warning =
+    .message = This feature is disabled because ResistFingerprinting is enabled. This means { -brand-short-name } will force web content to display in a light theme.

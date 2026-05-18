@@ -567,6 +567,14 @@ Preferences.addSetting({
   },
 });
 
+Preferences.addSetting({
+  id: "librewolfRFPWarning",
+  deps: ["librewolfRFP"],
+  visible: ({librewolfRFP}) => {
+    return librewolfRFP.value;
+  },
+});
+
 Preferences.addSetting(
   /** @type {{ themeNames: string[] } & SettingConfig}} */ ({
     id: "web-appearance-chooser",
@@ -1834,6 +1842,12 @@ SettingGroupManager.registerGroups({
       {
         id: "web-appearance-override-warning",
         l10nId: "preferences-web-appearance-override-warning3",
+        control: "moz-message-bar",
+      },
+      {
+        id: "librewolfRFPWarning",
+        l10nId: "librewolf-rfp-warning",
+        supportPage: "rfp-theme",
         control: "moz-message-bar",
       },
       {
