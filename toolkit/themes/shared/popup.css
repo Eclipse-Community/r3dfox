@@ -53,6 +53,9 @@
   /* Panel design token theming */
   --background-color-canvas: var(--panel-background);
 
+  --panel-shadow: 0 0 var(--panel-shadow-margin) hsla(0, 0%, 0%, 0.2);
+  --panel-padding-block: 0;
+
   @media (-moz-platform: linux) and (not (-moz-gtk-csd-transparency-available)) {
     /* On some linux WMs we need to draw square and opaque menus because alpha
      * is not available */
