@@ -70,12 +70,6 @@ bool ScrollbarDrawing::IsScrollbarWidthThin(const nsIFrame* aFrame) {
   return scrollbarWidth == StyleScrollbarWidth::Thin;
 }
 
-/*static*/
-bool ScrollbarDrawing::IsScrollbarWidthThin(nsIFrame* aFrame) {
-  ComputedStyle* style = nsLayoutUtils::StyleForScrollbar(aFrame);
-  return IsScrollbarWidthThin(aFrame);
-}
-
 CSSIntCoord ScrollbarDrawing::GetCSSScrollbarSize(StyleScrollbarWidth aWidth,
                                                   Overlay aOverlay) const {
   return mScrollbarSize[aWidth == StyleScrollbarWidth::Thin]
