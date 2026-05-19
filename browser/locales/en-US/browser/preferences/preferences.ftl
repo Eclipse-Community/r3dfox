@@ -273,6 +273,24 @@ r3dfox-prompt-sound =
 
 r3dfox-advanced-header = Advanced configurations
 
+r3dfox-unload-ram =
+    .label = Enable tab unloading on low memory
+
+r3dfox-unload-ram-desc = (This currently does nothing, it's always enabled for now until disabling it is implemented.) If your system falls below the chosen RAM threshold, the browser will start unloading tabs to reduce it's RAM usage.
+
+r3dfox-unload-foreground =
+    .label = Enable unloading the foreground tab on low memory
+
+r3dfox-unload-foreground-desc = Allow the browser to unload the foreground tab, in the case that that the tab you're currently using is leaking RAM, or very low memory situations.
+
+r3dfox-unload-threshold = Browser low memory threshold
+
+r3dfox-unload-threshold-desc = If free memory falls below the set threshold, the browser will start unloading tabs. Higher amounts give more safety margin, but may result in tabs being unnecessarily unloaded, which may increase power usage when reloading them.
+
+r3dfox-unload-poll = Browser memory usage poll interval
+
+r3dfox-unload-poll-desc = How frequently the browser checks for the current amount of free RAM. Lower amounts means the browser checks more frequently, making it respond quicker if something starts rapidly consuming RAM, but this will also result in greater power usage since it checks more often. Unlikely to be noticeable on desktop, but it may worth considering a higher value when on battery power.
+
 r3dfox-accessibility = Accessibility services
 
 r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.

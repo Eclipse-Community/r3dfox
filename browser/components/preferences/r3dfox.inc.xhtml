@@ -256,6 +256,66 @@
   <label><html:h2 data-l10n-id="r3dfox-advanced-header"/></label>
 
   <hbox align="center">
+    <checkbox id="r3dfoxunloadram"
+              data-l10n-id="r3dfox-unload-ram"
+              preference="browser.tabs.unload.enabled"/>
+  </hbox>
+  <description class="indent tip-caption" data-l10n-id="r3dfox-unload-ram-desc"/>
+
+  <hbox align="center">
+    <checkbox id="r3dfoxunloadforeground"
+              data-l10n-id="r3dfox-unload-foreground"
+              preference="browser.tabs.unloadActiveForegroundTab"/>
+  </hbox>
+  <description class="indent tip-caption" data-l10n-id="r3dfox-unload-foreground-desc"/>
+
+  <hbox align="center">
+    <label id="r3dfoxUnloadThreshold" data-l10n-id="r3dfox-unload-threshold" control="r3dfoxUnloadThresholdType"/>
+    <menulist id="r3dfoxUnloadThresholdType" preference="browser.low_physical_memory_threshold_mb">
+      <menupopup>
+        <menuitem label="4GB (4096MB)" value="4096"/>
+        <menuitem label="3GB (3072MB)" value="3072"/>
+        <menuitem label="2.5GB (2560MB)" value="2560"/>
+        <menuitem label="2GB (2048MB)" value="2048"/>
+        <menuitem label="1.75GB (1792MB)" value="1792"/>
+        <menuitem label="1.5GB (1536MB)" value="1536"/>
+        <menuitem label="1.25GB (1280MB)" value="1280"/>
+        <menuitem label="1GB (1024MB)" value="1024"/>
+        <menuitem label="0.75GB (768MB)" value="768"/>
+        <menuitem label="0.5GB (512MB)" value="512"/>
+        <menuitem label="0.375GB (384MB)" value="384"/>
+        <menuitem label="0.25GB (256MB)" value="256"/>
+      </menupopup>
+    </menulist>
+  </hbox>
+  <description id="r3dfoxUnloadThresholdDescription" class="tip-caption" data-l10n-id="r3dfox-unload-threshold-desc"/>
+
+  <hbox align="center">
+    <label id="r3dfoxUnloadPoll" data-l10n-id="r3dfox-unload-poll" control="r3dfoxUnloadPollType"/>
+    <menulist id="r3dfoxUnloadPollType" preference="browser.memory_poll_interval_ms">
+      <menupopup>
+        <menuitem label="5.00s (5000ms)" value="5000"/>
+        <menuitem label="4.00s (4000ms)" value="4000"/>
+        <menuitem label="3.50s (3500ms)" value="3500"/>
+        <menuitem label="3.00s (3000ms)" value="3000"/>
+        <menuitem label="2.50s (2500ms)" value="2500"/>
+        <menuitem label="2.00s (2000ms)" value="2000"/>
+        <menuitem label="1.75s (1750ms)" value="1750"/>
+        <menuitem label="1.50s (1500ms)" value="1500"/>
+        <menuitem label="1.25s (1250ms)" value="1250"/>
+        <menuitem label="1.00s (1000ms)" value="1000"/>
+        <menuitem label="0.875s (875ms)" value="875"/>
+        <menuitem label="0.750s (750ms)" value="750"/>
+        <menuitem label="0.625s (625ms)" value="625"/>
+        <menuitem label="0.500s (500ms)" value="500"/>
+        <menuitem label="0.375s (375ms)" value="375"/>
+        <menuitem label="0.250s (250ms)" value="250"/>
+      </menupopup>
+    </menulist>
+  </hbox>
+  <description id="r3dfoxUnloadPollDescription" class="tip-caption" data-l10n-id="r3dfox-unload-poll-desc"/>
+
+  <hbox align="center">
     <label id="r3dfoxAccessibility" data-l10n-id="r3dfox-accessibility" control="r3dfoxAccessibilityType"/>
     <menulist id="r3dfoxAccessibilityType" preference="accessibility.force_disabled">
       <menupopup>
