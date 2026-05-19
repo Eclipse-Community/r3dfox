@@ -70,6 +70,10 @@ scrollbar {
 resizer {
   position: relative;
   z-index: 2147483647;
+  /* Widget gets decide on its own whether or not the native theme should apply,
+     based on the context/OS theme. If it does not, SVG background will kick in. */
+  appearance: auto;
+  -moz-default-appearance: resizer;
 
   background: url("chrome://global/skin/icons/resizer.svg") no-repeat;
   background-size: 100% 100%;
@@ -81,13 +85,18 @@ resizer {
     pointer-events: none;
   }
 
+/* bottomstart/bottomend is supported in XUL window only */
   &[dir="left"],
   &[dir="bottom"][flip],
-  &[dir="bottomleft"] {
+  &[dir="bottomleft"],
+  &[dir="bottomstart"]:-moz-locale-dir(ltr),
+  &[dir="bottomend"]:-moz-locale-dir(rtl) {
     transform: scaleX(-1);
   }
 
-  &[dir="bottomleft"] {
+  &[dir="bottomleft"],
+  &[dir="bottomstart"]:-moz-locale-dir(ltr),
+  &[dir="bottomend"]:-moz-locale-dir(rtl) {
     cursor: sw-resize;
   }
 
