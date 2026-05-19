@@ -15,6 +15,7 @@
     await SpecialPowers.pushPrefEnv({
       set: [
         ["browser.display.document_color_use", 2],
+        ["browser.display.use_system_colors", false],
       ]
     });
     assertMatches("(prefers-contrast)");

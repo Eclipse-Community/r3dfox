@@ -1608,6 +1608,15 @@
     FontAwesome
   mirror: never
 
+- name: browser.display.use_system_colors
+  type: RelaxedAtomicBool
+#ifdef XP_WIN
+  value: true
+#else
+  value: false
+#endif
+  mirror: always
+
 - name: browser.dom.window.dump.enabled
   type: RelaxedAtomicBool
   value: @IS_NOT_MOZILLA_OFFICIAL@
@@ -6270,7 +6279,8 @@
 
 # When this is set to `true`, "editor.background_color" must be set, then,
 # the value is treated as default background color of the HTML editor.
-# If `false`, "browser.display.background_color" is used instead.
+# If `false` and "browser.display.use_system_colors" is set to `true`,
+# "browser.display.background_color" is used instead.
 # Otherwise, no color is used as default background color.
 # This pref is for Thunderbird and SeaMonkey.
 - name: editor.use_custom_colors
