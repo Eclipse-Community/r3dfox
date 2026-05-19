@@ -28,6 +28,22 @@ a11y:
     expires: never
     telemetry_mirror: A11Y_ALWAYS_UNDERLINE_LINKS
 
+  use_system_colors:
+    type: boolean
+    description: >
+      Bool tracking if the user has system colors enabled in firefox.
+      This metric was generated to correspond to the Legacy Telemetry
+      scalar a11y.use_system_colors.
+    bugs:
+      - https://bugzil.la/1835194
+    data_reviews:
+      - https://bugzil.la/1835194
+    notification_emails:
+      - accessibility@mozilla.com
+      - mreschenberg@mozilla.com
+    expires: never
+    telemetry_mirror: A11Y_USE_SYSTEM_COLORS
+
   hcm_background:
     type: quantity
     description: >
