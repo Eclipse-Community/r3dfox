@@ -1753,6 +1753,21 @@
     mirror: always
 #endif
 
+-   name: browser.low_physical_memory_threshold_mb
+    type: RelaxedAtomicUint32
+    value: 2048
+    mirror: always
+
+-   name: browser.memory_poll_interval_ms
+    type: RelaxedAtomicUint32
+    value: 5000
+    mirror: always
+
+-   name: browser.tabs.unloadActiveForegroundTab
+    type: bool
+    value: false
+    mirror: always
+
 #ifdef XP_LINUX
   # On Linux we also check available memory in comparison to total memory,
   # and use this percent value (out of 100) to determine if we are in a
