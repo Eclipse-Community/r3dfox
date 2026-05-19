@@ -2,35 +2,124 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+import { PrivateBrowsingUtils } from "resource://gre/modules/PrivateBrowsingUtils.sys.mjs";
+import { webrtcUI } from "resource:///modules/webrtcUI.sys.mjs";
+
 /*
  * TabUnloader is used to discard tabs when memory or resource constraints
  * are reached. The discarded tabs are determined using a heuristic that
  * accounts for when the tab was last used, how many resources the tab uses,
  * and whether the tab is likely to affect the user if it is closed.
  */
-const lazy = {};
-
-ChromeUtils.defineESModuleGetters(lazy, {
-  PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.sys.mjs",
-  webrtcUI: "resource:///modules/webrtcUI.sys.mjs",
-});
 
 // If there are only this many or fewer tabs open, just sort by weight, and close
-// the lowest tab. Otherwise, do a more intensive compuation that determines the
+// the lowest tab. Otherwise, do a more intensive computation that determines the
 // tabs to close based on memory and process use.
 const MIN_TABS_COUNT = 10;
 
 // Weight for non-discardable tabs.
 const NEVER_DISCARD = 100000;
 
-// Default minimum inactive duration.  Tabs that were accessed in the last
+// Use a lightweight page for active-tab replacement.
+const RECOVERY_TAB_URL = "about:blank";
+
+// If the memory threshold remains continuously exceeded, the memory watcher may
+// repeatedly call unloadTabAsync(). This cooldown throttles only selected-tab
+// replacement per browser window. Do not use a global cooldown here, because
+// each window must be able to get its own recovery tab independently.
+const SELECTED_TAB_REPLACEMENT_WINDOW_COOLDOWN_MS = 30000;
+
+// Live pref: when disabled, the selected tab in the foreground browser window
+// is not eligible as a last resort unload target.
+const kUnloadActiveForegroundTabPref =
+  "browser.tabs.unloadActiveForegroundTab";
+
+// Default minimum inactive duration. Tabs that were accessed in the last
 // period of this duration are not unloaded.
 const kMinInactiveDurationInMs = Services.prefs.getIntPref(
-  "browser.tabs.min_inactive_duration_before_unload"
+  "browser.tabs.min_inactive_duration_before_unload",
+  0
 );
+
+// Dedicated per-window recovery tab marker.
+const kRecoveryTabKey = Symbol("TabUnloaderRecoveryTab");
+const kRecoveryTabCleanupKey = Symbol("TabUnloaderRecoveryTabCleanup");
+const RECOVERY_TAB_ATTRIBUTE = "tabunloader-recovery";
+
+// Track exactly one temporary recovery tab per browser window. The key is the
+// window's gBrowser, so every browser window can have its own independent
+// recovery tab, but never more than one.
+const gRecoveryStateByBrowser = new WeakMap();
+
+const gSelectedTabReplacementByBrowser = new WeakMap();
+
+function isRecoveryTab(tab) {
+  return !!(
+    tab?.[kRecoveryTabKey] ||
+    tab?.getAttribute?.(RECOVERY_TAB_ATTRIBUTE) === "true"
+  );
+}
+
+function getTabSpec(tab) {
+  return tab?.linkedBrowser?.currentURI?.spec;
+}
+
+function isForegroundWindow(win) {
+  return win === Services.wm.getMostRecentWindow("navigator:browser");
+}
+
+function isTemporaryRecoverySpec(spec) {
+  // about:newtab is accepted so an older already-marked recovery tab can be
+  // reused/cleaned up after updating the code. New recovery tabs are created as
+  // about:blank.
+  return spec === RECOVERY_TAB_URL || spec === "about:newtab";
+}
+
+function isUsableRecoveryTab(tab, tabToReplace = null) {
+  if (!tab || tab === tabToReplace || tab.closing || tab.isDestroyed) {
+    return false;
+  }
+
+  if (!isRecoveryTab(tab)) {
+    return false;
+  }
+
+  const spec = getTabSpec(tab);
+
+  // Trust an already-marked recovery tab while currentURI is temporarily
+  // unavailable during creation/loading. This prevents one-window recovery
+  // state from being discarded and recreated repeatedly in Firefox 140+.
+  return !spec || isTemporaryRecoverySpec(spec);
+}
+
+function canReplaceSelectedTab(gBrowser) {
+  const now = Date.now();
+  const lastForWindow = gSelectedTabReplacementByBrowser.get(gBrowser) || 0;
+
+  if (
+    now - lastForWindow <
+    SELECTED_TAB_REPLACEMENT_WINDOW_COOLDOWN_MS
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function noteSelectedTabReplacement(gBrowser) {
+  const now = Date.now();
+  gSelectedTabReplacementByBrowser.set(gBrowser, now);
+
+  const state = gRecoveryStateByBrowser.get(gBrowser);
+  if (state) {
+    state.lastSelectedReplacementAt = now;
+  }
+}
 
 let criteriaTypes = [
   ["isNonDiscardable", NEVER_DISCARD],
+  ["isSelectedInBackgroundWindow", 100],
+  ["isSelectedInForegroundWindow", 1000],
   ["isLoading", 8],
   ["usingPictureInPicture", NEVER_DISCARD],
   ["playingMedia", NEVER_DISCARD],
@@ -39,7 +128,7 @@ let criteriaTypes = [
   ["isPrivate", NEVER_DISCARD],
 ];
 
-// Indicies into the criteriaTypes lists.
+// Indices into the criteriaTypes lists.
 let CRITERIA_METHOD = 0;
 let CRITERIA_WEIGHT = 1;
 
@@ -51,11 +140,58 @@ let CRITERIA_WEIGHT = 1;
  */
 let DefaultTabUnloaderMethods = {
   isNonDiscardable(tab, weight) {
-    if (tab.undiscardable || tab.selected) {
+    if (tab.undiscardable) {
       return weight;
     }
 
-    return !tab.linkedBrowser.isConnected ? -1 : 0;
+    if (!tab.linkedBrowser.isConnected) {
+      return -1;
+    }
+
+    // A dedicated recovery tab should never itself become an unload target.
+    if (isRecoveryTab(tab)) {
+      return -1;
+    }
+
+    const currentSpec = getTabSpec(tab);
+
+    // Protect ordinary about: pages from being unloaded. This also protects the
+    // about:blank recovery tab if it reaches this check before the marker check.
+    if (currentSpec?.startsWith("about:")) {
+      return -1;
+    }
+
+    return 0;
+  },
+
+  isSelectedInBackgroundWindow(tab, weight) {
+    if (!tab.selected) {
+      return 0;
+    }
+
+    const foregroundWindow = Services.wm.getMostRecentWindow(
+      "navigator:browser"
+    );
+
+    return tab.ownerGlobal !== foregroundWindow ? weight : 0;
+  },
+
+  isSelectedInForegroundWindow(tab, weight) {
+    if (!tab.selected) {
+      return 0;
+    }
+
+    const foregroundWindow = Services.wm.getMostRecentWindow(
+      "navigator:browser"
+    );
+
+    if (tab.ownerGlobal !== foregroundWindow) {
+      return 0;
+    }
+
+    return Services.prefs.getBoolPref(kUnloadActiveForegroundTabPref, false)
+      ? weight
+      : -1;
   },
 
   isPinned(tab, weight) {
@@ -81,18 +217,26 @@ let DefaultTabUnloaderMethods = {
       return 0;
     }
 
-    // No need to iterate browser contexts for hasActivePeerConnection
-    // because hasActivePeerConnection is set only in the top window.
-    return lazy.webrtcUI.browserHasStreams(browser) ||
-      browser.browsingContext?.currentWindowGlobal?.hasActivePeerConnections()
-      ? weight
-      : 0;
+    let browserHasStreams = false;
+    try {
+      browserHasStreams = !!webrtcUI?.browserHasStreams?.(browser);
+    } catch (ex) {
+      Cu.reportError(ex);
+    }
+
+    let hasActivePeerConnections = false;
+    try {
+      hasActivePeerConnections = !!browser.browsingContext?.currentWindowGlobal
+        ?.hasActivePeerConnections?.();
+    } catch (ex) {
+      Cu.reportError(ex);
+    }
+
+    return browserHasStreams || hasActivePeerConnections ? weight : 0;
   },
 
   isPrivate(tab, weight) {
-    return lazy.PrivateBrowsingUtils.isBrowserPrivate(tab.linkedBrowser)
-      ? weight
-      : 0;
+    return PrivateBrowsingUtils.isBrowserPrivate(tab.linkedBrowser) ? weight : 0;
   },
 
   getMinTabCount() {
@@ -135,8 +279,7 @@ let DefaultTabUnloaderMethods = {
   /**
    * Add the amount of memory used by each process to the process map.
    *
-   * @param tabs array of tabs, used only by unit tests
-   * @param map of processes returned by getAllProcesses.
+   * @param processMap map of processes returned by getAllProcesses.
    */
   async calculateMemoryUsage(processMap) {
     let parentProcessInfo = await ChromeUtils.requestProcInfo();
@@ -156,8 +299,9 @@ let DefaultTabUnloaderMethods = {
  * This module is responsible for detecting low-memory scenarios and unloading
  * tabs in response to them.
  */
-
 export var TabUnloader = {
+  _isUnloading: false,
+
   /**
    * Initialize low-memory detection and tab auto-unloading.
    */
@@ -168,14 +312,244 @@ export var TabUnloader = {
     watcher.registerTabUnloader(this);
   },
 
-  isDiscardable(tab) {
-    if (!("weight" in tab)) {
-      return false;
-    }
-    return tab.weight < NEVER_DISCARD;
+  isDiscardable(tabInfo) {
+    return typeof tabInfo.weight == "number" && tabInfo.weight < NEVER_DISCARD;
   },
 
-  // This method is exposed on nsITabUnloader
+  clearRecoveryTab(tab, gBrowser = null) {
+    if (!tab) {
+      return;
+    }
+
+    if (gBrowser) {
+      const state = gRecoveryStateByBrowser.get(gBrowser);
+      if (state?.tab === tab) {
+        gRecoveryStateByBrowser.delete(gBrowser);
+      }
+    }
+
+    if (typeof tab[kRecoveryTabCleanupKey] == "function") {
+      tab[kRecoveryTabCleanupKey]();
+      return;
+    }
+
+    try {
+      tab.removeAttribute?.(RECOVERY_TAB_ATTRIBUTE);
+    } catch (ex) {
+      Cu.reportError(ex);
+    }
+
+    delete tab[kRecoveryTabCleanupKey];
+    delete tab[kRecoveryTabKey];
+  },
+
+  getTrackedRecoveryTab(gBrowser, tabToReplace = null) {
+    const state = gRecoveryStateByBrowser.get(gBrowser);
+    if (!state) {
+      return null;
+    }
+
+    if (state.tab && isUsableRecoveryTab(state.tab, tabToReplace)) {
+      return state.tab;
+    }
+
+    // The tracked tab was closed, navigated, or otherwise became invalid.
+    // Clear the stale state so a later selected-tab replacement can create one.
+    if (state.tab) {
+      this.clearRecoveryTab(state.tab, gBrowser);
+    } else {
+      gRecoveryStateByBrowser.delete(gBrowser);
+    }
+
+    return null;
+  },
+
+  markRecoveryTab(gBrowser, recoveryTab, tabToReplace = null) {
+    if (!gBrowser || !recoveryTab) {
+      return null;
+    }
+
+    const currentState = gRecoveryStateByBrowser.get(gBrowser);
+    if (currentState?.tab === recoveryTab && isRecoveryTab(recoveryTab)) {
+      return recoveryTab;
+    }
+
+    for (let tab of gBrowser.tabs) {
+      if (tab !== recoveryTab && isRecoveryTab(tab)) {
+        this.clearRecoveryTab(tab, gBrowser);
+      }
+    }
+
+    if (typeof recoveryTab[kRecoveryTabCleanupKey] == "function") {
+      recoveryTab[kRecoveryTabCleanupKey]();
+    }
+
+    recoveryTab[kRecoveryTabKey] = true;
+    try {
+      recoveryTab.setAttribute?.(RECOVERY_TAB_ATTRIBUTE, "true");
+    } catch (ex) {
+      Cu.reportError(ex);
+    }
+
+    const browser = recoveryTab.linkedBrowser;
+    const self = this;
+    const oldState = gRecoveryStateByBrowser.get(gBrowser);
+
+    gRecoveryStateByBrowser.set(gBrowser, {
+      tab: recoveryTab,
+      replacingTab: tabToReplace,
+      createdAt: oldState?.createdAt || Date.now(),
+      lastSelectedReplacementAt: oldState?.lastSelectedReplacementAt || 0,
+    });
+
+    const onTabSelect = event => {
+      // Ignore the switch *to* the recovery tab. Only react when the user or
+      // browser later selects a different tab.
+      if (event.target === recoveryTab) {
+        return;
+      }
+
+      // Do not auto-remove during an active unload transaction. Firefox 140+
+      // can fire programmatic TabSelect churn while discardBrowser() is still
+      // running, and removing the recovery tab here can cause replacement loops.
+      if (self._isUnloading) {
+        return;
+      }
+
+      Services.tm.dispatchToMainThread(() => {
+        if (self._isUnloading) {
+          return;
+        }
+
+        if (
+          recoveryTab.closing ||
+          recoveryTab.isDestroyed ||
+          !isRecoveryTab(recoveryTab)
+        ) {
+          return;
+        }
+
+        // If the recovery tab has been navigated away from the temporary
+        // recovery URL, it is now a normal tab. Clear the marker/state but do
+        // not remove the tab.
+        const spec = getTabSpec(recoveryTab);
+        if (!isTemporaryRecoverySpec(spec)) {
+          self.clearRecoveryTab(recoveryTab, gBrowser);
+          return;
+        }
+
+        // Keep the recovery tab alive after another tab is selected. This lets
+        // each window maintain and reuse its own recovery tab instead of
+        // removing/recreating it under repeated memory pressure.
+        return;
+      });
+    };
+
+    const onTabClose = event => {
+      if (event.target === recoveryTab) {
+        self.clearRecoveryTab(recoveryTab, gBrowser);
+      }
+    };
+
+    const progressListener = {
+      QueryInterface: ChromeUtils.generateQI([
+        "nsIWebProgressListener",
+        "nsISupportsWeakReference",
+      ]),
+
+      onLocationChange(webProgress, request, location, flags) {
+        const spec = location?.spec;
+        if (!spec || isTemporaryRecoverySpec(spec)) {
+          return;
+        }
+
+        Services.tm.dispatchToMainThread(() => {
+          if (
+            recoveryTab.closing ||
+            recoveryTab.isDestroyed ||
+            !isRecoveryTab(recoveryTab)
+          ) {
+            return;
+          }
+
+          // Once the recovery tab is navigated somewhere real, stop treating it
+          // as a tracked temporary recovery tab, but leave the tab open.
+          self.clearRecoveryTab(recoveryTab, gBrowser);
+        });
+      },
+
+      onStateChange() {},
+      onProgressChange() {},
+      onStatusChange() {},
+      onSecurityChange() {},
+      onContentBlockingEvent() {},
+    };
+
+    browser.addProgressListener(
+      progressListener,
+      Ci.nsIWebProgress.NOTIFY_LOCATION
+    );
+
+    recoveryTab[kRecoveryTabCleanupKey] = () => {
+      gBrowser.tabContainer.removeEventListener("TabSelect", onTabSelect);
+      gBrowser.tabContainer.removeEventListener("TabClose", onTabClose);
+
+      try {
+        browser.removeProgressListener(progressListener);
+      } catch (ex) {
+        Cu.reportError(ex);
+      }
+
+      const state = gRecoveryStateByBrowser.get(gBrowser);
+      if (state?.tab === recoveryTab) {
+        gRecoveryStateByBrowser.delete(gBrowser);
+      }
+
+      try {
+        recoveryTab.removeAttribute?.(RECOVERY_TAB_ATTRIBUTE);
+      } catch (ex) {
+        Cu.reportError(ex);
+      }
+
+      delete recoveryTab[kRecoveryTabCleanupKey];
+      delete recoveryTab[kRecoveryTabKey];
+    };
+
+    gBrowser.tabContainer.addEventListener("TabSelect", onTabSelect);
+    gBrowser.tabContainer.addEventListener("TabClose", onTabClose);
+
+    return recoveryTab;
+  },
+
+  getOrCreateRecoveryTab(gBrowser, tabToReplace) {
+    if (!gBrowser) {
+      return null;
+    }
+
+    // 1. Reuse this window's tracked recovery tab if it already exists.
+    const trackedRecoveryTab = this.getTrackedRecoveryTab(gBrowser, tabToReplace);
+    if (trackedRecoveryTab) {
+      return trackedRecoveryTab;
+    }
+
+    // 2. Reuse any already-marked recovery tab in this same window. This covers
+    // cases where the WeakMap state was lost but the tab marker still exists.
+    for (let tab of gBrowser.tabs) {
+      if (isUsableRecoveryTab(tab, tabToReplace)) {
+        return this.markRecoveryTab(gBrowser, tab, tabToReplace);
+      }
+    }
+
+    // 3. No existing recovery tab found for this window, so create exactly one.
+    const newTab = gBrowser.addTrustedTab(RECOVERY_TAB_URL, {
+      relatedToCurrent: false,
+      inBackground: true,
+      skipAnimation: true,
+    });
+    return this.markRecoveryTab(gBrowser, newTab, tabToReplace);
+  },
+
+  // This method is exposed on nsITabUnloader.
   async unloadTabAsync(minInactiveDuration = kMinInactiveDurationInMs) {
     const watcher = Cc["@mozilla.org/xpcom/memory-watcher;1"].getService(
       Ci.nsIAvailableMemoryWatcherBase
@@ -187,54 +561,40 @@ export var TabUnloader = {
     }
 
     if (this._isUnloading) {
-      // Don't post multiple unloading requests.  The situation may be solved
+      // Don't post multiple unloading requests. The situation may be solved
       // when the active unloading task is completed.
       Services.console.logStringMessage("Unloading a tab is in progress.");
       watcher.onUnloadAttemptCompleted(Cr.NS_ERROR_ABORT);
       return;
     }
 
+    let isTabUnloaded = false;
     this._isUnloading = true;
-    const isTabUnloaded =
-      await this.unloadLeastRecentlyUsedTab(minInactiveDuration);
-    this._isUnloading = false;
 
-    watcher.onUnloadAttemptCompleted(
-      isTabUnloaded ? Cr.NS_OK : Cr.NS_ERROR_NOT_AVAILABLE
-    );
+    try {
+      isTabUnloaded = await this.unloadLeastRecentlyUsedTab(
+        minInactiveDuration
+      );
+    } catch (ex) {
+      Cu.reportError(ex);
+    } finally {
+      this._isUnloading = false;
+      watcher.onUnloadAttemptCompleted(
+        isTabUnloaded ? Cr.NS_OK : Cr.NS_ERROR_NOT_AVAILABLE
+      );
+    }
   },
 
   /**
    * Get a list of tabs that can be discarded. This list includes all tabs in
    * all windows and is sorted based on a weighting described below.
    *
-   * @param minInactiveDuration If this value is a number, tabs that were accessed
-   *        in the last |minInactiveDuration| msec are not unloaded even if they
-   *        are least-recently-used.
+   * @param minInactiveDuration If this value is a number, non-selected tabs
+   *        that were accessed in the last |minInactiveDuration| msec are not
+   *        unloaded even if they are least-recently-used. Selected tabs are
+   *        kept in the list so they can be final fallback candidates.
    *
-   * @param tabMethods an helper object with methods called by this algorithm.
-   *
-   * The algorithm used is:
-   *   1. Sort all of the tabs by a base weight. Tabs with a higher weight, such as
-   *      those that are pinned or playing audio, will appear at the end. When two
-   *      tabs have the same weight, sort by the order in which they were last.
-   *      recently accessed Tabs that have a weight of NEVER_DISCARD are included in
-   *       the list, but will not be discarded.
-   *   2. Exclude the last X tabs, where X is the value returned by getMinTabCount().
-   *      These tabs are considered to have been recently accessed and are not further
-   *      reweighted. This also saves time when there are less than X tabs open.
-   *   3. Calculate the amount of processes that are used only by each tab, as the
-   *      resources used by these proceses can be freed up if the tab is closed. Sort
-   *      the tabs by the number of unique processes used and add a reweighting factor
-   *      based on this.
-   *   4. Futher reweight based on an approximation of the amount of memory that each
-   *      tab uses.
-   *   5. Combine these weights to produce a final tab discard order, and discard the
-   *      first tab. If this fails, then discard the next tab in the list until no more
-   *      non-discardable tabs are found.
-   *
-   * The tabMethods are used so that unit tests can use false tab objects and
-   * override their behaviour.
+   * @param tabMethods a helper object with methods called by this algorithm.
    */
   async getSortedTabs(
     minInactiveDuration = kMinInactiveDurationInMs,
@@ -246,14 +606,9 @@ export var TabUnloader = {
 
     let lowestWeight = 1000;
     for (let tab of tabMethods.iterateTabs()) {
-      if (
-        typeof minInactiveDuration == "number" &&
-        now - tab.tab.lastAccessed < minInactiveDuration
-      ) {
-        // Skip "fresh" tabs, which were accessed within the specified duration.
-        continue;
-      }
-
+      // Do not skip non-selected tabs just because they are fresh. All
+      // non-active tabs, old or fresh, should be considered before any active
+      // selected tab is used as a last-resort unload target.
       let weight = determineTabBaseWeight(tab, tabMethods);
 
       // Don't add tabs that have a weight of -1.
@@ -280,8 +635,8 @@ export var TabUnloader = {
     }
 
     // Determine the lowest weight that the tabs have. The tabs with the
-    // lowest weight (should be most non-selected tabs) will be additionally
-    // weighted by the number of processes and memory that they use.
+    // lowest weight will be additionally weighted by the number of processes
+    // and memory that they use.
     let higherWeightedCount = 0;
     for (let idx = 0; idx < tabs.length; idx++) {
       if (tabs[idx].weight != lowestWeight) {
@@ -299,8 +654,8 @@ export var TabUnloader = {
       higherWeightedCount = minCount;
     }
 
-    // If |lowestWeightedCount| is 1, no benefit from calculating
-    // the tab's memory and additional weight.
+    // If |lowestWeightedCount| is 1, no benefit from calculating the tab's
+    // memory and additional weight.
     const lowestWeightedCount = tabs.length - higherWeightedCount;
     if (lowestWeightedCount > 1) {
       let processMap = getAllProcesses(tabs, tabMethods);
@@ -326,18 +681,50 @@ export var TabUnloader = {
 
     for (let tabInfo of sortedTabs) {
       if (!this.isDiscardable(tabInfo)) {
-        // Since |sortedTabs| is sorted, once we see an undiscardable tab
+        // Since |sortedTabs| is sorted, once we see a non-discardable tab
         // no need to continue the loop.
         return false;
       }
 
-      const remoteType = tabInfo.tab?.linkedBrowser?.remoteType;
-      await tabInfo.gBrowser.prepareDiscardBrowser(tabInfo.tab);
-      if (tabInfo.gBrowser.discardBrowser(tabInfo.tab)) {
+      const { tab } = tabInfo;
+      const gBrowser = tab?.ownerGlobal?.gBrowser || tabInfo.gBrowser;
+      if (!tab || !gBrowser) {
+        continue;
+      }
+
+      if (tab.selected) {
+        // If memory pressure remains continuously above threshold, the memory
+        // watcher may keep calling unloadTabAsync(). Do not repeatedly replace
+        // selected tabs, because changing selectedTab repaints browser chrome
+        // and causes flicker. Background tab unloading is not throttled.
+        if (!canReplaceSelectedTab(gBrowser)) {
+          continue;
+        }
+
+        const recoveryTab = this.getOrCreateRecoveryTab(gBrowser, tab);
+        if (!recoveryTab || recoveryTab === tab) {
+          continue;
+        }
+
+        if (gBrowser.selectedTab !== recoveryTab) {
+          gBrowser.selectedTab = recoveryTab;
+        }
+
+        noteSelectedTabReplacement(gBrowser);
+      }
+
+      const remoteType = tab?.linkedBrowser?.remoteType;
+
+      // prepareDiscardBrowser()
+      if (typeof gBrowser.prepareDiscardBrowser == "function") {
+        await gBrowser.prepareDiscardBrowser(tab);
+      }
+
+      if (gBrowser.discardBrowser(tab)) {
         Services.console.logStringMessage(
           `TabUnloader discarded <${remoteType}>`
         );
-        tabInfo.tab.updateLastUnloadedByTabUnloader();
+        tab.updateLastUnloadedByTabUnloader?.();
         return true;
       }
     }
@@ -345,6 +732,7 @@ export var TabUnloader = {
   },
 
   QueryInterface: ChromeUtils.generateQI([
+    "nsITabUnloader",
     "nsIObserver",
     "nsISupportsWeakReference",
   ]),
@@ -377,14 +765,14 @@ function determineTabBaseWeight(tab, tabMethods) {
 }
 
 /**
- * Constuct a map of the processes that are used by the supplied tabs.
- * The map will map process ids to an object with two properties:
+ * Construct a map of the processes that are used by the supplied tabs.
+ * The map will map process ids to an object with three properties:
  *   count - the number of tabs or subframes that use this process
  *   topCount - the number of top-level tabs that use this process
  *   tabSet - the indices of the tabs hosted by this process
  *
  * @param tabs array of tabs
- * @param tabMethods an helper object with methods called by this algorithm.
+ * @param tabMethods a helper object with methods called by this algorithm.
  * @returns process map
  */
 function getAllProcesses(tabs, tabMethods) {
@@ -435,7 +823,7 @@ function getAllProcesses(tabs, tabMethods) {
         processInfo.topCount = processInfo.topCount
           ? processInfo.topCount + 1
           : 1;
-        // top-level frame contributes two frame counts
+        // Top-level frame contributes two frame counts.
         ++tabProcessEntry.frameCount;
       }
     }
@@ -446,14 +834,14 @@ function getAllProcesses(tabs, tabMethods) {
 
 /**
  * Adjust the tab info and reweight the tabs based on the process and memory
- * use that is used, as described by getSortedTabs
-
+ * use that is used, as described by getSortedTabs.
+ *
  * @param tabs array of tabs
  * @param processMap map of processes returned by getAllProcesses
- * @param tabMethods an helper object with methods called by this algorithm.
+ * @param tabMethods a helper object with methods called by this algorithm.
  */
 async function adjustForResourceUse(tabs, processMap, tabMethods) {
-  // The second argument is needed for testing.
+  // The second argument is accepted by some tests/overrides.
   await tabMethods.calculateMemoryUsage(processMap, tabs);
 
   let sortWeight = 0;
@@ -468,16 +856,16 @@ async function adjustForResourceUse(tabs, processMap, tabMethods) {
         uniqueCount++;
       }
 
-      // Guess how much memory the frame might be using using by dividing
+      // Guess how much memory the frame might be using by dividing
       // the total memory used by a process by the number of tabs and
       // frames that are using that process. Assume that any subframes take up
       // only half as much memory as a process loaded in a top level tab.
       // So for example, if a process is used in four top level tabs and two
       // subframes, the top level tabs share 80% of the memory and the subframes
       // use 20% of the memory.
-      const perFrameMemory =
-        processInfo.memory /
-        (processInfo.topCount * 2 + (processInfo.count - processInfo.topCount));
+      const denominator =
+        processInfo.topCount * 2 + (processInfo.count - processInfo.topCount);
+      const perFrameMemory = denominator ? processInfo.memory / denominator : 0;
       totalMemory += perFrameMemory * procEntry.frameCount;
     }
 
