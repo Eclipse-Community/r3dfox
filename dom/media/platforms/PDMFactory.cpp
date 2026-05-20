@@ -511,7 +511,7 @@ void PDMFactory::CreatePDMs() {
 
 void PDMFactory::CreateGpuPDMs() {
 #ifdef XP_WIN
-  if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
+  if (StaticPrefs::media_wmf_enabled() && IsVistaOrLater() && !IsWin7AndPre2000Compatible()) {
     StartupPDM(WMFDecoderModule::Create());
   }
 #endif
@@ -640,7 +640,7 @@ void PDMFactory::CreateContentPDMs() {
   if (StaticPrefs::media_allow_audio_non_utility()) {
 #endif  // !defined(MOZ_WIDGET_ANDROID)
 #ifdef XP_WIN
-    if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
+    if (StaticPrefs::media_wmf_enabled() && IsVistaOrLater() && !IsWin7AndPre2000Compatible()) {
 #  ifdef MOZ_WMF
       if (!StaticPrefs::media_rdd_process_enabled() ||
           !StaticPrefs::media_rdd_wmf_enabled()) {
@@ -694,7 +694,7 @@ void PDMFactory::CreateContentPDMs() {
 
 void PDMFactory::CreateDefaultPDMs() {
 #ifdef XP_WIN
-  if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
+  if (StaticPrefs::media_wmf_enabled() && IsVistaOrLater() && !IsWin7AndPre2000Compatible()) {
     if (!StartupPDM(WMFDecoderModule::Create())) {
       mFailureFlags += DecoderDoctorDiagnostics::Flags::WMFFailedToLoad;
     }
