@@ -94,7 +94,7 @@ function commonDialogOnLoad() {
   }
   if (hideHeaderAppIcon && AppConstants.platform == "win" &&
     !window.docShell.chromeEventHandler) {
-    lazy.WindowsUIUtils.setWindowIconNoData(window);
+    //lazy.WindowsUIUtils.setWindowIconNoData(window);
   }
 
   // Fade and crop potentially long raw titles, e.g., origins and hostnames.
