@@ -5,33 +5,68 @@
 // found in the LICENSE file.
 
 #include "base/lock_impl.h"
+#include "base/logging.h"
 
 namespace base {
 namespace internal {
 
+// NOTE: Although windows critical sections support recursive locks, we do not
+// allow this, and we will commonly fire a DCHECK() if a thread attempts to
+// acquire the lock a second time (while already holding it).
+
 LockImpl::LockImpl() {
+#ifndef NDEBUG
+  recursion_count_shadow_ = 0;
+  recursion_used_ = false;
+  owning_thread_id_ = 0;
+#endif  // NDEBUG
   // The second parameter is the spin count, for short-held locks it avoid the
   // contending thread from going to sleep which helps performance greatly.
-  ::InitializeCriticalSectionAndSpinCount(&native_handle_, 2000);
+  ::InitializeCriticalSectionAndSpinCount(&os_lock_, 2000);
 }
 
 LockImpl::~LockImpl() {
-  ::DeleteCriticalSection(&native_handle_);
+  ::DeleteCriticalSection(&os_lock_);
 }
 
 bool LockImpl::Try() {
-  if (::TryEnterCriticalSection(&native_handle_) != FALSE) {
+  if (::TryEnterCriticalSection(&os_lock_) != FALSE) {
+#ifndef NDEBUG
+    // ONLY access data after locking.
+    owning_thread_id_ = PlatformThread::CurrentId();
+    DCHECK_NE(owning_thread_id_, 0);
+    recursion_count_shadow_++;
+    if (2 == recursion_count_shadow_ && !recursion_used_) {
+      recursion_used_ = true;
+      DCHECK(false);  // Catch accidental redundant lock acquisition.
+    }
+#endif
     return true;
   }
   return false;
 }
 
 void LockImpl::Lock() {
-  ::EnterCriticalSection(&native_handle_);
+  ::EnterCriticalSection(&os_lock_);
+#ifndef NDEBUG
+  // ONLY access data after locking.
+  owning_thread_id_ = PlatformThread::CurrentId();
+  DCHECK_NE(owning_thread_id_, 0);
+  recursion_count_shadow_++;
+  if (2 == recursion_count_shadow_ && !recursion_used_) {
+    recursion_used_ = true;
+    DCHECK(false);  // Catch accidental redundant lock acquisition.
+  }
+#endif  // NDEBUG
 }
 
 void LockImpl::Unlock() {
-  ::LeaveCriticalSection(&native_handle_);
+#ifndef NDEBUG
+  --recursion_count_shadow_;  // ONLY access while lock is still held.
+  DCHECK(0 <= recursion_count_shadow_);
+  owning_thread_id_ = 0;
+#endif  // NDEBUG
+  ::LeaveCriticalSection(&os_lock_);
 }
 
 }  // namespace internal
