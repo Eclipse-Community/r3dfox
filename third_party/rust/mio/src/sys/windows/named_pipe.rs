@@ -18,7 +18,7 @@ use windows_sys::Win32::System::Pipes::{
     PIPE_UNLIMITED_INSTANCES,
 };
 use windows_sys::Win32::System::IO::{
-    CancelIoEx, GetOverlappedResult, OVERLAPPED, OVERLAPPED_ENTRY,
+    CancelIo, GetOverlappedResult, OVERLAPPED, OVERLAPPED_ENTRY,
 };
 
 use crate::event::Source;
@@ -812,7 +812,7 @@ impl Inner {
 }
 
 unsafe fn cancel(handle: &Handle, overlapped: &Overlapped) -> io::Result<()> {
-    let ret = CancelIoEx(handle.raw(), overlapped.as_ptr());
+    let ret = CancelIo(handle.raw());
     // `CancelIoEx` returns 0 on error:
     // https://docs.microsoft.com/en-us/windows/win32/fileio/cancelioex-func
     if ret == 0 {

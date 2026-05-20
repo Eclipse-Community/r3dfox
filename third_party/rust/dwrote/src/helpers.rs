@@ -8,16 +8,19 @@ use winapi::ctypes::wchar_t;
 use winapi::shared::minwindef::{BOOL, FALSE};
 use winapi::shared::winerror::S_OK;
 use winapi::um::dwrite::IDWriteLocalizedStrings;
-use winapi::um::winnls::GetUserDefaultLocaleName;
+//use winapi::um::winnls::GetUserDefaultLocaleName;
 use wio::com::ComPtr;
 
 lazy_static! {
-    static ref SYSTEM_LOCALE: Vec<wchar_t> = {
+    /*static ref SYSTEM_LOCALE: Vec<wchar_t> = {
         unsafe {
             let mut locale: Vec<wchar_t> = vec![0; 85];
             GetUserDefaultLocaleName(locale.as_mut_ptr(), locale.len() as i32 - 1);
             locale
         }
+    };*/
+    static ref SYSTEM_LOCALE: Vec<wchar_t> = {
+        OsStr::new("en-us").encode_wide().collect()
     };
     static ref EN_US_LOCALE: Vec<wchar_t> = { OsStr::new("en-us").to_wide_null() };
 }

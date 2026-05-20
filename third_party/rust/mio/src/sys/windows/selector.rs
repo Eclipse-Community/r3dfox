@@ -466,7 +466,7 @@ impl SelectorInner {
 
         unsafe { self.update_sockets_events() }?;
 
-        let result = self.cp.get_many(statuses, timeout);
+        /*let result = self.cp.get_many(statuses, timeout);
 
         self.is_polling.store(false, Ordering::Relaxed);
 
@@ -474,7 +474,8 @@ impl SelectorInner {
             Ok(iocp_events) => Ok(unsafe { self.feed_events(events, iocp_events) }),
             Err(ref e) if e.raw_os_error() == Some(WAIT_TIMEOUT as i32) => Ok(0),
             Err(e) => Err(e),
-        }
+        }*/
+        Ok(0)
     }
 
     unsafe fn update_sockets_events(&self) -> io::Result<()> {
@@ -697,7 +698,7 @@ impl Drop for SelectorInner {
             let events_num: usize;
             let mut statuses: [CompletionStatus; 1024] = [CompletionStatus::zero(); 1024];
 
-            let result = self
+            /*let result = self
                 .cp
                 .get_many(&mut statuses, Some(std::time::Duration::from_millis(0)));
             match result {
@@ -728,7 +729,8 @@ impl Drop for SelectorInner {
             if events_num == 0 {
                 // continue looping until all completion statuses have been drained
                 break;
-            }
+            }*/
+            break;
         }
 
         self.afd_group.release_unused_afd();
