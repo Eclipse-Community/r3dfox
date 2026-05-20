@@ -2289,14 +2289,14 @@ uloc_getLCID(const char* localeID)
 
     // First, attempt Windows platform lookup if available, but fall
     // through to catch any special cases (ICU vs Windows name differences).
-    lcid = uprv_convertToLCIDPlatform(localeID, &status);
+    /*lcid = uprv_convertToLCIDPlatform(localeID, &status);
     if (U_FAILURE(status)) {
         return 0;
     }
     if (lcid > 0) {
         // Windows found an LCID, return that
         return lcid;
-    }
+    }*/
 
     CharString langID = ulocimp_getLanguage(localeID, status);
     if (U_FAILURE(status)) {

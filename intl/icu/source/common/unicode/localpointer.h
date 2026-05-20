@@ -223,6 +223,8 @@ public:
         src.ptr=nullptr;
     }
 
+    LocalPointer(const LocalPointer<T> &src) noexcept : LocalPointerBase<T>(src.ptr) {}
+
     /**
      * Constructs a LocalPointer from a C++11 std::unique_ptr.
      * The LocalPointer steals the object owned by the std::unique_ptr.
