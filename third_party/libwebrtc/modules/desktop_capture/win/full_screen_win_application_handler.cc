@@ -23,6 +23,7 @@
 #include "rtc_base/arraysize.h"
 #include "rtc_base/logging.h"  // For RTC_LOG_GLE
 #include "rtc_base/string_utils.h"
+#include <psapi.h>
 
 namespace webrtc {
 namespace {
@@ -261,7 +262,7 @@ std::wstring GetPathByWindowId(HWND window_id) {
   DWORD path_len = MAX_PATH;
   WCHAR path[MAX_PATH];
   std::wstring result;
-  if (::QueryFullProcessImageNameW(process, 0, path, &path_len))
+  if (::GetModuleFileNameEx(process, 0, path, path_len))
     result = std::wstring(path, path_len);
   else
     RTC_LOG_GLE(LS_ERROR) << "QueryFullProcessImageName failed.";
