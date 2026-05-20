@@ -3741,11 +3741,11 @@ Preferences.addSetting({
 Preferences.addSetting({
   id: "permissionBox",
 });
-Preferences.addSetting({
-  id: "submitUsagePingBox",
-  pref: "datareporting.usage.uploadEnabled",
-  visible: () => lazy.AppConstants.MOZ_DATA_REPORTING,
-});
+//Preferences.addSetting({
+//  id: "submitUsagePingBox",
+//  pref: "datareporting.usage.uploadEnabled",
+//  visible: () => lazy.AppConstants.MOZ_DATA_REPORTING,
+//});
 Preferences.addSetting({
   id: "automaticallySubmitCrashesBox",
   pref: "browser.crashReports.unsubmittedCheck.autoSubmit2",
@@ -3810,84 +3810,84 @@ Preferences.addSetting({
   pref: "browser.dataFeatureRecommendations.enabled",
 });
 
-Preferences.addSetting({
-  id: "submitHealthReportBox",
-  pref: "datareporting.healthreport.uploadEnabled",
-  getControlConfig(config, _, setting) {
-    if (!setting.value) {
-      return {
-        ...config,
-        l10nId: "data-collection-health-report-disabled",
-      };
-    }
-    return {
-      ...config,
-      l10nId: "data-collection-health-report",
-    };
-  },
-});
+//Preferences.addSetting({
+//  id: "submitHealthReportBox",
+//  pref: "datareporting.healthreport.uploadEnabled",
+//  getControlConfig(config, _, setting) {
+//    if (!setting.value) {
+//      return {
+//        ...config,
+//        l10nId: "data-collection-health-report-disabled",
+//      };
+//    }
+//    return {
+//      ...config,
+//      l10nId: "data-collection-health-report",
+//    };
+//  },
+//});
+//
+//Preferences.addSetting({
+//  id: "addonRecommendationEnabled",
+//  pref: "browser.discovery.enabled",
+//  deps: ["submitHealthReportBox"],
+//  visible: () => lazy.AppConstants.MOZ_DATA_REPORTING,
+//  get: (value, deps) => {
+//    return value && deps.submitHealthReportBox.pref.value;
+//  },
+//});
 
-Preferences.addSetting({
-  id: "addonRecommendationEnabled",
-  pref: "browser.discovery.enabled",
-  deps: ["submitHealthReportBox"],
-  visible: () => lazy.AppConstants.MOZ_DATA_REPORTING,
-  get: (value, deps) => {
-    return value && deps.submitHealthReportBox.pref.value;
-  },
-});
-
-Preferences.addSetting({
-  id: "normandyEnabled",
-  pref: "app.normandy.enabled",
-});
-
-Preferences.addSetting({
-  id: "optOutStudiesEnabled",
-  visible: () => lazy.AppConstants.MOZ_NORMANDY,
-  pref: "app.shield.optoutstudies.enabled",
-  deps: ["submitHealthReportBox", "normandyEnabled"],
-  disabled: ({ submitHealthReportBox, normandyEnabled }) => {
-    /**
-    *  The checkbox should be disabled if any of the below are true. This
-    prevents the user from changing the value in the box.
-    * 2. telemetry upload is disabled
-    * 3. Normandy is disabled
-    */
-    const allowedByPolicy = Services.policies.isAllowed("Shield");
-    return (
-      !allowedByPolicy || !submitHealthReportBox.value || !normandyEnabled.value
-    );
-  },
-
-  get: (value, { submitHealthReportBox, normandyEnabled }) => {
-    /**
-     * The checkbox should match the value of the preference only if all the below are true:
-     *
-     * 1. the policy allows Shield
-     * 2. telemetry upload is enabled
-     * 3. Normandy is enabled
-     *
-     * Otherwise, the checkbox should remain unchecked. This
-     * is because in these situations, Shield studies are always disabled, and
-     * so showing a checkbox would be confusing.
-     */
-    const allowedByPolicy = Services.policies.isAllowed("Shield");
-
-    if (
-      !allowedByPolicy ||
-      !submitHealthReportBox.value ||
-      !normandyEnabled.value
-    ) {
-      return false;
-    }
-    return value;
-  },
-});
-
-Preferences.addSetting({
-  id: "viewShieldStudies",
-});
+//Preferences.addSetting({
+//  id: "normandyEnabled",
+//  pref: "app.normandy.enabled",
+//});
+//
+//Preferences.addSetting({
+//  id: "optOutStudiesEnabled",
+//  visible: () => lazy.AppConstants.MOZ_NORMANDY,
+//  pref: "app.shield.optoutstudies.enabled",
+//  deps: ["submitHealthReportBox", "normandyEnabled"],
+//  disabled: ({ submitHealthReportBox, normandyEnabled }) => {
+//    /**
+//    *  The checkbox should be disabled if any of the below are true. This
+//    prevents the user from changing the value in the box.
+//    * 2. telemetry upload is disabled
+//    * 3. Normandy is disabled
+//    */
+//    const allowedByPolicy = Services.policies.isAllowed("Shield");
+//    return (
+//      !allowedByPolicy || !submitHealthReportBox.value || !normandyEnabled.value
+//    );
+//  },
+//
+//  get: (value, { submitHealthReportBox, normandyEnabled }) => {
+//    /**
+//     * The checkbox should match the value of the preference only if all the below are true:
+//     *
+//     * 1. the policy allows Shield
+//     * 2. telemetry upload is enabled
+//     * 3. Normandy is enabled
+//     *
+//     * Otherwise, the checkbox should remain unchecked. This
+//     * is because in these situations, Shield studies are always disabled, and
+//     * so showing a checkbox would be confusing.
+//     */
+//    const allowedByPolicy = Services.policies.isAllowed("Shield");
+//
+//    if (
+//      !allowedByPolicy ||
+//      !submitHealthReportBox.value ||
+//      !normandyEnabled.value
+//    ) {
+//      return false;
+//    }
+//    return value;
+//  },
+//});
+//
+//Preferences.addSetting({
+//  id: "viewShieldStudies",
+//});
 
 Preferences.addSetting({
   id: "profilesBackupEnabled",
