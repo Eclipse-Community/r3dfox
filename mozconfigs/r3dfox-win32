@@ -1,7 +1,7 @@
 ## mozconfig for compiling r3dfox browser for Windows natively
 
 # x86 build
-ac_add_options --target=i686
+ac_add_options --target=i686-rust9x-windows-msvc
 ac_add_options --disable-sandbox
 ac_add_options --disable-bootstrap
 ac_add_options --disable-cargo-incremental
