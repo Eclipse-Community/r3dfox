@@ -1324,7 +1324,7 @@ var FullPageTranslationsPanel = new (class {
 
   openDisableTranslations() {
     const window =
-      gBrowser.selectedBrowser.browsingContext.top.embedderElement.ownerGlobal;
+      gBrowser.selectedBrowser.browsingContext.top.embedderElement.documentGlobal;
     window.openTrustedLinkIn(
       "about:preferences#general-translations-enable",
       "tab"

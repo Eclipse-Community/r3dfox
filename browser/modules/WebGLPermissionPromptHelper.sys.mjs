@@ -26,7 +26,7 @@ export let WebGLPermissionPromptHelper = {
       browser = aSubject;
     }
 
-    let window = browser?.ownerGlobal;
+    let window = browser?.documentGlobal;
     if (!window) {
       // Without knowing where this came from, we can't show the prompt.
       return;
