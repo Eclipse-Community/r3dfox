@@ -173,7 +173,7 @@ let DefaultTabUnloaderMethods = {
       "navigator:browser"
     );
 
-    return tab.ownerGlobal !== foregroundWindow ? weight : 0;
+    return tab.documentGlobal !== foregroundWindow ? weight : 0;
   },
 
   isSelectedInForegroundWindow(tab, weight) {
@@ -185,7 +185,7 @@ let DefaultTabUnloaderMethods = {
       "navigator:browser"
     );
 
-    if (tab.ownerGlobal !== foregroundWindow) {
+    if (tab.documentGlobal !== foregroundWindow) {
       return 0;
     }
 
@@ -687,7 +687,7 @@ export var TabUnloader = {
       }
 
       const { tab } = tabInfo;
-      const gBrowser = tab?.ownerGlobal?.gBrowser || tabInfo.gBrowser;
+      const gBrowser = tab?.documentGlobal?.gBrowser || tabInfo.gBrowser;
       if (!tab || !gBrowser) {
         continue;
       }
