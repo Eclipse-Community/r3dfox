@@ -77,3 +77,7 @@ if CONFIG["TARGET_CPU"] == "x86_64":
     DEFINES["WEBRTC_ENABLE_AVX2"] = True
 
 Library("desktop_capture_objc_gn")
+
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"
