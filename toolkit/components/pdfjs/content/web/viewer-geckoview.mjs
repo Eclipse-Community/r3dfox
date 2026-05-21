@@ -8610,7 +8610,6 @@ class PDFViewer {
   #eventAbortController = null;
   #minDurationToUpdateCanvas = 0;
   #mlManager = null;
-  #printingAllowed = true;
   #scrollTimeoutId = null;
   #switchAnnotationEditorModeAC = null;
   #switchAnnotationEditorModeTimeoutId = null;
@@ -8695,9 +8694,6 @@ class PDFViewer {
         pdfPage?.cleanup();
       }
     });
-  }
-  get printingAllowed() {
-    return this.#printingAllowed;
   }
   get pagesCount() {
     return this._pages.length;
@@ -8881,18 +8877,8 @@ class PDFViewer {
       textLayerMode: this.#textLayerMode
     };
     if (!permissions) {
-      this.#printingAllowed = true;
-      this.eventBus.dispatch("printingallowed", {
-        source: this,
-        isAllowed: this.#printingAllowed
-      });
       return params;
     }
-    this.#printingAllowed = permissions.includes(PermissionFlag.PRINT_HIGH_QUALITY) || permissions.includes(PermissionFlag.PRINT);
-    this.eventBus.dispatch("printingallowed", {
-      source: this,
-      isAllowed: this.#printingAllowed
-    });
     if (!permissions.includes(PermissionFlag.COPY) && this.#textLayerMode === TextLayerMode.ENABLE) {
       params.textLayerMode = TextLayerMode.ENABLE_PERMISSIONS;
     }
@@ -8995,7 +8981,6 @@ class PDFViewer {
       this.#annotationEditorUIManager?.destroy();
       this.#annotationEditorUIManager = null;
       this.#annotationEditorMode = AnnotationEditorType.NONE;
-      this.#printingAllowed = true;
     }
     this.pdfDocument = pdfDocument;
     if (!pdfDocument) {
@@ -10511,7 +10496,6 @@ const PDFViewerApplication = {
   _caretBrowsing: null,
   _isScrolling: false,
   editorUndoBar: null,
-  _printPermissionPromise: null,
   async initialize(appConfig) {
     this.appConfig = appConfig;
     try {
@@ -10886,16 +10870,9 @@ const PDFViewerApplication = {
         console.warn(msg);
       });
     }
-    const togglePrintingButtons = visible => {
-      appConfig.toolbar?.print?.classList.toggle("hidden", !visible);
-      appConfig.secondaryToolbar?.printButton.classList.toggle("hidden", !visible);
-    };
     if (!this.supportsPrinting) {
-      togglePrintingButtons(false);
-    } else {
-      eventBus.on("printingallowed", ({
-        isAllowed
-      }) => togglePrintingButtons(isAllowed));
+      appConfig.toolbar?.print?.classList.add("hidden");
+      appConfig.secondaryToolbar?.printButton.classList.add("hidden");
     }
     if (!this.supportsFullscreen) {
       appConfig.secondaryToolbar?.presentationModeButton.classList.add("hidden");
@@ -11225,20 +11202,6 @@ const PDFViewerApplication = {
   },
   load(pdfDocument) {
     this.pdfDocument = pdfDocument;
-    this._printPermissionPromise = new Promise(resolve => {
-      this.eventBus.on("printingallowed", ({
-        isAllowed
-      }) => {
-        if (!isAllowed) {
-          window.print = () => {
-            console.warn("Printing is not allowed.");
-          };
-        }
-        resolve(isAllowed);
-      }, {
-        once: true
-      });
-    });
     pdfDocument.getDownloadInfo().then(({
       length
     }) => {
@@ -11587,7 +11550,7 @@ const PDFViewerApplication = {
     if (this.printService) {
       return;
     }
-    if (!this.supportsPrinting || !this.pdfViewer.printingAllowed) {
+    if (!this.supportsPrinting) {
       this._otherError("pdfjs-printing-not-supported");
       return;
     }
@@ -11638,8 +11601,8 @@ const PDFViewerApplication = {
   requestPresentationMode() {
     this.pdfPresentationMode?.request();
   },
-  async triggerPrinting() {
-    if (this.supportsPrinting && (await this._printPermissionPromise)) {
+  triggerPrinting() {
+    if (this.supportsPrinting) {
       window.print();
     }
   },
