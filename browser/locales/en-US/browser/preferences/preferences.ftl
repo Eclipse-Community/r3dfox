@@ -276,7 +276,7 @@ r3dfox-advanced-header = Advanced configurations
 r3dfox-unload-ram =
     .label = Enable tab unloading on low memory
 
-r3dfox-unload-ram-desc = (This currently does nothing, it's always enabled for now until disabling it is implemented.) If your system falls below the chosen RAM threshold, the browser will start unloading tabs to reduce it's RAM usage.
+r3dfox-unload-ram-desc = If your system falls below the chosen RAM threshold, the browser will start unloading tabs to reduce it's RAM usage.
 
 r3dfox-unload-foreground =
     .label = Enable unloading the foreground tab on low memory

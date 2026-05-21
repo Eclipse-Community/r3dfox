@@ -49,7 +49,7 @@ Preferences.addAll([
   { id: "prompts.tab_modal.enabled", type: "bool",  inverted: true },
   { id: "prompts.headerAppIcon.enabled", type: "bool" },
   { id: "prompts.tab_modal.sound.enabled", type: "bool" },
-  { id: "browser.tabs.unload.enabled", type: "bool" },
+  { id: "browser.tabs.unloadOnLowMemory", type: "bool" },
   { id: "browser.low_physical_memory_threshold_mb", type: "int" },
   { id: "browser.memory_poll_interval_ms", type: "int" },
   { id: "browser.tabs.unloadActiveForegroundTab", type: "bool" },
