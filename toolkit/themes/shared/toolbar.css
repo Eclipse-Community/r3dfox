@@ -8,7 +8,14 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+toolbox {
+  appearance: auto;
+  -moz-default-appearance: toolbox;
+}
+
 toolbar {
+  appearance: auto;
+  -moz-default-appearance: toolbar;
   min-width: 1px;
   /* In theory, if toolbars have no contents, we want a min-height so things can be dragged into them. */
   /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
@@ -31,6 +38,13 @@ toolbar {
       background-color: transparent;
       padding: 1px 0;
     }
+  }
+}
+
+*|*:root[lwtheme] {
+  toolbox,
+  toolbar {
+    appearance: none;
   }
 }
 
