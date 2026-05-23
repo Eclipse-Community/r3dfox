@@ -56,10 +56,10 @@ class BASE_EXPORT LockImpl {
 
   // If the lock is not held, take it and return true.  If the lock is already
   // held by something else, immediately return false.
-  inline bool Try();
+  bool Try();
 
   // Take the lock, blocking until it is available if necessary.
-  inline void Lock();
+  void Lock();
 
   // Release the lock.  This must only be called by the lock's holder: after
   // a successful call to Try, or a call to Lock.
@@ -75,49 +75,14 @@ class BASE_EXPORT LockImpl {
   static bool PriorityInheritanceAvailable();
 #endif
 
-  void LockInternal();
   NativeHandle native_handle_;
 };
 
-void LockImpl::Lock() {
-  // Try the lock first to acquire it cheaply if it's not contended. Try() is
-  // cheap on platforms with futex-type locks, as it doesn't call into the
-  // kernel. Not marked LIKELY(), as:
-  // 1. We don't know how much contention the lock would experience
-  // 2. This may lead to weird-looking code layout when inlined into a caller
-  // with (UN)LIKELY() annotations.
-  if (Try()) {
-    return;
-  }
-
-  LockInternal();
-}
-
 #if BUILDFLAG(IS_WIN)
-bool LockImpl::Try() {
-  return !!::TryAcquireSRWLockExclusive(
-      reinterpret_cast<PSRWLOCK>(&native_handle_));
-}
-
 void LockImpl::Unlock() {
   ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
 }
-
 #elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-
-#if DCHECK_IS_ON()
-BASE_EXPORT void dcheck_trylock_result(int rv);
-BASE_EXPORT void dcheck_unlock_result(int rv);
-#endif
-
-bool LockImpl::Try() {
-  int rv = pthread_mutex_trylock(&native_handle_);
-#if DCHECK_IS_ON()
-  dcheck_trylock_result(rv);
-#endif
-  return rv == 0;
-}
-
 void LockImpl::Unlock() {
   [[maybe_unused]] int rv = pthread_mutex_unlock(&native_handle_);
 #if DCHECK_IS_ON()
