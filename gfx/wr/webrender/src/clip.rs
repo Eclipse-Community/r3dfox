@@ -103,7 +103,7 @@ use crate::ellipse::Ellipse;
 use crate::intern;
 use crate::internal_types::{FastHashMap, FastHashSet, LayoutPrimitiveInfo};
 use crate::prim_store::{VisibleMaskImageTile};
-use crate::prim_store::{RectKey, PolygonKey};
+use crate::prim_store::{RectangleKey, PolygonKey};
 use crate::render_task::RenderTask;
 use crate::render_task_graph::RenderTaskGraphBuilder;
 use crate::resource_cache::{ImageRequest, ResourceCache};
@@ -417,7 +417,7 @@ impl ClipTree {
 pub struct ClipEntry {
     pub handle: ClipDataHandle,
     pub spatial_node_index: SpatialNodeIndex,
-    pub clip_rect: RectKey,
+    pub clip_rect: RectangleKey,
 }
 
 /// Represents a clip-chain as defined by the public API that we decompose in to
