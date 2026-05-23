@@ -4,6 +4,7 @@
 
 #include "AgnosticDecoderModule.h"
 
+#include "TheoraDecoder.h"
 #include "AOMDecoder.h"
 #include "DAV1DDecoder.h"
 #include "VPXDecoder.h"
@@ -16,6 +17,7 @@ namespace mozilla {
 enum class DecoderType {
   AV1,
   Opus,
+  Theora,
   Vorbis,
   VPX,
   Wave,
@@ -25,6 +27,8 @@ static bool IsAvailableInDefault(DecoderType type) {
   switch (type) {
     case DecoderType::AV1:
       return StaticPrefs::media_av1_enabled();
+    case DecoderType::Theora:
+      return StaticPrefs::media_theora_enabled();
     case DecoderType::Opus:
     case DecoderType::Vorbis:
     case DecoderType::VPX:
@@ -41,6 +45,9 @@ static bool IsAvailableInRdd(DecoderType type) {
       return StaticPrefs::media_av1_enabled();
     case DecoderType::Opus:
       return StaticPrefs::media_rdd_opus_enabled();
+    case DecoderType::Theora:
+      return StaticPrefs::media_rdd_theora_enabled() &&
+             StaticPrefs::media_theora_enabled();
     case DecoderType::Vorbis:
 #if defined(__MINGW32__)
       // If this is a MinGW build we need to force AgnosticDecoderModule to
@@ -69,7 +76,8 @@ static bool IsAvailableInUtility(DecoderType type) {
     case DecoderType::Vorbis:
     case DecoderType::Wave:
       return true;
-    // Others are video codecs, don't take care of them
+    case DecoderType::Theora:  // Video codecs, dont take care of them
+    case DecoderType::VPX:
     default:
       return false;
   }
@@ -107,7 +115,9 @@ media::DecodeSupportSet AgnosticDecoderModule::Supports(
       // decoding on the content process doesn't accidentally happen in case
       // something goes wrong with launching the RDD process.
       (AOMDecoder::IsAV1(mimeType) && IsAvailable(DecoderType::AV1)) ||
-      (VPXDecoder::IsVPX(mimeType) && IsAvailable(DecoderType::VPX));
+      (VPXDecoder::IsVPX(mimeType) && IsAvailable(DecoderType::VPX)) ||
+      (TheoraDecoder::IsTheora(mimeType) && IsAvailable(DecoderType::Theora) &&
+       StaticPrefs::media_theora_enabled());
   MOZ_LOG(
       sPDMLog, LogLevel::Debug,
       ("Agnostic decoder %s requested type '%s'",
@@ -140,6 +150,10 @@ already_AddRefed<MediaDataDecoder> AgnosticDecoderModule::CreateVideoDecoder(
     } else {
       m = new AOMDecoder(aParams);
     }
+  }
+  else if (TheoraDecoder::IsTheora(aParams.mConfig.mMimeType) &&
+           StaticPrefs::media_theora_enabled()) {
+    m = new TheoraDecoder(aParams);
   }
 
   return m.forget();
