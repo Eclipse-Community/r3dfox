@@ -9,12 +9,14 @@
    * tokens-browser-theme layer can override them with design-system colors
    * on platforms where the native theme is not active (e.g. macOS). */
   :root {
+@media not (-moz-windows-default-theme) {
   &:where([tabsintitlebar]) {
       --toolbox-background-color: ActiveCaption;
       --toolbox-text-color: CaptionText;
       --toolbox-background-color-inactive: InactiveCaption;
       --toolbox-text-color-inactive: InactiveCaptionText;
     }
+}
   }
 }
 
@@ -81,9 +83,11 @@
     --tab-selected-textcolor: light-dark(rgb(21, 20, 26), rgb(251, 251, 254));
     --tabs-navbar-separator-style: none;
 
+@media not (-moz-windows-default-theme) {
       &:where([tabsintitlebar]) {
       --toolbox-background-color-inactive: light-dark(rgb(235, 235, 239), rgb(31, 30, 37));
     }
+}
 
     /* stylelint-disable-next-line media-query-no-invalid */
     @media not -moz-pref("sidebar.revamp") {
