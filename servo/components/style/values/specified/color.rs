@@ -268,6 +268,8 @@ pub enum SystemColor {
     Canvas,
     MozDialog,
     MozDialogtext,
+    /// Used to highlight valid regions to drop something onto.
+    MozDragtargetzone,
     /// Used for selected but not focused cell backgrounds.
     #[parse(aliases = "-moz-html-cellhighlight")]
     MozCellhighlight,
@@ -358,6 +360,11 @@ pub enum SystemColor {
     /// The background-color for :autofill-ed inputs.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozAutofillBackground,
+
+    /// Media rebar text.
+    MozWinMediatext,
+    /// Communications rebar text.
+    MozWinCommunicationstext,
 
     #[parse(aliases = "-moz-hyperlinktext")]
     Linktext,
