@@ -28,26 +28,94 @@
     _InterlockedIncrement((volatile long*)(addend))
 #endif
 
+typedef struct {
+  uint32_t waiting;
+#ifdef OS2
+  HEV    semaphore;
+#else
+  HANDLE semaphore;
+#endif
+} pthread_cond_t;
+typedef CRITICAL_SECTION pthread_mutex_t;
+
+int pthread_cond_init(pthread_cond_t *cond, const void *attr)
+{
+  cond->waiting=0;
+  cond->semaphore=CreateSemaphore(NULL,0,0x7FFFFFFF,NULL);
+  if (!cond->semaphore)
+    return ENOMEM;
+  return 0;
+}
+
+int pthread_cond_destroy(pthread_cond_t *cond)
+{
+	return CloseHandle(cond->semaphore) ? 0 : EINVAL;
+}
+
+
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
+{
+  InterlockedIncrement(&cond->waiting);
+  LeaveCriticalSection(mutex);
+  WaitForSingleObject(cond->semaphore,INFINITE);
+  InterlockedDecrement(&cond->waiting);
+  EnterCriticalSection(mutex);
+  return 0 ;
+}
+
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
+                           DWORD timeout)
+{
+  int result;
+  InterlockedIncrement(&cond->waiting);
+  LeaveCriticalSection(mutex);
+  result=WaitForSingleObject(cond->semaphore,timeout);
+  InterlockedDecrement(&cond->waiting);
+  EnterCriticalSection(mutex);
+
+  return result == WAIT_TIMEOUT ? ETIMEDOUT : 0;
+}
+
+
+int pthread_cond_signal(pthread_cond_t *cond)
+{
+  long prev_count;
+  if (cond->waiting)
+    ReleaseSemaphore(cond->semaphore,1,&prev_count);
+  return 0;
+}
+
+
+int pthread_cond_broadcast(pthread_cond_t *cond)
+{
+  long prev_count;
+  if (cond->waiting)
+    ReleaseSemaphore(cond->semaphore,cond->waiting,&prev_count);
+  return 0 ;
+}
+
+
+
 // Wrapper for native condition variable APIs.
 struct mozilla::detail::ConditionVariableImpl::PlatformData {
-  CONDITION_VARIABLE cv_;
+  pthread_cond_t cv_;
 };
 
 mozilla::detail::ConditionVariableImpl::ConditionVariableImpl() {
-  InitializeConditionVariable(&platformData()->cv_);
+  pthread_cond_init(&platformData()->cv_, NULL);
 }
 
 void mozilla::detail::ConditionVariableImpl::notify_one() {
-  WakeConditionVariable(&platformData()->cv_);
+  pthread_cond_signal(&platformData()->cv_);
 }
 
 void mozilla::detail::ConditionVariableImpl::notify_all() {
-  WakeAllConditionVariable(&platformData()->cv_);
+  pthread_cond_broadcast(&platformData()->cv_);
 }
 
 void mozilla::detail::ConditionVariableImpl::wait(MutexImpl& lock) {
   CRITICAL_SECTION* cs = &lock.platformData()->criticalSection;
-  bool r = SleepConditionVariableCS(&platformData()->cv_, cs, INFINITE);
+  bool r = !pthread_cond_wait(&platformData()->cv_, cs);
   MOZ_RELEASE_ASSERT(r);
 }
 
@@ -79,14 +147,15 @@ mozilla::CVStatus mozilla::detail::ConditionVariableImpl::wait_for(
     }
   }
 
-  BOOL r = SleepConditionVariableCS(&platformData()->cv_, cs, msec);
+  BOOL r = !pthread_cond_timedwait(&platformData()->cv_, cs, msec);
   if (r) return CVStatus::NoTimeout;
-  MOZ_RELEASE_ASSERT(GetLastError() == ERROR_TIMEOUT);
+//MOZ_RELEASE_ASSERT(GetLastError() == ERROR_TIMEOUT);
   return CVStatus::Timeout;
 }
 
 mozilla::detail::ConditionVariableImpl::~ConditionVariableImpl() {
   // Native condition variables don't require cleanup.
+  pthread_cond_destroy(&platformData()->cv_);
 }
 
 inline mozilla::detail::ConditionVariableImpl::PlatformData*

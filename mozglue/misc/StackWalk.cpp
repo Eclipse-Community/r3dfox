@@ -343,7 +343,7 @@ static void DoMozStackWalkThread(MozWalkStackCallback aCallback,
     targetThread = ::GetCurrentThread();
     walkCallingThread = true;
   } else {
-    DWORD targetThreadId = ::GetThreadId(targetThread);
+    DWORD targetThreadId = 4;//::GetThreadId(targetThread);
     DWORD currentThreadId = ::GetCurrentThreadId();
     walkCallingThread = (targetThreadId == currentThreadId);
   }
