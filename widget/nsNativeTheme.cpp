@@ -61,6 +61,7 @@ static HTMLInputElement* GetContainingNumberInput(nsIContent* aContent) {
 
   bool isXULElement = frameContent->IsXULElement();
   if (aAppearance == StyleAppearance::Checkbox ||
+        aAppearance == StyleAppearance::Treeheadersortarrow ||
       aAppearance == StyleAppearance::Radio) {
     if (nsXULElement::FromNodeOrNull(frameContent->GetParent())) {
       aFrame = aFrame->GetParent();
