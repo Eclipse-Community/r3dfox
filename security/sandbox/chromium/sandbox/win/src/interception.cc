@@ -19,6 +19,7 @@
 #include "base/rand_util.h"
 #include "base/scoped_native_library.h"
 #include "base/win/pe_image.h"
+#include "base/win/windows_version.h"
 #include "sandbox/win/src/interception_internal.h"
 #include "sandbox/win/src/interceptors.h"
 #include "sandbox/win/src/internal_types.h"
@@ -444,7 +445,25 @@ ResultCode InterceptionManager::PatchClientFunctions(
   base::ScopedNativeLibrary local_interceptor(::LoadLibrary(child_->Name()));
 #endif  // defined(SANDBOX_EXPORTS)
 
-  ServiceResolverThunk thunk(child_->Process(), /*relaxed=*/true);
+  std::unique_ptr<ServiceResolverThunk> thunk;
+#if defined(_WIN64)
+  thunk = std::make_unique<ServiceResolverThunk>(child_->Process(), true);
+#else
+  base::win::OSInfo* os_info = base::win::OSInfo::GetInstance();
+  base::win::Version real_os_version = os_info->Kernel32Version();
+  if (os_info->IsWowX86OnAMD64()) {
+    if (real_os_version >= base::win::Version::WIN10)
+      thunk.reset(new Wow64W10ResolverThunk(child_->Process(), true));
+    else if (real_os_version >= base::win::Version::WIN8)
+      thunk.reset(new Wow64W8ResolverThunk(child_->Process(), true));
+    else
+      thunk.reset(new Wow64ResolverThunk(child_->Process(), true));
+  } else if (real_os_version >= base::win::Version::WIN8) {
+    thunk.reset(new Win8ResolverThunk(child_->Process(), true));
+  } else {
+    thunk.reset(new ServiceResolverThunk(child_->Process(), true));
+  }
+#endif
 
   for (auto interception : interceptions_) {
     const std::wstring ntdll(kNtdllName);
@@ -458,7 +477,7 @@ ResultCode InterceptionManager::PatchClientFunctions(
     // We may be trying to patch by function name.
     if (!interception.interceptor_address) {
       const char* address;
-      NTSTATUS ret = thunk.ResolveInterceptor(
+      NTSTATUS ret = thunk->ResolveInterceptor(
           local_interceptor.get(), interception.interceptor.c_str(),
           reinterpret_cast<const void**>(&address));
       if (!NT_SUCCESS(ret)) {
@@ -472,7 +491,7 @@ ResultCode InterceptionManager::PatchClientFunctions(
           (address - reinterpret_cast<char*>(local_interceptor.get()));
     }
 #endif  // defined(SANDBOX_EXPORTS)
-    NTSTATUS ret = thunk.Setup(
+    NTSTATUS ret = thunk->Setup(
         ntdll_base, interceptor_base, interception.function.c_str(),
         interception.interceptor.c_str(), interception.interceptor_address,
         &thunks->thunks[dll_data->num_thunks],
