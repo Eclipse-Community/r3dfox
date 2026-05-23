@@ -10,6 +10,7 @@
 #include "base/win/security_descriptor.h"
 #include "base/win/sid.h"
 #include "base/win/win_util.h"
+#include "base/win/windows_version.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace sandbox {
