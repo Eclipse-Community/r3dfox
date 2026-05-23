@@ -1832,7 +1832,7 @@ export var UITour = {
       } catch (e) {}
 
       let canSetDefaultBrowserInBackground = true;
-      if (AppConstants.platform == "win" || AppConstants.platform == "macosx") {
+      if (AppConstants.isPlatformAndVersionAtLeast("win", "6.2") || AppConstants.platform == "macosx") {
         canSetDefaultBrowserInBackground = false;
       } else if (AppConstants.platform == "linux") {
         // The ShellService may not exist on some versions of Linux.
