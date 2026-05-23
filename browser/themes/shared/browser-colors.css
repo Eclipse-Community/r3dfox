@@ -9,7 +9,7 @@
    * tokens-browser-theme layer can override them with design-system colors
    * on platforms where the native theme is not active (e.g. macOS). */
   :root {
-    &:where([customtitlebar]) {
+  &:where([tabsintitlebar]) {
       --toolbox-background-color: ActiveCaption;
       --toolbox-text-color: CaptionText;
       --toolbox-background-color-inactive: InactiveCaption;
@@ -81,7 +81,7 @@
     --tab-selected-textcolor: light-dark(rgb(21, 20, 26), rgb(255, 255, 255));
     --tabs-navbar-separator-style: none;
 
-    &:where([customtitlebar]) {
+      &:where([tabsintitlebar]) {
       --toolbox-background-color-inactive: light-dark(rgb(235, 235, 239), rgb(31, 30, 37));
     }
 
