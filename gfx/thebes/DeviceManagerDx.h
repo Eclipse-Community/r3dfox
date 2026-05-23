@@ -124,6 +124,7 @@ class DeviceManagerDx final {
   bool ExportDeviceInfo(D3D11DeviceStatus* aOut);
 
   void ResetDevices();
+  void InitializeDirectDraw();
 
   // Reset and reacquire the devices if a reset has happened.
   // Returns whether a reset occurred not whether reacquiring
@@ -224,6 +225,9 @@ class DeviceManagerDx final {
   std::set<HMONITOR> mHdrMonitors MOZ_GUARDED_BY(mDeviceLock);
   std::unordered_map<HMONITOR, DXGI_HDR_METADATA_HDR10> mHdrMetadatas
       MOZ_GUARDED_BY(mDeviceLock);
+
+  nsModuleHandle mDirectDrawDLL;
+  RefPtr<IDirectDraw7> mDirectDraw;
 };
 
 }  // namespace gfx
