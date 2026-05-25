@@ -1032,6 +1032,9 @@ bool GLBlitHelper::BlitImageToFramebuffer(layers::Image* const srcImage,
       return BlitImage(
           static_cast<layers::D3D11ZeroCopyTextureImage*>(srcImage), destRect,
           destOrigin, fbSize);
+    case ImageFormat::D3D11_YCBCR_IMAGE:
+      return BlitImage(static_cast<layers::D3D11YCbCrImage*>(srcImage),
+                       destRect, destOrigin, fbSize);
     case ImageFormat::D3D9_RGB32_TEXTURE:
       return false;  // todo
     case ImageFormat::DCOMP_SURFACE:
@@ -1039,6 +1042,7 @@ bool GLBlitHelper::BlitImageToFramebuffer(layers::Image* const srcImage,
 #else
     case ImageFormat::D3D11_SHARE_HANDLE_TEXTURE:
     case ImageFormat::D3D11_TEXTURE_ZERO_COPY:
+    case ImageFormat::D3D11_YCBCR_IMAGE:
     case ImageFormat::D3D9_RGB32_TEXTURE:
     case ImageFormat::DCOMP_SURFACE:
       MOZ_ASSERT(false);
