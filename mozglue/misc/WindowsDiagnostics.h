@@ -83,7 +83,9 @@ struct WinErrorState {
   bool operator!=(WinErrorState const& that) const { return !operator==(that); }
 };
 
-#if defined(_M_AMD64)
+// TODO This code does not have tests. Only use it on paths that are already
+//      known to crash. Add tests before using it in release builds.
+#if defined(MOZ_DIAGNOSTIC_ASSERT_ENABLED) && defined(_M_X64)
 
 using OnSingleStepCallback = std::function<bool(void*, CONTEXT*)>;
 
@@ -102,6 +104,9 @@ class MOZ_RAII AutoOnSingleStepCallback {
 MFBT_API MOZ_NEVER_INLINE __attribute__((naked)) void EnableTrapFlag();
 MFBT_API MOZ_NEVER_INLINE __attribute__((naked)) void DisableTrapFlag();
 MFBT_API LONG SingleStepExceptionHandler(_EXCEPTION_POINTERS* aExceptionInfo);
+
+// This block uses nt::PEHeaders and thus depends on NativeNt.h.
+#  if !defined(IMPL_MFBT)
 
 // Run aCallbackToRun instruction by instruction, and between each instruction
 // call aOnSingleStepCallback. Single-stepping ends when aOnSingleStepCallback
@@ -131,9 +136,6 @@ CollectSingleStepData(CallbackToRun aCallbackToRun,
 
   return WindowsDiagnosticsError::None;
 }
-
-// This block uses nt::PEHeaders and thus depends on NativeNt.h.
-#  if !defined(IMPL_MFBT)
 
 template <int NMaxSteps, int NMaxErrorStates>
 struct ModuleSingleStepData {
@@ -283,7 +285,7 @@ WindowsDiagnosticsError CollectModuleSingleStepData(
 
 #  endif  // !IMPL_MFBT
 
-#endif  // _M_AMD64
+#endif  // MOZ_DIAGNOSTIC_ASSERT_ENABLED && _M_X64
 
 }  // namespace mozilla
 
