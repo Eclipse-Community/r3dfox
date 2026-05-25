@@ -40,7 +40,7 @@ use windows_sys::Win32::{
         EXCEPTION_POINTERS, MINIDUMP_EXCEPTION_INFORMATION, MINIDUMP_TYPE,
     },
     System::ErrorReporting::WER_RUNTIME_EXCEPTION_INFORMATION,
-    System::ProcessStatus::K32GetModuleFileNameExW,
+    System::ProcessStatus::GetModuleFileNameExW,
     System::SystemInformation::{
         VerSetConditionMask, VerifyVersionInfoW, OSVERSIONINFOEXW, VER_MAJORVERSION,
         VER_MINORVERSION, VER_SERVICEPACKMAJOR, VER_SERVICEPACKMINOR,
@@ -515,7 +515,7 @@ impl ApplicationInformation {
         // SAFETY: The `process` handle is guaranteed to be valid and the
         // `path` pointer is allocated on the stack just above.
         unsafe {
-            let res = K32GetModuleFileNameExW(
+            let res = GetModuleFileNameExW(
                 process.as_raw_handle() as HANDLE,
                 0,
                 path.as_mut_ptr(),
