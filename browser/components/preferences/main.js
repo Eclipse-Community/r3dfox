@@ -5216,7 +5216,6 @@ class ApplicationListItem {
         iconSrc: this._getSaveFileIcon(),
         handlerActionId: Ci.nsIHandlerInfo.saveToDisk,
       });
-      saveMenuItem.className = "menuitem-iconic";
       this.actionsMenu.appendChild(saveMenuItem);
     }
 
