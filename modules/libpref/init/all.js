@@ -82,6 +82,37 @@ pref("general.useragent.override.snapchat.com", "Mozilla/5.0 (Windows NT 10.0; W
 pref("general.useragent.override.vk.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0");
 pref("general.useragent.override.whatsapp.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0");
 
+pref("general.useragent.override.anaimg.starbeamrainbowlabs.com", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.archive.softwareheritage.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.binaryoutcast.com", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.binoclabs.com", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.bugs.freebsd.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.code.videolan.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.dd-wrt.com", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.dolphin-emu.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.forum.videolan.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.gcc.gnu.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.git.ffmpeg.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.git.keyedlimepie.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.git.lumen.sh", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.gitlab.archlinux.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.imgur.artemislena.eu", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.kernel.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.mozillazine.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.openwrt.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.opnxng.com", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.pussthecat.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.reactos.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.repo.palemoon.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.salsa.debian.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.techinfodepot.shoutwiki.com", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.thereisonlyxul.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.trac.ffmpeg.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.wiki.debian.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.wiki.freebsd.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.wiki.mozilla.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+pref("general.useragent.override.wiki.postmarketos.org", "FuckAnubis/5.0 (Windows NT 6.1; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0 r3dfox/153.0");
+
 pref("general.config.obscure_value", 13); // for MCD .cfg files
 
 // Whether middle button click with a modifier key starts to autoscroll or
