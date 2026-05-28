@@ -5007,7 +5007,7 @@
 
 - name: dom.serviceWorkers.enabled
   type: RelaxedAtomicBool
-  value: true
+  value: false
   mirror: always
 
 - name: dom.serviceWorkers.navigationPreload.enabled
