@@ -88,10 +88,14 @@
     --toolbarbutton-icon-fill-attention-text: AccentColorText;
 
     /** toolbox **/
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
     --toolbox-background-color: -moz-headerbar;
     --toolbox-background-color-inactive: -moz-headerbarinactive;
     --toolbox-text-color: -moz-headerbartext;
     --toolbox-text-color-inactive: -moz-headerbarinactivetext;
+  }
+}
   }
 }
 
@@ -150,11 +154,13 @@
       --toolbarbutton-icon-fill-attention-text: light-dark(var(--color-gray-20), var(--color-gray-90));
 
       /** toolbox **/
-@media not (-moz-windows-default-theme) {
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
       --toolbox-background-color: light-dark(rgb(234, 234, 237), var(--color-gray-90));
       --toolbox-background-color-inactive: var(--toolbox-background-color);
       --toolbox-text-color: light-dark(var(--color-gray-100), var(--color-gray-0));
       --toolbox-text-color-inactive: var(--toolbox-text-color);
+  }
 }
     }
   }
