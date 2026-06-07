@@ -6,45 +6,6 @@
   appearance: auto;
   -moz-default-appearance: menulist;
   text-shadow: none;
-  @media (-moz-platform: linux) {
-    font: menu;
-  }
-  @media (-moz-platform: linux) or (-moz-platform: windows) {
-    margin: var(--space-xxsmall) var(--space-xsmall);
-    color: ButtonText;
-    padding: var(--space-xxsmall) var(--space-xsmall);
-    border: 1px solid ButtonBorder;
-
-    dropmarker {
-      align-self: stretch;
-    }
-  }
-  @media (-moz-platform: macos) {
-    margin: var(--space-xsmall) var(--space-xxsmall);
-    min-height: var(--size-item-small);
-    color: -moz-DialogText;
-
-    #label-box {
-      margin-bottom: 1px;
-    }
-
-    label {
-      margin: var(--space-xsmall);
-    }
-
-    dropmarker {
-      display: none;
-    }
-  }
-}
-
-@media (-moz-platform: linux) or (-moz-platform: windows) {
-  :host([native]:where(:hover)) {
-    color: -moz-buttonhovertext;
-  }
-  :host([native]:where(:hover:active, [open="true"])) {
-    color: -moz-buttonactivetext;
-  }
 }
 
 :host([native][disabled]) {
