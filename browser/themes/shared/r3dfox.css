@@ -30,6 +30,7 @@
     --color-accent-primary: light-dark(rgb(255, 20, 20), rgb(255, 60, 60)) !important;
     --color-accent-primary-hover: light-dark(rgb(255, 60, 60), rgb(255, 80, 80)) !important;
     --color-accent-primary-active: light-dark(rgb(255, 60, 60), rgb(255, 60, 60)) !important;
+    --color-accent-primary-selected: light-dark(rgb(255, 60, 60), rgb(255, 60, 60)) !important;
     --link-color: light-dark(rgb(255, 20, 20), rgb(255, 80, 80)) !important;
     --link-color-hover: light-dark(rgb(255, 20, 20), rgb(255, 80, 80)) !important;
     --link-color-active: light-dark(rgb(255, 60, 60), rgb(255, 60, 60)) !important;
@@ -45,6 +46,7 @@
       --color-accent-primary: rgb(255, 60, 60) !important;
       --color-accent-primary-hover: rgb(255, 80, 80) !important;
       --color-accent-primary-active: rgb(255, 60, 60) !important;
+      --color-accent-primary-selected: rgb(255, 60, 60) !important;
     }
     &[privatebrowsingmode=temporary] {
         --tabpanel-background-color: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
@@ -88,6 +90,7 @@
     --color-accent-primary: light-dark(rgb(255, 71, 9), rgb(255, 118, 72)) !important;
     --color-accent-primary-hover: light-dark(rgb(255, 102, 51), rgb(255, 102, 51)) !important;
     --color-accent-primary-active: light-dark(rgb(255, 102, 51), rgb(255, 102, 51)) !important;
+    --color-accent-primary-selected: light-dark(rgb(255, 102, 51), rgb(255, 102, 51)) !important;
     --link-color: light-dark(rgb(255, 71, 9), rgb(255, 118, 72)) !important;
     --link-color-hover: light-dark(rgb(255, 71, 9), rgb(255, 118, 72)) !important;
     --link-color-active: light-dark(rgb(255, 102, 51), rgb(255, 102, 51)) !important;
@@ -106,6 +109,7 @@
     --color-accent-primary: rgb(255, 102, 51) !important;
     --color-accent-primary-hover: rgb(255, 118, 72) !important;
     --color-accent-primary-active: rgb(255, 102, 51) !important;
+    --color-accent-primary-selected: rgb(255, 102, 51) !important;
     }
     &[privatebrowsingmode=temporary] {
         --tabpanel-background-color: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
@@ -149,6 +153,7 @@
     --color-accent-primary: light-dark(rgb(255, 20, 196), rgb(255, 60, 206)) !important;
     --color-accent-primary-hover: light-dark(rgb(255, 60, 206), rgb(255, 80, 211)) !important;
     --color-accent-primary-active: light-dark(rgb(255, 60, 206), rgb(255, 60, 206)) !important;
+    --color-accent-primary-selected: light-dark(rgb(255, 60, 206), rgb(255, 60, 206)) !important;
     --link-color: light-dark(rgb(255, 20, 196), rgb(255, 80, 211)) !important;
     --link-color-hover: light-dark(rgb(255, 20, 196), rgb(255, 80, 211)) !important;
     --link-color-active: light-dark(rgb(255, 60, 206), rgb(255, 60, 206)) !important;
@@ -167,6 +172,7 @@
       --color-accent-primary: rgb(255, 60, 206) !important;
       --color-accent-primary-hover: rgb(255, 80, 211) !important;
       --color-accent-primary-active: rgb(255, 60, 206) !important;
+      --color-accent-primary-selected: rgb(255, 60, 206) !important;
     }
     &[privatebrowsingmode=temporary] {
         --tabpanel-background-color: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
@@ -210,6 +216,7 @@
     --color-accent-primary: light-dark(rgb(165, 0, 255), rgb(156, 87, 193)) !important;
     --color-accent-primary-hover: light-dark(rgb(156, 87, 193), rgb(185, 103, 229)) !important;
     --color-accent-primary-active: light-dark(rgb(156, 87, 193), rgb(156, 87, 193)) !important;
+    --color-accent-primary-selected: light-dark(rgb(156, 87, 193), rgb(156, 87, 193)) !important;
     --link-color: light-dark(rgb(165, 0, 255), rgb(185, 103, 229)) !important;
     --link-color-hover: light-dark(rgb(169, 57, 229), rgb(169, 57, 229)) !important;
     --link-color-active: light-dark(rgb(185, 103, 229), rgb(165, 0, 255)) !important;
@@ -240,6 +247,7 @@
       --color-accent-primary: rgb(156, 87, 193) !important;
       --color-accent-primary-hover: rgb(185, 103, 229) !important;
       --color-accent-primary-active: rgb(156, 87, 193) !important;
+      --color-accent-primary-selected: rgb(156, 87, 193) !important;
     }
 
     @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
