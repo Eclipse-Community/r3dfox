@@ -719,10 +719,40 @@ nsresult Win32SerialPlatformService::StartMonitoringDeviceChanges() {
   filter.FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE;
   filter.u.DeviceInterface.ClassGuid = GUID_DEVINTERFACE_COMPORT;
 
-  CONFIGRET cr = CM_Register_Notification(
+  CONFIGRET cr=CR_SUCCESS;
+typedef CONFIGRET (WINAPI *MYPROC)(PCM_NOTIFY_FILTER   pFilter,
+  PVOID               pContext,
+  PCM_NOTIFY_CALLBACK pCallback,
+  PHCMNOTIFICATION    pNotifyContext); 
+    HINSTANCE hinstLib; 
+    MYPROC ProcAdd; 
+    BOOL fRunTimeLinkSuccess = FALSE; 
+ 
+    // Get a handle to the DLL module.
+ 
+    hinstLib = LoadLibraryW(L"CfgMgr32.dll"); 
+ 
+    // If the handle is valid, try to get the function address.
+ 
+    if (hinstLib != NULL) 
+    { 
+        ProcAdd = (MYPROC) GetProcAddress(hinstLib, "CM_Register_Notification"); 
+ 
+        // If the function address is valid, call the function.
+ 
+        if (NULL != ProcAdd) 
+        {
+            fRunTimeLinkSuccess = TRUE;
+  cr = (ProcAdd)(
       &filter, this, DeviceNotificationCallback, &mDeviceNotification);
+        }
+        // Free the DLL module.
+ 
+        FreeLibrary(hinstLib); 
+    } 
 
-  if (cr != CR_SUCCESS) {
+    // If unable to call the DLL function, use an alternative.
+  if (! fRunTimeLinkSuccess||cr != CR_SUCCESS) {
     MOZ_LOG(gWebSerialLog, LogLevel::Error,
             ("Win32SerialPlatformService[%p]::StartMonitoringDeviceChanges "
              "CM_Register_Notification failed: 0x%08lx",
@@ -761,7 +791,31 @@ void Win32SerialPlatformService::StopMonitoringDeviceChanges() {
       ("Win32SerialPlatformService[%p]::StopMonitoringDeviceChanges", this));
 
   if (mDeviceNotification) {
-    CM_Unregister_Notification(mDeviceNotification);
+typedef CONFIGRET (WINAPI *MYPROC)(HCMNOTIFICATION ); 
+ 
+    HINSTANCE hinstLib; 
+    MYPROC ProcAdd; 
+ 
+    // Get a handle to the DLL module.
+ 
+    hinstLib = LoadLibraryW(L"MyPuts.dll"); 
+ 
+    // If the handle is valid, try to get the function address.
+ 
+    if (hinstLib != NULL) 
+    { 
+        ProcAdd = (MYPROC) GetProcAddress(hinstLib, "CM_Unregister_Notification"); 
+ 
+        // If the function address is valid, call the function.
+ 
+        if (NULL != ProcAdd) 
+        {
+    (ProcAdd)(mDeviceNotification);
+        }
+        // Free the DLL module.
+ 
+        FreeLibrary(hinstLib); 
+    } 
     mDeviceNotification = nullptr;
   }
 
