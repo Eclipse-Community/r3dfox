@@ -18,15 +18,12 @@ NTSTATUS EatResolverThunk::Setup(const void* target_module,
                                  const char* target_name,
                                  const char* interceptor_name,
                                  const void* interceptor_entry_point,
-                                 void* local_thunk_storage,
                                  void* thunk_storage,
                                  size_t storage_bytes,
                                  size_t* storage_used) {
-  // In-process interception only: we don't have a notion of local and remote.
-  CHECK(local_thunk_storage == thunk_storage);
-  NTSTATUS ret = Init(target_module, interceptor_module, target_name,
-                      interceptor_name, interceptor_entry_point,
-                      local_thunk_storage, thunk_storage, storage_bytes);
+  NTSTATUS ret =
+      Init(target_module, interceptor_module, target_name, interceptor_name,
+           interceptor_entry_point, thunk_storage, storage_bytes);
   if (!NT_SUCCESS(ret))
     return ret;
 
