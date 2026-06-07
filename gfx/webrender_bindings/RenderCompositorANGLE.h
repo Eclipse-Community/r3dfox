@@ -146,7 +146,8 @@ class RenderCompositorANGLE : public RenderCompositor {
   bool CreateSwapChain(nsACString& aError);
   void CreateSwapChainForDCompIfPossible();
   bool CreateSwapChainForHWND();
-  RefPtr<IDXGISwapChain1> CreateSwapChainForDComp(bool aUseTripleBuffering);
+  RefPtr<IDXGISwapChain1> CreateSwapChainForDComp(bool aUseTripleBuffering,
+                                                  bool aUseAlpha);
   RefPtr<ID3D11Query> GetD3D11Query();
   void ReleaseNativeCompositorResources();
   HWND GetCompositorHwnd();
@@ -156,10 +157,11 @@ class RenderCompositorANGLE : public RenderCompositor {
 
   RefPtr<gl::GLContext> mGL;
 
-  EGLConfig mEGLConfig = nullptr;
-  EGLSurface mEGLSurface = nullptr;
+  EGLConfig mEGLConfig;
+  EGLSurface mEGLSurface;
 
-  bool mUseTripleBuffering = false;
+  bool mUseTripleBuffering;
+  bool mUseAlpha;
 
   RefPtr<ID3D11Device> mDevice;
   RefPtr<ID3D11DeviceContext> mCtx;
