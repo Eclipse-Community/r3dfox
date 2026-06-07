@@ -100,8 +100,8 @@
   @media not ((forced-colors) or (-moz-native-theme)) {
     :root:not([lwtheme]),
     :host(.anonymous-content-host) {
-      --tab-background-color-selected: light-dark(var(--color-white), rgba(106, 106, 120, 0.7));
-      --tab-selected-textcolor: light-dark(rgb(21, 20, 26), var(--color-white));
+      --tab-background-color-selected: light-dark(var(--color-white), rgb(66, 65, 77));
+      --tab-selected-textcolor: light-dark(rgb(21, 20, 26), rgb(251, 251, 254));
     }
   }
 }

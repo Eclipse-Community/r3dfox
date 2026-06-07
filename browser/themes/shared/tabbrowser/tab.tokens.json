@@ -46,7 +46,7 @@
       "selected": {
         "value": {
           "light": "{color.white.@base}",
-          "dark": "rgba(106, 106, 120, 0.7)",
+          "dark": "rgb(66, 65, 77)",
           "nativeTheme": "var(--toolbar-background-color)"
         }
       }
@@ -138,7 +138,7 @@
     "textcolor": {
       "value": {
         "light": "rgb(21, 20, 26)",
-        "dark": "{color.white.@base}",
+        "dark": "rgb(251, 251, 254)",
         "nativeTheme": "var(--toolbar-text-color)"
       }
     }
