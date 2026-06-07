@@ -13,6 +13,6 @@ menupopup::part(drop-indicator) {
 
 @media not (-moz-windows-non-native-menus) {
   .toolbar-menupopup {
-    --nested-margin: calc(-1 * (var(--arrowpanel-menuitem-padding-inline) + var(--panel-shadow-margin)));
+    --nested-margin: calc(-1 * (var(--panel-menuitem-padding-inline) + var(--panel-box-shadow-margin)));
   }
 }

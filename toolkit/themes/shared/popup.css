@@ -52,7 +52,7 @@
   /* Panel design token theming */
   --background-color-canvas: var(--panel-background-color);
 
-  --panel-shadow: 0 0 var(--panel-shadow-margin) hsla(0, 0%, 0%, 0.2);
+  --panel-box-shadow: 0 0 var(--panel-box-shadow-margin) hsla(0, 0%, 0%, 0.2);
   --panel-padding-block: 0;
 
   @media (-moz-platform: linux) and (not (-moz-gtk-csd-transparency-available)) {
@@ -118,7 +118,7 @@ menupopup {
     -moz-default-appearance: menupopup;
     /* The mica backdrop takes care of our shadow, border, and border-radius */
     --panel-border-color: transparent;
-    --panel-shadow-margin: 0px;
+    --panel-box-shadow-margin: 0px;
     --panel-border-radius: 0px;
   }
 
@@ -134,7 +134,7 @@ menupopup {
 
   > menu > menupopup {
     /* Vertically align nested menupopups: the shadow plus the top padding plus top border */
-    margin-top: calc(-1 * (var(--panel-shadow-margin) + var(--panel-padding-block) + 1px));
+    margin-top: calc(-1 * (var(--panel-box-shadow-margin) + var(--panel-padding-block) + 1px));
   }
 }
 
@@ -149,10 +149,10 @@ menupopup {
     /* We set the background-color / border here so that it doesn't interfere with native styling. */
     background-color: Menu;
     border: 1px solid ThreeDShadow;
-    --panel-background: transparent;
+    --panel-background-color: transparent;
     --panel-border-color: transparent;
     --nested-margin: -3px;
-    --panel-shadow-margin: 0px;
+    --panel-box-shadow-margin: 0px;
   }
 }
 
@@ -272,7 +272,7 @@ panel[type="arrow"] {
      otherwise the background color would appear behind the drop shadow. */
   menulist > menupopup {
     color: FieldText;
-    --panel-background: Field;
+    --panel-background-color: Field;
     --panel-border-color: ThreeDShadow;
   }
 }
