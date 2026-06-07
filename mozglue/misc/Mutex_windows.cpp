@@ -2,24 +2,31 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include <errno.h>
-
 #include "mozilla/PlatformMutex.h"
-#include "MutexPlatformData_noop.h"
 
-mozilla::detail::MutexImpl::MutexImpl() {}
+#include <windows.h>
+
+#include "MutexPlatformData_windows.h"
+
+mozilla::detail::MutexImpl::MutexImpl() {
+  InitializeSRWLock(&platformData()->lock);
+}
 
 mozilla::detail::MutexImpl::~MutexImpl() {}
 
-inline void mozilla::detail::MutexImpl::mutexLock() {}
+void mozilla::detail::MutexImpl::lock() {
+  AcquireSRWLockExclusive(&platformData()->lock);
+}
 
 bool mozilla::detail::MutexImpl::tryLock() { return mutexTryLock(); }
 
-bool mozilla::detail::MutexImpl::mutexTryLock() { return true; }
+bool mozilla::detail::MutexImpl::mutexTryLock() {
+  return !!TryAcquireSRWLockExclusive(&platformData()->lock);
+}
 
-void mozilla::detail::MutexImpl::lock() { mutexLock(); }
-
-void mozilla::detail::MutexImpl::unlock() {}
+void mozilla::detail::MutexImpl::unlock() {
+  ReleaseSRWLockExclusive(&platformData()->lock);
+}
 
 mozilla::detail::MutexImpl::PlatformData*
 mozilla::detail::MutexImpl::platformData() {

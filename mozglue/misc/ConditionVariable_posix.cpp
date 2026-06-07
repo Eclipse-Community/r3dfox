@@ -11,6 +11,7 @@
 
 #include "mozilla/PlatformConditionVariable.h"
 #include "mozilla/PlatformMutex.h"
+#include "MutexPlatformData_posix.h"
 
 using mozilla::CheckedInt;
 using mozilla::TimeDuration;
@@ -53,7 +54,13 @@ static void moz_timespecadd(struct timespec* lhs, struct timespec* rhs,
 }
 #endif
 
+struct mozilla::detail::ConditionVariableImpl::PlatformData {
+  pthread_cond_t ptCond;
+};
+
 mozilla::detail::ConditionVariableImpl::ConditionVariableImpl() {
+  pthread_cond_t* ptCond = &platformData()->ptCond;
+
 #ifdef CV_USE_CLOCK_API
   pthread_condattr_t attr;
   int r0 = pthread_condattr_init(&attr);
@@ -62,34 +69,37 @@ mozilla::detail::ConditionVariableImpl::ConditionVariableImpl() {
   int r1 = pthread_condattr_setclock(&attr, WhichClock);
   MOZ_RELEASE_ASSERT(!r1);
 
-  int r2 = pthread_cond_init(&mCond, &attr);
+  int r2 = pthread_cond_init(ptCond, &attr);
   MOZ_RELEASE_ASSERT(!r2);
 
   int r3 = pthread_condattr_destroy(&attr);
   MOZ_RELEASE_ASSERT(!r3);
 #else
-  int r = pthread_cond_init(&mCond, NULL);
+  int r = pthread_cond_init(ptCond, NULL);
   MOZ_RELEASE_ASSERT(!r);
 #endif
 }
 
 mozilla::detail::ConditionVariableImpl::~ConditionVariableImpl() {
-  int r = pthread_cond_destroy(&mCond);
+  int r = pthread_cond_destroy(&platformData()->ptCond);
   MOZ_RELEASE_ASSERT(r == 0);
 }
 
 void mozilla::detail::ConditionVariableImpl::notify_one() {
-  int r = pthread_cond_signal(&mCond);
+  int r = pthread_cond_signal(&platformData()->ptCond);
   MOZ_RELEASE_ASSERT(r == 0);
 }
 
 void mozilla::detail::ConditionVariableImpl::notify_all() {
-  int r = pthread_cond_broadcast(&mCond);
+  int r = pthread_cond_broadcast(&platformData()->ptCond);
   MOZ_RELEASE_ASSERT(r == 0);
 }
 
 void mozilla::detail::ConditionVariableImpl::wait(MutexImpl& lock) {
-  int r = pthread_cond_wait(&mCond, &lock.mMutex);
+  pthread_cond_t* ptCond = &platformData()->ptCond;
+  pthread_mutex_t* ptMutex = &lock.platformData()->ptMutex;
+
+  int r = pthread_cond_wait(ptCond, ptMutex);
   MOZ_RELEASE_ASSERT(r == 0);
 }
 
@@ -100,6 +110,8 @@ mozilla::CVStatus mozilla::detail::ConditionVariableImpl::wait_for(
     return CVStatus::NoTimeout;
   }
 
+  pthread_cond_t* ptCond = &platformData()->ptCond;
+  pthread_mutex_t* ptMutex = &lock.platformData()->ptMutex;
   int r;
 
   // Clamp to 0, as time_t is unsigned.
@@ -121,11 +133,11 @@ mozilla::CVStatus mozilla::detail::ConditionVariableImpl::wait_for(
   struct timespec abs_ts;
   moz_timespecadd(&now_ts, &rel_ts, &abs_ts);
 
-  r = pthread_cond_timedwait(&mCond, &lock.mMutex, &abs_ts);
+  r = pthread_cond_timedwait(ptCond, ptMutex, &abs_ts);
 #else
   // Our non-clock-supporting platforms, OS X and Android, do support waiting
   // on a condition variable with a relative timeout.
-  r = pthread_cond_timedwait_relative_np(&mCond, &lock.mMutex, &rel_ts);
+  r = pthread_cond_timedwait_relative_np(ptCond, ptMutex, &rel_ts);
 #endif
 
   if (r == 0) {
@@ -133,4 +145,11 @@ mozilla::CVStatus mozilla::detail::ConditionVariableImpl::wait_for(
   }
   MOZ_RELEASE_ASSERT(r == ETIMEDOUT);
   return CVStatus::Timeout;
+}
+
+mozilla::detail::ConditionVariableImpl::PlatformData*
+mozilla::detail::ConditionVariableImpl::platformData() {
+  static_assert(sizeof platformData_ >= sizeof(PlatformData),
+                "platformData_ is too small");
+  return reinterpret_cast<PlatformData*>(platformData_);
 }
