@@ -7,12 +7,15 @@
 /* ::::: menupopup ::::: */
 
 :is(menupopup, panel):where(:not([type="arrow"])) {
-  --panel-background-color: Menu;
   --panel-text-color: MenuText;
+
+@media (-moz-windows-non-native-menus) {
+  --panel-background-color: Menu;
   --panel-padding: var(--panel-padding-block) 0;
   /* This should match GetMenuCornerRadius() on macOS, or be overridden below */
   --panel-border-radius: 6px;
   --panel-border-color: ThreeDShadow;
+}
 
   @media (-moz-platform: linux) {
     @media (prefers-contrast) {
@@ -116,6 +119,7 @@ menupopup {
     --panel-border-radius: 0px;
   }
 
+@media (-moz-windows-non-native-menus) {
   @media (-moz-platform: windows) {
     > menu,
     > menuitem {
@@ -123,10 +127,29 @@ menupopup {
       padding-inline-start: 1em;
     }
   }
+}
 
   > menu > menupopup {
     /* Vertically align nested menupopups: the shadow plus the top padding plus top border */
     margin-top: calc(-1 * (var(--panel-shadow-margin) + var(--panel-padding-block) + 1px));
+  }
+}
+
+@media not (-moz-windows-non-native-menus) {
+  menupopup {
+    appearance: auto;
+    -moz-default-appearance: menupopup;
+
+    /* Native menus are always light */
+    color-scheme: light !important;
+
+    /* We set the background-color / border here so that it doesn't interfere with native styling. */
+    background-color: Menu;
+    border: 1px solid ThreeDShadow;
+    --panel-background: transparent;
+    --panel-border-color: transparent;
+    --nested-margin: -3px;
+    --panel-shadow-margin: 0px;
   }
 }
 
@@ -230,5 +253,15 @@ panel[type="arrow"] {
 
   &[animating] {
     pointer-events: none;
+  }
+}
+
+@media not (-moz-windows-non-native-menus) {
+  /* For Win10, the popup itself needs to have a transparent background because
+     otherwise the background color would appear behind the drop shadow. */
+  menulist > menupopup {
+    color: FieldText;
+    --panel-background: Field;
+    --panel-border-color: ThreeDShadow;
   }
 }
