@@ -42,6 +42,8 @@ Preferences.addAll([
   // Google safe browsing check downloads
   //{ id: "browser.safebrowsing.downloads.enabled", type: "bool" }, //Also already added
   { id: "toolkit.legacyUserProfileCustomizations.stylesheets", type: "bool" },
+  // Resist Fingerprinting
+  { id: "privacy.resistFingerprinting", type: "bool" },
 ]);
 
 Preferences.addSetting({
