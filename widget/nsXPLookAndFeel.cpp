@@ -489,16 +489,14 @@ void nsXPLookAndFeel::OnPrefChanged(const char* aPref, void* aClosure) {
 }
 
 bool LookAndFeel::WindowsNonNativeMenusEnabled() {
-//switch (StaticPrefs::browser_display_windows_non_native_menus()) {
-  switch (1) {
+  switch (StaticPrefs::browser_display_windows_non_native_menus()) {
     case 0:
       return false;
     case 1:
       return true;
     default:
 #ifdef XP_WIN
-//    return IsWin10OrLater();
-      return true;
+      return IsWin10OrLater();
 #else
       return false;
 #endif
