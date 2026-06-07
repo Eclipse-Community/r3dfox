@@ -33,7 +33,6 @@ static const char* kPageSetupDialogURL =
     "chrome://global/content/printPageSetup.xhtml";
 
 using namespace mozilla;
-using namespace mozilla::dom;
 using namespace mozilla::widget;
 
 /**
@@ -73,7 +72,7 @@ NS_IMETHODIMP
 nsPrintDialogServiceWin::ShowPrintDialog(mozIDOMWindowProxy* aParent,
                                          bool aHaveSelection,
                                          nsIPrintSettings* aSettings,
-                                         JSContext* aCx, Promise** aPromise) {
+                                         JSContext* aCx, dom::Promise** aPromise) {
   MOZ_ASSERT(NS_IsMainThread());
   NS_ENSURE_ARG(aParent);
   NS_ENSURE_ARG(aSettings);
@@ -82,7 +81,7 @@ nsPrintDialogServiceWin::ShowPrintDialog(mozIDOMWindowProxy* aParent,
 
   ErrorResult rvErr;
   nsCOMPtr<nsIGlobalObject> global = xpc::CurrentNativeGlobal(aCx);
-  RefPtr<Promise> promise = Promise::Create(global, rvErr);
+  RefPtr<dom::Promise> promise = dom::Promise::Create(global, rvErr);
   if (NS_WARN_IF(rvErr.Failed())) {
     return rvErr.StealNSResult();
   }
@@ -107,7 +106,7 @@ NS_IMETHODIMP
 nsPrintDialogServiceWin::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
                                              nsIPrintSettings* aNSSettings,
                                              JSContext* aCx,
-                                             Promise** aPromise) {
+                                             dom::Promise** aPromise) {
   MOZ_ASSERT(NS_IsMainThread());
   NS_ENSURE_ARG(aParent);
   NS_ENSURE_ARG(aNSSettings);
@@ -116,7 +115,7 @@ nsPrintDialogServiceWin::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
 
   ErrorResult rvErr;
   nsCOMPtr<nsIGlobalObject> global = xpc::CurrentNativeGlobal(aCx);
-  RefPtr<Promise> promise = Promise::Create(global, rvErr);
+  RefPtr<dom::Promise> promise = dom::Promise::Create(global, rvErr);
   if (NS_WARN_IF(rvErr.Failed())) {
     return rvErr.StealNSResult();
   }
