@@ -31,7 +31,7 @@
  * (which we can't read back from GTK).
  */
 @media (-moz-gtk-csd-transparency-available) {
-  :root[customtitlebar] {
+  :root[tabsintitlebar] {
     background-color: transparent;
 
     &[sizemode="normal"]:not([gtktiledwindow]) {
