@@ -102,10 +102,14 @@ SANDBOX_INTERCEPT DWORD g_sentinel_value_end = 0x424F5859;
 
 TargetProcess::TargetProcess(base::win::AccessToken initial_token,
                              base::win::AccessToken lockdown_token,
+    HANDLE job,
                              ThreadPool* thread_pool)
-    // This object owns everything initialized here except thread_pool.
+    // This object owns everything initialized here except thread_pool and
+    // the job_ handle. The Job handle is closed by BrokerServices and results
+    // eventually in a call to our dtor.
     : lockdown_token_(std::move(lockdown_token)),
       initial_token_(std::move(initial_token)),
+      job_(job),
       thread_pool_(thread_pool),
       base_address_(nullptr) {}
 
@@ -151,6 +155,12 @@ ResultCode TargetProcess::Create(
 
   if (startup_info->has_extended_startup_info())
     flags |= EXTENDED_STARTUPINFO_PRESENT;
+
+  if (job_ && base::win::GetVersion() < base::win::Version::WIN8) {
+    // Windows 8 implements nested jobs, but for older systems we need to
+    // break out of any job we're in to enforce our restrictions.
+    flags |= CREATE_BREAKAWAY_FROM_JOB;
+  }
 
   std::wstring new_env;
 
@@ -201,6 +211,17 @@ ResultCode TargetProcess::Create(
     return SBOX_ERROR_CREATE_PROCESS;
   }
   base::win::ScopedProcessInformation process_info(temp_process_info);
+
+  if (job_ && !startup_info_helper->HasJobsToAssociate()) {
+    DCHECK(base::win::GetVersion() < base::win::Version::WIN10);
+    // Assign the suspended target to the windows job object. On Win 10
+    // this happens through PROC_THREAD_ATTRIBUTE_JOB_LIST.
+    if (!::AssignProcessToJobObject(job_, process_info.process_handle())) {
+      *win_error = ::GetLastError();
+      ::TerminateProcess(process_info.process_handle(), 0);
+      return SBOX_ERROR_ASSIGN_PROCESS_TO_JOB_OBJECT;
+    }
+  }
 
   // Change the token of the main thread of the new process for the
   // impersonation token with more rights. This allows the target to start;
@@ -450,7 +471,7 @@ std::unique_ptr<TargetProcess> TargetProcess::MakeTargetProcessForTesting(
     HMODULE base_address) {
   auto target = std::make_unique<TargetProcess>(
       base::win::AccessToken::FromCurrentProcess().value(),
-      base::win::AccessToken::FromCurrentProcess().value(), nullptr);
+      base::win::AccessToken::FromCurrentProcess().value(), nullptr, nullptr);
   PROCESS_INFORMATION process_info = {};
   process_info.hProcess = process;
   target->sandbox_process_info_.Set(process_info);

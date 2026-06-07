@@ -537,6 +537,8 @@ ResultCode BrokerServicesBase::SpawnTarget(const wchar_t* exe_path,
   // TODO(crbug.com/1428756) remove all calls to HasJob in follow-up CLs.
   DCHECK(policy_base->HasJob());
 
+  // On Win10, jobs are associated via startup_info.
+  if (base::win::GetVersion() >= base::win::Version::WIN10)
   if (policy_base->HasJob())
     startup_info->AddJobToAssociate(policy_base->GetJobHandle());
 
@@ -547,7 +549,7 @@ ResultCode BrokerServicesBase::SpawnTarget(const wchar_t* exe_path,
   // Brokerservices does not own the target object. It is owned by the Policy.
   base::win::ScopedProcessInformation process_info;
   std::unique_ptr<TargetProcess> target = std::make_unique<TargetProcess>(
-      std::move(*initial_token), std::move(*lockdown_token), thread_pool_);
+      std::move(*initial_token), std::move(*lockdown_token), policy_base->GetJobHandle(), thread_pool_);
 
   result = target->Create(exe_path, command_line, std::move(startup_info),
                           &process_info, env_map, last_error);
