@@ -49,7 +49,7 @@
       --color-accent-primary-selected: rgb(255, 60, 60) !important;
     }
     &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -70,7 +70,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -112,7 +112,7 @@
     --color-accent-primary-selected: rgb(255, 102, 51) !important;
     }
     &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -133,7 +133,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -175,7 +175,7 @@
       --color-accent-primary-selected: rgb(255, 60, 206) !important;
     }
     &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -196,7 +196,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -268,7 +268,7 @@
     }
 
     &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -289,7 +289,7 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #480808 0%,#240103 93%,#200000 97%,#1E0000 100%) !important;
+      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
