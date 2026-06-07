@@ -35,6 +35,8 @@ toolbar {
 }
 
 toolbarseparator {
+  appearance: auto;
+  -moz-default-appearance: separator;
   color: var(--toolbarseparator-color);
   /* NOTE: we use padding + a pseudo-element, rather than margin, so that
    * separators are draggable. This is useful for the personal bookmarks
