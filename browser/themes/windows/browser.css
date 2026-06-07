@@ -26,7 +26,7 @@
   }
 }
 
-:root[customtitlebar]:not([lwtheme], [builtintheme]) {
+:root[tabsintitlebar]:not([lwtheme], [builtintheme]) {
   /* stylelint-disable-next-line media-query-no-invalid */
   @media (-moz-windows-mica) or ((-moz-windows-accent-color-in-titlebar) and -moz-pref("browser.theme.windows.accent-color-in-tabs.enabled")) {
     --toolbox-background-color: ActiveCaption;
@@ -84,7 +84,7 @@
 
 /* This is needed for Windows 10, see bug 1961257 */
 @media (-moz-windows-accent-color-in-titlebar) {
-  :root[customtitlebar][sizemode="normal"] #navigator-toolbox {
+  :root[tabsintitlebar][sizemode="normal"] #navigator-toolbox {
     border-top: 0.5px solid ActiveBorder;
     &:-moz-window-inactive {
       border-top-color: InactiveBorder;
