@@ -374,8 +374,16 @@ menupopup[touchmode] :is(menu, menuitem, menucaption) {
   padding-block: calc((3.5em - 32px) / 2);
 }
 
+@media not (-moz-windows-non-native-menus) {
+  #context-navigation {
+    background-color: menu;
+  }
+}
+
+@media (-moz-windows-non-native-menus) {
 /* Other menu separators don't extend all the way to the menu edges, but the
    one below the navigation buttons in the content context menu should. */
 #context-sep-navigation {
   padding-inline: 0;
+}
 }
