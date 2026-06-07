@@ -178,19 +178,19 @@ NTSTATUS ServiceResolverThunk::Setup(const void* target_module,
                                      const char* target_name,
                                      const char* interceptor_name,
                                      const void* interceptor_entry_point,
-                                     void* local_thunk_storage,
                                      void* thunk_storage,
                                      size_t storage_bytes,
                                      size_t* storage_used) {
-  NTSTATUS ret = Init(target_module, interceptor_module, target_name,
-                      interceptor_name, interceptor_entry_point,
-                      local_thunk_storage, thunk_storage, storage_bytes);
+  NTSTATUS ret =
+      Init(target_module, interceptor_module, target_name, interceptor_name,
+           interceptor_entry_point, thunk_storage, storage_bytes);
   if (!NT_SUCCESS(ret))
     return ret;
 
   size_t thunk_bytes = GetThunkSize();
+  std::unique_ptr<char[]> thunk_buffer(new char[thunk_bytes]);
   ServiceFullThunk* thunk =
-      reinterpret_cast<ServiceFullThunk*>(local_thunk_storage);
+      reinterpret_cast<ServiceFullThunk*>(thunk_buffer.get());
 
   if (!IsFunctionAService(&thunk->original))
     return STATUS_OBJECT_NAME_COLLISION;
@@ -205,6 +205,30 @@ NTSTATUS ServiceResolverThunk::Setup(const void* target_module,
 
 size_t ServiceResolverThunk::GetThunkSize() const {
   return sizeof(ServiceFullThunk);
+}
+
+NTSTATUS ServiceResolverThunk::CopyThunk(const void* target_module,
+                                         const char* target_name,
+                                         BYTE* thunk_storage,
+                                         size_t storage_bytes,
+                                         size_t* storage_used) {
+  NTSTATUS ret = ResolveTarget(target_module, target_name, &target_);
+  if (!NT_SUCCESS(ret))
+    return ret;
+
+  size_t thunk_bytes = GetThunkSize();
+  if (storage_bytes < thunk_bytes)
+    return STATUS_UNSUCCESSFUL;
+
+  ServiceFullThunk* thunk = reinterpret_cast<ServiceFullThunk*>(thunk_storage);
+
+  if (!IsFunctionAService(&thunk->original))
+    return STATUS_OBJECT_NAME_COLLISION;
+
+  if (storage_used)
+    *storage_used = thunk_bytes;
+
+  return ret;
 }
 
 bool ServiceResolverThunk::IsFunctionAService(void* local_thunk) const {
@@ -228,21 +252,26 @@ bool ServiceResolverThunk::IsFunctionAService(void* local_thunk) const {
 
 NTSTATUS ServiceResolverThunk::PerformPatch(void* local_thunk,
                                             void* remote_thunk) {
-  // MOZ: These variables are used in the 32-bit variant of this function.
-  (void) local_thunk;
-  (void) remote_thunk;
-
   // Patch the original code.
   ServiceEntry local_service;
   if (!SetInternalThunk(&local_service, sizeof(local_service), nullptr,
                         interceptor_))
     return STATUS_UNSUCCESSFUL;
 
+  // Copy the local thunk buffer to the child.
+  SIZE_T actual;
+  if (!::WriteProcessMemory(process_, remote_thunk, local_thunk,
+                            sizeof(ServiceFullThunk), &actual))
+    return STATUS_UNSUCCESSFUL;
+
+  if (sizeof(ServiceFullThunk) != actual)
+    return STATUS_UNSUCCESSFUL;
+
   // And now change the function to intercept, on the child.
   if (ntdll_base_) {
     // Running a unit test.
     if (!::WriteProcessMemory(process_, target_, &local_service,
-                              sizeof(local_service), nullptr))
+                              sizeof(local_service), &actual))
       return STATUS_UNSUCCESSFUL;
   } else {
     if (!WriteProtectedChildMemory(process_, target_, &local_service,
