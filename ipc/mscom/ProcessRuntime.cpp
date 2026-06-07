@@ -14,6 +14,7 @@
 #include "mozilla/mscom/ProcessRuntimeShared.h"
 #include "mozilla/RefPtr.h"
 #include "mozilla/WindowsProcessMitigations.h"
+#include "mozilla/WindowsVersion.h"
 
 #if defined(MOZILLA_INTERNAL_API)
 #  include "mozilla/mscom/EnsureMTA.h"
@@ -383,7 +384,8 @@ ProcessRuntime::InitializeSecurity(const ProcessCategory aProcessCategory) {
 
   // If we are the browser process, grant access to all non restricted app
   // containers.
-  if (aProcessCategory == ProcessCategory::GeckoBrowserParent) {
+  const bool appContainersSupported = IsWin8OrLater();
+  if (aProcessCategory == ProcessCategory::GeckoBrowserParent && appContainersSupported) {
     wellKnownSidSize = sizeof(wellKnownSid);
     if (!::CreateWellKnownSid(WinBuiltinAnyPackageSid, nullptr, &wellKnownSid,
                               &wellKnownSidSize)) {

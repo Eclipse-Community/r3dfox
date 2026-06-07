@@ -21,6 +21,7 @@
 #include "mozilla/StaticPrefs_widget.h"
 #include "mozilla/StaticMonitor.h"
 #include "mozilla/StaticPtr.h"
+#include "mozilla/WindowsVersion.h"
 #include "nsIWidget.h"
 #include "nsWindow.h"
 #include "transport/runnable_utils.h"
@@ -859,6 +860,10 @@ void WinWindowOcclusionTracker::WindowOcclusionCalculator::Initialize() {
   MOZ_ASSERT(IsInWinWindowOcclusionThread());
   MOZ_ASSERT(!mVirtualDesktopManager);
   CALC_LOG(LogLevel::Info, "Initialize()");
+
+  if (!IsWin10OrLater()) {
+    return;
+  }
 
   RefPtr<IVirtualDesktopManager> desktopManager;
   HRESULT hr = ::CoCreateInstance(
