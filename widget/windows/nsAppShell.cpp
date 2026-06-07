@@ -103,7 +103,23 @@ class WinWakeLockListener final : public nsIDOMMozWakeLockListener {
     context.Version = POWER_REQUEST_CONTEXT_VERSION;
     context.Flags = POWER_REQUEST_CONTEXT_SIMPLE_STRING;
     context.Reason.SimpleReasonString = RequestTypeLPWSTR(aTopicLock.type);
-    HANDLE handle = PowerCreateRequest(&context);
+  typedef HANDLE (WINAPI* PowerCreateRequestPtr)(PREASON_CONTEXT);
+  typedef BOOL (WINAPI* PowerSetRequestPtr)(HANDLE, POWER_REQUEST_TYPE);
+
+  static PowerCreateRequestPtr PowerCreateRequestFn = NULL;
+  static PowerSetRequestPtr PowerSetRequestFn = NULL;
+
+  if (!PowerCreateRequestFn || !PowerSetRequestFn) {
+    HMODULE module = GetModuleHandle(L"kernel32.dll");
+    PowerCreateRequestFn = reinterpret_cast<PowerCreateRequestPtr>(
+        GetProcAddress(module, "PowerCreateRequest"));
+    PowerSetRequestFn = reinterpret_cast<PowerSetRequestPtr>(
+        GetProcAddress(module, "PowerSetRequest"));
+
+    if (!PowerCreateRequestFn || !PowerSetRequestFn)
+      return nullptr;
+  }
+    HANDLE handle = PowerCreateRequestFn(&context);
     if (!handle) {
       WAKE_LOCK_LOG(
           "Failed to create handle of type %s, for topic %s, error=%lu",
@@ -155,7 +171,23 @@ class WinWakeLockListener final : public nsIDOMMozWakeLockListener {
       return;
     }
 
-    if (PowerSetRequest(handle, aTopicLock.type)) {
+  typedef HANDLE (WINAPI* PowerCreateRequestPtr)(PREASON_CONTEXT);
+  typedef BOOL (WINAPI* PowerSetRequestPtr)(HANDLE, POWER_REQUEST_TYPE);
+
+  static PowerCreateRequestPtr PowerCreateRequestFn = NULL;
+  static PowerSetRequestPtr PowerSetRequestFn = NULL;
+
+  if (!PowerCreateRequestFn || !PowerSetRequestFn) {
+    HMODULE module = GetModuleHandle(L"kernel32.dll");
+    PowerCreateRequestFn = reinterpret_cast<PowerCreateRequestPtr>(
+        GetProcAddress(module, "PowerCreateRequest"));
+    PowerSetRequestFn = reinterpret_cast<PowerSetRequestPtr>(
+        GetProcAddress(module, "PowerSetRequest"));
+
+    if (!PowerCreateRequestFn || !PowerSetRequestFn)
+      return;
+  }
+    if (PowerSetRequestFn(handle, aTopicLock.type)) {
       WAKE_LOCK_LOG("Requested %s lock for topic %s", aTopicLock.topic,
                     RequestTypeStr(aTopicLock.type));
     } else {
@@ -175,7 +207,16 @@ class WinWakeLockListener final : public nsIDOMMozWakeLockListener {
 
     WAKE_LOCK_LOG("Prepare to release wakelock for topic %s of type %s",
                   aTopicLock.topic, RequestTypeStr(aTopicLock.type));
-    if (!PowerClearRequest(GetHandle(aTopicLock), aTopicLock.type)) {
+  typedef BOOL (WINAPI* PowerClearRequestPtr)(HANDLE, POWER_REQUEST_TYPE);
+  HMODULE module = GetModuleHandle(L"kernel32.dll");
+  PowerClearRequestPtr PowerClearRequestFn =
+      reinterpret_cast<PowerClearRequestPtr>(
+          GetProcAddress(module, "PowerClearRequest"));
+
+  if (!PowerClearRequestFn)
+    return;
+
+    if (!PowerClearRequestFn(GetHandle(aTopicLock), aTopicLock.type)) {
       WAKE_LOCK_LOG("Failed to release %s lock for topic %s, error=%lu",
                     RequestTypeStr(aTopicLock.type), aTopicLock.topic,
                     GetLastError());
