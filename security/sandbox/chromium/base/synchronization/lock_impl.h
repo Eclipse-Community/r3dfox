@@ -14,7 +14,6 @@
 #if BUILDFLAG(IS_WIN)
 #include "base/win/windows_types.h"
 #elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-#include <errno.h>
 #include <pthread.h>
 #include <string.h>
 #endif
@@ -63,7 +62,7 @@ class BASE_EXPORT LockImpl {
 
   // Release the lock.  This must only be called by the lock's holder: after
   // a successful call to Try, or a call to Lock.
-  inline void Unlock();
+  void Unlock();
 
   // Return the native underlying lock.
   // TODO(awalker): refactor lock and condition variables so that this is
@@ -77,19 +76,6 @@ class BASE_EXPORT LockImpl {
 
   NativeHandle native_handle_;
 };
-
-#if BUILDFLAG(IS_WIN)
-void LockImpl::Unlock() {
-  ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
-}
-#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-void LockImpl::Unlock() {
-  [[maybe_unused]] int rv = pthread_mutex_unlock(&native_handle_);
-#if DCHECK_IS_ON()
-  dcheck_unlock_result(rv);
-#endif
-}
-#endif
 
 // This is an implementation used for AutoLock templated on the lock type.
 template <class LockType>
