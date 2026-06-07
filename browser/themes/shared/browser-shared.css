@@ -282,13 +282,23 @@ body {
   }
 }
 
+/* Images go on the body by default, unless they are aligned in the y axis in
+ * which case they go on the toolbox for backwards compatibility */
 :root:not([theme-image-in-toolbox]) body,
 :root[theme-image-in-toolbox] #navigator-toolbox {
+/* TODO bug 1695280: Remove these media selectors and merge the rule below
+   with the ruleset above. We must set background properties on :root and not
+   #navigator-toolbox on Windows 7/8 due to a WebRender bug that hides the
+   minimize/maximize/close buttons. */
+@media not (-moz-platform: windows-win7) {
+  @media not (-moz-platform: windows-win8) {
   background-image: var(--toolbox-background-image);
   background-repeat: var(--toolbox-background-repeat);
   background-position: var(--toolbox-background-position);
   /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
   background-size: var(--toolbox-background-size);
+  }
+}
 }
 
 @media -moz-pref("browser.nova.enabled") {
@@ -1387,6 +1397,27 @@ popupnotificationcontent {
         border-color: var(--border-color-selected);
       }
     }
+  }
+}
+
+/* TODO bug 1695280: Remove this block. */
+@media (-moz-platform: windows-win7),
+       (-moz-platform: windows-win8) {
+  :root[lwtheme] {
+    background-color: var(--lwt-accent-color);
+    background-image: var(--lwt-additional-images);
+    background-repeat: var(--lwt-background-tiling);
+    background-position: var(--lwt-background-alignment);
+  }
+
+  :root[lwtheme-image] {
+    background-image: var(--lwt-header-image, linear-gradient(transparent, transparent)),  var(--lwt-additional-images) !important;
+    background-repeat: no-repeat, var(--lwt-background-tiling);
+    background-position: right top, var(--lwt-background-alignment) !important;
+  }
+
+  :root[lwtheme]:-moz-window-inactive {
+    background-color: var(--lwt-accent-color-inactive, var(--lwt-accent-color));
   }
 }
 
