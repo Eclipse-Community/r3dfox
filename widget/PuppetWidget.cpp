@@ -896,11 +896,18 @@ PuppetWidget::WidgetPaintTask::Run() {
 }
 
 void PuppetWidget::Paint() {
+  if (!GetPaintListener()) {
+    return;
+  }
+
   mWidgetPaintTask.Revoke();
 
   RefPtr<PuppetWidget> strongThis(this);
+
+  GetPaintListener()->WillPaintWindow(this);
+
   if (auto* listener = GetPaintListener()) {
-    listener->PaintWindow(this);
+    listener->DidPaintWindow();
   }
 }
 

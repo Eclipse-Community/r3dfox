@@ -104,9 +104,33 @@ class nsIWidgetListener {
    */
   virtual bool RequestWindowClose(nsIWidget* aWidget) { return false; }
 
-  /** Paint the window if needed. */
+  /*
+   * Indicate that a paint is about to occur on this window. This is called
+   * at a time when it's OK to change the geometry of this widget or of
+   * other widgets. Must be called before every call to PaintWindow.
+   */
   MOZ_CAN_RUN_SCRIPT_BOUNDARY
-  virtual void PaintWindow(nsIWidget* aWidget) {}
+  virtual void WillPaintWindow(nsIWidget* aWidget) {}
+
+  /**
+   * Paint the specified region of the window. Returns true if the
+   * notification was handled.
+   * This is called at a time when it is not OK to change the geometry of
+   * this widget or of other widgets.
+   */
+  MOZ_CAN_RUN_SCRIPT_BOUNDARY
+  virtual bool PaintWindow(nsIWidget* aWidget,
+                           mozilla::LayoutDeviceIntRegion aRegion) {
+    return false;
+  }
+  /**
+   * Indicates that a paint occurred.
+   * This is called at a time when it is OK to change the geometry of
+   * this widget or of other widgets.
+   * Must be called after every call to PaintWindow.
+   */
+  MOZ_CAN_RUN_SCRIPT_BOUNDARY
+  virtual void DidPaintWindow() {}
 
   virtual void DidCompositeWindow(mozilla::layers::TransactionId aTransactionId,
                                   const mozilla::TimeStamp& aCompositeStart,
