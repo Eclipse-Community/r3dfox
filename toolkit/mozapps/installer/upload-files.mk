@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+PACKAGE_BASE_DIR = $(ABS_DIST)
 PACKAGE       = $(PKG_PATH)$(PKG_BASENAME)$(PKG_SUFFIX)
 
 # JavaScript Shell packaging
@@ -61,46 +62,65 @@ else
 endif
 
 TAR_CREATE_FLAGS := --exclude=.mkdir.done $(TAR_CREATE_FLAGS)
+CREATE_FINAL_TAR = $(TAR) -c --owner=0 --group=0 --numeric-owner \
+  --mode=go-w --exclude=.mkdir.done -f
+UNPACK_TAR       = tar -xf-
+
+ifeq ($(MOZ_PKG_FORMAT),TAR)
+  INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) > $(PACKAGE)
+  INNER_UNMAKE_PACKAGE	= cd $(1) && $(UNPACK_TAR) < $(UNPACKAGE)
+endif
+
+ifeq ($(MOZ_PKG_FORMAT),TGZ)
+  INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) | gzip -vf9 > $(PACKAGE)
+  INNER_UNMAKE_PACKAGE	= cd $(1) && gunzip -c $(UNPACKAGE) | $(UNPACK_TAR)
+endif
 
 ifeq ($(MOZ_PKG_FORMAT),XZ)
   # For non-shippable builds, we would rather finish the build sooner than have optimal compression.
-  ifdef MOZ_PROFILE_USE
-    PACKAGE_EXTRA_ARGS += --strong-compression
-  endif
+  INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) | xz --compress --stdout $(if $(MOZ_PROFILE_USE),-9 --extreme) > $(PACKAGE)
+  INNER_UNMAKE_PACKAGE	= cd $(1) && xz --decompress --stdout $(UNPACKAGE) | $(UNPACK_TAR)
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),BZ2)
   ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-    PACKAGE_EXTRA_ARGS += --app-name '$(MOZ_MACBUNDLE_NAME)'
+    INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - -C $(MOZ_PKG_DIR) $(MOZ_MACBUNDLE_NAME) | bzip2 -vf > $(PACKAGE)
+  else
+    INNER_MAKE_PACKAGE 	= cd $(1) && $(CREATE_FINAL_TAR) - $(MOZ_PKG_DIR) | bzip2 -vf > $(PACKAGE)
   endif
+  INNER_UNMAKE_PACKAGE	= cd $(1) && bunzip2 -c $(UNPACKAGE) | $(UNPACK_TAR)
+endif
+
+ifeq ($(MOZ_PKG_FORMAT),ZIP)
+  INNER_MAKE_PACKAGE = $(call py_action,zip,'$(PACKAGE)' '$(MOZ_PKG_DIR)' -x '**/.mkdir.done',$(1))
+  INNER_UNMAKE_PACKAGE = $(call py_action,make_unzip,$(UNPACKAGE),$(1))
+endif
+
+ifeq ($(MOZ_PKG_FORMAT),APK)
+INNER_MAKE_PACKAGE = true
+INNER_UNMAKE_PACKAGE = true
 endif
 
 ifeq ($(MOZ_PKG_FORMAT),DMG)
   PKG_DMG_SOURCE = $(MOZ_PKG_DIR)
-  MOZ_PKG_MAC_DSSTORE=$(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/dsstore
-  MOZ_PKG_MAC_BACKGROUND=$(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/background.png
-  MOZ_PKG_MAC_ICON=$(topsrcdir)/$(MOZ_BRANDING_DIRECTORY)/disk.icns
-  PACKAGE_EXTRA_ARGS += \
-    $(if $(MOZ_PKG_MAC_DSSTORE),--dsstore '$(MOZ_PKG_MAC_DSSTORE)') \
-    $(if $(MOZ_PKG_MAC_BACKGROUND),--background '$(MOZ_PKG_MAC_BACKGROUND)') \
-    $(if $(MOZ_PKG_MAC_ICON),--icon '$(MOZ_PKG_MAC_ICON)') \
-    --volume-name '$(MOZ_APP_DISPLAYNAME)'
+  INNER_MAKE_PACKAGE = \
+    $(call py_action,make_dmg, \
+        $(if $(MOZ_PKG_MAC_DSSTORE),--dsstore '$(MOZ_PKG_MAC_DSSTORE)') \
+        $(if $(MOZ_PKG_MAC_BACKGROUND),--background '$(MOZ_PKG_MAC_BACKGROUND)') \
+        $(if $(MOZ_PKG_MAC_ICON),--icon '$(MOZ_PKG_MAC_ICON)') \
+        --volume-name '$(MOZ_APP_DISPLAYNAME)' \
+        '$(PKG_DMG_SOURCE)' '$(PACKAGE)', \
+        $(1))
+  INNER_UNMAKE_PACKAGE = \
+    $(call py_action,unpack_dmg, \
+        $(if $(MOZ_PKG_MAC_DSSTORE),--dsstore '$(MOZ_PKG_MAC_DSSTORE)') \
+        $(if $(MOZ_PKG_MAC_BACKGROUND),--background '$(MOZ_PKG_MAC_BACKGROUND)') \
+        $(if $(MOZ_PKG_MAC_ICON),--icon '$(MOZ_PKG_MAC_ICON)') \
+        $(UNPACKAGE) $(MOZ_PKG_DIR), \
+        $(1))
 endif
 
-MAKE_PACKAGE = $(call py_action,package $(MOZ_PKG_FORMAT), \
-  --format $(MOZ_PKG_FORMAT) \
-  --cwd '$(1)' \
-  --pkg-dir '$(MOZ_PKG_DIR)' \
-  --output-dir '$(PKG_PATH)' \
-  --basename '$(PKG_BASENAME)' \
-  --tar '$(TAR)' \
-  $(PACKAGE_EXTRA_ARGS))
-
-ifeq ($(MOZ_PKG_FORMAT),APK)
-MAKE_PACKAGE = true
-endif
-
-INNER_MAKE_PACKAGE = $(MAKE_PACKAGE)
+MAKE_PACKAGE = $(INNER_MAKE_PACKAGE)
 
 NO_PKG_FILES += \
 	core \
