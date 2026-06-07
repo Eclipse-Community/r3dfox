@@ -298,7 +298,6 @@ opaque-types = [
     "mozilla::TouchManager",
     "mozilla::UniquePtr",
     "mozilla::CanvasUsage",
-    "mozilla::FutexImpl",
     "std::pair__PCCP",
     "std::namespace::atomic___base", "std::atomic__My_base",
     "std::atomic",

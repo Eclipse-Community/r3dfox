@@ -13,6 +13,7 @@
 #endif
 
 #include "mozilla/PlatformMutex.h"
+#include "MutexPlatformData_posix.h"
 
 #define REPORT_PTHREADS_ERROR(result, msg) \
   {                                        \
@@ -71,7 +72,7 @@ mozilla::detail::MutexImpl::MutexImpl() {
 #endif
 
   TRY_CALL_PTHREADS(
-      pthread_mutex_init(&mMutex, attrp),
+      pthread_mutex_init(&platformData()->ptMutex, attrp),
       "mozilla::detail::MutexImpl::MutexImpl: pthread_mutex_init failed");
 
 #if defined(ATTR_REQUIRED)
@@ -83,20 +84,20 @@ mozilla::detail::MutexImpl::MutexImpl() {
 
 mozilla::detail::MutexImpl::~MutexImpl() {
   TRY_CALL_PTHREADS(
-      pthread_mutex_destroy(&mMutex),
+      pthread_mutex_destroy(&platformData()->ptMutex),
       "mozilla::detail::MutexImpl::~MutexImpl: pthread_mutex_destroy failed");
 }
 
 inline void mozilla::detail::MutexImpl::mutexLock() {
   TRY_CALL_PTHREADS(
-      pthread_mutex_lock(&mMutex),
+      pthread_mutex_lock(&platformData()->ptMutex),
       "mozilla::detail::MutexImpl::mutexLock: pthread_mutex_lock failed");
 }
 
 bool mozilla::detail::MutexImpl::tryLock() { return mutexTryLock(); }
 
 bool mozilla::detail::MutexImpl::mutexTryLock() {
-  int result = pthread_mutex_trylock(&mMutex);
+  int result = pthread_mutex_trylock(&platformData()->ptMutex);
   if (result == 0) {
     return true;
   }
@@ -114,8 +115,15 @@ void mozilla::detail::MutexImpl::lock() { mutexLock(); }
 
 void mozilla::detail::MutexImpl::unlock() {
   TRY_CALL_PTHREADS(
-      pthread_mutex_unlock(&mMutex),
+      pthread_mutex_unlock(&platformData()->ptMutex),
       "mozilla::detail::MutexImpl::unlock: pthread_mutex_unlock failed");
 }
 
 #undef TRY_CALL_PTHREADS
+
+mozilla::detail::MutexImpl::PlatformData*
+mozilla::detail::MutexImpl::platformData() {
+  static_assert(sizeof(platformData_) >= sizeof(PlatformData),
+                "platformData_ is too small");
+  return reinterpret_cast<PlatformData*>(platformData_);
+}

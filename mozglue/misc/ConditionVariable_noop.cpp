@@ -4,8 +4,11 @@
 
 #include "mozilla/PlatformConditionVariable.h"
 #include "mozilla/PlatformMutex.h"
+#include "MutexPlatformData_noop.h"
 
 using mozilla::TimeDuration;
+
+struct mozilla::detail::ConditionVariableImpl::PlatformData {};
 
 mozilla::detail::ConditionVariableImpl::ConditionVariableImpl() {}
 
@@ -23,4 +26,11 @@ void mozilla::detail::ConditionVariableImpl::wait(MutexImpl&) {
 mozilla::CVStatus mozilla::detail::ConditionVariableImpl::wait_for(
     MutexImpl&, const TimeDuration&) {
   return CVStatus::NoTimeout;
+}
+
+mozilla::detail::ConditionVariableImpl::PlatformData*
+mozilla::detail::ConditionVariableImpl::platformData() {
+  static_assert(sizeof platformData_ >= sizeof(PlatformData),
+                "platformData_ is too small");
+  return reinterpret_cast<PlatformData*>(platformData_);
 }

@@ -539,12 +539,6 @@ inline void cpu_pause() {
 #if defined(__i386) || defined(_M_IX86) || defined(__x86_64__) || \
     defined(_M_X64)
   _mm_pause();
-#elif defined(__aarch64__) || defined(__arm__)
-  // TODO: Rust uses isb rather than yield on aarch64, see
-  // https://github.com/rust-lang/rust/pull/84725
-  __asm__ __volatile__("yield");
-#else
-  __asm__ __volatile__("" ::: "memory");
 #endif
 }
 
