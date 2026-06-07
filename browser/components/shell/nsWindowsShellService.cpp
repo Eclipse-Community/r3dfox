@@ -43,6 +43,7 @@
 #include "nsIXULAppInfo.h"
 #include "nsLocalFile.h"
 #include "nsNativeAppSupportWin.h"
+#include "nsWindowsHelpers.h"
 #include "nsNetUtil.h"
 #include "nsProxyRelease.h"
 #include "nsServiceManagerUtils.h"
@@ -62,6 +63,7 @@
 #include <knownfolders.h>
 #include <mbstring.h>
 #include <objbase.h>
+#include <shlobj.h>
 #include <propkey.h>
 #include <uiautomation.h>
 #include <propvarutil.h>
@@ -88,6 +90,7 @@ using namespace ABI::Windows::ApplicationModel::Core;
 using namespace ABI::Windows::UI::StartScreen;
 #endif
 
+#define PIN_TO_TASKBAR_SHELL_VERB 5386
 #define PRIVATE_BROWSING_BINARY L"private_browsing.exe"
 
 #undef ACCESS_READ
@@ -100,6 +103,7 @@ using namespace ABI::Windows::UI::StartScreen;
 
 #define REG_FAILED(val) (val != ERROR_SUCCESS)
 
+using mozilla::IsWin8OrLater;
 using namespace mozilla;
 using mozilla::intl::Localization;
 
@@ -561,6 +565,20 @@ nsresult nsWindowsShellService::InvokeHTTPOpenAsVerb() {
   return NS_OK;
 }
 
+nsresult nsWindowsShellService::LaunchHTTPHandlerPane() {
+  OPENASINFO info;
+  info.pcszFile = L"http";
+  info.pcszClass = nullptr;
+  info.oaifInFlags =
+      OAIF_FORCE_REGISTRATION | OAIF_URL_PROTOCOL | OAIF_REGISTER_EXT;
+
+  HRESULT hr = SHOpenWithDialog(nullptr, &info);
+  if (SUCCEEDED(hr) || (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))) {
+    return NS_OK;
+  }
+  return NS_ERROR_FAILURE;
+}
+
 NS_IMETHODIMP
 nsWindowsShellService::SetDefaultBrowser(bool aClaimAllTypes,
                                          bool aForAllUsers) {
@@ -581,9 +599,13 @@ nsWindowsShellService::SetDefaultBrowser(bool aClaimAllTypes,
     rv = LaunchHelper(appHelperPath);
   }
 
-  if (NS_SUCCEEDED(rv)) {
+  if (NS_SUCCEEDED(rv) && IsWin8OrLater()) {
     if (aClaimAllTypes) {
-      rv = LaunchModernSettingsDialogDefaultApps();
+      if (IsWin10OrLater()) {
+        rv = LaunchModernSettingsDialogDefaultApps();
+      } else {
+        rv = LaunchControlPanelDefaultsSelectionUI();
+      }
       if (NS_SUCCEEDED(rv)) {
         if (Preferences::GetBool("browser.shell.focusSetDefaultBrowserButton",
                                  false)) {
@@ -592,10 +614,21 @@ nsWindowsShellService::SetDefaultBrowser(bool aClaimAllTypes,
       } else {
         // The above call should never really fail, but just in case
         // fall back to showing control panel for all defaults
-        rv = InvokeHTTPOpenAsVerb();
+        if (IsWin10OrLater()) {
+          rv = InvokeHTTPOpenAsVerb();
+        } else {
+          rv = LaunchHTTPHandlerPane();
+        }
       }
     } else {
-      rv = LaunchModernSettingsDialogDefaultApps();
+      // Windows 10 blocks attempts to load the
+      // HTTP Handler association dialog.
+      if (IsWin10OrLater()) {
+        rv = LaunchModernSettingsDialogDefaultApps();
+      } else {
+        rv = LaunchHTTPHandlerPane();
+      }
+
       if (NS_SUCCEEDED(rv)) {
         if (Preferences::GetBool("browser.shell.focusSetDefaultBrowserButton",
                                  false)) {
@@ -1808,7 +1841,7 @@ nsWindowsShellService::PinShortcutToTaskbar(
   }
 
   // First available on 1809
-  if (!IsWin10Sep2018UpdateOrLater()) {
+  if (IsWin10OrLater() && !IsWin10Sep2018UpdateOrLater()) {
     return NS_ERROR_NOT_AVAILABLE;
   }
 

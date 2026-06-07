@@ -5,6 +5,7 @@
 #include "nsWindowsPackageManager.h"
 #include "mozilla/dom/Promise.h"
 #include "mozilla/Logging.h"
+#include "mozilla/WindowsVersion.h"
 #include "mozilla/WinHeaderOnlyUtils.h"
 #ifndef __MINGW32__
 #  include "nsProxyRelease.h"
@@ -48,6 +49,11 @@ nsWindowsPackageManager::FindUserInstalledPackages(
 #ifdef __MINGW32__
   return NS_ERROR_NOT_IMPLEMENTED;
 #else
+  // The classes we're using are only available beginning with Windows 10
+  if (!mozilla::IsWin10OrLater()) {
+    return NS_ERROR_NOT_IMPLEMENTED;
+  }
+
   ComPtr<IInspectable> pmInspectable;
   ComPtr<Deployment::IPackageManager> pm;
   HRESULT hr = RoActivateInstance(
@@ -110,6 +116,11 @@ nsWindowsPackageManager::GetInstalledDate(uint64_t* ts) {
 #ifdef __MINGW32__
   return NS_ERROR_NOT_IMPLEMENTED;
 #else
+  // The classes we're using are only available beginning with Windows 10
+  if (!mozilla::IsWin10OrLater()) {
+    return NS_ERROR_NOT_IMPLEMENTED;
+  }
+
   ComPtr<ApplicationModel::IPackageStatics> pkgStatics;
   HRESULT hr = RoGetActivationFactory(
       HStringReference(RuntimeClass_Windows_ApplicationModel_Package).Get(),
@@ -196,8 +207,9 @@ nsWindowsPackageManager::CampaignId(JSContext* aCx, dom::Promise** aPromise) {
   return NS_ERROR_NOT_IMPLEMENTED;
 #else
 
-  // This is only relevant for MSIX packaged builds.
-  if (!mozilla::HasPackageIdentity()) {
+  // The classes we're using are only available beginning with Windows 10,
+  // and this is only relevant for MSIX packaged builds.
+  if (!mozilla::IsWin10OrLater() || !mozilla::HasPackageIdentity()) {
     return NS_ERROR_NOT_IMPLEMENTED;
   }
 
