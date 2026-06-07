@@ -779,6 +779,8 @@ impl core::fmt::Debug for DebugFlags {
 /// uniquely identifies a primitive template by key.
 #[derive(Debug, Clone, Eq, MallocSizeOf, PartialEq, Hash, Serialize, Deserialize)]
 pub enum PrimitiveKeyKind {
+    /// Clear an existing rect, used for special effects on some platforms.
+    Clear,
     ///
     Rectangle {
         ///
