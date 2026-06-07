@@ -184,6 +184,7 @@ pub fn prepare_quad(
     scratch: &mut PrimitiveScratchBuffer,
 ) {
     let pattern_ctx = PatternBuilderContext {
+        scene_properties: frame_context.scene_properties,
         spatial_tree: frame_context.spatial_tree,
         fb_config: frame_context.fb_config,
         prim_origin: local_rect.min,
@@ -255,6 +256,7 @@ pub fn prepare_repeatable_quad(
     scratch: &mut PrimitiveScratchBuffer,
 ) {
     let pattern_ctx = PatternBuilderContext {
+        scene_properties: frame_context.scene_properties,
         spatial_tree: frame_context.spatial_tree,
         fb_config: frame_context.fb_config,
         prim_origin: local_rect.min,
@@ -493,6 +495,7 @@ pub fn prepare_border_image_nine_patch(
     scratch: &mut PrimitiveScratchBuffer,
 ) {
     let pattern_ctx = PatternBuilderContext {
+        scene_properties: frame_context.scene_properties,
         spatial_tree: frame_context.spatial_tree,
         fb_config: frame_context.fb_config,
         prim_origin: local_rect.min,
