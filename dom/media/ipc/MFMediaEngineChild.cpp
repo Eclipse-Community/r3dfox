@@ -7,6 +7,7 @@
 #include "MFMediaEngineUtils.h"
 #include "RemoteMediaManagerChild.h"
 #include "mozilla/SyncRunnable.h"
+#include "mozilla/WindowsVersion.h"
 
 #ifdef MOZ_WMF_CDM
 #  include "WMFCDMProxy.h"
@@ -50,6 +51,12 @@ MFMediaEngineChild::MFMediaEngineChild(MFMediaEngineWrapper* aOwner,
 RefPtr<GenericNonExclusivePromise> MFMediaEngineChild::Init(
     const MediaInfo& aInfo, const ExternalPlaybackEngine::InitFlagSet& aFlags) {
   if (!mManagerThread) {
+    return GenericNonExclusivePromise::CreateAndReject(NS_ERROR_FAILURE,
+                                                       __func__);
+  }
+
+  if (!IsWin10OrLater()) {
+    CLOG("Only support MF media engine playback on Windows 10+");
     return GenericNonExclusivePromise::CreateAndReject(NS_ERROR_FAILURE,
                                                        __func__);
   }
