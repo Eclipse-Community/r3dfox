@@ -62,6 +62,9 @@ if CONFIG["MOZ_PACKAGE_JSSHELL"]:
         JS_SHELL_ARCHIVE_FILES += [
             "!/dist/bin/" + CONFIG["MSVC_CXX_RUNTIME_ATOMIC_WAIT_DLL"]
         ]
+    if CONFIG["WIN_UCRT_REDIST_DIR"]:
+        JS_SHELL_ARCHIVE_FILES += ["!/dist/bin/ucrtbase.dll"]
+        JS_SHELL_ARCHIVE_FILES += ["!/dist/bin/api-ms-win-*.dll"]
     if CONFIG["LLVM_SYMBOLIZER"]:
         JS_SHELL_ARCHIVE_FILES += ["%" + CONFIG["LLVM_SYMBOLIZER"]]
     if CONFIG["MOZ_CLANG_RT_ASAN_LIB_PATH"]:
