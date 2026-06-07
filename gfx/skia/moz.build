@@ -623,9 +623,6 @@ DEFINES['SK_PDF_USE_HARFBUZZ_SUBSET'] = 1
 if CONFIG['MOZ_TREE_FREETYPE']:
     DEFINES['SK_CAN_USE_DLOPEN'] = 0
 
-if CONFIG['MOZ_VALGRIND']:
-    DEFINES['SK_CPU_LIMIT_AVX'] = True
-
 # Suppress warnings in third-party code.
 CXXFLAGS += [
     '-Wno-deprecated-declarations',

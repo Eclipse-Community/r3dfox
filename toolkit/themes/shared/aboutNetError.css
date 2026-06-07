@@ -212,10 +212,6 @@ button:disabled {
     width: 8.75em;
     margin-block-start: 2em;
     margin-inline-end: 2.5em;
-
-    &.no-connection {
-      width: 13em;
-    }
   }
 
   #viewCertificate {
