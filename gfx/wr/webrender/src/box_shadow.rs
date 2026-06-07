@@ -1,14 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-use api::{BorderRadius, BoxShadowClipMode, ClipMode, ColorF, ColorU, PropertyBinding};
+use api::{BorderRadius, BoxShadowClipMode, ClipMode, ColorF, ColorU, PrimitiveKeyKind, PropertyBinding};
 use api::units::*;
 use crate::border::{BorderRadiusAu};
 use crate::clip::{ClipItemEntry, ClipItemKey, ClipItemKeyKind, ClipNodeId};
 use crate::intern::{Handle as InternHandle, InternDebug, Internable};
 use crate::prim_store::{InternablePrimitive, PrimKey, PrimTemplate, PrimTemplateCommonData};
-use crate::prim_store::{PrimitiveKind, PrimitiveStore, VectorKey};
-use crate::prim_store::rectangle::RectanglePrim;
+use crate::prim_store::{PrimitiveKind, PrimitiveStore, VectorKey, RectangleKey};
 use crate::scene_building::{SceneBuilder, IsVisible};
 use crate::spatial_tree::SpatialNodeIndex;
 use crate::internal_types::LayoutPrimitiveInfo;
@@ -243,7 +242,7 @@ impl<'a> SceneBuilder<'a> {
                 clip_node_id,
                 &LayoutPrimitiveInfo::with_clip_rect(final_prim_rect, prim_info.clip_rect),
                 clips,
-                RectanglePrim {
+                PrimitiveKeyKind::Rectangle {
                     color: PropertyBinding::Value(color.into()),
                 },
             );

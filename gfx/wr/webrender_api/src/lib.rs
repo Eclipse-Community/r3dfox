@@ -775,6 +775,17 @@ impl core::fmt::Debug for DebugFlags {
     }
 }
 
+/// Information specific to a primitive type that
+/// uniquely identifies a primitive template by key.
+#[derive(Debug, Clone, Eq, MallocSizeOf, PartialEq, Hash, Serialize, Deserialize)]
+pub enum PrimitiveKeyKind {
+    ///
+    Rectangle {
+        ///
+        color: PropertyBinding<ColorU>,
+    },
+}
+
 ///
 #[derive(Clone, Copy, Debug)]
 pub enum ScrollLocation {
