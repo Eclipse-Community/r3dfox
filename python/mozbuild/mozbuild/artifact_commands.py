@@ -87,7 +87,6 @@ def _make_artifacts(
     download_symbols=False,
     artifact_filters=None,
     no_process=False,
-    unfiltered_project_package=False,
 ):
     artifact_filters = artifact_filters or []
     state_dir = command_context._mach_context.state_dir
@@ -134,7 +133,6 @@ def _make_artifacts(
         download_symbols=download_symbols,
         artifact_filters=artifact_filters,
         no_process=no_process,
-        unfiltered_project_package=unfiltered_project_package,
         mozbuild=command_context,
     )
     return artifacts
@@ -170,11 +168,6 @@ def _make_artifacts(
     help="Don't process (unpack) artifact packages, just download them.",
 )
 @CommandArgument(
-    "--unfiltered-project-package",
-    action="store_true",
-    help="Minimally process (only) main project package artifact, unpacking it to the given `--distdir`.",
-)
-@CommandArgument(
     "--artifact-filter",
     dest="artifact_filters",
     default=None,
@@ -192,7 +185,6 @@ def artifact_install(
     symbols=False,
     distdir=None,
     no_process=False,
-    unfiltered_project_package=False,
     artifact_filters=None,
 ):
     artifact_filters = artifact_filters or []
@@ -206,7 +198,6 @@ def artifact_install(
         download_symbols=symbols,
         artifact_filters=artifact_filters,
         no_process=no_process,
-        unfiltered_project_package=unfiltered_project_package,
     )
 
     return artifacts.install_from(source, distdir or command_context.distdir)
