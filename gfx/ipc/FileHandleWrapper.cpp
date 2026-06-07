@@ -4,8 +4,6 @@
 
 #include "FileHandleWrapper.h"
 
-#include "mozilla/ipc/FileDescriptor.h"
-
 namespace mozilla::gfx {
 
 FileHandleWrapper::FileHandleWrapper(mozilla::UniqueFileHandle&& aHandle)
@@ -15,11 +13,6 @@ FileHandleWrapper::~FileHandleWrapper() = default;
 
 mozilla::detail::FileHandleType FileHandleWrapper::GetHandle() {
   return mHandle.get();
-}
-
-mozilla::UniqueFileHandle FileHandleWrapper::ClonePlatformHandle() {
-  auto handle = ipc::FileDescriptor(GetHandle());
-  return handle.TakePlatformHandle();
 }
 
 }  // namespace mozilla::gfx
