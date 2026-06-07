@@ -187,6 +187,11 @@ class nsWindow final : public nsIWidget {
    */
   nsWindow* GetParentWindowBase(bool aIncludeOwner);
 
+  bool IsTopLevelWidget() const {
+    return mWindowType == WindowType::TopLevel ||
+           mWindowType == WindowType::Dialog;
+  }
+
   // nsIWidget interface
   using nsIWidget::Create;  // for Create signature not overridden here
   [[nodiscard]] nsresult Create(nsIWidget* aParent, const LayoutDeviceIntRect&,
