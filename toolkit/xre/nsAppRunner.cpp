@@ -774,6 +774,11 @@ nsIXULRuntime::ContentWin32kLockdownState GetLiveWin32kLockdownState() {
         OperatingSystemNotSupported;
   }
 
+  // Non-native theming is required as well
+  if (!StaticPrefs::widget_non_native_theme_enabled()) {
+    return nsIXULRuntime::ContentWin32kLockdownState::MissingNonNativeTheming;
+  }
+
   // Some (not sure exactly which) decoders are not compatible
   if (!PDMFactory::AllDecodersAreRemote()) {
     return nsIXULRuntime::ContentWin32kLockdownState::DecodersArentRemote;
