@@ -903,6 +903,8 @@ pub struct DisplayListBuilder {
     serialized_content_buffer: Option<String>,
     state: BuildState,
 
+    /// Helper struct to map stacking context coords <-> reference frame coords.
+    rf_mapper: ReferenceFrameMapper,
 }
 
 #[repr(C)]
@@ -933,6 +935,8 @@ impl DisplayListBuilder {
             save_state: None,
             serialized_content_buffer: None,
             state: BuildState::Idle,
+
+            rf_mapper: ReferenceFrameMapper::new(),
         }
     }
 
@@ -945,6 +949,8 @@ impl DisplayListBuilder {
 
         self.save_state = None;
         self.serialized_content_buffer = None;
+
+        self.rf_mapper = ReferenceFrameMapper::new();
     }
 
     /// Saves the current display list state, so it may be `restore()`'d.
@@ -1460,6 +1466,9 @@ impl DisplayListBuilder {
     ) -> di::SpatialId {
         let id = self.generate_spatial_index();
 
+        let current_offset = self.rf_mapper.current_offset();
+        let origin = origin + current_offset;
+
         let descriptor = di::SpatialTreeItem::ReferenceFrame(di::ReferenceFrameDescriptor {
             parent_spatial_id,
             origin,
@@ -1473,6 +1482,8 @@ impl DisplayListBuilder {
             },
         });
         self.push_spatial_tree_item(&descriptor);
+
+        self.rf_mapper.push_scope();
 
         let item = di::DisplayItem::PushReferenceFrame(di::ReferenceFrameDisplayListItem {
         });
@@ -1490,6 +1501,9 @@ impl DisplayListBuilder {
         rotation: di::Rotation,
     ) -> di::SpatialId {
         let id = self.generate_spatial_index();
+
+        let current_offset = self.rf_mapper.current_offset();
+        let origin = origin + current_offset;
 
         let descriptor = di::SpatialTreeItem::ReferenceFrame(di::ReferenceFrameDescriptor {
             parent_spatial_id,
@@ -1511,6 +1525,8 @@ impl DisplayListBuilder {
         });
         self.push_spatial_tree_item(&descriptor);
 
+        self.rf_mapper.push_scope();
+
         let item = di::DisplayItem::PushReferenceFrame(di::ReferenceFrameDisplayListItem {
         });
         self.push_item(&item);
@@ -1519,6 +1535,7 @@ impl DisplayListBuilder {
     }
 
     pub fn pop_reference_frame(&mut self) {
+        self.rf_mapper.pop_scope();
         self.push_item(&di::DisplayItem::PopReferenceFrame);
     }
 
@@ -1668,10 +1685,11 @@ impl DisplayListBuilder {
         has_scroll_linked_effect: HasScrollLinkedEffect,
     ) -> di::SpatialId {
         let scroll_frame_id = self.generate_spatial_index();
+        let current_offset = self.rf_mapper.current_offset();
 
         let descriptor = di::SpatialTreeItem::ScrollFrame(di::ScrollFrameDescriptor {
             content_rect,
-            frame_rect,
+            frame_rect: frame_rect.translate(current_offset),
             parent_space,
             scroll_frame_id,
             external_id,
@@ -1709,6 +1727,13 @@ impl DisplayListBuilder {
     ) -> di::ClipId {
         let id = self.generate_clip_index();
 
+        let current_offset = self.rf_mapper.current_offset();
+
+        let image_mask = di::ImageMask {
+            rect: image_mask.rect.translate(current_offset),
+            ..image_mask
+        };
+
         let item = di::DisplayItem::ImageMaskClip(di::ImageMaskClipDisplayItem {
             id,
             spatial_id,
@@ -1735,6 +1760,9 @@ impl DisplayListBuilder {
     ) -> di::ClipId {
         let id = self.generate_clip_index();
 
+        let current_offset = self.rf_mapper.current_offset();
+        let clip_rect = clip_rect.translate(current_offset);
+
         let item = di::DisplayItem::RectClip(di::RectClipDisplayItem {
             id,
             spatial_id,
@@ -1751,6 +1779,13 @@ impl DisplayListBuilder {
         clip: di::ComplexClipRegion,
     ) -> di::ClipId {
         let id = self.generate_clip_index();
+
+        let current_offset = self.rf_mapper.current_offset();
+
+        let clip = di::ComplexClipRegion {
+            rect: clip.rect.translate(current_offset),
+            ..clip
+        };
 
         let item = di::DisplayItem::RoundedRectClip(di::RoundedRectClipDisplayItem {
             id,
@@ -1775,11 +1810,12 @@ impl DisplayListBuilder {
         transform: Option<PropertyBinding<LayoutTransform>>
     ) -> di::SpatialId {
         let id = self.generate_spatial_index();
+        let current_offset = self.rf_mapper.current_offset();
 
         let descriptor = di::SpatialTreeItem::StickyFrame(di::StickyFrameDescriptor {
             parent_spatial_id,
             id,
-            bounds: frame_rect,
+            bounds: frame_rect.translate(current_offset),
             margins,
             vertical_offset_bounds,
             horizontal_offset_bounds,
@@ -1799,6 +1835,10 @@ impl DisplayListBuilder {
         pipeline_id: PipelineId,
         ignore_missing_pipeline: bool
     ) {
+        let current_offset = self.rf_mapper.current_offset();
+        let bounds = bounds.translate(current_offset);
+        let clip_rect = clip_rect.translate(current_offset);
+
         let item = di::DisplayItem::Iframe(di::IframeDisplayItem {
             bounds,
             clip_rect,
@@ -1893,3 +1933,76 @@ fn iter_spatial_tree<F>(spatial_tree: &[u8], mut f: F) where F: FnMut(&di::Spati
     }
 }
 
+/// The offset stack for a given reference frame.
+#[derive(Clone)]
+struct ReferenceFrameState {
+    /// A stack of current offsets from the current reference frame scope.
+    offsets: Vec<LayoutVector2D>,
+}
+
+/// Maps from stacking context layout coordinates into reference frame
+/// relative coordinates.
+#[derive(Clone)]
+pub struct ReferenceFrameMapper {
+    /// A stack of reference frame scopes.
+    frames: Vec<ReferenceFrameState>,
+}
+
+impl ReferenceFrameMapper {
+    pub fn new() -> Self {
+        ReferenceFrameMapper {
+            frames: vec![
+                ReferenceFrameState {
+                    offsets: vec![
+                        LayoutVector2D::zero(),
+                    ],
+                }
+            ],
+        }
+    }
+
+    /// Push a new scope. This resets the current offset to zero, and is
+    /// used when a new reference frame or iframe is pushed.
+    pub fn push_scope(&mut self) {
+        self.frames.push(ReferenceFrameState {
+            offsets: vec![
+                LayoutVector2D::zero(),
+            ],
+        });
+    }
+
+    /// Pop a reference frame scope off the stack.
+    pub fn pop_scope(&mut self) {
+        self.frames.pop().unwrap();
+    }
+
+    /// Push a new offset for the current scope. This is used when
+    /// a new stacking context is pushed.
+    pub fn push_offset(&mut self, offset: LayoutVector2D) {
+        let frame = self.frames.last_mut().unwrap();
+        let current_offset = *frame.offsets.last().unwrap();
+        frame.offsets.push(current_offset + offset);
+    }
+
+    /// Pop a local stacking context offset from the current scope.
+    pub fn pop_offset(&mut self) {
+        let frame = self.frames.last_mut().unwrap();
+        frame.offsets.pop().unwrap();
+    }
+
+    /// Retrieve the current offset to allow converting a stacking context
+    /// relative coordinate to be relative to the owing reference frame.
+    /// TODO(gw): We could perhaps have separate coordinate spaces for this,
+    ///           however that's going to either mean a lot of changes to
+    ///           public API code, or a lot of changes to internal code.
+    ///           Before doing that, we should revisit how Gecko would
+    ///           prefer to provide coordinates.
+    /// TODO(gw): For now, this includes only the reference frame relative
+    ///           offset. Soon, we will expand this to include the initial
+    ///           scroll offsets that are now available on scroll nodes. This
+    ///           will allow normalizing the coordinates even between display
+    ///           lists where APZ has scrolled the content.
+    pub fn current_offset(&self) -> LayoutVector2D {
+        *self.frames.last().unwrap().offsets.last().unwrap()
+    }
+}
