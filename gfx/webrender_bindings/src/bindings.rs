@@ -2068,10 +2068,6 @@ pub extern "C" fn wr_window_new(
                 use_native_compositor,
             )),
         }
-    } else if use_layer_compositor {
-        CompositorConfig::Layer {
-            compositor: Box::new(WrLayerCompositor::new(compositor)),
-        }
     } else if use_native_compositor {
         CompositorConfig::Native {
             compositor: Box::new(WrCompositor(compositor)),
