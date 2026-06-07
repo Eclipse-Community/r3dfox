@@ -137,10 +137,10 @@
 
         @media (-moz-windows-default-theme) {
           &:hover {
-            background-color: var(--toolbarbutton-background-color-hover);
+            background-color: var(--toolbarbutton-hover-background);
 
             &:active {
-              background-color: var(--toolbarbutton-background-color-active);
+              background-color: var(--toolbarbutton-active-background);
             }
           }
 
