@@ -372,7 +372,6 @@ Preferences.addAll([
 
   // Media
   { id: "media.autoplay.default", type: "int" },
-  { id: "webgl.disabled", type: "bool" },
 
   // Buttons
   { id: "pref.privacy.disable_button.view_passwords", type: "bool" },
