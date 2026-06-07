@@ -326,3 +326,7 @@ with Files("PHCManager.*"):
 
 with Files("*KeyedUUIDMapper*"):
     BUG_COMPONENT = ("WebExtensions", "General")
+
+OS_LIBS += ["psapi"]
+
+DEFINES["PSAPI_VERSION"] = "1"
