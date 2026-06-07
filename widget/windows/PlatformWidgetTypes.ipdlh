@@ -19,6 +19,7 @@ struct WinCompositorWidgetInitData
   WindowsHandle hWnd;
   uintptr_t widgetKey;
   TransparencyMode transparencyMode;
+  nsSizeMode sizeMode;
 };
 
 union CompositorWidgetInitData
