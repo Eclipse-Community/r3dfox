@@ -7,11 +7,9 @@
 #include <stdlib.h>
 
 #include "mozilla/Services.h"
-#include "mozilla/dom/Promise.h"
 
 #include "GRefPtr.h"
 #include "MozContainer.h"
-#include "nsIGlobalObject.h"
 #include "nsIPrintSettings.h"
 #include "nsIWidget.h"
 #include "nsPrintDialogGTK.h"
@@ -24,11 +22,9 @@
 #include "nsPrintfCString.h"
 #include "nsIGIOService.h"
 #include "nsServiceManagerUtils.h"
-#include "nsThreadUtils.h"
 #include "WidgetUtils.h"
 #include "WidgetUtilsGtk.h"
 #include "nsIObserverService.h"
-#include "xpcpublic.h"
 
 // for gdk_x11_window_get_xid
 #include <gdk/gdk.h>
@@ -45,7 +41,6 @@
 #include "MainThreadUtils.h"
 
 using namespace mozilla;
-using namespace mozilla::dom;
 using namespace mozilla::widget;
 
 static const char header_footer_tags[][4] = {"", "&T", "&U", "&D", "&P", "&PT"};
@@ -515,30 +510,15 @@ nsPrintDialogServiceGTK::Init() { return NS_OK; }
 NS_IMETHODIMP
 nsPrintDialogServiceGTK::ShowPrintDialog(mozIDOMWindowProxy* aParent,
                                          bool aHaveSelection,
-                                         nsIPrintSettings* aSettings,
-                                         JSContext* aCx, Promise** aPromise) {
-  MOZ_ASSERT(NS_IsMainThread());
-  NS_ENSURE_ARG(aParent);
-  NS_ENSURE_ARG(aSettings);
-  NS_ENSURE_ARG(aCx);
-  NS_ENSURE_ARG(aPromise);
-
-  ErrorResult rvErr;
-  nsCOMPtr<nsIGlobalObject> global = xpc::CurrentNativeGlobal(aCx);
-  RefPtr<Promise> promise = Promise::Create(global, rvErr);
-  if (NS_WARN_IF(rvErr.Failed())) {
-    return rvErr.StealNSResult();
-  }
+                                         nsIPrintSettings* aSettings) {
+  MOZ_ASSERT(aParent, "aParent must not be null");
+  MOZ_ASSERT(aSettings, "aSettings must not be null");
 
   nsPrintDialogWidgetGTK printDialog(nsPIDOMWindowOuter::From(aParent),
                                      aHaveSelection, aSettings);
   nsresult rv = printDialog.ImportSettings(aSettings);
 
-  if (NS_FAILED(rv)) {
-    promise->MaybeReject(rv);
-    promise.forget(aPromise);
-    return NS_OK;
-  }
+  NS_ENSURE_SUCCESS(rv, rv);
 
   const gint response = printDialog.Run();
 
@@ -560,33 +540,15 @@ nsPrintDialogServiceGTK::ShowPrintDialog(mozIDOMWindowProxy* aParent,
       NS_WARNING("Unexpected response");
       rv = NS_ERROR_ABORT;
   }
-
-  if (NS_SUCCEEDED(rv)) {
-    promise->MaybeResolveWithUndefined();
-  } else {
-    promise->MaybeReject(rv);
-  }
-  promise.forget(aPromise);
-  return NS_OK;
+  return rv;
 }
 
 NS_IMETHODIMP
 nsPrintDialogServiceGTK::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
-                                             nsIPrintSettings* aNSSettings,
-                                             JSContext* aCx,
-                                             Promise** aPromise) {
-  MOZ_ASSERT(NS_IsMainThread());
-  NS_ENSURE_ARG(aParent);
-  NS_ENSURE_ARG(aNSSettings);
-  NS_ENSURE_ARG(aCx);
-  NS_ENSURE_ARG(aPromise);
-
-  ErrorResult rvErr;
-  nsCOMPtr<nsIGlobalObject> global = xpc::CurrentNativeGlobal(aCx);
-  RefPtr<Promise> promise = Promise::Create(global, rvErr);
-  if (NS_WARN_IF(rvErr.Failed())) {
-    return rvErr.StealNSResult();
-  }
+                                             nsIPrintSettings* aNSSettings) {
+  MOZ_ASSERT(aParent, "aParent must not be null");
+  MOZ_ASSERT(aNSSettings, "aSettings must not be null");
+  NS_ENSURE_TRUE(aNSSettings, NS_ERROR_FAILURE);
 
   nsCOMPtr<nsIWidget> widget =
       WidgetUtils::DOMWindowToWidget(nsPIDOMWindowOuter::From(aParent));
@@ -595,11 +557,7 @@ nsPrintDialogServiceGTK::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
   NS_ASSERTION(gtkParent, "Need a GTK window for dialog to be modal.");
 
   nsCOMPtr<nsPrintSettingsGTK> aNSSettingsGTK(do_QueryInterface(aNSSettings));
-  if (!aNSSettingsGTK) {
-    promise->MaybeReject(NS_ERROR_FAILURE);
-    promise.forget(aPromise);
-    return NS_OK;
-  }
+  if (!aNSSettingsGTK) return NS_ERROR_FAILURE;
 
   // We need to init the prefs here because aNSSettings in its current form is a
   // dummy in both uses of the word
@@ -643,9 +601,7 @@ nsPrintDialogServiceGTK::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
   g_free(newData);
   if (unchanged) {
     g_object_unref(newPageSetup);
-    promise->MaybeReject(NS_ERROR_ABORT);
-    promise.forget(aPromise);
-    return NS_OK;
+    return NS_ERROR_ABORT;
   }
 
   aNSSettingsGTK->SetGtkPageSetup(newPageSetup);
@@ -660,7 +616,5 @@ nsPrintDialogServiceGTK::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
                          nsIPrintSettings::kInitSavePaperSize |
                          nsIPrintSettings::kInitSaveUnwriteableMargins);
 
-  promise->MaybeResolveWithUndefined();
-  promise.forget(aPromise);
   return NS_OK;
 }

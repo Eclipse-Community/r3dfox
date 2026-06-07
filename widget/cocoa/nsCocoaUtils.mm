@@ -323,6 +323,93 @@ BOOL nsCocoaUtils::ShouldRestoreStateDueToLaunchAtLogin() {
   return NO;
 }
 
+static bool sIsActivelyShowingAppModalDialog = false;
+
+bool nsCocoaUtils::PrepareForNativeAppModalDialog() {
+  NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
+
+  MOZ_ASSERT(NS_IsMainThread());
+
+  if (sIsActivelyShowingAppModalDialog) {
+    return false;
+  }
+  sIsActivelyShowingAppModalDialog = true;
+
+  if (!NSApp.active) {
+    // Early exit if the app isn't active. This is because we can't safely
+    // set the NSApp.mainMenu property in such a case. We early exit so we
+    // also don't invoke any side effects.
+    return true;
+  }
+
+  // Don't do anything if this is embedding. We'll assume that if there is no
+  // hidden window we shouldn't do anything, and that should cover the embedding
+  // case.
+  nsMenuBarX* hiddenWindowMenuBar = nsMenuUtilsX::GetHiddenWindowMenuBar();
+  if (!hiddenWindowMenuBar) {
+    return true;
+  }
+
+  // First put up the hidden window menu bar so that app menu event handling is
+  // correct.
+  hiddenWindowMenuBar->Paint();
+
+  NSMenu* mainMenu = [NSApp mainMenu];
+  NS_ASSERTION(
+      [mainMenu numberOfItems] > 0,
+      "Main menu does not have any items, something is terribly wrong!");
+
+  // Create new menu bar for use with modal dialog
+  NSMenu* newMenuBar = [[GeckoNSMenu alloc] initWithTitle:@""];
+
+  // Swap in our app menu. Note that the event target is whatever window is up
+  // when the app modal dialog goes up.
+  NSMenuItem* firstMenuItem = [[mainMenu itemAtIndex:0] retain];
+  [mainMenu removeItemAtIndex:0];
+  [newMenuBar insertItem:firstMenuItem atIndex:0];
+  [firstMenuItem release];
+
+  // Add standard edit menu
+  [newMenuBar addItem:nsMenuUtilsX::GetStandardEditMenuItem()];
+
+  // Show the new menu bar
+  [NSApp setMainMenu:newMenuBar];
+  [newMenuBar release];
+
+  return true;
+
+  NS_OBJC_END_TRY_BLOCK_RETURN(sIsActivelyShowingAppModalDialog = false);
+}
+
+void nsCocoaUtils::CleanUpAfterNativeAppModalDialog() {
+  NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
+
+  MOZ_ASSERT(NS_IsMainThread());
+
+  if (!sIsActivelyShowingAppModalDialog) {
+    return;
+  }
+
+  // Don't do anything if this is embedding. We'll assume that if there is no
+  // hidden window we shouldn't do anything, and that should cover the embedding
+  // case.
+  nsMenuBarX* hiddenWindowMenuBar = nsMenuUtilsX::GetHiddenWindowMenuBar();
+  if (!hiddenWindowMenuBar) return;
+
+  NSWindow* mainWindow = [NSApp mainWindow];
+  if (!mainWindow) {
+    // We do an async paint in order to prevent crashes when macOS is actively
+    // enumerating the menu items in `NSApp.mainMenu`.
+    hiddenWindowMenuBar->PaintAsyncIfNeeded();
+  } else {
+    [WindowDelegate paintMenubarForWindow:mainWindow];
+  }
+
+  sIsActivelyShowingAppModalDialog = false;
+
+  NS_OBJC_END_TRY_IGNORE_BLOCK;
+}
+
 static void data_ss_release_callback(void* aDataSourceSurface, const void* data,
                                      size_t size) {
   if (aDataSourceSurface) {

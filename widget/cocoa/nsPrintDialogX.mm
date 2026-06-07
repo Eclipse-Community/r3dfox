@@ -4,78 +4,22 @@
 
 #include "mozilla/gfx/PrintTargetCG.h"
 #include "mozilla/Preferences.h"
-#include "mozilla/WidgetUtils.h"
-#include "mozilla/dom/Promise.h"
 
 #include "nsPrintDialogX.h"
 #include "nsIPrintSettings.h"
 #include "nsIPrintSettingsService.h"
 #include "nsPrintSettingsX.h"
 #include "nsCOMPtr.h"
-#include "nsIGlobalObject.h"
-#include "nsIWidget.h"
-#include "nsPIDOMWindow.h"
 #include "nsQueryObject.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIStringBundle.h"
 #include "nsCRT.h"
-#include "nsThreadUtils.h"
-#include "xpcpublic.h"
 
 #import <Cocoa/Cocoa.h>
 #include "nsObjCExceptions.h"
 
 using namespace mozilla;
-using namespace mozilla::dom;
 using mozilla::gfx::PrintTarget;
-using mozilla::widget::WidgetUtils;
-
-// Adapts NSPrintPanel's and NSPageLayout's delegate-based sheet API into a
-// block-based completion handler. The instance owns itself for the duration
-// of the sheet: the caller alloc/inits it, hands it to the panel as the
-// delegate, and the instance releases itself once didEnd: fires. This avoids
-// requiring callers to track the adapter's lifetime across the async boundary.
-@interface MozPrintPanelDidEndAdapter : NSObject {
-  void (^mHandler)(NSInteger);
-}
-- (instancetype)initWithHandler:(void (^)(NSInteger))aHandler;
-- (void)didEnd:(id)aPanel
-     returnCode:(NSInteger)aReturnCode
-    contextInfo:(void*)aContextInfo;
-@end
-
-@implementation MozPrintPanelDidEndAdapter
-- (instancetype)initWithHandler:(void (^)(NSInteger))aHandler {
-  if ((self = [super init])) {
-    mHandler = [aHandler copy];
-  }
-  return self;
-}
-- (void)dealloc {
-  [mHandler release];
-  [super dealloc];
-}
-- (void)didEnd:(id)aPanel
-     returnCode:(NSInteger)aReturnCode
-    contextInfo:(void*)aContextInfo {
-  if (mHandler) {
-    mHandler(aReturnCode);
-  }
-  [self release];
-}
-@end
-
-static NSWindow* GetParentWindow(mozIDOMWindowProxy* aParent) {
-  if (!aParent) {
-    return nil;
-  }
-  nsCOMPtr<nsIWidget> widget =
-      WidgetUtils::DOMWindowToWidget(nsPIDOMWindowOuter::From(aParent));
-  if (!widget) {
-    return nil;
-  }
-  return (NSWindow*)widget->GetNativeData(NS_NATIVE_WINDOW);
-}
 
 NS_IMPL_ISUPPORTS(nsPrintDialogServiceX, nsIPrintDialogService)
 
@@ -129,27 +73,10 @@ nsPrintDialogServiceX::Init() { return NS_OK; }
 NS_IMETHODIMP
 nsPrintDialogServiceX::ShowPrintDialog(mozIDOMWindowProxy* aParent,
                                        bool aHaveSelection,
-                                       nsIPrintSettings* aSettings,
-                                       JSContext* aCx, Promise** aPromise) {
+                                       nsIPrintSettings* aSettings) {
   NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
 
-  MOZ_ASSERT(NS_IsMainThread());
-  NS_ENSURE_ARG(aParent);
-  NS_ENSURE_ARG(aSettings);
-  NS_ENSURE_ARG(aCx);
-  NS_ENSURE_ARG(aPromise);
-
-  ErrorResult rvErr;
-  nsCOMPtr<nsIGlobalObject> global = xpc::CurrentNativeGlobal(aCx);
-  RefPtr<Promise> promise = Promise::Create(global, rvErr);
-  if (NS_WARN_IF(rvErr.Failed())) {
-    return rvErr.StealNSResult();
-  }
-
-  NSWindow* parentWindow = GetParentWindow(aParent);
-  if (!parentWindow) {
-    return NS_ERROR_FAILURE;
-  }
+  MOZ_ASSERT(aSettings, "aSettings must not be null");
 
   RefPtr<nsPrintSettingsX> settingsX(do_QueryObject(aSettings));
   if (!settingsX) {
@@ -188,8 +115,8 @@ nsPrintDialogServiceX::ShowPrintDialog(mozIDOMWindowProxy* aParent,
   setPagesPerSheet(printInfo, pagesPerSheet);
 
   // Put the print info into the current print operation, since that's where
-  // the panel will look for it. We create the view because otherwise we'll
-  // get unrelated warnings printed to the console.
+  // [panel runModal] will look for it. We create the view because otherwise
+  // we'll get unrelated warnings printed to the console.
   NSView* tmpView = [[NSView alloc] init];
   NSPrintOperation* printOperation =
       [NSPrintOperation printOperationWithView:tmpView printInfo:printInfo];
@@ -205,58 +132,47 @@ nsPrintDialogServiceX::ShowPrintDialog(mozIDOMWindowProxy* aParent,
   [panel addAccessoryController:viewController];
   [viewController release];
 
-  RefPtr<nsIPrintSettings> settings = aSettings;
-  RefPtr<nsPrintSettingsX> settingsXRef = settingsX;
-  RefPtr<Promise> promiseForBlock = promise;
+  // Show the dialog.
+  if (!nsCocoaUtils::PrepareForNativeAppModalDialog()) {
+    return NS_ERROR_FAILURE;
+  }
+  int button = [panel runModal];
+  nsCocoaUtils::CleanUpAfterNativeAppModalDialog();
 
-  MozPrintPanelDidEndAdapter* adapter =
-      [[MozPrintPanelDidEndAdapter alloc] initWithHandler:^(NSInteger button) {
-        NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
-        // Retrieve a printInfo with the updated settings. (The
-        // NSPrintOperation operates on a copy, so the object we passed in
-        // will not have been modified.)
-        NSPrintInfo* result = [[NSPrintOperation currentOperation] printInfo];
-        [NSPrintOperation setCurrentOperation:nil];
-        [tmpView release];
+  // Retrieve a printInfo with the updated settings. (The NSPrintOperation
+  // operates on a copy, so the object we passed in will not have been
+  // modified.)
+  NSPrintInfo* result = [[NSPrintOperation currentOperation] printInfo];
+  if (!result) {
+    return NS_ERROR_FAILURE;
+  }
 
-        if (button != NSModalResponseOK || !result) {
-          promiseForBlock->MaybeReject(NS_ERROR_ABORT);
-          return;
-        }
+  [NSPrintOperation setCurrentOperation:nil];
+  [tmpView release];
 
-        // We handle pages-per-sheet internally and we want to prevent the
-        // macOS printing code from also applying the pages-per-sheet count.
-        // So we need to move the count off the NSPrintInfo and over to the
-        // nsIPrintSettings.
-        NSMutableDictionary* dict = [result dictionary];
-        auto pagesAcross = [[dict objectForKey:@"NSPagesAcross"] intValue];
-        auto pagesDown = [[dict objectForKey:@"NSPagesDown"] intValue];
-        [dict setObject:[NSNumber numberWithUnsignedInt:1]
-                 forKey:@"NSPagesAcross"];
-        [dict setObject:[NSNumber numberWithUnsignedInt:1]
-                 forKey:@"NSPagesDown"];
-        settings->SetNumPagesPerSheet(pagesAcross * pagesDown);
+  if (button != NSModalResponseOK) {
+    return NS_ERROR_ABORT;
+  }
 
-        [viewController exportSettings];
+  // We handle pages-per-sheet internally and we want to prevent the macOS
+  // printing code from also applying the pages-per-sheet count. So we need
+  // to move the count off the NSPrintInfo and over to the nsIPrintSettings.
+  NSMutableDictionary* dict = [result dictionary];
+  auto pagesAcross = [[dict objectForKey:@"NSPagesAcross"] intValue];
+  auto pagesDown = [[dict objectForKey:@"NSPagesDown"] intValue];
+  [dict setObject:[NSNumber numberWithUnsignedInt:1] forKey:@"NSPagesAcross"];
+  [dict setObject:[NSNumber numberWithUnsignedInt:1] forKey:@"NSPagesDown"];
+  aSettings->SetNumPagesPerSheet(pagesAcross * pagesDown);
 
-        // Update our settings object based on the user's choices in the
-        // dialog. We tell settingsX to adopt this printInfo so that it will
-        // be used to run the print job, so that any printer-specific custom
-        // settings from print dialog extension panels will be carried
-        // through.
-        settingsXRef->SetFromPrintInfo(result, /* aAdoptPrintInfo = */ true);
+  // Export settings.
+  [viewController exportSettings];
 
-        promiseForBlock->MaybeResolveWithUndefined();
-        NS_OBJC_END_TRY_IGNORE_BLOCK;
-      }];
+  // Update our settings object based on the user's choices in the dialog.
+  // We tell settingsX to adopt this printInfo so that it will be used to run
+  // print job, so that any printer-specific custom settings from print dialog
+  // extension panels will be carried through.
+  settingsX->SetFromPrintInfo(result, /* aAdoptPrintInfo = */ true);
 
-  [panel beginSheetWithPrintInfo:printInfo
-                  modalForWindow:parentWindow
-                        delegate:adapter
-                  didEndSelector:@selector(didEnd:returnCode:contextInfo:)
-                     contextInfo:nullptr];
-
-  promise.forget(aPromise);
   return NS_OK;
 
   NS_OBJC_END_TRY_BLOCK_RETURN(NS_ERROR_FAILURE);
@@ -264,27 +180,12 @@ nsPrintDialogServiceX::ShowPrintDialog(mozIDOMWindowProxy* aParent,
 
 NS_IMETHODIMP
 nsPrintDialogServiceX::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
-                                           nsIPrintSettings* aNSSettings,
-                                           JSContext* aCx, Promise** aPromise) {
+                                           nsIPrintSettings* aNSSettings) {
   NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
 
-  MOZ_ASSERT(NS_IsMainThread());
-  NS_ENSURE_ARG(aParent);
-  NS_ENSURE_ARG(aNSSettings);
-  NS_ENSURE_ARG(aCx);
-  NS_ENSURE_ARG(aPromise);
-
-  ErrorResult rvErr;
-  nsCOMPtr<nsIGlobalObject> global = xpc::CurrentNativeGlobal(aCx);
-  RefPtr<Promise> promise = Promise::Create(global, rvErr);
-  if (NS_WARN_IF(rvErr.Failed())) {
-    return rvErr.StealNSResult();
-  }
-
-  NSWindow* parentWindow = GetParentWindow(aParent);
-  if (!parentWindow) {
-    return NS_ERROR_FAILURE;
-  }
+  MOZ_ASSERT(aParent, "aParent must not be null");
+  MOZ_ASSERT(aNSSettings, "aSettings must not be null");
+  NS_ENSURE_TRUE(aNSSettings, NS_ERROR_FAILURE);
 
   RefPtr<nsPrintSettingsX> settingsX(do_QueryObject(aNSSettings));
   if (!settingsX) {
@@ -299,45 +200,27 @@ nsPrintDialogServiceX::ShowPageSetupDialog(mozIDOMWindowProxy* aParent,
   [printInfo autorelease];
 
   NSPageLayout* pageLayout = [NSPageLayout pageLayout];
+  nsCocoaUtils::PrepareForNativeAppModalDialog();
+  int button = [pageLayout runModalWithPrintInfo:printInfo];
+  nsCocoaUtils::CleanUpAfterNativeAppModalDialog();
 
-  nsCOMPtr<nsIPrintSettings> settings = aNSSettings;
-  RefPtr<nsPrintSettingsX> settingsXRef = settingsX;
-  RefPtr<Promise> promiseForBlock = promise;
-
-  MozPrintPanelDidEndAdapter* adapter =
-      [[MozPrintPanelDidEndAdapter alloc] initWithHandler:^(NSInteger button) {
-        NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
-        if (button != NSModalResponseOK) {
-          promiseForBlock->MaybeReject(NS_ERROR_ABORT);
-          return;
-        }
-        // The Page Setup dialog does not include non-standard settings that
-        // need to be preserved, separate from what the base printSettings
-        // object handles, so we do not need it to adopt the printInfo object
-        // here.
-        settingsXRef->SetFromPrintInfo(printInfo,
-                                       /* aAdoptPrintInfo = */ false);
-        nsCOMPtr<nsIPrintSettingsService> printSettingsService =
-            do_GetService("@mozilla.org/gfx/printsettings-service;1");
-        if (printSettingsService &&
-            Preferences::GetBool("print.save_print_settings", false)) {
-          uint32_t flags = nsIPrintSettings::kInitSavePaperSize |
-                           nsIPrintSettings::kInitSaveOrientation |
-                           nsIPrintSettings::kInitSaveScaling;
-          printSettingsService->MaybeSavePrintSettingsToPrefs(settings, flags);
-        }
-        promiseForBlock->MaybeResolveWithUndefined();
-        NS_OBJC_END_TRY_IGNORE_BLOCK;
-      }];
-
-  [pageLayout beginSheetWithPrintInfo:printInfo
-                       modalForWindow:parentWindow
-                             delegate:adapter
-                       didEndSelector:@selector(didEnd:returnCode:contextInfo:)
-                          contextInfo:nullptr];
-
-  promise.forget(aPromise);
-  return NS_OK;
+  if (button == NSModalResponseOK) {
+    // The Page Setup dialog does not include non-standard settings that need to
+    // be preserved, separate from what the base printSettings object handles,
+    // so we do not need it to adopt the printInfo object here.
+    settingsX->SetFromPrintInfo(printInfo, /* aAdoptPrintInfo = */ false);
+    nsCOMPtr<nsIPrintSettingsService> printSettingsService =
+        do_GetService("@mozilla.org/gfx/printsettings-service;1");
+    if (printSettingsService &&
+        Preferences::GetBool("print.save_print_settings", false)) {
+      uint32_t flags = nsIPrintSettings::kInitSavePaperSize |
+                       nsIPrintSettings::kInitSaveOrientation |
+                       nsIPrintSettings::kInitSaveScaling;
+      printSettingsService->MaybeSavePrintSettingsToPrefs(aNSSettings, flags);
+    }
+    return NS_OK;
+  }
+  return NS_ERROR_ABORT;
 
   NS_OBJC_END_TRY_BLOCK_RETURN(NS_ERROR_FAILURE);
 }

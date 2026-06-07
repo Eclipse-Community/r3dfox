@@ -15,7 +15,7 @@ interface mozIDOMWindowProxy;
  * Service for opening native print dialogs provided by the operating system.
  * (The widget code may customize the dialog.)
  */
-[scriptable, uuid(eaec573e-3c6a-4c6b-861e-32da6a962c68)]
+[scriptable, uuid(88af6712-a9fd-4393-9af3-3ffbb1f2caaf)]
 interface nsIPrintDialogService : nsISupports
 {
   /**
@@ -24,41 +24,34 @@ interface nsIPrintDialogService : nsISupports
   void init();
 
   /**
-   * Show the print dialog asynchronously.
-   *
-   * @param aParent        A DOM window the dialog will be parented to.
+   * Show the print dialog.
+   * @param aParent   A DOM window the dialog will be parented to.
    * @param aHaveSelection A boolean indicating whether the document to be
-   *                       printed has some selected text, which is used to
-   *                       determine whether the "Print selection only" radio
-   *                       button is enabled in the print settings dialog.
-   * @param aPrintSettings On entry, this contains initial settings for the
-   *                       print dialog. If the returned promise resolves,
-   *                       the settings have been updated with the user's
-   *                       choices.
-   * @return A promise that resolves with undefined when the user accepts the
-   *         dialog. The promise rejects with NS_ERROR_ABORT when the user
-   *         cancels, or with another nsresult if the dialog itself fails to
-   *         display or its result cannot be applied to the supplied
-   *         settings. Callers must invoke this on the main thread; the
-   *         promise is also resolved/rejected on the main thread.
+   *                  printed has some selected text, which is used to
+   *                  determine whether the "Print selection only" radio
+   *                  button is enabled in the print settings dialog.
+   * @param aSettings On entry, this contains initial settings for the
+   *                  print dialog. On return, if the print operation should
+   *                  proceed, then this has been updated with the settings
+   *                  that the user selected in the dialog.
+   * @return NS_OK if the print operation should proceed
+   * @return NS_ERROR_ABORT if the user indicated not to proceed
+   * @return a suitable error for failures to show the print dialog.
    */
-  [implicit_jscontext]
-  Promise showPrintDialog(in mozIDOMWindowProxy aParent,
-                          in boolean aHaveSelection,
-                          in nsIPrintSettings aPrintSettings);
+  void showPrintDialog(in mozIDOMWindowProxy aParent,
+                       in boolean aHaveSelection,
+                       in nsIPrintSettings aPrintSettings);
 
   /**
-   * Show the page setup dialog asynchronously.
-   *
-   * @param aParent        A DOM window the dialog will be parented to.
-   * @param aPrintSettings On entry, this contains initial settings for the
-   *                       page setup dialog. If the returned promise
-   *                       resolves, the settings have been updated with the
-   *                       user's choices.
-   * @return A promise with the same resolve/reject semantics as
-   *         showPrintDialog above.
+   * Show the page setup dialog. Note that there is no way to tell whether the
+   * user clicked OK or Cancel on the dialog.
+   * @param aParent   A DOM window the dialog will be parented to.
+   * @param aSettings On entry, this contains initial settings for the
+   *                  page setup dialog. On return, if the dialog wasn't
+   *                  cancelled, then this has been updated with the settings
+   *                  that the user selected in the dialog.
    */
-  [implicit_jscontext]
-  Promise showPageSetupDialog(in mozIDOMWindowProxy aParent,
-                              in nsIPrintSettings aPrintSettings);
+  void showPageSetupDialog(in mozIDOMWindowProxy aParent,
+                           in nsIPrintSettings aPrintSettings);
+
 };
