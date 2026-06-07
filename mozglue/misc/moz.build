@@ -8,7 +8,6 @@ EXPORTS.mozilla += [
     "AwakeTimeStamp.h",
     "decimal/Decimal.h",
     "decimal/DoubleConversion.h",
-    "Futex.h",
     "IntegerPrintfMacros.h",
     "LoggingCore.h",
     "MmapFaultHandler.h",
@@ -108,9 +107,8 @@ if CONFIG["OS_ARCH"] == "WINNT":
 
 if CONFIG["OS_ARCH"] == "WINNT":
     SOURCES += [
-        "ConditionVariable_futex.cpp",
-        "Futex_windows.cpp",
-        "Mutex_futex.cpp",
+        "ConditionVariable_windows.cpp",
+        "Mutex_windows.cpp",
         "RWLock_windows.cpp",
     ]
 # WASI hasn't supported cond vars and mutexes yet so noop implementation is used.
