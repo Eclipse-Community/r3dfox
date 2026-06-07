@@ -19,11 +19,9 @@ NTSTATUS ResolverThunk::Init(const void* target_module,
                              const char* target_name,
                              const char* interceptor_name,
                              const void* interceptor_entry_point,
-                             void* local_thunk_storage,
                              void* thunk_storage,
                              size_t storage_bytes) {
-  if (!local_thunk_storage || !thunk_storage || 0 == storage_bytes ||
-      !target_module || !target_name)
+  if (!thunk_storage || 0 == storage_bytes || !target_module || !target_name)
     return STATUS_INVALID_PARAMETER;
 
   if (storage_bytes < GetThunkSize())
