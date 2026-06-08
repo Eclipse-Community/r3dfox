@@ -21,6 +21,10 @@
 #include "mozilla/intl/LocaleService.h"
 #include "mozilla/widget/WinRegistry.h"
 
+// -- native controls patch includes --
+#include "mozilla/StaticPrefs_widget.h"
+// -- end native controls patch includes --
+
 #define AVG2(a, b) (((a) + (b) + 1) >> 1)
 
 using namespace mozilla;
@@ -199,9 +203,18 @@ void nsLookAndFeel::EnsureCommandButtonBoxMetrics() {
 void nsLookAndFeel::UpdateTitlebarInfo(HWND aWnd) {
   if (!aWnd) return;
 
-  if (!sTitlebarInfoPopulatedAero &&
-      gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+  bool dwmCompositionEnabled =
+      StaticPrefs::widget_force_dwm_report_off()
+          ? false
+          : gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled();
+
+  if (!sTitlebarInfoPopulatedAero && dwmCompositionEnabled) {
     RECT captionButtons;
+    int overrideCaptionButtonsWidth = StaticPrefs::
+        widget_override_aero_caption_buttons_mask_width();
+    int overrideCaptionButtonsHeight = StaticPrefs::
+        widget_override_aero_caption_buttons_mask_height();
+
     if (SUCCEEDED(WinUtils::dwmGetWindowAttributePtr(aWnd, DWMWA_CAPTION_BUTTON_BOUNDS,
                                         &captionButtons,
                                         sizeof(captionButtons)))) {
@@ -209,16 +222,27 @@ void nsLookAndFeel::UpdateTitlebarInfo(HWND aWnd) {
           captionButtons.right - captionButtons.left - 3;
       sCommandButtonBoxMetrics.cy =
           (captionButtons.bottom - captionButtons.top) - 1;
+
+      if (overrideCaptionButtonsWidth > 0) {
+        sCommandButtonBoxMetrics.cx = overrideCaptionButtonsWidth;
+      }
+
+      if (overrideCaptionButtonsHeight > 0) {
+        sCommandButtonBoxMetrics.cy = overrideCaptionButtonsHeight;
+      }
+
       sCommandButtonBoxMetricsInitialized = true;
-      MOZ_ASSERT(
-          sCommandButtonBoxMetrics.cx > 0 && sCommandButtonBoxMetrics.cy > 0,
-          "We must not cache bad command button box dimensions");
+      // MOZ_ASSERT(
+      //     sCommandButtonBoxMetrics.cx > 0 && sCommandButtonBoxMetrics.cy > 0,
+      //     "We must not cache bad command button box dimensions");
       sTitlebarInfoPopulatedAero = true;
     }
   }
 
   // NB: sTitlebarInfoPopulatedThemed is always true pre-vista.
-  if (sTitlebarInfoPopulatedThemed || IsWin8OrLater()) return;
+  if (sTitlebarInfoPopulatedThemed ||
+      (IsWin8OrLater() && dwmCompositionEnabled))
+    return;
 
   // Query a temporary, visible window with command buttons to get
   // the right metrics.
@@ -248,9 +272,7 @@ void nsLookAndFeel::UpdateTitlebarInfo(HWND aWnd) {
   // We try to avoid activating this window, but on Aero basic (aero without
   // compositor) and aero lite (special theme for win server 2012/2013) we may
   // get the wrong information if the window isn't activated, so we have to:
-  if (sThemeId == WindowsTheme::AeroLite ||
-      (sThemeId == WindowsTheme::Aero &&
-       !gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled())) {
+  if (!dwmCompositionEnabled) {
     showType = SW_SHOW;
   }
   ShowWindow(hWnd, showType);
@@ -871,17 +893,48 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
     case IntID::WindowsDefaultTheme:
       aResult = IsDefaultWindowTheme();
       break;
-    case IntID::DWMCompositor:
+    case IntID::DWMCompositor: {
+      int winPref =
+          StaticPrefs::widget_override_win_version();
+      if (winPref == 10) {
+        aResult = 1;
+        break;
+      }
+      if (StaticPrefs::widget_force_dwm_report_off()) {
+        aResult = 0;
+        break;
+      }
+
       aResult = (WinUtils::dwmIsCompositionEnabledPtr && SUCCEEDED(WinUtils::dwmIsCompositionEnabledPtr(&is_enabled)) && is_enabled);
       break;
+    }
     case IntID::WindowsAccentColorInTitlebar:
       aResult = mTitlebarColors.mUseAccent;
       break;
-    case IntID::WindowsGlass:
+    case IntID::WindowsGlass: {
+      int reportingPref =
+          StaticPrefs::widget_force_glass_reporting();
+      if (reportingPref != 0) {
+        aResult = (reportingPref == 1) ? 1 : 0;
+        break;
+      }
+      if (StaticPrefs::widget_force_dwm_report_off()) {
+        aResult = 0;
+        break;
+      }
+
+      int overrideWinVer =
+          StaticPrefs::widget_override_win_version();
+      bool isWin8OrLater =
+          (overrideWinVer == 0 && IsWin8OrLater()) || overrideWinVer >= 8;
+
       // Aero Glass is only available prior to Windows 8 when DWM is used.
+      // Actually not, you can restore it with glass tools
+      // It's just that people don't research anymore... smh
       aResult = ((WinUtils::dwmIsCompositionEnabledPtr && SUCCEEDED(WinUtils::dwmIsCompositionEnabledPtr(&is_enabled)) && is_enabled) &&
-                 !IsWin8OrLater());
+                 !isWin8OrLater);
       break;
+    }
     case IntID::WindowsMica:
       aResult = WinUtils::MicaEnabled();
       break;

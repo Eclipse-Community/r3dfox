@@ -20222,6 +20222,31 @@
 # Prefs starting with "widget."
 #---------------------------------------------------------------------------
 
+- name: widget.override-win-version
+  type: int32_t
+  value: 0
+  mirror: always
+
+- name: widget.force-dwm-report-off
+  type: bool
+  value: false
+  mirror: always
+
+- name: widget.force-glass-reporting
+  type: int32_t
+  value: 0
+  mirror: always
+
+- name: widget.override-aero-caption-buttons-mask-width
+  type: int32_t
+  value: 0
+  mirror: always
+
+- name: widget.override-aero-caption-buttons-mask-height
+  type: int32_t
+  value: 0
+  mirror: always
+
 # Whether the non-native theme should always use system colors. Useful mostly
 # for testing forced colors mode.
 - name: widget.non-native-theme.always-high-contrast
