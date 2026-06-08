@@ -138,6 +138,7 @@
 
 /* Titlebar */
 
+/* ??? wtf? */
 :root[customtitlebar][sizemode="normal"] #titlebar {
   appearance: auto;
   -moz-default-appearance: -moz-window-titlebar;
@@ -147,6 +148,22 @@
   appearance: auto;
   -moz-default-appearance: -moz-window-titlebar-maximized;
 }
+
+/* stylelint-disable-next-line media-query-no-invalid */
+@media -moz-pref("sidebar.verticalTabs") {
+  :root[customtitlebar][sizemode="normal"] #titlebar,
+  :root[customtitlebar][sizemode="maximized"] #titlebar {
+    appearance: none;
+  }
+
+  :root[customtitlebar][sizemode="maximized"] .browser-titlebar {
+    appearance: auto;
+    -moz-default-appearance: -moz-window-titlebar-maximized;
+  }
+}
+
+:root[customtitlebar][sizemode="normal"] #titlebar:has(#toolbar-menubar[autohide="false"]) ~ #nav-bar.browser-titlebar > .titlebar-buttonbox-container {display: none} /* Hack for vertical tabs */
+:root[customtitlebar][sizemode="maximized"] #titlebar:has(#toolbar-menubar[autohide="false"]) ~ #nav-bar.browser-titlebar > .titlebar-buttonbox-container {display: none}
 
 @media (-moz-windows-compositor: 0) {
   /**
