@@ -657,6 +657,8 @@ pref("r3dfox.transparent.menubar", false);
 pref("r3dfox.glow.menubar", true);
 // Translucent navbar design
 pref("r3dfox.translucent.navbar", false);
+// Default to blue color if branding doesn't override.
+pref("r3dfox.colors", 0);
 
 // Enable JS dump() function.
 // IMPORTANT: These prefs must be here even though they're also defined in
