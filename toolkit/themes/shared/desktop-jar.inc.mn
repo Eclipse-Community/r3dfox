@@ -28,6 +28,7 @@
   skin/classic/global/colorpicker-common.css               (../../shared/colorpicker-common.css)
   skin/classic/global/colorpicker.css                      (../../shared/colorpicker.css)
   skin/classic/global/commonDialog.css                     (../../shared/commonDialog.css)
+  skin/classic/global/config.css                           (../../shared/config.css)
   skin/classic/global/datetimeinputpickers.css             (../../shared/datetimeinputpickers.css)
   skin/classic/global/design-system/panel.css              (../../shared/design-system/src/panel.css)
   skin/classic/global/design-system/text-and-typography.css(../../shared/design-system/src/text-and-typography.css)
