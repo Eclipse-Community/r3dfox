@@ -1800,6 +1800,9 @@ pref("services.sync.syncedTabs.showRemoteIcons", true);
 // Anything <= 0 means disabled
 pref("services.sync.syncedTabs.syncDelayAfterTabChange", 5000);
 
+// Enable old about:config by default
+pref("browser.ui.oldaboutconfig", true);
+
 // Whether prompts should be content modal (1) tab modal (2) or window modal(3) by default
 // This is a fallback value for when prompt callers do not specify a modalType.
 pref("prompts.defaultModalType", 3);
