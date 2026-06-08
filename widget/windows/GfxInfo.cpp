@@ -1931,6 +1931,9 @@ nsresult GfxInfo::GetFeatureStatusImpl(
             GfxDriverInfo::GetDeviceVendor(DeviceVendor::Microsoft),
             nsCaseInsensitiveStringComparator) &&
         !adapterVendorID.Equals(
+            GfxDriverInfo::GetDeviceVendor(DeviceVendor::MicrosoftHyperV),
+            nsCaseInsensitiveStringComparator) &&
+        !adapterVendorID.Equals(
             GfxDriverInfo::GetDeviceVendor(
                 DeviceVendor::MicrosoftRemoteDisplayAdapter),
             nsCaseInsensitiveStringComparator) &&
@@ -1940,6 +1943,9 @@ nsresult GfxInfo::GetFeatureStatusImpl(
         !adapterVendorID.Equals(
             GfxDriverInfo::GetDeviceVendor(DeviceVendor::Qualcomm),
             nsCaseInsensitiveStringComparator) &&
+        !adapterVendorID.Equals(
+            GfxDriverInfo::GetDeviceVendor(DeviceVendor::VMWare),
+            nsCaseInsensitiveStringComparator) &&
         // FIXME - these special hex values are currently used in xpcshell tests
         // introduced by bug 625160 patch 8/8. Maybe these tests need to be
         // adjusted now that we're only whitelisting intel/ati/nvidia.
@@ -1948,12 +1954,6 @@ nsresult GfxInfo::GetFeatureStatusImpl(
         !adapterVendorID.LowerCaseEqualsLiteral("0xabab") &&
         !adapterVendorID.LowerCaseEqualsLiteral("0xdcdc")) {
       if (adapterVendorID.Equals(
-              GfxDriverInfo::GetDeviceVendor(DeviceVendor::MicrosoftHyperV),
-              nsCaseInsensitiveStringComparator) ||
-          adapterVendorID.Equals(
-              GfxDriverInfo::GetDeviceVendor(DeviceVendor::VMWare),
-              nsCaseInsensitiveStringComparator) ||
-          adapterVendorID.Equals(
               GfxDriverInfo::GetDeviceVendor(DeviceVendor::VirtualBox),
               nsCaseInsensitiveStringComparator)) {
         aFailureId = "FEATURE_FAILURE_VM_VENDOR";
