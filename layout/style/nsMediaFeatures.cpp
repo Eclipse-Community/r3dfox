@@ -266,6 +266,7 @@ bool Gecko_MediaFeatures_MatchesPlatform(StylePlatform aPlatform) {
     case StylePlatform::Windows:
       return true;
     case StylePlatform::WindowsWin10:
+    case StylePlatform::WindowsWinXP:
     case StylePlatform::WindowsWin7:
     case StylePlatform::WindowsWin8: {
       if (IsWin10OrLater()) {
@@ -274,7 +275,10 @@ bool Gecko_MediaFeatures_MatchesPlatform(StylePlatform aPlatform) {
       if (IsWin8OrLater()) {
         return aPlatform == StylePlatform::WindowsWin8;
       }
-      return aPlatform == StylePlatform::WindowsWin7;
+      if (IsVistaOrLater()) {
+        return aPlatform == StylePlatform::WindowsWin7;
+      }
+      return aPlatform == StylePlatform::WindowsWinXP;
     }
 #elif defined(ANDROID)
     case StylePlatform::Android:

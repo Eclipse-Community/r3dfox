@@ -37,6 +37,7 @@ const CHROME_ONLY_QUERIES = [
   "(-moz-platform: windows-win7)",
   "(-moz-platform: windows-win8)",
   "(-moz-platform: windows-win10)",
+  "(-moz-platform: windows-winxp)",
   "(-moz-content-prefers-color-scheme: dark)",
   "(-moz-content-prefers-color-scheme: light)",
   "(-moz-gtk-theme-family: unknown)",
