@@ -330,21 +330,6 @@ BrowserGlue.prototype = {
         lazy.DownloadsViewableInternally.register();
 
         break;
-      case "app-startup": {
-        this._earlyBlankFirstPaint(subject);
-        // The "taskbar-tab" flag and its param will be handled in
-        // TaskbarTabCmd.sys.mjs
-        BrowserInitState.isTaskbarTab =
-          subject.findFlag("taskbar-tab", false) != -1;
-        BrowserInitState.isLaunchOnLogin = subject.handleFlag(
-          "os-autostart",
-          false
-        );
-        if (AppConstants.platform == "win") {
-          lazy.StartupOSIntegration.checkForLaunchOnLogin();
-        }
-        break;
-      }
     }
   },
 
