@@ -1,8 +1,0 @@
-[DEFAULT]
-skip-if = [
-    "os != 'win'",
-]
-
-firefox-appdir = "browser"
-
-["test_nimbus_defaultWindowsLaunchOnLogin_firstStartup.js"]
