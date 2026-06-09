@@ -60,7 +60,6 @@ Preferences.addAll([
 ]);
 
 // Study opt out
-if (lazy.AppConstants.MOZ_DATA_REPORTING) {
   Preferences.addAll([
     // Preference instances for prefs that we need to monitor while the page is open.
     { id: PREF_OPT_OUT_STUDIES_ENABLED, type: "bool" },
@@ -69,7 +68,6 @@ if (lazy.AppConstants.MOZ_DATA_REPORTING) {
     { id: "datareporting.usage.uploadEnabled", type: "bool" },
     { id: "dom.private-attribution.submission.enabled", type: "bool" },
   ]);
-}
 
 /**
  * Displays a dialog for managing permission exceptions for a specific permission type.
