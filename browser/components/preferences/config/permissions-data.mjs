@@ -63,6 +63,7 @@ Preferences.addAll([
   { id: PREF_ADDON_RECOMMENDATIONS_ENABLED, type: "bool" },
   { id: PREF_UPLOAD_ENABLED, type: "bool" },
   { id: "datareporting.usage.uploadEnabled", type: "bool" },
+  { id: "dom.private-attribution.submission.enabled", type: "bool" },
 ]);
 
 /**
