@@ -32,7 +32,6 @@ ChromeUtils.defineESModuleGetters(this, {
   TranslationsParent: "resource://gre/actors/TranslationsParent.sys.mjs",
   TranslationsUtils:
     "chrome://global/content/translations/TranslationsUtils.mjs",
-  WindowsLaunchOnLogin: "resource://gre/modules/WindowsLaunchOnLogin.sys.mjs",
   NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
   FormAutofillPreferences:
     "resource://autofill/FormAutofillPreferences.sys.mjs",
@@ -95,7 +94,6 @@ Preferences.addAll([
   // Startup
   { id: "browser.startup.page", type: "int" },
   { id: "browser.sessionstore.newTabOnRestore", type: "bool" },
-  { id: "browser.startup.windowsLaunchOnLogin.enabled", type: "bool" },
   { id: "browser.privatebrowsing.autostart", type: "bool" },
 
   // AI Controls, these pref values can affect settings on the main pane and
@@ -128,158 +126,6 @@ if (AppConstants.HAVE_SHELL_SERVICE) {
 Preferences.addSetting({
   id: "privateBrowsingAutoStart",
   pref: "browser.privatebrowsing.autostart",
-});
-
-Preferences.addSetting(
-  /** @type {{ _getLaunchOnLoginApprovedCachedValue: boolean } & SettingConfig} */ ({
-    id: "launchOnLoginApproved",
-    _getLaunchOnLoginApprovedCachedValue: true,
-    get() {
-      return this._getLaunchOnLoginApprovedCachedValue;
-    },
-    // Check for a launch on login registry key
-    // This accounts for if a user manually changes it in the registry
-    // Disabling in Task Manager works outside of just deleting the registry key
-    // in HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
-    // but it is not possible to change it back to enabled as the disabled value is just a random
-    // hexadecimal number
-    setup() {
-      if (AppConstants.platform !== "win") {
-        /**
-         * WindowsLaunchOnLogin isnt available if not on windows
-         * but this setup function still fires, so must prevent
-         * WindowsLaunchOnLogin.getLaunchOnLoginApproved
-         * below from executing unnecessarily.
-         */
-        return;
-      }
-      // @ts-ignore bug 1996860
-      WindowsLaunchOnLogin.getLaunchOnLoginApproved().then(val => {
-        this._getLaunchOnLoginApprovedCachedValue = val;
-      });
-    },
-  })
-);
-
-Preferences.addSetting({
-  id: "windowsLaunchOnLoginEnabled",
-  pref: "browser.startup.windowsLaunchOnLogin.enabled",
-});
-
-Preferences.addSetting(
-  /** @type {{_getLaunchOnLoginEnabledValue: boolean, startWithLastProfile: boolean} & SettingConfig} */ ({
-    id: "windowsLaunchOnLogin",
-    deps: ["launchOnLoginApproved", "windowsLaunchOnLoginEnabled"],
-    _getLaunchOnLoginEnabledValue: false,
-    get startWithLastProfile() {
-      return Cc["@mozilla.org/toolkit/profile-service;1"].getService(
-        Ci.nsIToolkitProfileService
-      ).startWithLastProfile;
-    },
-    get() {
-      return this._getLaunchOnLoginEnabledValue;
-    },
-    setup(emitChange) {
-      if (AppConstants.platform !== "win") {
-        /**
-         * WindowsLaunchOnLogin isnt available if not on windows
-         * but this setup function still fires, so must prevent
-         * WindowsLaunchOnLogin.getLaunchOnLoginEnabled
-         * below from executing unnecessarily.
-         */
-        return;
-      }
-
-      /** @type {boolean} */
-      let getLaunchOnLoginEnabledValue;
-      let maybeEmitChange = () => {
-        if (
-          getLaunchOnLoginEnabledValue !== this._getLaunchOnLoginEnabledValue
-        ) {
-          this._getLaunchOnLoginEnabledValue = getLaunchOnLoginEnabledValue;
-          emitChange();
-        }
-      };
-      if (!this.startWithLastProfile) {
-        getLaunchOnLoginEnabledValue = false;
-        maybeEmitChange();
-      } else {
-        // @ts-ignore bug 1996860
-        WindowsLaunchOnLogin.getLaunchOnLoginEnabled().then(val => {
-          getLaunchOnLoginEnabledValue = val;
-          maybeEmitChange();
-        });
-      }
-    },
-    visible: ({ windowsLaunchOnLoginEnabled }) => {
-      let isVisible =
-        AppConstants.platform === "win" && windowsLaunchOnLoginEnabled.value;
-      if (isVisible) {
-        // @ts-ignore bug 1996860
-        NimbusFeatures.windowsLaunchOnLogin.recordExposureEvent({
-          once: true,
-        });
-      }
-      return isVisible;
-    },
-    disabled({ launchOnLoginApproved }) {
-      return !this.startWithLastProfile || !launchOnLoginApproved.value;
-    },
-    onUserChange(checked) {
-      Glean.launchOnLogin.userToggle.record({ enabled: checked });
-      if (checked) {
-        // windowsLaunchOnLogin has been checked: create registry key or shortcut
-        // The shortcut is created with the same AUMID as Firefox itself. However,
-        // this is not set during browser tests and the fallback of checking the
-        // registry fails. As such we pass an arbitrary AUMID for the purpose
-        // of testing.
-        // @ts-ignore bug 1996860
-        WindowsLaunchOnLogin.createLaunchOnLogin();
-        Services.prefs.setBoolPref(
-          "browser.startup.windowsLaunchOnLogin.disableLaunchOnLoginPrompt",
-          true
-        );
-      } else {
-        // windowsLaunchOnLogin has been unchecked: delete registry key and shortcut
-        // @ts-ignore bug 1996860
-        WindowsLaunchOnLogin.removeLaunchOnLogin();
-      }
-    },
-  })
-);
-
-Preferences.addSetting({
-  id: "windowsLaunchOnLoginDisabledProfileBox",
-  deps: ["windowsLaunchOnLoginEnabled"],
-  visible: ({ windowsLaunchOnLoginEnabled }) => {
-    if (AppConstants.platform !== "win") {
-      return false;
-    }
-    let startWithLastProfile = Cc[
-      "@mozilla.org/toolkit/profile-service;1"
-    ].getService(Ci.nsIToolkitProfileService).startWithLastProfile;
-
-    return !startWithLastProfile && windowsLaunchOnLoginEnabled.value;
-  },
-});
-
-Preferences.addSetting({
-  id: "windowsLaunchOnLoginDisabledBox",
-  deps: ["launchOnLoginApproved", "windowsLaunchOnLoginEnabled"],
-  visible: ({ launchOnLoginApproved, windowsLaunchOnLoginEnabled }) => {
-    if (AppConstants.platform !== "win") {
-      return false;
-    }
-    let startWithLastProfile = Cc[
-      "@mozilla.org/toolkit/profile-service;1"
-    ].getService(Ci.nsIToolkitProfileService).startWithLastProfile;
-
-    return (
-      startWithLastProfile &&
-      !launchOnLoginApproved.value &&
-      windowsLaunchOnLoginEnabled.value
-    );
-  },
 });
 
 Preferences.addSetting({
@@ -661,42 +507,6 @@ function createStartupConfig(hidden = false) {
             l10nId: "windows-launch-on-login-open-new-tab",
           },
         ],
-      },
-      {
-        id: "windowsLaunchOnLogin",
-        l10nId: "windows-launch-on-login",
-      },
-      {
-        id: "windowsLaunchOnLoginDisabledBox",
-        control: "moz-message-bar",
-        controlAttrs: {
-          role: "status",
-        },
-        options: [
-          {
-            control: "span",
-            l10nId: "windows-launch-on-login-disabled",
-            slot: "message",
-            options: [
-              {
-                control: "a",
-                controlAttrs: {
-                  "data-l10n-name": "startup-link",
-                  href: "ms-settings:startupapps",
-                  target: "_self",
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: "windowsLaunchOnLoginDisabledProfileBox",
-        control: "moz-message-bar",
-        l10nId: "startup-windows-launch-on-login-profile-disabled",
-        controlAttrs: {
-          role: "status",
-        },
       },
       {
         id: "alwaysCheckDefault",

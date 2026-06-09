@@ -1000,21 +1000,6 @@ moreFromMozilla:
       fallbackPref: browser.preferences.moreFromMozilla.template
       description: UI template used to display Mozilla products. Possible values simple, advanced. Default is simple.
 
-windowsLaunchOnLogin:
-  description: "New checkbox in about:preferences startup section to start Firefox on Windows login"
-  owner: omc-core@mozilla.com
-  hasExposure: true
-  exposureDescription: >-
-    Exposure is sent once per browsing session when the about:preferences URL is
-    first accessed.
-  variables:
-    enabled:
-      type: boolean
-      setPref:
-        branch: default
-        pref: browser.startup.windowsLaunchOnLogin.enabled
-      description: Should users see the Windows launch on login checkbox.
-
 firefoxBridge:
   description: "Controls for Firefox Bridge extension and extension registration"
   owner: install-update@mozilla.com
@@ -5735,21 +5720,6 @@ webApps:
         pref: browser.taskbarTabs.enabled
       description: >-
         Controls whether web apps can be installed and accessed.
-
-defaultWindowsLaunchOnLogin:
-  description: >-
-    Controls whether or not new Windows users get defaulted to launch on login
-  owner: drubino@mozilla.com
-  hasExposure: false
-  variables:
-    enabled:
-      type: boolean
-      setPref:
-        branch: default
-        pref: browser.startup.windowsLaunchOnLogin.defaultEnabled
-      description: >-
-        If true, and allowed by Windows policy, a new user will be defaulted
-        to have Firefox launched when they log on.
 
 passwordManager:
   description: Password manager related prefs
