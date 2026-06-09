@@ -121,9 +121,6 @@ with Files("SubDialog.sys.mjs"):
 with Files("UpdateUtils.sys.mjs"):
     BUG_COMPONENT = ("Toolkit", "Application Update")
 
-with Files("WindowsLaunchOnLogin.sys.mjs"):
-    BUG_COMPONENT = ("Toolkit", "General")
-
 with Files("WindowsRegistry.sys.mjs"):
     BUG_COMPONENT = ("Toolkit", "General")
 
@@ -273,7 +270,6 @@ if CONFIG["OS_TARGET"] not in ("Android", "WINNT"):
 
 if CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
     EXTRA_JS_MODULES += [
-        "WindowsLaunchOnLogin.sys.mjs",
         "WindowsRegistry.sys.mjs",
     ]
 

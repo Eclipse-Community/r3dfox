@@ -843,22 +843,6 @@ export const FeatureManifest: {
             };
         };
     };
-    windowsLaunchOnLogin: {
-        description: string;
-        owner: string;
-        hasExposure: boolean;
-        exposureDescription: string;
-        variables: {
-            enabled: {
-                type: string;
-                setPref: {
-                    branch: string;
-                    pref: string;
-                };
-                description: string;
-            };
-        };
-    };
     firefoxBridge: {
         description: string;
         owner: string;

@@ -141,7 +141,6 @@ category browser-idle-startup resource:///modules/UpdatePolicyEnforcer.sys.mjs U
 #endif
 #ifdef XP_WIN
 category browser-idle-startup resource:///modules/WindowsJumpLists.sys.mjs WinTaskbarJumpList.startup
-category browser-idle-startup resource:///modules/DefaultWindowsLaunchOnLogin.sys.mjs DefaultWindowsLaunchOnLogin.maybeEnableOnFirstRun
 #endif
 #if defined(XP_WIN) || defined(XP_MACOSX)
 category browser-idle-startup moz-src:///browser/components/shell/StartupOSIntegration.sys.mjs StartupOSIntegration.onStartupIdle
