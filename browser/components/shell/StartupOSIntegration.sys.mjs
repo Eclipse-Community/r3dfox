@@ -130,21 +130,6 @@ export let StartupOSIntegration = {
     // Note that we explicitly do not await calls to `safeCall` as
     // these individual calls are independent and can run without
     // waiting for each other.
-
-    // Currently we only support Firefox bridge on Windows and macOS.
-    safeCall(() => this.ensureBridgeRegistered());
-
-    if (AppConstants.platform == "win") {
-      if (Services.sysinfo.getProperty("hasWinPackageId")) {
-        safeCall(() => this.maybePinMSIXToStartMenu());
-      }
-      safeCall(() => this.ensurePrivateBrowsingShortcutExists());
-      // Skip on local developer builds so `./mach run` doesn't register
-      // every dev's checkout to launch on login.
-      if (AppConstants.MOZILLA_OFFICIAL) {
-        safeCall(() => this.maybeCreateLaunchOnLoginOnFirstRun());
-      }
-    }
   },
 
   async ensureBridgeRegistered() {
