@@ -27,7 +27,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
     "resource:///modules/FirefoxBridgeExtensionUtils.sys.mjs",
   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.sys.mjs",
   ShellService: "moz-src:///browser/components/shell/ShellService.sys.mjs",
-  WindowsLaunchOnLogin: "resource://gre/modules/WindowsLaunchOnLogin.sys.mjs",
   WindowsGPOParser: "resource://gre/modules/policies/WindowsGPOParser.sys.mjs",
 });
 
@@ -118,32 +117,6 @@ export let StartupOSIntegration = {
     return true;
   },
 
-  checkForLaunchOnLogin() {
-    // We only support launch on login on Windows at the moment.
-    if (AppConstants.platform != "win") {
-      return;
-    }
-    let launchOnLoginPref = "browser.startup.windowsLaunchOnLogin.enabled";
-    if (!lazy.profileService.startWithLastProfile) {
-      // If we don't start with last profile, the user
-      // likely sees the profile selector on launch.
-      if (Services.prefs.getBoolPref(launchOnLoginPref)) {
-        Glean.launchOnLogin.lastProfileDisableStartup.record();
-        // Disable launch on login messaging if we are disabling the
-        // feature.
-        Services.prefs.setBoolPref(
-          "browser.startup.windowsLaunchOnLogin.disableLaunchOnLoginPrompt",
-          true
-        );
-      }
-      // To reduce confusion when running multiple Gecko profiles,
-      // delete launch on login shortcuts and registry keys so that
-      // users are not presented with the outdated profile selector
-      // dialog.
-      lazy.WindowsLaunchOnLogin.removeLaunchOnLogin();
-    }
-  },
-
   // Note: currently only invoked on Windows and macOS.
   async onStartupIdle() {
     // Catch and report exceptions, including async rejections:
@@ -172,29 +145,6 @@ export let StartupOSIntegration = {
         safeCall(() => this.maybeCreateLaunchOnLoginOnFirstRun());
       }
     }
-  },
-
-  // On the first run for a new install create the launch-on-login registry
-  // key / startup task if the default-enabled pref is true. Nimbus may have
-  // changed the pref from its default value earlier in the same startup via
-  // DefaultWindowsLaunchOnLogin.applyExperimentOverride.
-  async maybeCreateLaunchOnLoginOnFirstRun(
-    // isFirstRun is a parameter to allow testing.
-    isFirstRun = lazy.profileService.isFirstRun
-  ) {
-    if (
-      !isFirstRun ||
-      !Services.prefs.getBoolPref(
-        "browser.startup.windowsLaunchOnLogin.defaultEnabled",
-        false
-      )
-    ) {
-      return;
-    }
-    if (!(await lazy.WindowsLaunchOnLogin.getLaunchOnLoginApproved())) {
-      return;
-    }
-    await lazy.WindowsLaunchOnLogin.createLaunchOnLogin();
   },
 
   async ensureBridgeRegistered() {

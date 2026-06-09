@@ -329,7 +329,6 @@ export const SpecialMessageActions = {
       "browser.shell.setDefaultGuidanceNotifications",
       "browser.startup.homepage",
       "browser.startup.page",
-      "browser.startup.windowsLaunchOnLogin.disableLaunchOnLoginPrompt",
       "browser.privateWindowSeparation.enabled",
       "browser.firefox-view.feature-tour",
       "browser.pdfjs.feature-tour",
@@ -823,13 +822,6 @@ export const SpecialMessageActions = {
           true
         );
         break;
-      case "CONFIRM_LAUNCH_ON_LOGIN": {
-        const { WindowsLaunchOnLogin } = ChromeUtils.importESModule(
-          "resource://gre/modules/WindowsLaunchOnLogin.sys.mjs"
-        );
-        await WindowsLaunchOnLogin.createLaunchOnLogin();
-        break;
-      }
       case "CREATE_GROUP_FROM_CURRENT_TAB": {
         let tab =
           window.gBrowser.getTabForBrowser(browser) ??
