@@ -656,7 +656,7 @@ export class UrlbarInput extends HTMLElement {
       case "keyword.enabled":
         this._updatePlaceholderFromDefaultEngine().catch(e =>
           // This can happen if the search service failed.
-          console.warn("Falied to update urlbar placeholder:", e)
+          console.warn("Failed to update urlbar placeholder:", e)
         );
         break;
       case "browser.search.widget.new": {
