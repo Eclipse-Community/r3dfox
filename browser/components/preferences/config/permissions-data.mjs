@@ -60,7 +60,6 @@ Preferences.addAll([
 
   // WebGL permissions
   { id: "webgl.disabled", type: "bool" },
-]);
 
   // Preference instances for prefs that we need to monitor while the page is open.
   { id: PREF_OPT_OUT_STUDIES_ENABLED, type: "bool" },
