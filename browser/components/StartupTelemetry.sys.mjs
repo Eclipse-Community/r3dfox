@@ -12,7 +12,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
   LoginHelper: "resource://gre/modules/LoginHelper.sys.mjs",
   NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
   OsEnvironment: "resource://gre/modules/OsEnvironment.sys.mjs",
-  WindowsLaunchOnLogin: "resource://gre/modules/WindowsLaunchOnLogin.sys.mjs",
   PlacesDBUtils: "resource://gre/modules/PlacesDBUtils.sys.mjs",
   ShellService: "moz-src:///browser/components/shell/ShellService.sys.mjs",
   TelemetryReportingPolicy:
@@ -77,7 +76,6 @@ export let StartupTelemetry = {
       () => this.httpsOnlyState(),
       () => this.globalPrivacyControl(),
       () => this.aiControlBlocking(),
-      () => this.launchOnLoginState(),
     ];
     if (this._willUseExpensiveTelemetry) {
       tasks.push(() => lazy.PlacesDBUtils.telemetry());
@@ -477,31 +475,6 @@ export let StartupTelemetry = {
       );
       return true;
     });
-  },
-
-  async launchOnLoginState() {
-    let state;
-    if (AppConstants.platform != "win") {
-      state = "not_supported";
-    } else {
-      try {
-        const enablementDetails =
-          await lazy.WindowsLaunchOnLogin.getLaunchOnLoginEnablementDetails();
-        if (enablementDetails.isEnabled) {
-          state = "enabled";
-        } else if (!enablementDetails.isSupported) {
-          state = "not_supported";
-        } else if (!enablementDetails.isAllowedByPolicy) {
-          state = "disabled_by_settings";
-        } else {
-          state = "disabled";
-        }
-      } catch (ex) {
-        console.error(ex);
-        state = "error";
-      }
-    }
-    Glean.osEnvironment.launchOnLoginState.set(state);
   },
 
   macDockStatus() {
