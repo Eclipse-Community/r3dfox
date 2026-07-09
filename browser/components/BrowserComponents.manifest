@@ -27,7 +27,7 @@ category browser-window-before-initial-xul-layout-document-preparation chrome://
 
 category browser-window-before-initial-xul-layout resource://gre/modules/LightweightThemeConsumer.sys.mjs LightweightThemeConsumer.init
 category browser-window-before-initial-xul-layout moz-src:///browser/themes/ToolbarIconColor.sys.mjs ToolbarIconColor.init
-category browser-window-before-initial-xul-layout chrome://browser/content/browser-customtitlebar.js CustomTitlebar.init
+category browser-window-before-initial-xul-layout chrome://browser/content/browser-tabsintitlebar.js TabsInTitlebar.init
 
 # The two categories below are specific to Tabbrowser creation. For consumers that need to initialize during
 # 'DOMContentLoaded', use 'browser-window-domcontentloaded' instead.
@@ -75,7 +75,7 @@ category browser-window-location-change resource:///actors/AboutReaderParent.sys
 category browser-window-location-change resource://gre/actors/TranslationsParent.sys.mjs TranslationsParent.onLocationChange
 category browser-window-location-change resource://gre/modules/PictureInPicture.sys.mjs PictureInPicture.onLocationChange
 
-category browser-window-unload-begin chrome://browser/content/browser-customtitlebar.js CustomTitlebar.uninit
+category browser-window-unload-begin chrome://browser/content/browser-tabsintitlebar.js TabsInTitlebar.uninit
 category browser-window-unload-begin moz-src:///browser/themes/ToolbarIconColor.sys.mjs ToolbarIconColor.uninit
 category browser-window-unload-begin moz-src:///browser/components/reportbrokensite/ReportBrokenSite.sys.mjs ReportBrokenSite.uninit
 category browser-window-unload-begin chrome://browser/content/browser.js gUIDensity.uninit
