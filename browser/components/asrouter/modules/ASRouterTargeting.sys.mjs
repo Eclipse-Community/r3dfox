@@ -82,7 +82,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
   TaskbarTabs: "resource:///modules/taskbartabs/TaskbarTabs.sys.mjs",
   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.sys.mjs",
   TelemetrySession: "resource://gre/modules/TelemetrySession.sys.mjs",
-  WindowsLaunchOnLogin: "resource://gre/modules/WindowsLaunchOnLogin.sys.mjs",
 });
 
 ChromeUtils.defineLazyGetter(lazy, "fxAccounts", () => {
@@ -1116,13 +1115,6 @@ const TargetingGetters = {
 
   get doesAppNeedPrivatePin() {
     return QueryCache.getters.doesAppNeedPrivatePin.get();
-  },
-
-  get launchOnLoginEnabled() {
-    if (AppConstants.platform !== "win") {
-      return false;
-    }
-    return lazy.WindowsLaunchOnLogin.getLaunchOnLoginEnabled();
   },
 
   get isMSIX() {
