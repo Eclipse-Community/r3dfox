@@ -23,7 +23,7 @@ export MOZ_D3DCOMPILER_VISTA_DLL_PATH_OVERRIDE="C:/VC++/x86"
 ac_add_options --disable-eme
 ac_add_options --enable-jxl
 ac_add_options --enable-raw
-ac_add_options --enable-webrtc
+ac_add_options --disable-webrtc
 
 # Add-ons
 ac_add_options --allow-addon-sideload
