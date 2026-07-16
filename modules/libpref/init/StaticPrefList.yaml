@@ -4894,7 +4894,7 @@
 # (https://w3c.github.io/trusted-types/dist/spec/) is enabled.
 - name: dom.security.trusted_types.enabled
   type: RelaxedAtomicBool
-  value: true
+  value: false
   mirror: always
 
 # If true, all content requests will get upgraded to HTTPS://
