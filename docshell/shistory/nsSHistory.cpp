@@ -2651,22 +2651,10 @@ bool nsSHistory::ForEachDifferingEntry(
   uint32_t prevID = aPrevEntry->GetID();
   uint32_t nextID = aNextEntry->GetID();
 
-  bool differenceFound = false;
   // Check the IDs to verify if the pages are different.
   if (prevID != nextID) {
     aCallback(aNextEntry, aParent);
-    // if it's not same doc, any potential children will just be unloaded
-    // https://html.spec.whatwg.org/#get-all-navigables-whose-current-session-history-entry-will-change-or-reload
-    // step 3.3:
-    // If targetEntry's document is navigable's document, and targetEntry's
-    // document state's reload pending is false, then extend navigablesToCheck
-    // with the child navigables of navigable.
-    bool sameDoc = false;
-    aPrevEntry->SharesDocumentWith(aNextEntry, &sameDoc);
-    if (!sameDoc) {
-      return true;
-    }
-    differenceFound = true;
+    return true;
   }
 
   // The entries are the same, so compare any child frames
@@ -2678,6 +2666,7 @@ bool nsSHistory::ForEachDifferingEntry(
   aParent->GetChildren(browsingContexts);
 
   // Search for something to load next.
+  bool differenceFound = false;
   for (int32_t i = 0; i < ncnt; ++i) {
     // First get an entry which may cause a new page to be loaded.
     nsCOMPtr<nsISHEntry> nChild;
