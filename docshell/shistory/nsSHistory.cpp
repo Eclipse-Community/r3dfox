@@ -37,7 +37,6 @@
 #include "mozilla/dom/CanonicalBrowsingContext.h"
 #include "mozilla/dom/ContentParent.h"
 #include "mozilla/dom/Element.h"
-#include "mozilla/dom/EntryList.h"
 #include "mozilla/dom/Navigation.h"
 #include "mozilla/dom/RemoteWebProgressRequest.h"
 #include "mozilla/dom/WindowGlobalParent.h"
@@ -625,28 +624,111 @@ void nsSHistory::WalkContiguousEntriesInOrder(
   MOZ_ASSERT(aEntry);
   MOZ_ASSERT(SessionHistoryInParent());
 
-  // Walk backward to find the entries that have the same origin as the
-  // input entry.
   nsCOMPtr<SessionHistoryEntry> entry = do_QueryInterface(aEntry);
+  RefPtr<nsSHistory> shistory = entry->GetSessionHistory();
+  if (!shistory) {
+    // If there is no session history related to the entry there's not much to
+    // do, so just return.
+    return;
+  }
+
   MOZ_ASSERT(entry);
   nsCOMPtr<nsIURI> targetURI = entry->GetURIOrInheritedForAboutBlank();
-  while (nsCOMPtr previousEntry = entry->getPrevious()) {
+  AutoTArray<SessionHistoryEntry*, 16> previousEntries;
+
+  // Walk backward to find the entries that have the same origin as the
+  // input entry.
+  nsCOMPtr<SessionHistoryEntry> current = entry;
+  while (nsCOMPtr previousEntry =
+             shistory->FindLeftmostAdjacentContiguousEntryFor(
+                 current, SearchDirection::Left)) {
     nsCOMPtr<nsIURI> uri = previousEntry->GetURIOrInheritedForAboutBlank();
     if (NS_FAILED(nsContentUtils::GetSecurityManager()->CheckSameOriginURI(
             targetURI, uri, false, false))) {
       break;
     }
-    entry = previousEntry;
+    previousEntries.AppendElement(previousEntry);
+    current = previousEntry;
   }
 
-  bool shouldContinue = aCallback(entry);
-  while (shouldContinue && (entry = entry->getNext())) {
+  for (auto* previousEntry : Reversed(previousEntries)) {
+    if (!aCallback(previousEntry)) {
+      return;
+    }
+  }
+
+  if (!aCallback(entry)) {
+    return;
+  }
+
+  // Walk forward to find the entries that have the same origin as the
+  // input entry.
+  while ((entry = shistory->FindLeftmostAdjacentContiguousEntryFor(
+              entry, SearchDirection::Right))) {
     nsCOMPtr<nsIURI> uri = entry->GetURIOrInheritedForAboutBlank();
     if (NS_FAILED(nsContentUtils::GetSecurityManager()->CheckSameOriginURI(
             targetURI, uri, false, false))) {
       break;
     }
-    shouldContinue = aCallback(entry);
+    if (!aCallback(entry)) {
+      return;
+    }
+  }
+}
+
+// static
+void nsSHistory::WalkClosestContiguousEntriesFrom(
+    nsISHEntry* aEntry, const std::function<bool(nsISHEntry*)>& aCallback) {
+  MOZ_ASSERT(aEntry);
+  MOZ_ASSERT(SessionHistoryInParent());
+
+  nsCOMPtr<SessionHistoryEntry> entry = do_QueryInterface(aEntry);
+  RefPtr<nsSHistory> shistory = entry->GetSessionHistory();
+  if (!shistory) {
+    // If there is no session history related to the entry there's not much to
+    // do, so just return.
+    return;
+  }
+
+  MOZ_ASSERT(entry);
+  if (!aCallback(entry)) {
+    return;
+  }
+
+  nsCOMPtr<nsIURI> targetURI = entry->GetURIOrInheritedForAboutBlank();
+
+  // Walk backward to find the entries that have the same origin as the
+  // input entry.
+  for (nsCOMPtr<SessionHistoryEntry> current =
+           shistory->FindClosestAdjacentContiguousEntryFor(
+               entry, SearchDirection::Left);
+       current; current = shistory->FindClosestAdjacentContiguousEntryFor(
+                    current, SearchDirection::Left)) {
+    nsCOMPtr<nsIURI> uri = current->GetURIOrInheritedForAboutBlank();
+    if (NS_FAILED(nsContentUtils::GetSecurityManager()->CheckSameOriginURI(
+            targetURI, uri, false, false))) {
+      break;
+    }
+    if (!aCallback(current)) {
+      return;
+    }
+  }
+
+  // Walk forward to find the entries that have the same origin as the
+  // input entry.
+  for (nsCOMPtr<SessionHistoryEntry> current =
+           shistory->FindClosestAdjacentContiguousEntryFor(
+               entry, SearchDirection::Right);
+       current; current = shistory->FindClosestAdjacentContiguousEntryFor(
+                    current, SearchDirection::Right)) {
+    nsCOMPtr<nsIURI> uri = current->GetURIOrInheritedForAboutBlank();
+    if (NS_FAILED(nsContentUtils::GetSecurityManager()->CheckSameOriginURI(
+            targetURI, uri, false, false))) {
+      break;
+    }
+    if (!aCallback(current)) {
+      return;
+    }
   }
 }
 
@@ -976,9 +1058,9 @@ static void LogEntry(nsISHEntry* aEntry, int32_t aIndex, int32_t aTotal,
   int32_t childCount = aEntry->GetChildCount();
 
   MOZ_LOG(gSHLog, LogLevel::Debug,
-          ("%s%s+- %i SH Entry %p %" PRIu64 " %s\n", aIsCurrent ? ">" : " ",
-           aPrefix.get(), aIndex, aEntry, shared->GetId(),
-           nsIDToCString(docShellId).get()));
+          ("%s%s+- %i SH Entry %p shared:%" PRIu64 " %s %i\n",
+           aIsCurrent ? ">" : " ", aPrefix.get(), aIndex, aEntry,
+           shared->GetId(), nsIDToCString(docShellId).get(), aEntry->GetID()));
 
   nsCString prefix(aPrefix);
   if (aIndex < aTotal - 1) {
@@ -2465,20 +2547,26 @@ class SessionHistoryEntryIDComparator {
  public:
   static bool Equals(const RefPtr<SessionHistoryEntry>& aLhs,
                      const RefPtr<SessionHistoryEntry>& aRhs) {
-    return aLhs && aRhs && aLhs->GetID() == aRhs->GetID();
+    return aLhs && aRhs && aLhs->DocshellID() == aRhs->DocshellID();
   }
 };
 
 }  // namespace
 
-mozilla::dom::SessionHistoryEntry* nsSHistory::FindAdjacentContiguousEntryFor(
-    mozilla::dom::SessionHistoryEntry* aEntry, int32_t aSearchDirection) {
-  MOZ_ASSERT(aSearchDirection == 1 || aSearchDirection == -1);
+mozilla::dom::SessionHistoryEntry* nsSHistory::FindAdjacentEntryFor(
+    mozilla::dom::SessionHistoryEntry* aEntry,
+    SearchDirection aSearchDirection) {
+  MOZ_ASSERT(static_cast<int8_t>(aSearchDirection) == 1 ||
+             static_cast<int8_t>(aSearchDirection) == -1);
+
+  if (!aEntry) {
+    return nullptr;
+  }
 
   // Construct the list of ancestors of aEntry, starting with the root entry
   // down to it's immediate parent.
   nsCOMPtr<nsISHEntry> ancestor = aEntry->GetParent();
-  nsTArray<SessionHistoryEntry*> ancestors;
+  AutoTArray<SessionHistoryEntry*, 8> ancestors;
   while (ancestor) {
     ancestors.AppendElement(static_cast<SessionHistoryEntry*>(ancestor.get()));
     ancestor = ancestor->GetParent();
@@ -2488,63 +2576,71 @@ mozilla::dom::SessionHistoryEntry* nsSHistory::FindAdjacentContiguousEntryFor(
   nsCOMPtr<nsISHEntry> rootEntry = ancestors.IsEmpty() ? aEntry : ancestors[0];
   nsCOMPtr<nsISHEntry> nextEntry;
   SessionHistoryEntry* foundParent = nullptr;
-  for (int32_t i = GetIndexOfEntry(rootEntry) + aSearchDirection;
-       i >= 0 && i < Length(); i += aSearchDirection) {
-    nextEntry = mEntries[i];
-    foundParent = FindParent(
-        ancestors, static_cast<SessionHistoryEntry*>(nextEntry.get()));
-    if ((!foundParent && nextEntry->GetID() != aEntry->GetID()) ||
-        (foundParent && !foundParent->Children().Contains(
-                            aEntry, SessionHistoryEntryIDComparator()))) {
+  int32_t i =
+      GetIndexOfEntry(rootEntry) + static_cast<int8_t>(aSearchDirection);
+  if (i < 0 || i >= Length()) {
+    return nullptr;
+  }
+
+  nextEntry = mEntries[i];
+  if (ancestors.IsEmpty()) {
+    return static_cast<SessionHistoryEntry*>(nextEntry.get());
+  }
+
+  foundParent =
+      FindParent(ancestors, static_cast<SessionHistoryEntry*>(nextEntry.get()));
+  if (foundParent) {
+    for (const auto& child : foundParent->Children()) {
+      if (child && child->DocshellID() == aEntry->DocshellID()) {
+        return child;
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+mozilla::dom::SessionHistoryEntry*
+nsSHistory::FindClosestAdjacentContiguousEntryFor(
+    mozilla::dom::SessionHistoryEntry* aEntry,
+    SearchDirection aSearchDirection) {
+  for (SessionHistoryEntry* current =
+           FindAdjacentEntryFor(aEntry, aSearchDirection);
+       current; current = FindAdjacentEntryFor(current, aSearchDirection)) {
+    if (aEntry->GetID() != current->GetID()) {
+      return current;
+    }
+  }
+
+  return nullptr;
+}
+
+mozilla::dom::SessionHistoryEntry*
+nsSHistory::FindLeftmostAdjacentContiguousEntryFor(
+    mozilla::dom::SessionHistoryEntry* aEntry,
+    SearchDirection aSearchDirection) {
+  SessionHistoryEntry* current = nullptr;
+  for (current = FindAdjacentEntryFor(aEntry, aSearchDirection); current;
+       current = FindAdjacentEntryFor(current, aSearchDirection)) {
+    if (aEntry->GetID() != current->GetID()) {
       break;
     }
   }
 
-  if (foundParent) {
-    for (const auto& child : foundParent->Children()) {
-      if (child && child->DocshellID() == aEntry->DocshellID()) {
-        return child->GetID() != aEntry->GetID() ? child.get() : nullptr;
-      }
+  if (aSearchDirection == SearchDirection::Right) {
+    return current;
+  }
+
+  while (SessionHistoryEntry* left =
+             FindAdjacentEntryFor(current, aSearchDirection)) {
+    if (left->GetID() != current->GetID()) {
+      break;
     }
-  } else if (ancestors.IsEmpty() && nextEntry &&
-             nextEntry->GetID() != aEntry->GetID()) {
-    return static_cast<SessionHistoryEntry*>(nextEntry.get());
-  }
-  return nullptr;
-}
 
-void nsSHistory::ReconstructContiguousEntryListFrom(
-    SessionHistoryEntry* aEntry) {
-  RefPtr entryList = EntryListFor(aEntry->DocshellID());
-  entryList->clear();
-
-  if (aEntry->isInList()) {
-    aEntry->remove();
-  }
-  entryList->insertBack(aEntry);
-
-  for (auto* entry = aEntry;
-       (entry = FindAdjacentContiguousEntryFor(entry, -1));) {
-    if (entry->isInList()) {
-      entry->remove();
-    }
-    entryList->insertFront(entry);
+    current = left;
   }
 
-  for (auto* entry = aEntry;
-       (entry = FindAdjacentContiguousEntryFor(entry, 1));) {
-    if (entry->isInList()) {
-      entry->remove();
-    }
-    entryList->insertBack(entry);
-  }
-}
-
-void nsSHistory::ReconstructContiguousEntryList() {
-  MOZ_ASSERT(mIndex >= 0 && mIndex < Length());
-  nsCOMPtr currentEntry = mEntries[mIndex];
-  ReconstructContiguousEntryListFrom(
-      static_cast<SessionHistoryEntry*>(currentEntry.get()));
+  return current;
 }
 
 bool nsSHistory::ForEachDifferingEntry(
@@ -2765,17 +2861,3 @@ bool nsSHistory::ContainsEntry(nsISHEntry* aEntry) {
   nsCOMPtr rootEntry = GetRootSHEntry(aEntry);
   return GetIndexOfEntry(rootEntry) != -1;
 }
-
-already_AddRefed<EntryList> nsSHistory::EntryListFor(const nsID& aID) {
-  return mEntryLists.WithEntryHandle(
-      aID, [self = RefPtr{this}, aID](auto&& entry) {
-        if (entry && *entry) {
-          return do_AddRef(entry->get());
-        }
-        RefPtr entryList = MakeRefPtr<EntryList>(self, aID);
-        entry.InsertOrUpdate(entryList);
-        return entryList.forget();
-      });
-}
-
-void nsSHistory::RemoveEntryList(const nsID& aID) { mEntryLists.Remove(aID); }

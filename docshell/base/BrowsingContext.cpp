@@ -1033,7 +1033,6 @@ void BrowsingContext::Detach(bool aFromIPC) {
 
   if (XRE_IsParentProcess()) {
     Canonical()->AddPendingDiscard();
-    Canonical()->mActiveEntryList = nullptr;
   }
   auto callListeners =
       MakeScopeExit([&, listeners = std::move(mDiscardListeners), id = Id()] {

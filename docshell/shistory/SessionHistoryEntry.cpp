@@ -1590,6 +1590,13 @@ already_AddRefed<nsIURI> SessionHistoryEntry::GetURIOrInheritedForAboutBlank()
   return mInfo->GetURIOrInheritedForAboutBlank();
 }
 
+already_AddRefed<nsSHistory> SessionHistoryEntry::GetSessionHistory() {
+  if (nsCOMPtr<nsISHEntry> rootSHEntry = nsSHistory::GetRootSHEntry(this)) {
+    return rootSHEntry->GetShistory().downcast<nsSHistory>();
+  }
+  return nullptr;
+}
+
 }  // namespace dom
 }  // namespace mozilla
 
