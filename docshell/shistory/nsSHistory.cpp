@@ -600,7 +600,11 @@ void nsSHistory::WalkContiguousEntries(
 void nsSHistory::WalkContiguousEntriesInOrder(
     SessionHistoryEntry* aEntry,
     const std::function<bool(SessionHistoryEntry*)>& aCallback) {
-  MOZ_ASSERT(aEntry);
+
+  if (!aEntry) {
+    //MOZ_ASSERT_UNREACHABLE("WalkContiguousEntriesInOrder: null aEntry");
+    return;
+  }
 
   RefPtr<SessionHistoryEntry> entry = aEntry;
   RefPtr<nsSHistory> shistory = entry->GetSessionHistory();
