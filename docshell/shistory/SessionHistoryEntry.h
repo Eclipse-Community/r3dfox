@@ -383,7 +383,9 @@ class HistoryEntryCounterForBrowsingContext {
 #define NS_SESSIONHISTORYENTRY_IID \
   {0x5b66a244, 0x8cec, 0x4caa, {0xaa, 0x0a, 0x78, 0x92, 0xfd, 0x17, 0xa6, 0x67}}
 
-class SessionHistoryEntry : public nsISHEntry, public nsSupportsWeakReference {
+class SessionHistoryEntry : public nsISHEntry,
+                            public nsSupportsWeakReference,
+                            public LinkedListElement<SessionHistoryEntry> {
  public:
   SessionHistoryEntry(nsDocShellLoadState* aLoadState, nsIChannel* aChannel);
   SessionHistoryEntry();
@@ -466,11 +468,6 @@ class SessionHistoryEntry : public nsISHEntry, public nsSupportsWeakReference {
   void SetNavigationAPIState(nsIStructuredCloneContainer* aState) {
     mInfo->SetNavigationAPIState(aState);
   }
-
-  // Get the session history this entry belongs to. Unlike
-  // nsISHEntry::GetShistory this will return a value, if it's in session
-  // history, even if this isn't the root node.
-  already_AddRefed<nsSHistory> GetSessionHistory();
 
  private:
   friend struct LoadingSessionHistoryInfo;

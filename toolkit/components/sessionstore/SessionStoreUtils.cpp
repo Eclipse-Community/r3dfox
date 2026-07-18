@@ -1661,6 +1661,8 @@ already_AddRefed<Promise> SessionStoreUtils::InitializeRestore(
     return nullptr;
   }
 
+  aContext.MaybeReconstructActiveEntryList();
+
   nsCOMPtr<nsISHistory> shistory = aContext.GetSessionHistory();
   MOZ_DIAGNOSTIC_ASSERT(shistory);
   shistory->ReloadCurrentEntry();

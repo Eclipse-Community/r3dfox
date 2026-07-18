@@ -21,11 +21,13 @@ EXPORTS += [
 
 EXPORTS.mozilla.dom += [
     "ChildSHistory.h",
+    "EntryList.h",
     "SessionHistoryEntry.h",
 ]
 
 UNIFIED_SOURCES += [
     "ChildSHistory.cpp",
+    "EntryList.cpp",
     "nsSHEntry.cpp",
     "nsSHEntryShared.cpp",
     "nsSHistory.cpp",
