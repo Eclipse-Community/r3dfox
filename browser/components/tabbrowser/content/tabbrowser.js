@@ -9,9 +9,9 @@
    * start loading them faster than FaviconLoader would normally find them.
    */
   const FAVICON_DEFAULTS = {
-    "about:newtab": "chrome://branding/content/icon32.png",
-    "about:home": "chrome://branding/content/icon32.png",
-    "about:welcome": "chrome://branding/content/icon32.png",
+    "about:newtab": "chrome://branding/content/favicon.ico",
+    "about:home": "chrome://branding/content/favicon.ico",
+    "about:welcome": "chrome://branding/content/favicon.ico",
     "about:privatebrowsing":
       "chrome://browser/skin/privatebrowsing/favicon.svg",
     "chrome://browser/content/aiwindow/aiWindow.html":
@@ -1791,6 +1791,7 @@
       if (!this._previewMode) {
         newTab.recordTimeFromUnloadToReload();
         newTab.updateLastAccessed();
+        newTab.removeAttribute("unread");
         oldTab.updateLastAccessed();
         // if this is the foreground window, update the last-seen timestamps.
         if (this.documentGlobal == BrowserWindowTracker.getTopWindow()) {
@@ -9470,6 +9471,9 @@
 
             this.mTab.setAttribute("bursting", "true");
           }
+
+          if (!this.mTab.selected)
+            this.mTab.setAttribute("unread", "true");
         }
 
         if (this.mTab.hasAttribute("progress")) {
@@ -10188,7 +10192,7 @@ var TabBarVisibility = {
     // We only want a non-customized titlebar for popups. It should not be the
     // case, but if a popup window contains more than one tab we re-enable
     // titlebar customization and display tabs.
-    CustomTitlebar.allowedBy("non-popup", !(isPopup && hasSingleTab));
+    TabsInTitlebar.allowedBy("non-popup", !(isPopup && hasSingleTab));
 
     // Update the browser chrome.
 
@@ -10199,7 +10203,7 @@ var TabBarVisibility = {
     // Should the nav-bar look and function like a titlebar?
     navbar.classList.toggle(
       "browser-titlebar",
-      CustomTitlebar.enabled && hideTabsToolbar
+      TabsInTitlebar.enabled && hideTabsToolbar
     );
 
     if (
