@@ -50,34 +50,6 @@ close-other-tabs =
     .label = Close Other Tabs
     .accesskey = o
 
-# The following string is displayed on a menuitem that unloads the tabs from
-# the start of the tab strip to the currently targeted tab, excluding the
-# targeted tab and any other selected tabs.
-# In left-to-right languages this should use "Left" and in right-to-left
-# languages this should use "Right".
-unload-tabs-to-the-start =
-    .label = Unload Tabs to Left
-    .accesskey = l
-unload-tabs-to-the-start-vertical =
-    .label = Unload Tabs Above
-    .accesskey = l
-
-# The following string is displayed on a menuitem that unloads the tabs from
-# the end of the tab strip to the currently targeted tab, excluding the
-# targeted tab and any other selected tabs.
-# In left-to-right languages this should use "Right" and in right-to-left
-# languages this should use "Left".
-unload-tabs-to-the-end =
-    .label = Unload Tabs to Right
-    .accesskey = i
-unload-tabs-to-the-end-vertical =
-    .label = Unload Tabs Below
-    .accesskey = w
-
-tab-context-unload-options =
-    .label = Unload Tab
-    .accesskey = U
-
 ## Variables:
 ##  $tabCount (Number): the number of tabs that are affected by the action.
 
