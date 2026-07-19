@@ -10234,13 +10234,6 @@ var TabBarVisibility = {
 
 var TabContextMenu = {
   contextTab: null,
-
-  _getUnloadableTabs(tabs) {
-    return tabs.filter(
-      tab => tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser
-    );
-  },
-
   _updateToggleMuteMenuItems(aTab, aConditionFn) {
     ["muted", "soundplaying"].forEach(attr => {
       if (!aConditionFn || aConditionFn(attr)) {
@@ -10555,68 +10548,20 @@ var TabContextMenu = {
     document.getElementById("context_reloadTab").hidden = this.multiselected;
     document.getElementById("context_reloadSelectedTabs").hidden =
       !this.multiselected;
-    let unloadTabOptionsItem = document.getElementById(
-      "context_unloadTabOptions"
-    );
     let unloadTabItem = document.getElementById("context_unloadTab");
-    let unloadTabsToTheStartItem = document.getElementById(
-      "context_unloadTabsToTheStart"
-    );
-    let unloadTabsToTheEndItem = document.getElementById(
-      "context_unloadTabsToTheEnd"
-    );
-
     if (gBrowser._unloadTabInContextMenu) {
-      unloadTabOptionsItem.hidden = false;
-
-      // linkedPanel is false when the tab is already unloaded.
-      // Non-remote browsers, including many privileged pages, cannot be
-      // unloaded through this path.
-      let unloadableTabs = this._getUnloadableTabs(this.contextTabs);
-
+      // linkedPanel is false if the tab is already unloaded
+      // Cannot unload about: pages, etc., so skip browsers that are not remote
+      let unloadableTabs = this.contextTabs.filter(
+        t => t.linkedPanel && t.linkedBrowser?.isRemoteBrowser
+      );
       unloadTabItem.hidden = unloadableTabs.length === 0;
       unloadTabItem.setAttribute(
         "data-l10n-args",
         JSON.stringify({ tabCount: unloadableTabs.length })
       );
-
-      let unloadableTabsToTheStart = this._getUnloadableTabs(
-        gBrowser._getTabsToTheStartFrom(this.contextTab)
-      );
-      let unloadableTabsToTheEnd = this._getUnloadableTabs(
-        gBrowser._getTabsToTheEndFrom(this.contextTab)
-      );
-
-      unloadTabsToTheStartItem.hidden = false;
-      unloadTabsToTheEndItem.hidden = false;
-
-      unloadTabsToTheStartItem.disabled =
-        unloadableTabsToTheStart.length === 0;
-      unloadTabsToTheEndItem.disabled = unloadableTabsToTheEnd.length === 0;
-
-      unloadTabOptionsItem.hidden =
-        unloadableTabs.length === 0 &&
-        unloadableTabsToTheStart.length === 0 &&
-        unloadableTabsToTheEnd.length === 0;
-
-      document.l10n.setAttributes(
-        unloadTabsToTheStartItem,
-        gBrowser.tabContainer?.verticalMode
-          ? "unload-tabs-to-the-start-vertical"
-          : "unload-tabs-to-the-start"
-      );
-
-      document.l10n.setAttributes(
-        unloadTabsToTheEndItem,
-        gBrowser.tabContainer?.verticalMode
-          ? "unload-tabs-to-the-end-vertical"
-          : "unload-tabs-to-the-end"
-      );
     } else {
-      unloadTabOptionsItem.hidden = true;
       unloadTabItem.hidden = true;
-      unloadTabsToTheStartItem.hidden = true;
-      unloadTabsToTheEndItem.hidden = true;
     }
 
     // Show Play Tab menu item if the tab has attribute activemedia-blocked
@@ -10859,10 +10804,9 @@ var TabContextMenu = {
       document.l10n.setAttributes(item, "tab-context-unnamed-group");
     }
 
-    item.classList.add("menuitem-iconic", "tab-group-icon");
-    if (isSaved) {
-      item.classList.add("tab-group-icon-closed");
-    }
+    let iconClass = isSaved ? "tab-group-icon-closed" : "tab-group-icon";
+    item.classList.add("menuitem-iconic");
+    item.classList.add(iconClass);
 
     item.style.setProperty(
       "--tab-group-color",
@@ -11005,26 +10949,6 @@ var TabContextMenu = {
 
   explicitUnloadTabs() {
     gBrowser.explicitUnloadTabs(this.contextTabs);
-  },
-
-  explicitUnloadTabsToTheStart() {
-    let tabs = this._getUnloadableTabs(
-      gBrowser._getTabsToTheStartFrom(this.contextTab)
-    );
-
-    if (tabs.length) {
-      gBrowser.explicitUnloadTabs(tabs);
-    }
-  },
-
-  explicitUnloadTabsToTheEnd() {
-    let tabs = this._getUnloadableTabs(
-      gBrowser._getTabsToTheEndFrom(this.contextTab)
-    );
-
-    if (tabs.length) {
-      gBrowser.explicitUnloadTabs(tabs);
-    }
   },
 
   moveTabsToNewGroup() {
