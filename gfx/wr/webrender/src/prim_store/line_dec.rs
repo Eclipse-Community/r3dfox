@@ -4,10 +4,11 @@
 
 use api::{
     ColorF, ColorU, RasterSpace,
-    LineOrientation, LineStyle, Shadow,
+    LineOrientation, LineStyle, PremultipliedColorF, Shadow,
 };
 use api::units::*;
 use euclid::Scale;
+use crate::gpu_types::ImageBrushPrimitiveData;
 use crate::render_task::{RenderTask, RenderTaskKind};
 use crate::render_task_cache::{RenderTaskCacheKey, RenderTaskCacheKeyKind, RenderTaskParent};
 use crate::render_task_graph::RenderTaskId;
@@ -97,7 +98,7 @@ impl LineDecorationData {
         prim_spatial_node_index: SpatialNodeIndex,
         frame_context: &FrameBuildingContext,
         frame_state: &mut FrameBuildingState,
-    ) -> Option<(RenderTaskId, LayoutSize)> {
+    ) -> (RenderTaskId, GpuBufferAddress) {
         let cache_key = get_line_decoration_size(
             &prim_size,
             self.orientation,
@@ -110,23 +111,35 @@ impl LineDecorationData {
             size: size.to_au(),
         });
 
-        match cache_key {
+        let mut writer = frame_state.frame_gpu_data.f32.write_blocks(3);
+        match cache_key.as_ref() {
             Some(cache_key) => {
-                let size = LayoutSize::new(
-                    cache_key.size.width.to_f32_px(),
-                    cache_key.size.height.to_f32_px(),
-                );
-                let task = self.allocate_render_task(
-                    cache_key,
-                    prim_spatial_node_index,
-                    frame_context,
-                    frame_state,
-                );
-
-                Some((task, size))
+                writer.push(&ImageBrushPrimitiveData {
+                    color: self.color.premultiplied(),
+                    background_color: PremultipliedColorF::WHITE,
+                    stretch_size: LayoutSize::new(
+                        cache_key.size.width.to_f32_px(),
+                        cache_key.size.height.to_f32_px(),
+                    ),
+                });
             }
-            None => None,
+            None => {
+                writer.push_one(self.color.premultiplied());
+            }
         }
+        let gpu_address = writer.finish();
+
+        let task_id = match cache_key {
+            Some(cache_key) => self.allocate_render_task(
+                cache_key,
+                prim_spatial_node_index,
+                frame_context,
+                frame_state,
+            ),
+            None => RenderTaskId::INVALID,
+        };
+
+        (task_id, gpu_address)
     }
 
     fn allocate_render_task(
