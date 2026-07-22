@@ -47,7 +47,7 @@ use backdrop::{BackdropCaptureDataHandle, BackdropRenderDataHandle, BackdropRend
 use borders::{ImageBorderDataHandle, ImageBorderScratch, NormalBorderDataHandle, NormalBorderScratch};
 use gradient::{LinearGradientDataHandle, RadialGradientDataHandle, ConicGradientDataHandle};
 use image::{ImageDataHandle, ImageScratch, VisibleImageTile, YuvImageDataHandle};
-use line_dec::LineDecorationDataHandle;
+use line_dec::{LineDecorationDataHandle, LineDecorationScratch};
 use picture::PictureDataHandle;
 use text_run::{TextRunDataHandle, TextRunScratch};
 use crate::box_shadow::BoxShadowDataHandle;
@@ -1146,6 +1146,9 @@ pub struct PrimitiveFrameScratch {
     /// visible primitive.
     pub draws: Vec<PrimitiveDrawHeader>,
 
+    /// Per-frame scratch for LineDecoration primitives.
+    pub line_decoration: storage::Storage<LineDecorationScratch>,
+
     /// Per-frame scratch for NormalBorder primitives.
     pub normal_border: storage::Storage<NormalBorderScratch>,
 
@@ -1228,6 +1231,7 @@ impl Default for PrimitiveFrameScratch {
     fn default() -> Self {
         PrimitiveFrameScratch {
             draws: Vec::new(),
+            line_decoration: storage::Storage::new(0),
             normal_border: storage::Storage::new(0),
             backdrop_render: storage::Storage::new(0),
             pictures: storage::Storage::new(0),
@@ -1252,6 +1256,7 @@ impl Default for PrimitiveFrameScratch {
 impl PrimitiveFrameScratch {
     pub fn recycle(&mut self, recycler: &mut Recycler) {
         recycler.recycle_vec(&mut self.draws);
+        self.line_decoration.recycle(recycler);
         self.normal_border.recycle(recycler);
         self.backdrop_render.recycle(recycler);
         self.pictures.recycle(recycler);
@@ -1271,6 +1276,7 @@ impl PrimitiveFrameScratch {
     }
 
     pub fn begin_frame(&mut self) {
+        self.line_decoration.clear();
         self.normal_border.clear();
         self.backdrop_render.clear();
         self.pictures.clear();
