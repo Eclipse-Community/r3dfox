@@ -42,14 +42,15 @@
     --download-progress-fill-color: light-dark(rgb(255, 40, 40), rgb(255, 80, 80)) !important;
     --lwt-tab-line-color: light-dark(rgb(255, 40, 40), rgb(255, 80, 80)) !important;
     --tab-selected-outline-color: var(--lwt-tab-line-color, currentColor) !important;
+    &[privatebrowsingmode=temporary] {
+      --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+    }
+
     @media (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
       --color-accent-primary: rgb(255, 60, 60) !important;
       --color-accent-primary-hover: rgb(255, 80, 80) !important;
       --color-accent-primary-active: rgb(255, 60, 60) !important;
       --color-accent-primary-selected: rgb(255, 60, 60) !important;
-    }
-    &[privatebrowsingmode=temporary] {
-      --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -67,36 +68,6 @@
     #PlacesToolbarDropIndicator {
       list-style-image: url(chrome://browser/skin/r3d-toolbar-drag-indicator.svg) !important;
     }
-  }
-
-  html.private {
-    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
-
-    content-search-handoff-ui {
-      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
-      --content-search-handoff-ui-color: ButtonText !important;
-      --content-search-handoff-ui-fill: ButtonText !important;
-      --content-search-handoff-ui-caret-color: ButtonText !important;
-
-      --content-search-handoff-ui-unfocused-border-color: rgb(160, 60, 60) !important;
-      --content-search-handoff-ui-fakefocus-border-color: rgb(160, 60, 60) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(160, 60, 60) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(160, 60, 60, 0.3) !important;
-    }
-
-    .info-border {
-      box-shadow: none !important;
-      background: none !important;
-    }
-
-    .info {
-      background-color: var(--color-black-alpha-20) !important;
-      box-shadow: none !important;
-    }
-  }
-
-  #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
-    background-color: #CC190032 !important;
   }
 }
 
@@ -127,14 +98,12 @@
     &[privatebrowsingmode=temporary] {
       --lwt-tab-line-color: light-dark(rgb(255, 40, 40), rgb(255, 80, 80)) !important;
     }
+
     @media (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
     --color-accent-primary: rgb(255, 102, 51) !important;
     --color-accent-primary-hover: rgb(255, 118, 72) !important;
     --color-accent-primary-active: rgb(255, 102, 51) !important;
     --color-accent-primary-selected: rgb(255, 102, 51) !important;
-    }
-    &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -152,36 +121,6 @@
     #PlacesToolbarDropIndicator {
       list-style-image: url(chrome://browser/skin/esr-toolbar-drag-indicator.svg) !important;
     }
-  }
-
-  html.private {
-    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
-
-    content-search-handoff-ui {
-      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
-      --content-search-handoff-ui-color: ButtonText !important;
-      --content-search-handoff-ui-fill: ButtonText !important;
-      --content-search-handoff-ui-caret-color: ButtonText !important;
-
-      --content-search-handoff-ui-unfocused-border-color: rgb(183, 98, 69) !important;
-      --content-search-handoff-ui-fakefocus-border-color: rgb(183, 98, 69) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(183, 98, 69) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(183, 98, 69, 0.3) !important;
-    }
-
-    .info-border {
-      box-shadow: none !important;
-      background: none !important;
-    }
-
-    .info {
-      background-color: var(--color-black-alpha-20) !important;
-      box-shadow: none !important;
-    }
-  }
-
-  #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
-    background-color: #CC190032 !important;
   }
 }
 
@@ -212,12 +151,14 @@
     &[privatebrowsingmode=temporary] {
       --lwt-tab-line-color: light-dark(rgb(255, 40, 40), rgb(255, 80, 80)) !important;
     }
+
     @media (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
       --color-accent-primary: rgb(255, 60, 206) !important;
       --color-accent-primary-hover: rgb(255, 80, 211) !important;
       --color-accent-primary-active: rgb(255, 60, 206) !important;
       --color-accent-primary-selected: rgb(255, 60, 206) !important;
     }
+
     &[privatebrowsingmode=temporary] {
         --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
@@ -237,36 +178,6 @@
     #PlacesToolbarDropIndicator {
       list-style-image: url(chrome://browser/skin/plas-toolbar-drag-indicator.svg) !important;
     }
-  }
-
-  html.private {
-    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
-
-    content-search-handoff-ui {
-      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
-      --content-search-handoff-ui-color: ButtonText !important;
-      --content-search-handoff-ui-fill: ButtonText !important;
-      --content-search-handoff-ui-caret-color: ButtonText !important;
-
-      --content-search-handoff-ui-unfocused-border-color: rgb(160, 60, 135) !important;
-      --content-search-handoff-ui-fakefocus-border-color: rgb(160, 60, 135) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(160, 60, 135) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(160, 60, 135, 0.3) !important;
-    }
-
-    .info-border {
-      box-shadow: none !important;
-      background: none !important;
-    }
-
-    .info {
-      background-color: var(--color-black-alpha-20) !important;
-      box-shadow: none !important;
-    }
-  }
-
-  #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
-    background-color: #CC190032 !important;
   }
 }
 
@@ -309,6 +220,7 @@
     --panel-background-color: light-dark(rgba(229, 227, 234, 0.95), rgba(11, 10, 13, 0.95)) !important;
     --toolbar-field-background-color-focus: light-dark(rgba(229, 227, 234, 0.95), rgba(11, 10, 13, 0.95)) !important;
     --chrome-content-separator-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
+
     @media (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
       --color-accent-primary: rgb(156, 87, 193) !important;
       --color-accent-primary-hover: rgb(185, 103, 229) !important;
@@ -353,37 +265,6 @@
       list-style-image: url(chrome://browser/skin/ecl-toolbar-drag-indicator.svg) !important;
     }
   }
-
-  html.private {
-    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
-
-    content-search-handoff-ui {
-      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
-      --content-search-handoff-ui-color: ButtonText !important;
-      --content-search-handoff-ui-fill: ButtonText !important;
-      --content-search-handoff-ui-caret-color: ButtonText !important;
-
-      --content-search-handoff-ui-unfocused-border-color: rgb(114, 63, 140) !important;
-      --content-search-handoff-ui-fakefocus-border-color: rgb(114, 63, 140) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(114, 63, 140) !important;
-      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(114, 63, 140, 0.3) !important;
-    }
-
-    .info-border {
-      box-shadow: none !important;
-      background: none !important;
-    }
-
-    .info {
-      background-color: var(--color-black-alpha-20) !important;
-      box-shadow: none !important;
-    }
-  }
-
-  #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
-    background-color: #CC190032 !important;
-  }
-
   #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button, #urlbar-label-box {
     background-color: light-dark(rgb(243, 242, 245), rgb(30, 26, 39)) !important;
   }
@@ -490,6 +371,36 @@
 /* Main defines */
 
 @media -moz-pref("r3dfox.customizations.enabled") {
+  html.private {
+    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+
+    content-search-handoff-ui {
+      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
+      --content-search-handoff-ui-color: ButtonText !important;
+      --content-search-handoff-ui-fill: ButtonText !important;
+      --content-search-handoff-ui-caret-color: ButtonText !important;
+
+      --content-search-handoff-ui-unfocused-border-color: rgb(160, 60, 60) !important;
+      --content-search-handoff-ui-fakefocus-border-color: rgb(160, 60, 60) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(160, 60, 60) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(160, 60, 60, 0.3) !important;
+    }
+
+    .info-border {
+      box-shadow: none !important;
+      background: none !important;
+    }
+
+    .info {
+      background-color: var(--color-black-alpha-20) !important;
+      box-shadow: none !important;
+    }
+  }
+
+  #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
+    background-color: #CC190032 !important;
+  }
+
   @media not -moz-pref("sidebar.verticalTabs") {
     :root {
       --align-menu-icons: -2px 6px;
