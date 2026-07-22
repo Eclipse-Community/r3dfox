@@ -2026,8 +2026,8 @@ impl DisplayListBuilder {
         let clip_rect = clip_rect.translate(current_offset);
 
         let item = di::DisplayItem::Iframe(di::IframeDisplayItem {
-            bounds: bounds.translate(offset),
-            clip_rect: clip_rect.translate(offset),
+            bounds: bounds.translate(current_offset),
+            clip_rect: clip_rect.translate(current_offset),
             space_and_clip: *space_and_clip,
             pipeline_id,
             ignore_missing_pipeline,
