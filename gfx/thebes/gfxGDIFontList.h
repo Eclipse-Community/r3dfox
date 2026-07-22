@@ -300,7 +300,7 @@ class gfxGDIFontList final : public gfxPlatformFontList {
   // initialize font lists
   nsresult InitFontListForPlatform() MOZ_REQUIRES(mLock) override;
 
-  gfxFontFamily* CreateFontFamily(const nsACString& aName,
+  already_AddRefed<gfxFontFamily> CreateFontFamily(const nsACString& aName,
                                   FontVisibility aVisibility) const override;
 
   bool FindAndAddFamiliesLocked(
@@ -310,13 +310,13 @@ class gfxGDIFontList final : public gfxPlatformFontList {
       nsAtom* aLanguage = nullptr, gfxFloat aDevToCssSize = 1.0)
       MOZ_REQUIRES(mLock) override;
 
-  gfxFontEntry* LookupLocalFont(FontVisibilityProvider* aFontVisibilityProvider,
+  already_AddRefed<gfxFontEntry> LookupLocalFont(FontVisibilityProvider* aFontVisibilityProvider,
                                 const nsACString& aFontName,
                                 WeightRange aWeightForEntry,
                                 StretchRange aStretchForEntry,
                                 SlantStyleRange aStyleForEntry) override;
 
-  gfxFontEntry* MakePlatformFont(const nsACString& aFontName,
+  already_AddRefed<gfxFontEntry> MakePlatformFont(const nsACString& aFontName,
                                  WeightRange aWeightForEntry,
                                  StretchRange aStretchForEntry,
                                  SlantStyleRange aStyleForEntry,

@@ -660,7 +660,7 @@ int CALLBACK gfxGDIFontList::EnumFontFamExProc(ENUMLOGFONTEXW* lpelfe,
   return 1;
 }
 
-gfxFontEntry* gfxGDIFontList::LookupLocalFont(FontVisibilityProvider* aFontVisibilityProvider,
+already_AddRefed<gfxFontEntry> gfxGDIFontList::LookupLocalFont(FontVisibilityProvider* aFontVisibilityProvider,
                                               const nsACString& aFontName,
                                               WeightRange aWeightForEntry,
                                               StretchRange aStretchForEntry,
@@ -678,7 +678,7 @@ gfxFontEntry* gfxGDIFontList::LookupLocalFont(FontVisibilityProvider* aFontVisib
   // face name which GDI mapping tables use (e.g. with the system locale set to
   // Dutch, a fullname of 'Arial Bold' will find a font entry with the face name
   // 'Arial Vet' which can be used as a key in GDI font lookups).
-  GDIFontEntry* fe = GDIFontEntry::CreateFontEntry(
+  RefPtr<gfxFontEntry> fe = GDIFontEntry::CreateFontEntry(
       lookup->Name(),
       gfxWindowsFontType(isCFF ? GFX_FONT_TYPE_PS_OPENTYPE
                                : GFX_FONT_TYPE_TRUETYPE) /*type*/,
@@ -693,7 +693,7 @@ gfxFontEntry* gfxGDIFontList::LookupLocalFont(FontVisibilityProvider* aFontVisib
   fe->mStyleRange = aStyleForEntry;
   fe->mStretchRange = aStretchForEntry;
 
-  return fe;
+  return fe.forget();
 }
 
 // If aFontData contains only a MS/Symbol cmap subtable, not MS/Unicode,
@@ -750,7 +750,7 @@ static bool FixupSymbolEncodedFont(uint8_t* aFontData, uint32_t aLength) {
   return false;
 }
 
-gfxFontEntry* gfxGDIFontList::MakePlatformFont(const nsACString& aFontName,
+already_AddRefed<gfxFontEntry> gfxGDIFontList::MakePlatformFont(const nsACString& aFontName,
                                                WeightRange aWeightForEntry,
                                                StretchRange aStretchForEntry,
                                                SlantStyleRange aStyleForEntry,
@@ -812,7 +812,7 @@ gfxFontEntry* gfxGDIFontList::MakePlatformFont(const nsACString& aFontName,
 
   // make a new font entry using the unique name
   WinUserFontData* winUserFontData = new WinUserFontData(fontRef);
-  GDIFontEntry* fe = GDIFontEntry::CreateFontEntry(
+  RefPtr<gfxFontEntry> fe = GDIFontEntry::CreateFontEntry(
       NS_ConvertUTF16toUTF8(uniqueName),
       gfxWindowsFontType(isCFF ? GFX_FONT_TYPE_PS_OPENTYPE
                                : GFX_FONT_TYPE_TRUETYPE) /*type*/,
@@ -822,7 +822,7 @@ gfxFontEntry* gfxGDIFontList::MakePlatformFont(const nsACString& aFontName,
     fe->mIsDataUserFont = true;
   }
 
-  return fe;
+  return fe.forget();
 }
 
 bool gfxGDIFontList::FindAndAddFamiliesLocked(
@@ -1072,9 +1072,9 @@ already_AddRefed<FontInfoData> gfxGDIFontList::CreateFontInfoData() {
   return fi.forget();
 }
 
-gfxFontFamily* gfxGDIFontList::CreateFontFamily(
+already_AddRefed<gfxFontFamily> gfxGDIFontList::CreateFontFamily(
     const nsACString& aName, FontVisibility aVisibility) const {
-  return new GDIFontFamily(aName, aVisibility);
+  return MakeAndAddRef<GDIFontFamily>(aName, aVisibility);
 }
 
 #ifdef MOZ_BUNDLED_FONTS
