@@ -349,7 +349,7 @@ bool RenderDXGITextureHost::EnsureD3D11Texture2D(ID3D11Device* aDevice) {
   } else {
     // Get the D3D11 texture from shared handle.
     HRESULT hr = aDevice->OpenSharedResource(
-        (HANDLE)mHandle->GetHandle(), __uuidof(ID3D11Texture2D),
+        (HANDLE)mHandle, __uuidof(ID3D11Texture2D),
         (void**)(ID3D11Texture2D**)getter_AddRefs(mTexture));
     if (FAILED(hr)) {
       MOZ_ASSERT(false,
