@@ -49,7 +49,7 @@
       --color-accent-primary-selected: rgb(255, 60, 60) !important;
     }
     &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+      --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -70,7 +70,29 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+
+    content-search-handoff-ui {
+      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
+      --content-search-handoff-ui-color: ButtonText !important;
+      --content-search-handoff-ui-fill: ButtonText !important;
+      --content-search-handoff-ui-caret-color: ButtonText !important;
+
+      --content-search-handoff-ui-unfocused-border-color: rgb(160, 60, 60) !important;
+      --content-search-handoff-ui-fakefocus-border-color: rgb(160, 60, 60) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(160, 60, 60) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(160, 60, 60, 0.3) !important;
+    }
+
+    .info-border {
+      box-shadow: none !important;
+      background: none !important;
+    }
+
+    .info {
+      background-color: var(--color-black-alpha-20) !important;
+      box-shadow: none !important;
+    }
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -133,7 +155,29 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+
+    content-search-handoff-ui {
+      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
+      --content-search-handoff-ui-color: ButtonText !important;
+      --content-search-handoff-ui-fill: ButtonText !important;
+      --content-search-handoff-ui-caret-color: ButtonText !important;
+
+      --content-search-handoff-ui-unfocused-border-color: rgb(183, 98, 69) !important;
+      --content-search-handoff-ui-fakefocus-border-color: rgb(183, 98, 69) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(183, 98, 69) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(183, 98, 69, 0.3) !important;
+    }
+
+    .info-border {
+      box-shadow: none !important;
+      background: none !important;
+    }
+
+    .info {
+      background-color: var(--color-black-alpha-20) !important;
+      box-shadow: none !important;
+    }
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -196,7 +240,29 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+
+    content-search-handoff-ui {
+      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
+      --content-search-handoff-ui-color: ButtonText !important;
+      --content-search-handoff-ui-fill: ButtonText !important;
+      --content-search-handoff-ui-caret-color: ButtonText !important;
+
+      --content-search-handoff-ui-unfocused-border-color: rgb(160, 60, 135) !important;
+      --content-search-handoff-ui-fakefocus-border-color: rgb(160, 60, 135) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(160, 60, 135) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(160, 60, 135, 0.3) !important;
+    }
+
+    .info-border {
+      box-shadow: none !important;
+      background: none !important;
+    }
+
+    .info {
+      background-color: var(--color-black-alpha-20) !important;
+      box-shadow: none !important;
+    }
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
@@ -289,7 +355,29 @@
   }
 
   html.private {
-      --background-color-canvas: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+    background: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
+
+    content-search-handoff-ui {
+      --content-search-handoff-ui-background-color: var(--color-black-alpha-20) !important;
+      --content-search-handoff-ui-color: ButtonText !important;
+      --content-search-handoff-ui-fill: ButtonText !important;
+      --content-search-handoff-ui-caret-color: ButtonText !important;
+
+      --content-search-handoff-ui-unfocused-border-color: rgb(114, 63, 140) !important;
+      --content-search-handoff-ui-fakefocus-border-color: rgb(114, 63, 140) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-inner: rgb(114, 63, 140) !important;
+      --content-search-handoff-ui-fakefocus-box-shadow-outer: rgba(114, 63, 140, 0.3) !important;
+    }
+
+    .info-border {
+      box-shadow: none !important;
+      background: none !important;
+    }
+
+    .info {
+      background-color: var(--color-black-alpha-20) !important;
+      box-shadow: none !important;
+    }
   }
 
   #main-window[privatebrowsingmode="temporary"] #TabsToolbar {
