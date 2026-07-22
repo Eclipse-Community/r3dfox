@@ -1132,11 +1132,7 @@ pref("security.allow_parent_unrestricted_js_loads", false);
 pref("browser.unexpectedScriptLoad.logLevel", "Warn");
 
 // Unload tabs when available memory is running low
-#if defined(XP_MACOSX) || defined(XP_WIN)
-    pref("browser.tabs.unloadOnLowMemory", true);
-#else
-    pref("browser.tabs.unloadOnLowMemory", false);
-#endif
+pref("browser.tabs.unloadOnLowMemory", false);
 
 // Tab Unloader does not unload tabs whose last inactive period is longer than
 // this value (in milliseconds).
