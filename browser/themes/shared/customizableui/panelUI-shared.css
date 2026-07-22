@@ -1194,13 +1194,13 @@ panelview .toolbarbutton-1,
 
 @media (-moz-windows-non-native-menus) {
   .toolbar-menupopup :is(menu, menuitem) {
-    appearance: none;
-    margin: var(--arrowpanel-menuitem-margin);
-    min-height: 24px;
-    padding: var(--arrowpanel-menuitem-padding);
-    border-radius: var(--arrowpanel-menuitem-border-radius);
-    background-color: transparent;
-    flex-shrink: 0;
+  appearance: none;
+  margin: var(--panel-menuitem-margin);
+  min-height: 24px;
+  padding: var(--panel-menuitem-padding);
+  border-radius: var(--panel-menuitem-border-radius);
+  background-color: transparent;
+  flex-shrink: 0;
   }
 }
 
