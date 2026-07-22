@@ -50,8 +50,10 @@
   /* Panel design token theming */
   --background-color-canvas: var(--panel-background-color);
 
-  --panel-box-shadow: 0 0 var(--panel-box-shadow-margin) hsla(0, 0%, 0%, 0.2);
-  --panel-padding-block: 0;
+  @media not (-moz-windows-non-native-menus) {
+    --panel-box-shadow: 0 0 var(--panel-box-shadow-margin) hsla(0, 0%, 0%, 0.2);
+    --panel-padding-block: 0;
+  }
 
   @media (-moz-platform: linux) and (not (-moz-gtk-csd-transparency-available)) {
     /* On some linux WMs we need to draw square and opaque menus because alpha
@@ -261,18 +263,11 @@ panel[type="arrow"] {
   }
 }
 
-@media (-moz-platform: windows) {
+@media not (-moz-windows-non-native-menus) {
   menulist > menupopup {
     appearance: none;
     background-color: transparent;
     border: none;
-  }
-}
-
-@media not (-moz-windows-non-native-menus) {
-  /* For Win10, the popup itself needs to have a transparent background because
-     otherwise the background color would appear behind the drop shadow. */
-  menulist > menupopup {
     color: FieldText;
     --panel-background-color: Field;
     --panel-border-color: ThreeDShadow;
