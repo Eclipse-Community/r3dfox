@@ -12,7 +12,7 @@ use crate::spatial_tree::CoordinateSystemId;
 use euclid::{Vector2D, SideOffsets2D};
 use crate::scene::SceneProperties;
 use crate::util::{LayoutFastTransform, MatrixHelpers, ScaleOffset, TransformedRectKind};
-use crate::util::VectorHelpers;
+use crate::util::{PointHelpers, VectorHelpers};
 
 /// Defines the content of a spatial node. If the values in the descriptor don't
 /// change, that means the rest of the fields in a spatial node will end up with
@@ -54,6 +54,10 @@ pub struct SpatialNodeInfo<'a> {
 
     /// Parent spatial node. If this is None, we are the root node.
     pub parent: Option<SpatialNodeIndex>,
+
+    /// Snapping scale/offset relative to the coordinate system. If None, then
+    /// we should not snap entities bound to this spatial node.
+    pub snapping_transform: Option<ScaleOffset>,
 }
 
 /// Scene building specific representation of a spatial node, which is a much
@@ -62,6 +66,10 @@ pub struct SpatialNodeInfo<'a> {
 #[cfg_attr(feature = "replay", derive(Deserialize))]
 #[derive(PartialEq)]
 pub struct SceneSpatialNode {
+    /// Snapping scale/offset relative to the coordinate system. If None, then
+    /// we should not snap entities bound to this spatial node.
+    pub snapping_transform: Option<ScaleOffset>,
+
     /// Parent spatial node. If this is None, we are the root node.
     pub parent: Option<SpatialNodeIndex>,
 
@@ -159,6 +167,7 @@ impl SceneSpatialNode {
                 pipeline_id,
                 node_type,
             },
+            snapping_transform: None,
             is_root_coord_system,
         }
     }
@@ -175,6 +184,10 @@ pub struct SpatialNode {
 
     /// Content scale/offset relative to the coordinate system.
     pub content_transform: ScaleOffset,
+
+    /// Snapping scale/offset relative to the coordinate system. If None, then
+    /// we should not snap entities bound to this spatial node.
+    pub snapping_transform: Option<ScaleOffset>,
 
     /// The axis-aligned coordinate system id of this node.
     pub coordinate_system_id: CoordinateSystemId,
@@ -219,17 +232,11 @@ fn snap_offset<OffsetUnits, ScaleUnits>(
     offset: Vector2D<f32, OffsetUnits>,
     scale: Vector2D<f32, ScaleUnits>,
 ) -> Vector2D<f32, OffsetUnits> {
-    // Snap the accumulated (composite) offset of a spatial node to the device
-    // pixel grid. Per-prim rect snapping at frame time happens in each surface's
-    // raster space (`SpaceSnapper`), which excludes a scroll/sticky slice's own
-    // composite offset; that offset must still be snapped here so the slice
-    // composites on an integer boundary. Scroll slices already land integer
-    // (their sampled offset is pre-snapped); sticky slices rely on this.
-    let snapped_x = (offset.x * scale.x).round();
-    let snapped_y = (offset.y * scale.y).round();
+    let world_offset = WorldPoint::new(offset.x * scale.x, offset.y * scale.y);
+    let snapped_world_offset = world_offset.snap();
     Vector2D::new(
-        if scale.x != 0.0 { snapped_x / scale.x } else { offset.x },
-        if scale.y != 0.0 { snapped_y / scale.y } else { offset.y },
+        if scale.x != 0.0 { snapped_world_offset.x / scale.x } else { offset.x },
+        if scale.y != 0.0 { snapped_world_offset.y / scale.y } else { offset.y },
     )
 }
 
@@ -358,25 +365,30 @@ impl SpatialNode {
                     ReferenceFrameKind::Transform { .. } => source_transform,
                 };
 
-                // An axis-aligned reference frame composes into a `ScaleOffset`,
-                // so its accumulated device offset is snapped below (the
-                // `should_snap` round on `cs_scale_offset`); the origin is used
-                // as-is here. A non-axis-aligned frame (skew / rotation /
-                // perspective) doesn't compose into a `ScaleOffset`, so that
-                // path can't reach it, and the frame-time rect pass can't either
-                // (`SpaceSnapper` won't snap across a non-axis-aligned frame), so
-                // snap the origin's device position here instead - otherwise a
-                // fractional origin shifts all content below it.
-                let parent_origin = match info.source_transform {
-                    PropertyBinding::Value(ref value)
-                        if ScaleOffset::from_transform(value).is_none() =>
-                    {
+                // Previously, the origin of a stacking context transform was snapped
+                // in Gecko. However, this causes jittering issues during scrolling in
+                // some cases when fractional scrolling is enabled. The origin used in
+                // Gecko doesn't have the external scroll offset from the content process
+                // removed, so if that content-side scroll amount is fractional, it can
+                // cause inconsistent snapping during scene building. Instead, we need
+                // to apply the device-pixel snap _after_ the external scroll offset
+                // has been removed. To further complicate matters, we _don't_ want to
+                // snap this if this spatial node has a snapping transform, as we rely
+                // on the fractional intermediate nodes in order to arrive at a correct
+                // final snapping result. If we don't have a snapping offset, we've
+                // reached a spatial node where snapping will no longer apply (e.g. a
+                // complex transform) and then we need to snap the device pixel position
+                // of that transform.
+                let parent_origin = match self.snapping_transform {
+                    Some(..) => {
+                        info.origin_in_parent_reference_frame
+                    }
+                    None => {
                         snap_offset(
                             info.origin_in_parent_reference_frame,
                             state.coordinate_system_relative_scale_offset.scale,
                         )
                     }
-                    _ => info.origin_in_parent_reference_frame,
                 };
 
                 let resolved_transform =
@@ -404,22 +416,17 @@ impl SpatialNode {
                     // incompatible coordinate system.
                     match ScaleOffset::from_transform(&relative_transform) {
                         Some(ref scale_offset) => {
-                            // Compose with the accumulated parent transform first,
-                            // then snap the *accumulated* device offset for
-                            // `should_snap` frames. Snapping the local offset before
-                            // composing (as this used to) ignores a fractional
-                            // ancestor transform and leaves the frame on a sub-pixel
-                            // boundary; see bug 1580534. The composed offset is already
-                            // in device space, so round it directly — `snap_offset`
-                            // would re-apply the accumulated scale and mis-round under a
-                            // non-unit-scale ancestor (e.g. `transform: scale(0.5)`,
-                            // bug 637852). We generally do not snap animated transforms
-                            // as it causes jitter, but we do want to snap the visual
-                            // viewport offset when scrolling.
-                            cs_scale_offset = scale_offset.then(&state.coordinate_system_relative_scale_offset);
+                            // We generally do not want to snap animated transforms as it causes jitter.
+                            // However, we do want to snap the visual viewport offset when scrolling.
+                            // This may still cause jitter when zooming, unfortunately.
+                            let mut maybe_snapped = scale_offset.clone();
                             if let ReferenceFrameKind::Transform { should_snap: true, .. } = info.kind {
-                                cs_scale_offset.offset = cs_scale_offset.offset.round();
+                                maybe_snapped.offset = snap_offset(
+                                    scale_offset.offset,
+                                    state.coordinate_system_relative_scale_offset.scale,
+                                );
                             }
+                            cs_scale_offset = maybe_snapped.then(&state.coordinate_system_relative_scale_offset);
                         }
                         None => reset_cs_id = true,
                     }
@@ -538,9 +545,7 @@ impl SpatialNode {
         // be offset in order to keep it on screen. Since we care about the relationship
         // between the scrolled content and unscrolled viewport we adjust the viewport's
         // position by the scroll offset in order to work with their relative positions on the
-        // page. `frame_rect` is the item's natural (unstuck) position: the display-list
-        // builder removed the offset layout had already applied, so we compute the full
-        // sticky offset here rather than a delta on top of a pre-applied amount.
+        // page.
         let mut sticky_rect = info.frame_rect.translate(*viewport_scroll_offset);
 
         let mut sticky_offset = LayoutVector2D::zero();
@@ -550,11 +555,26 @@ impl SpatialNode {
                 // If the sticky rect is positioned above the top edge of the viewport (plus margin)
                 // we move it down so that it is fully inside the viewport.
                 sticky_offset.y = top_viewport_edge - sticky_rect.min.y;
+            } else if info.previously_applied_offset.y > 0.0 &&
+                sticky_rect.min.y > top_viewport_edge {
+                // However, if the sticky rect is positioned *below* the top edge of the viewport
+                // and there is already some offset applied to the sticky rect's position, then
+                // we need to move it up so that it remains at the correct position. This
+                // makes sticky_offset.y negative and effectively reduces the amount of the
+                // offset that was already applied. We limit the reduction so that it can, at most,
+                // cancel out the already-applied offset, but should never end up adjusting the
+                // position the other way.
+                sticky_offset.y = top_viewport_edge - sticky_rect.min.y;
+                sticky_offset.y = sticky_offset.y.max(-info.previously_applied_offset.y);
             }
         }
 
-        // If we don't have a sticky-top offset, check for handling the bottom margin case.
-        if sticky_offset.y <= 0.0 {
+        // If we don't have a sticky-top offset (sticky_offset.y + info.previously_applied_offset.y
+        // == 0), or if we have a previously-applied bottom offset (previously_applied_offset.y < 0)
+        // then we check for handling the bottom margin case. Note that the "don't have a sticky-top
+        // offset" case includes the case where we *had* a sticky-top offset but we reduced it to
+        // zero in the above block.
+        if sticky_offset.y + info.previously_applied_offset.y <= 0.0 {
             if let Some(margin) = info.margins.bottom {
                 // If sticky_offset.y is nonzero that means we must have set it
                 // in the sticky-top handling code above, so this item must have
@@ -565,10 +585,16 @@ impl SpatialNode {
                 sticky_rect.max.y += sticky_offset.y;
 
                 // Same as the above case, but inverted for bottom-sticky items. Here
-                // we adjust items upwards, resulting in a negative sticky_offset.y.
+                // we adjust items upwards, resulting in a negative sticky_offset.y,
+                // or reduce the already-present upward adjustment, resulting in a positive
+                // sticky_offset.y.
                 let bottom_viewport_edge = viewport_rect.max.y - margin;
                 if sticky_rect.max.y > bottom_viewport_edge {
                     sticky_offset.y += bottom_viewport_edge - sticky_rect.max.y;
+                } else if info.previously_applied_offset.y < 0.0 &&
+                    sticky_rect.max.y < bottom_viewport_edge {
+                    sticky_offset.y += bottom_viewport_edge - sticky_rect.max.y;
+                    sticky_offset.y = sticky_offset.y.min(-info.previously_applied_offset.y);
                 }
             }
         }
@@ -578,29 +604,46 @@ impl SpatialNode {
             let left_viewport_edge = viewport_rect.min.x + margin;
             if sticky_rect.min.x < left_viewport_edge {
                 sticky_offset.x = left_viewport_edge - sticky_rect.min.x;
+            } else if info.previously_applied_offset.x > 0.0 &&
+                sticky_rect.min.x > left_viewport_edge {
+                sticky_offset.x = left_viewport_edge - sticky_rect.min.x;
+                sticky_offset.x = sticky_offset.x.max(-info.previously_applied_offset.x);
             }
         }
 
-        if sticky_offset.x <= 0.0 {
+        if sticky_offset.x + info.previously_applied_offset.x <= 0.0 {
             if let Some(margin) = info.margins.right {
                 sticky_rect.min.x += sticky_offset.x;
                 sticky_rect.max.x += sticky_offset.x;
                 let right_viewport_edge = viewport_rect.max.x - margin;
                 if sticky_rect.max.x > right_viewport_edge {
                     sticky_offset.x += right_viewport_edge - sticky_rect.max.x;
+                } else if info.previously_applied_offset.x < 0.0 &&
+                    sticky_rect.max.x < right_viewport_edge {
+                    sticky_offset.x += right_viewport_edge - sticky_rect.max.x;
+                    sticky_offset.x = sticky_offset.x.min(-info.previously_applied_offset.x);
                 }
             }
         }
 
-        // Clamp the sticky offset to the provided bounds, which describe how far
-        // the item can travel from its natural position.
-        let clamp = |value: f32, bounds: &StickyOffsetBounds| {
-            value.max(bounds.min).min(bounds.max)
+        // The total "sticky offset" (which is the sum that was already applied by
+        // the calling code, stored in info.previously_applied_offset, and the extra amount we
+        // computed as a result of scrolling, stored in sticky_offset) needs to be
+        // clamped to the provided bounds.
+        let clamp_adjusted = |value: f32, adjust: f32, bounds: &StickyOffsetBounds| {
+            (value + adjust).max(bounds.min).min(bounds.max) - adjust
         };
-        sticky_offset.y = clamp(sticky_offset.y, &info.vertical_offset_bounds);
-        sticky_offset.x = clamp(sticky_offset.x, &info.horizontal_offset_bounds);
+        sticky_offset.y = clamp_adjusted(sticky_offset.y,
+                                         info.previously_applied_offset.y,
+                                         &info.vertical_offset_bounds);
+        sticky_offset.x = clamp_adjusted(sticky_offset.x,
+                                         info.previously_applied_offset.x,
+                                         &info.horizontal_offset_bounds);
 
-        sticky_offset
+        // Reapply the content-process side sticky offset, which was removed
+        // from the primitive bounds attached to this node, so that interning
+        // sees stable values.
+        sticky_offset + info.previously_applied_offset
     }
 
     pub fn prepare_state_for_children(&self, state: &mut TransformUpdateState) {
@@ -821,6 +864,7 @@ pub struct StickyFrameInfo {
   pub frame_rect: LayoutRect,
     pub vertical_offset_bounds: StickyOffsetBounds,
     pub horizontal_offset_bounds: StickyOffsetBounds,
+    pub previously_applied_offset: LayoutVector2D,
     pub current_offset: LayoutVector2D,
     pub transform: Option<PropertyBinding<LayoutTransform>>,
 }
@@ -831,6 +875,7 @@ impl StickyFrameInfo {
         margins: SideOffsets2D<Option<f32>, LayoutPixel>,
         vertical_offset_bounds: StickyOffsetBounds,
         horizontal_offset_bounds: StickyOffsetBounds,
+        previously_applied_offset: LayoutVector2D,
         transform: Option<PropertyBinding<LayoutTransform>>,
     ) -> StickyFrameInfo {
         StickyFrameInfo {
@@ -838,6 +883,7 @@ impl StickyFrameInfo {
             margins,
             vertical_offset_bounds,
             horizontal_offset_bounds,
+            previously_applied_offset,
             current_offset: LayoutVector2D::zero(),
             transform,
         }

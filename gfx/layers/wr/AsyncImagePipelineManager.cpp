@@ -224,7 +224,9 @@ Maybe<TextureHost::ResourceUpdateOp> AsyncImagePipelineManager::UpdateImageKeys(
   MOZ_ASSERT(aKeys.IsEmpty());
   MOZ_ASSERT(aPipeline);
 
-  if (aTexture == aPipeline->mCurrentTexture.get()) {
+  TextureHost* previousTexture = aPipeline->mCurrentTexture.get();
+
+  if (aTexture == previousTexture) {
     // The texture has not changed, just reuse previous ImageKeys.
     aKeys = aPipeline->mKeys.Clone();
     return Nothing();
@@ -242,8 +244,6 @@ Maybe<TextureHost::ResourceUpdateOp> AsyncImagePipelineManager::UpdateImageKeys(
     return Nothing();
   }
 
-  RefPtr<TextureHost> previousTexture =
-      std::move(aPipeline->mCurrentTexture.get());
   aPipeline->mCurrentTexture = aTexture;
 
   WebRenderTextureHost* wrTexture = aTexture->AsWebRenderTextureHost();

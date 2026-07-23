@@ -108,7 +108,7 @@ use crate::render_task::RenderTask;
 use crate::render_task_graph::RenderTaskGraphBuilder;
 use crate::resource_cache::{ImageRequest, ResourceCache};
 use crate::scene_builder_thread::Interners;
-use crate::space::{SpaceMapper, SpaceSnapper};
+use crate::space::SpaceMapper;
 use crate::util::{extract_inner_rect_safe, project_rect, MatrixHelpers, MaxRect, ScaleOffset};
 use euclid::approxeq::ApproxEq;
 use std::{iter, ops, u32, mem};
@@ -120,35 +120,13 @@ use std::{iter, ops, u32, mem};
 pub struct ClipTreeNode {
     pub handle: ClipDataHandle,
     pub spatial_node_index: SpatialNodeIndex,
-    /// Clip rect as authored by the display list (not snapped to the device
-    /// pixel grid). Snapped on demand by `ClipTreeNode::snapped_clip_rect`
-    /// during clip-chain construction.
-    pub unsnapped_clip_rect: LayoutRect,
+    pub clip_rect: LayoutRect,
     pub parent: ClipNodeId,
 
     children: FastHashMap<ClipEntry, ClipNodeId>,
 
     // TODO(gw): Consider adding a default leaf for cases when the local_clip_rect is not relevant,
     //           that can be shared among primitives (to reduce amount of clip-chain building).
-}
-
-impl ClipTreeNode {
-    /// Snap `unsnapped_clip_rect` against the current spatial tree, in this
-    /// node's own spatial-node space, relative to the consuming prim's surface
-    /// raster node. Built on demand during clip-chain construction: the snapped
-    /// rect depends on the per-frame spatial tree, and a clip node can be shared
-    /// by prims in different surfaces, so it can't be pre-snapped to a single
-    /// space. Only the root sentinel node carries an `INVALID` spatial node, and
-    /// that node is never visited during clip-chain construction.
-    fn snapped_clip_rect(
-        &self,
-        snapper: &mut SpaceSnapper,
-        spatial_tree: &SpatialTree,
-    ) -> LayoutRect {
-        debug_assert!(self.spatial_node_index != SpatialNodeIndex::INVALID);
-        snapper.set_target_spatial_node(self.spatial_node_index, spatial_tree);
-        snapper.snap_rect(&self.unsnapped_clip_rect)
-    }
 }
 
 /// A leaf node in a clip-tree. Any primitive that is clipped will have a handle to
@@ -163,15 +141,7 @@ pub struct ClipTreeLeaf {
     //           from the supplied leaf local clip rect on the primitive. In
     //           future, we'll expand this to be more efficient by combining
     //           it will compatible clip rects from the `node_id`.
-    /// Leaf-local clip rect as authored by the display list (not snapped to
-    /// the device pixel grid).
-    pub unsnapped_local_clip_rect: LayoutRect,
-    /// `unsnapped_local_clip_rect` snapped against the current spatial tree
-    /// in the owning primitive's cluster spatial-node space. Written each
-    /// frame by the visibility pass from the cluster loop, using the cluster's
-    /// (resolved) spatial node as the snap target. Picture / tile-cache leaves
-    /// carry `max_rect` and pass through unchanged.
-    pub snapped_local_clip_rect: LayoutRect,
+    pub local_clip_rect: LayoutRect,
 }
 
 /// ID for a ClipTreeNode
@@ -222,7 +192,7 @@ impl ClipTree {
                 ClipTreeNode {
                     handle: ClipDataHandle::INVALID,
                     spatial_node_index: SpatialNodeIndex::INVALID,
-                    unsnapped_clip_rect: LayoutRect::zero(),
+                    clip_rect: LayoutRect::zero(),
                     children: FastHashMap::default(),
                     parent: ClipNodeId::NONE,
                 }
@@ -239,7 +209,7 @@ impl ClipTree {
         self.nodes.push(ClipTreeNode {
             handle: ClipDataHandle::INVALID,
             spatial_node_index: SpatialNodeIndex::INVALID,
-            unsnapped_clip_rect: LayoutRect::zero(),
+            clip_rect: LayoutRect::zero(),
             children: FastHashMap::default(),
             parent: ClipNodeId::NONE,
         });
@@ -277,7 +247,7 @@ impl ClipTree {
                     nodes.push(ClipTreeNode {
                         handle: key.handle,
                         spatial_node_index: key.spatial_node_index,
-                        unsnapped_clip_rect: key.clip_rect.into(),
+                        clip_rect: key.clip_rect.into(),
                         children: FastHashMap::default(),
                         parent: id,
                     });
@@ -351,13 +321,6 @@ impl ClipTree {
         &self.leaves[id.0 as usize]
     }
 
-    /// Mutable accessor for a single leaf. Used by the visibility pass from
-    /// inside the cluster loop to refresh `snapped_local_clip_rect` against
-    /// the same spatial node as the owning prim's rect.
-    pub fn get_leaf_mut(&mut self, id: ClipLeafId) -> &mut ClipTreeLeaf {
-        &mut self.leaves[id.0 as usize]
-    }
-
     /// Debug print the clip-tree
     #[allow(unused)]
     pub fn print(&self) {
@@ -389,7 +352,7 @@ impl ClipTree {
 
             pt.new_level(format!("{:?}", id));
             pt.add_item(format!("node_id: {:?}", leaf.node_id));
-            pt.add_item(format!("unsnapped_local_clip_rect: {:?}", leaf.unsnapped_local_clip_rect));
+            pt.add_item(format!("local_clip_rect: {:?}", leaf.local_clip_rect));
             pt.end_level();
         }
 
@@ -899,8 +862,7 @@ impl ClipTreeBuilder {
 
         self.tree.leaves.push(ClipTreeLeaf {
             node_id,
-            unsnapped_local_clip_rect: LayoutRect::max_rect(),
-            snapped_local_clip_rect: LayoutRect::max_rect(),
+            local_clip_rect: LayoutRect::max_rect(),
         });
 
         clip_leaf_id
@@ -920,8 +882,7 @@ impl ClipTreeBuilder {
 
         self.tree.leaves.push(ClipTreeLeaf {
             node_id,
-            unsnapped_local_clip_rect: LayoutRect::max_rect(),
-            snapped_local_clip_rect: LayoutRect::max_rect(),
+            local_clip_rect: LayoutRect::max_rect(),
         });
 
         clip_leaf_id
@@ -969,8 +930,7 @@ impl ClipTreeBuilder {
 
         self.tree.leaves.push(ClipTreeLeaf {
             node_id,
-            unsnapped_local_clip_rect: info.clip_rect,
-            snapped_local_clip_rect: LayoutRect::zero(),
+            local_clip_rect: info.clip_rect,
         });
 
         clip_leaf_id
@@ -1426,7 +1386,6 @@ impl ClipStore {
         prim_spatial_node_index: SpatialNodeIndex,
         pic_spatial_node_index: SpatialNodeIndex,
         visibility_spatial_node_index: SpatialNodeIndex,
-        snapper: &mut SpaceSnapper,
         clip_leaf_id: ClipLeafId,
         spatial_tree: &SpatialTree,
         clip_data_store: &ClipDataStore,
@@ -1439,10 +1398,7 @@ impl ClipStore {
         let clip_root = clip_tree.current_clip_root();
         let clip_leaf = clip_tree.get_leaf(clip_leaf_id);
 
-        // The leaf has been pre-snapped by the visibility pass for this frame;
-        // ancestor node clip rects are snapped on demand below, via `snapper`
-        // (bound to the same surface raster node the prim snapped against).
-        let mut local_clip_rect = clip_leaf.snapped_local_clip_rect;
+        let mut local_clip_rect = clip_leaf.local_clip_rect;
         let mut current = clip_leaf.node_id;
 
         while current != clip_root && current != ClipNodeId::NONE {
@@ -1451,7 +1407,7 @@ impl ClipStore {
             if !add_clip_node_to_current_chain(
                 node.handle,
                 node.spatial_node_index,
-                node.snapped_clip_rect(snapper, spatial_tree),
+                node.clip_rect,
                 prim_spatial_node_index,
                 pic_spatial_node_index,
                 visibility_spatial_node_index,

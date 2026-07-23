@@ -1551,10 +1551,6 @@ static int32_t findGradientStopPair(float offset, float* stops,
     prevOffset = 0.0;
     nextOffset = 1.0;
 
-    if (!isfinite(offset)) {
-        offset = 0.0f;
-    }
-
     while (true) {
         int32_t addr = (levelBaseAddr + offsetInLevel) * 4;
         float currentStops0 = stops[addr];

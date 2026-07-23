@@ -905,21 +905,6 @@ pub struct DisplayListBuilder {
     serialized_content_buffer: Option<String>,
     state: BuildState,
 
-    /// Accumulated external scroll offset per spatial node, used to normalize
-    /// item coordinates at push time so WebRender interns scroll-invariant
-    /// positions. Scroll frames add their `external_scroll_offset`, sticky
-    /// frames subtract their `previously_applied_offset`, reference frames
-    /// reset to zero. The offset fields are still sent so WebRender can keep
-    /// applying them at frame time (APZ reconciliation, sticky math).
-    spatial_offsets: HashMap<di::SpatialId, LayoutVector2D>,
-    /// Single-entry cache for `spatial_offsets`. Items are typically emitted
-    /// grouped by spatial node, so consecutive lookups hit this and skip
-    /// hashing (mirrors the scene builder's `ScrollOffsetMapper`).
-    last_scroll_offset: Option<(di::SpatialId, LayoutVector2D)>,
-    /// Reused buffer for normalized glyph positions, to avoid a per-text-run
-    /// allocation when shifting glyphs by the external scroll offset.
-    glyph_scratch: Vec<GlyphInstance>,
-
     /// Helper struct to map stacking context coords <-> reference frame coords.
     rf_mapper: ReferenceFrameMapper,
 }
@@ -952,9 +937,6 @@ impl DisplayListBuilder {
             save_state: None,
             serialized_content_buffer: None,
             state: BuildState::Idle,
-            spatial_offsets: HashMap::new(),
-            last_scroll_offset: None,
-            glyph_scratch: Vec::new(),
 
             rf_mapper: ReferenceFrameMapper::new(),
         }
@@ -969,8 +951,6 @@ impl DisplayListBuilder {
 
         self.save_state = None;
         self.serialized_content_buffer = None;
-        self.spatial_offsets.clear();
-        self.last_scroll_offset = None;
 
         self.rf_mapper = ReferenceFrameMapper::new();
     }
@@ -1001,12 +981,6 @@ impl DisplayListBuilder {
         self.next_clip_index = state.next_clip_index;
         self.next_spatial_index = state.next_spatial_index;
         self.next_clip_chain_id = state.next_clip_chain_id;
-
-        // Drop offsets recorded for spatial nodes defined after the save point;
-        // those ids will be reused, so the single-entry cache could be stale.
-        let next_spatial_index = state.next_spatial_index;
-        self.spatial_offsets.retain(|id, _| id.0 < next_spatial_index);
-        self.last_scroll_offset = None;
     }
 
     /// Discards the builder's save (indicating the attempted operation was successful).
@@ -1163,11 +1137,10 @@ impl DisplayListBuilder {
         bounds: LayoutRect,
         color: ColorF,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::Rectangle(di::RectangleDisplayItem {
-            common,
+            common: *common,
             color: PropertyBinding::Value(color),
-            bounds: bounds.translate(offset),
+            bounds,
         });
         self.push_item(&item);
     }
@@ -1178,11 +1151,10 @@ impl DisplayListBuilder {
         bounds: LayoutRect,
         color: PropertyBinding<ColorF>,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::Rectangle(di::RectangleDisplayItem {
-            common,
+            common: *common,
             color,
-            bounds: bounds.translate(offset),
+            bounds,
         });
         self.push_item(&item);
     }
@@ -1227,7 +1199,7 @@ impl DisplayListBuilder {
         tag: di::ItemTag,
     ) {
         let item = di::DisplayItem::HitTest(di::HitTestDisplayItem {
-            rect: self.normalize_rect(rect, spatial_id),
+            rect,
             clip_chain_id,
             spatial_id,
             flags,
@@ -1245,11 +1217,10 @@ impl DisplayListBuilder {
         color: &ColorF,
         style: di::LineStyle,
     ) {
-        let (common, offset) = self.normalize_common(common);
-        let area = area.translate(offset);
+        let area = *area;
 
         let item = di::DisplayItem::Line(di::LineDisplayItem {
-            common,
+            common: *common,
             area,
             wavy_line_thickness,
             orientation,
@@ -1269,10 +1240,9 @@ impl DisplayListBuilder {
         key: ImageKey,
         color: ColorF,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::Image(di::ImageDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             image_key: key,
             image_rendering,
             alpha_type,
@@ -1293,10 +1263,9 @@ impl DisplayListBuilder {
         key: ImageKey,
         color: ColorF,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::RepeatingImage(di::RepeatingImageDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             image_key: key,
             stretch_size,
             tile_spacing,
@@ -1319,10 +1288,9 @@ impl DisplayListBuilder {
         color_range: di::ColorRange,
         image_rendering: di::ImageRendering,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::YuvImage(di::YuvImageDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             yuv_data,
             color_depth,
             color_space,
@@ -1341,34 +1309,18 @@ impl DisplayListBuilder {
         color: ColorF,
         glyph_options: Option<GlyphOptions>,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::Text(di::TextDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             color,
             font_key,
             glyph_options,
         });
 
-        // Take the scratch buffer out so we can hold it while also borrowing
-        // `self` mutably for `push_item`/`push_iter`; put it back afterwards to
-        // retain its capacity across text runs. A no-op (empty Vec swap) when
-        // the offset is zero or the prototype is disabled.
-        let mut scratch = mem::take(&mut self.glyph_scratch);
         for split_glyphs in glyphs.chunks(MAX_TEXT_RUN_LENGTH) {
             self.push_item(&item);
-            if offset != LayoutVector2D::zero() {
-                scratch.clear();
-                scratch.extend(split_glyphs.iter().map(|g| GlyphInstance {
-                    index: g.index,
-                    point: g.point + offset,
-                }));
-                self.push_iter(&scratch);
-            } else {
-                self.push_iter(split_glyphs);
-            }
+            self.push_iter(split_glyphs);
         }
-        self.glyph_scratch = scratch;
     }
 
     /// NOTE: gradients must be pushed in the order they're created
@@ -1423,10 +1375,9 @@ impl DisplayListBuilder {
         widths: LayoutSideOffsets,
         details: di::BorderDetails,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::Border(di::BorderDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             details,
             widths,
         });
@@ -1446,10 +1397,9 @@ impl DisplayListBuilder {
         shadow_radius: di::BorderRadius,
         clip_mode: di::BoxShadowClipMode,
     ) {
-        let (common, eso_offset) = self.normalize_common(common);
         let item = di::DisplayItem::BoxShadow(di::BoxShadowDisplayItem {
-            common,
-            box_bounds: box_bounds.translate(eso_offset),
+            common: *common,
+            box_bounds,
             offset,
             color,
             blur_radius,
@@ -1484,10 +1434,9 @@ impl DisplayListBuilder {
         tile_size: LayoutSize,
         tile_spacing: LayoutSize,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::Gradient(di::GradientDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             gradient,
             tile_size,
             tile_spacing,
@@ -1507,10 +1456,9 @@ impl DisplayListBuilder {
         tile_size: LayoutSize,
         tile_spacing: LayoutSize,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::RadialGradient(di::RadialGradientDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             gradient,
             tile_size,
             tile_spacing,
@@ -1530,10 +1478,9 @@ impl DisplayListBuilder {
         tile_size: LayoutSize,
         tile_spacing: LayoutSize,
     ) {
-        let (common, offset) = self.normalize_common(common);
         let item = di::DisplayItem::ConicGradient(di::ConicGradientDisplayItem {
-            common,
-            bounds: bounds.translate(offset),
+            common: *common,
+            bounds,
             gradient,
             tile_size,
             tile_spacing,
@@ -1550,7 +1497,6 @@ impl DisplayListBuilder {
         transform: PropertyBinding<LayoutTransform>,
         kind: di::ReferenceFrameKind,
     ) -> di::SpatialId {
-        let parent_offset = self.accumulated_scroll_offset(parent_spatial_id);
         let id = self.generate_spatial_index();
 
         let current_offset = self.rf_mapper.current_offset();
@@ -1558,7 +1504,7 @@ impl DisplayListBuilder {
 
         let descriptor = di::SpatialTreeItem::ReferenceFrame(di::ReferenceFrameDescriptor {
             parent_spatial_id,
-            origin: origin + parent_offset,
+            origin,
             reference_frame: di::ReferenceFrame {
                 transform_style,
                 transform: di::ReferenceTransformBinding::Static {
@@ -1569,8 +1515,6 @@ impl DisplayListBuilder {
             },
         });
         self.push_spatial_tree_item(&descriptor);
-        // External scroll offset does not propagate across reference frames.
-        self.record_scroll_offset(id, LayoutVector2D::zero());
 
         self.rf_mapper.push_scope();
 
@@ -1589,7 +1533,6 @@ impl DisplayListBuilder {
         vertical_flip: bool,
         rotation: di::Rotation,
     ) -> di::SpatialId {
-        let parent_offset = self.accumulated_scroll_offset(parent_spatial_id);
         let id = self.generate_spatial_index();
 
         let current_offset = self.rf_mapper.current_offset();
@@ -1597,7 +1540,7 @@ impl DisplayListBuilder {
 
         let descriptor = di::SpatialTreeItem::ReferenceFrame(di::ReferenceFrameDescriptor {
             parent_spatial_id,
-            origin: origin + parent_offset,
+            origin,
             reference_frame: di::ReferenceFrame {
                 transform_style: di::TransformStyle::Flat,
                 transform: di::ReferenceTransformBinding::Computed {
@@ -1614,8 +1557,6 @@ impl DisplayListBuilder {
             },
         });
         self.push_spatial_tree_item(&descriptor);
-        // External scroll offset does not propagate across reference frames.
-        self.record_scroll_offset(id, LayoutVector2D::zero());
 
         self.rf_mapper.push_scope();
 
@@ -1644,7 +1585,7 @@ impl DisplayListBuilder {
         flags: di::StackingContextFlags,
         snapshot: Option<di::SnapshotInfo>
     ) {
-        self.push_filters_normalized(filters, filter_datas, spatial_id);
+        self.push_filters(filters, filter_datas);
 
         let item = di::DisplayItem::PushStackingContext(di::PushStackingContextDisplayItem {
             spatial_id,
@@ -1716,43 +1657,12 @@ impl DisplayListBuilder {
         filters: &[di::FilterOp],
         filter_datas: &[di::FilterData],
     ) {
-        // Unlike a regular filter, a backdrop filter's picture is anchored to
-        // the backdrop root (resolved from SpatialNodeIndex::UNKNOWN), not to
-        // `common.spatial_id`, so the backdrop root does not re-apply this
-        // node's external scroll offset at frame time. The SVGFE subregion must
-        // therefore stay un-normalized; only the item geometry below is.
         self.push_filters(filters, filter_datas);
 
-        let (common, _offset) = self.normalize_common(common);
         let item = di::DisplayItem::BackdropFilter(di::BackdropFilterDisplayItem {
-            common,
+            common: *common,
         });
         self.push_item(&item);
-    }
-
-    /// As `push_filters`, but first normalizes SVGFE filter-graph subregions
-    /// (the only absolutely-positioned filter geometry) by the accumulated
-    /// external scroll offset for `spatial_id`, matching the normalization
-    /// applied to the primitives the filter graph operates on.
-    fn push_filters_normalized(
-        &mut self,
-        filters: &[di::FilterOp],
-        filter_datas: &[di::FilterData],
-        spatial_id: di::SpatialId,
-    ) {
-        let offset = self.accumulated_scroll_offset(spatial_id);
-        if offset == LayoutVector2D::zero() {
-            self.push_filters(filters, filter_datas);
-            return;
-        }
-
-        let mut filters = filters.to_vec();
-        for filter in &mut filters {
-            if let Some(node) = filter.svgfe_node_mut() {
-                node.subregion = node.subregion.translate(offset);
-            }
-        }
-        self.push_filters(&filters, filter_datas);
     }
 
     pub fn push_filters(
@@ -1797,50 +1707,6 @@ impl DisplayListBuilder {
         di::ClipChainId(self.next_clip_chain_id - 1, self.pipeline_id)
     }
 
-    /// Accumulated external scroll offset for `spatial_id` (zero for the
-    /// implicit pipeline roots and any untracked node). A single-entry cache
-    /// short-circuits the common case of consecutive items sharing a spatial
-    /// node, avoiding a hash per item.
-    fn accumulated_scroll_offset(&mut self, spatial_id: di::SpatialId) -> LayoutVector2D {
-        if let Some((cached_id, cached_offset)) = self.last_scroll_offset {
-            if cached_id == spatial_id {
-                return cached_offset;
-            }
-        }
-        let offset = self.spatial_offsets
-            .get(&spatial_id)
-            .copied()
-            .unwrap_or_else(LayoutVector2D::zero);
-        self.last_scroll_offset = Some((spatial_id, offset));
-        offset
-    }
-
-    /// Record the accumulated external scroll offset for a freshly-defined
-    /// spatial node.
-    fn record_scroll_offset(&mut self, spatial_id: di::SpatialId, offset: LayoutVector2D) {
-        self.spatial_offsets.insert(spatial_id, offset);
-    }
-
-    /// Translate a rect from Gecko's pre-scrolled (painted) coordinates into
-    /// the normalized, scroll-invariant space WebRender interns in, by adding
-    /// the accumulated external scroll offset for `spatial_id`.
-    fn normalize_rect(&mut self, rect: LayoutRect, spatial_id: di::SpatialId) -> LayoutRect {
-        rect.translate(self.accumulated_scroll_offset(spatial_id))
-    }
-
-    /// As `normalize_rect`, but for the common-properties chokepoint: returns a
-    /// copy with `clip_rect` normalized, plus the offset to apply to the item's
-    /// own geometry (bounds, glyphs, ...).
-    fn normalize_common(
-        &mut self,
-        common: &di::CommonItemProperties,
-    ) -> (di::CommonItemProperties, LayoutVector2D) {
-        let offset = self.accumulated_scroll_offset(common.spatial_id);
-        let mut common = *common;
-        common.clip_rect = common.clip_rect.translate(offset);
-        (common, offset)
-    }
-
     pub fn define_scroll_frame(
         &mut self,
         parent_space: di::SpatialId,
@@ -1851,12 +1717,9 @@ impl DisplayListBuilder {
         scroll_offset_generation: APZScrollGeneration,
         has_scroll_linked_effect: HasScrollLinkedEffect,
     ) -> di::SpatialId {
-        let parent_offset = self.accumulated_scroll_offset(parent_space);
         let scroll_frame_id = self.generate_spatial_index();
         let current_offset = self.rf_mapper.current_offset();
 
-        // `content_rect`'s origin is discarded by the scene builder (only its
-        // size is used), so it needs no normalization.
         let descriptor = di::SpatialTreeItem::ScrollFrame(di::ScrollFrameDescriptor {
             content_rect,
             frame_rect: frame_rect.translate(current_offset),
@@ -1869,7 +1732,6 @@ impl DisplayListBuilder {
         });
 
         self.push_spatial_tree_item(&descriptor);
-        self.record_scroll_offset(scroll_frame_id, parent_offset + external_scroll_offset);
 
         scroll_frame_id
     }
@@ -1897,10 +1759,6 @@ impl DisplayListBuilder {
         fill_rule: di::FillRule,
     ) -> di::ClipId {
         let id = self.generate_clip_index();
-        let offset = self.accumulated_scroll_offset(spatial_id);
-
-        let mut image_mask = image_mask;
-        image_mask.rect = image_mask.rect.translate(offset);
 
         let current_offset = self.rf_mapper.current_offset();
 
@@ -1922,12 +1780,7 @@ impl DisplayListBuilder {
         // zero points when no SetPoints item has been pushed.
         if points.len() >= 3 {
             self.push_item(&di::DisplayItem::SetPoints);
-            if offset != LayoutVector2D::zero() {
-                let shifted: Vec<LayoutPoint> = points.iter().map(|p| *p + offset).collect();
-                self.push_iter(&shifted);
-            } else {
-                self.push_iter(points);
-            }
+            self.push_iter(points);
         }
         self.push_item(&item);
         id
@@ -1946,7 +1799,7 @@ impl DisplayListBuilder {
         let item = di::DisplayItem::RectClip(di::RectClipDisplayItem {
             id,
             spatial_id,
-            clip_rect: self.normalize_rect(clip_rect, spatial_id),
+            clip_rect,
         });
 
         self.push_item(&item);
@@ -1989,12 +1842,6 @@ impl DisplayListBuilder {
         // Could we pass just an (optional) animation id instead?
         transform: Option<PropertyBinding<LayoutTransform>>
     ) -> di::SpatialId {
-        // Fold the sticky frame's already-applied offset into the accumulated
-        // offset so the frame rect (and all descendants) are normalized to the
-        // item's natural, unstuck position. WebRender then computes the full
-        // sticky offset at frame time and no longer needs the applied offset.
-        let parent_offset = self.accumulated_scroll_offset(parent_spatial_id);
-        let node_offset = parent_offset - previously_applied_offset;
         let id = self.generate_spatial_index();
         let current_offset = self.rf_mapper.current_offset();
 
@@ -2005,11 +1852,11 @@ impl DisplayListBuilder {
             margins,
             vertical_offset_bounds,
             horizontal_offset_bounds,
+            previously_applied_offset,
             transform,
         });
 
         self.push_spatial_tree_item(&descriptor);
-        self.record_scroll_offset(id, node_offset);
         id
     }
 
@@ -2026,8 +1873,8 @@ impl DisplayListBuilder {
         let clip_rect = clip_rect.translate(current_offset);
 
         let item = di::DisplayItem::Iframe(di::IframeDisplayItem {
-            bounds: bounds.translate(current_offset),
-            clip_rect: clip_rect.translate(current_offset),
+            bounds,
+            clip_rect,
             space_and_clip: *space_and_clip,
             pipeline_id,
             ignore_missing_pipeline,

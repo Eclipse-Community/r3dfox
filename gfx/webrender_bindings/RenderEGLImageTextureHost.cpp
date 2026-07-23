@@ -167,7 +167,7 @@ bool RenderEGLImageTextureHost::WaitSync() {
     }
     // We do not need to delete sync here. It is deleted by
     // SharedSurface_EGLImage.
-    mSync = nullptr;
+    mSync = 0;
   }
 
   MOZ_ASSERT(

@@ -11,7 +11,7 @@ use crate::pattern::repeat::RepeatedPattern;
 use crate::render_task::{SubTask, RectangleClipSubTask, ImageClipSubTask};
 use crate::transform::TransformPalette;
 use crate::batch::{BatchKey, BatchKind, BatchTextures};
-use crate::clip::{clamped_radius, ClipChainInstance, ClipIntern, ClipItemKind, ClipNodeFlags, ClipNodeRange, ClipStore, ClipNodeInstance, ClipItem};
+use crate::clip::{clamped_radius, ClipChainInstance, ClipIntern, ClipItemKind, ClipNodeRange, ClipStore, ClipNodeInstance, ClipItem};
 use crate::command_buffer::{CommandBufferIndex, PrimitiveCommand, QuadFlags};
 use crate::frame_builder::{FrameBuildingContext, FrameBuildingState, PictureContext};
 use crate::gpu_types::{PrimitiveInstanceData, QuadHeader, QuadInstance, QuadPrimitive, QuadSegment, ZBufferId};
@@ -347,8 +347,8 @@ pub fn prepare_repeatable_quad(
         || (num_repetitions > 64.0 && surface_rect.area() < 1024.0 * 1024.0);
 
     if repeat_using_a_shader {
-        let (src_task_id, base_color) = match src_task_id {
-            Some(task) => (task, pattern.base_color),
+        let src_task_id = match src_task_id {
+            Some(task) => task,
             None => {
                 // The source is not an image. Make it one by rendering
                 // the pattern in a render task.
@@ -381,7 +381,7 @@ pub fn prepare_repeatable_quad(
                     return;
                 };
 
-                (task_id, ColorF::WHITE)
+                task_id
             }
         };
 
@@ -400,7 +400,7 @@ pub fn prepare_repeatable_quad(
                 frame_gpu_data: frame_state.frame_gpu_data,
                 transforms: frame_state.transforms,
             },
-        ).with_base_color(base_color);
+        );
 
         // Note: caching is disabled when using the repeating shader.
         // The cache key would need more information about the repetition.
@@ -767,6 +767,7 @@ fn prepare_quad_impl(
             };
 
             add_composite_prim(
+                pattern.base_color,
                 pattern.blend_mode,
                 prim_instance_index,
                 &clipped_surface_rect,
@@ -1081,6 +1082,7 @@ fn prepare_nine_patch(
 
     if !scratch.frame.quad_indirect_segments.is_empty() {
         add_composite_prim(
+            pattern.base_color,
             pattern.blend_mode,
             prim_instance_index,
             &device_clip_rect,
@@ -1155,16 +1157,11 @@ fn prepare_tiles(
             }
         };
 
-        // A rect clip in the same coordinate system as the primitive is folded
-        // into the local clip rect and applied directly by the pattern shader, so
-        // tiles straddling its boundary don't need a clip mask.
-        let applied_as_local_clip = clip_instance.flags.contains(ClipNodeFlags::SAME_COORD_SYSTEM);
-
         // Add regions to the classifier depending on the clip kind
         match clip_node.item.kind {
             ClipItemKind::Rectangle { mode } => {
                 let rect = transform.map_rect(&clip_instance.clip_rect);
-                scratch.retained.quad_tile_classifier.add_clip_rect(rect, mode, applied_as_local_clip);
+                scratch.retained.quad_tile_classifier.add_clip_rect(rect, mode);
             }
             ClipItemKind::RoundedRectangle { mode: ClipMode::Clip, ref radius } => {
                 // For rounded-rects with Clip mode, we need a mask for each corner,
@@ -1208,7 +1205,7 @@ fn prepare_tiles(
                     r_bl,
                 );
 
-                scratch.retained.quad_tile_classifier.add_clip_rect(clip_device_rect, ClipMode::Clip, applied_as_local_clip);
+                scratch.retained.quad_tile_classifier.add_clip_rect(clip_device_rect, ClipMode::Clip);
                 scratch.retained.quad_tile_classifier.add_mask_region(c_tl);
                 scratch.retained.quad_tile_classifier.add_mask_region(c_tr);
                 scratch.retained.quad_tile_classifier.add_mask_region(c_br);
@@ -1221,7 +1218,7 @@ fn prepare_tiles(
                 match extract_inner_rect_k(&clip_instance.clip_rect, &radius, 0.5) {
                     Some(ref inner_rect) => {
                         let rect = transform.map_rect(inner_rect);
-                        scratch.retained.quad_tile_classifier.add_clip_rect(rect, ClipMode::ClipOut, false);
+                        scratch.retained.quad_tile_classifier.add_clip_rect(rect, ClipMode::ClipOut);
                     }
                     None => {
                         let clip_device_rect = transform.map_rect(&clip_instance.clip_rect);
@@ -1335,6 +1332,7 @@ fn prepare_tiles(
 
     if !scratch.frame.quad_indirect_segments.is_empty() {
         add_composite_prim(
+            pattern.base_color,
             pattern.blend_mode,
             prim_instance_index,
             device_clip_rect,
@@ -1406,13 +1404,10 @@ fn get_prim_render_strategy(
                         spatial_tree,
                     );
 
-                    if let Some(clip_rect) = map_clip_to_prim.map(&clip_instance.clip_rect) {
-                        let radius = map_clip_to_prim.map_vector(
-                            LayoutVector2D::new(max_corner_width, max_corner_height)
-                        );
+                    if let Some(rect) = map_clip_to_prim.map(&clip_instance.clip_rect) {
                         return QuadRenderStrategy::NinePatch {
-                            radius,
-                            clip_rect,
+                            radius: LayoutVector2D::new(max_corner_width, max_corner_height),
+                            clip_rect: rect,
                         };
                     }
                 }
@@ -1635,6 +1630,7 @@ fn add_pattern_prim(
 }
 
 fn add_composite_prim(
+    base_color: ColorF,
     blend_mode: BlendMode,
     prim_instance_index: PrimitiveInstanceIndex,
     rect: &DeviceRect,
@@ -1653,7 +1649,12 @@ fn add_composite_prim(
         &mut frame_state.frame_gpu_data.f32,
         rect,
         rect,
-        ColorF::WHITE,
+        // TODO: The base color for composite prim should be opaque white
+        // (or white with some transparency to support an opacity directly
+        // in the quad primitive). However, passing opaque white
+        // here causes glitches with Adreno GPUs on Windows specifically
+        // (See bug 1897444).
+        base_color,
         RenderTaskId::INVALID,
         segments,
         ScaleOffset::identity(),
@@ -2243,19 +2244,6 @@ pub struct QuadTileInfo {
     pub kind: QuadTileKind,
 }
 
-/// A `ClipMode::Clip` region registered with the tile classifier.
-#[cfg_attr(feature = "capture", derive(Serialize))]
-#[derive(Copy, Clone, Debug)]
-struct ClipInRegion {
-    rect: DeviceRect,
-    // Whether tiles straddling the region's boundary require a clip mask. This is
-    // false when the clip is already applied via the primitive's local clip rect
-    // (i.e. it is in the same coordinate system as the primitive), in which case
-    // the pattern shader clips those tiles directly and no mask is needed. Tiles
-    // fully outside the region are always culled regardless of this flag.
-    needs_mask: bool,
-}
-
 impl Default for QuadTileInfo {
     fn default() -> Self {
         QuadTileInfo {
@@ -2271,7 +2259,7 @@ impl Default for QuadTileInfo {
 pub struct QuadTileClassifier {
     buffer: [QuadTileInfo; MAX_TILES_PER_QUAD_X * MAX_TILES_PER_QUAD_Y],
     mask_regions: Vec<DeviceRect>,
-    clip_in_regions: Vec<ClipInRegion>,
+    clip_in_regions: Vec<DeviceRect>,
     clip_out_regions: Vec<DeviceRect>,
     rect: DeviceRect,
     x_tiles: usize,
@@ -2368,14 +2356,10 @@ impl QuadTileClassifier {
         &mut self,
         clip_rect: DeviceRect,
         clip_mode: ClipMode,
-        applied_as_local_clip: bool,
     ) {
         match clip_mode {
             ClipMode::Clip => {
-                self.clip_in_regions.push(ClipInRegion {
-                    rect: clip_rect,
-                    needs_mask: !applied_as_local_clip,
-                });
+                self.clip_in_regions.push(clip_rect);
             }
             ClipMode::ClipOut => {
                 self.clip_out_regions.push(clip_rect);
@@ -2396,19 +2380,13 @@ impl QuadTileClassifier {
         let tiles = &mut self.buffer[0 .. tile_count];
 
         for info in tiles.iter_mut() {
-            // A clip-in region culls tiles that fall entirely outside it. Tiles
-            // that straddle its boundary require a mask, unless the clip is
-            // already applied via the primitive's local clip rect (in which case
-            // the pattern shader clips them directly). Tiles fully contained by
-            // the region are unaffected by it.
+            // If a clip region contains the entire tile, it's clipped
             for clip_region in &self.clip_in_regions {
                 match info.kind {
                     QuadTileKind::Clipped => {},
-                    QuadTileKind::Pattern { ref mut has_mask } => {
-                        if !clip_region.rect.intersects(&info.rect) {
+                    QuadTileKind::Pattern { .. } => {
+                        if !clip_region.intersects(&info.rect) {
                             info.kind = QuadTileKind::Clipped;
-                        } else if clip_region.needs_mask && !clip_region.rect.contains_box(&info.rect) {
-                            *has_mask = true;
                         }
                     }
                 }
@@ -2546,7 +2524,7 @@ fn quad_classify_2() {
     let mut qc = qc_new(0.0, 0.0, 768.0, 768.0);
 
     let rect = DeviceRect::new(DevicePoint::new(0.0, 0.0), DevicePoint::new(768.0, 768.0));
-    qc.add_clip_rect(rect, ClipMode::Clip, false);
+    qc.add_clip_rect(rect, ClipMode::Clip);
 
     qc_verify(qc, &[
         P,
@@ -2560,12 +2538,9 @@ fn quad_classify_3() {
     let mut qc = qc_new(0.0, 0.0, 768.0, 768.0);
 
     let rect = DeviceRect::new(DevicePoint::new(230.0, 230.0), DevicePoint::new(460.0, 460.0));
-    qc.add_clip_rect(rect, ClipMode::Clip, false);
+    qc.add_clip_rect(rect, ClipMode::Clip);
 
-    qc_verify(qc, &[
-        M,
-        M,
-    ]);
+    qc_verify(qc, &[P]);
 }
 
 #[test]
@@ -2573,12 +2548,12 @@ fn quad_classify_4() {
     let mut qc = qc_new(0.0, 0.0, 768.0, 768.0);
 
     let rect = DeviceRect::new(DevicePoint::new(230.0, 230.0), DevicePoint::new(537.0, 537.0));
-    qc.add_clip_rect(rect, ClipMode::Clip, false);
+    qc.add_clip_rect(rect, ClipMode::Clip);
 
     qc_verify(qc, &[
-        M,
-        M, P, M,
-        M,
+        P,
+        P,
+        P,
     ]);
 }
 
@@ -2587,7 +2562,7 @@ fn quad_classify_5() {
     let mut qc = qc_new(0.0, 0.0, 768.0, 768.0);
 
     let rect = DeviceRect::new(DevicePoint::new(230.0, 230.0), DevicePoint::new(537.0, 537.0));
-    qc.add_clip_rect(rect, ClipMode::ClipOut, false);
+    qc.add_clip_rect(rect, ClipMode::ClipOut);
 
     qc_verify(qc, &[
         M,
@@ -2601,7 +2576,7 @@ fn quad_classify_6() {
     let mut qc = qc_new(0.0, 0.0, 768.0, 768.0);
 
     let rect = DeviceRect::new(DevicePoint::new(40.0, 40.0), DevicePoint::new(60.0, 60.0));
-    qc.add_clip_rect(rect, ClipMode::ClipOut, false);
+    qc.add_clip_rect(rect, ClipMode::ClipOut);
 
     qc_verify(qc, &[
         M,
@@ -2661,13 +2636,13 @@ fn quad_classify_10() {
     qc.add_mask_region(mask_rect);
 
     let clip_rect = DeviceRect::new(DevicePoint::new(120.0, 220.0), DevicePoint::new(714.0, 1015.0));
-    qc.add_clip_rect(clip_rect, ClipMode::Clip, false);
+    qc.add_clip_rect(clip_rect, ClipMode::Clip);
 
     qc_verify(qc, &[
-        M,
-        M,
-        M, P, M,
-        M,
+        M, P,
+        M, P,
+        P,
+        P,
     ]);
 }
 
@@ -2679,48 +2654,16 @@ fn quad_classify_11() {
     qc.add_mask_region(mask_rect);
 
     let clip_rect = DeviceRect::new(DevicePoint::new(120.0, 220.0), DevicePoint::new(714.0, 1015.0));
-    qc.add_clip_rect(clip_rect, ClipMode::Clip, false);
+    qc.add_clip_rect(clip_rect, ClipMode::Clip);
 
     let clip_out_rect = DeviceRect::new(DevicePoint::new(130.0, 200.0), DevicePoint::new(714.0, 609.0));
-    qc.add_clip_rect(clip_out_rect, ClipMode::ClipOut, false);
+    qc.add_clip_rect(clip_out_rect, ClipMode::ClipOut);
 
     qc_verify(qc, &[
         M,
         M,
         M,
         M,
-    ]);
-}
-
-// A straddling clip that is not applied as the local clip rect masks the
-// boundary tiles.
-#[test]
-fn quad_classify_13() {
-    let mut qc = qc_new(0.0, 0.0, 768.0, 768.0);
-
-    let rect = DeviceRect::new(DevicePoint::new(128.0, 128.0), DevicePoint::new(640.0, 640.0));
-    qc.add_clip_rect(rect, ClipMode::Clip, false);
-
-    qc_verify(qc, &[
-        M,
-        M, P, M,
-        M,
-    ]);
-}
-
-// The same straddling clip, but applied as the local clip rect: the boundary
-// tiles are clipped by the shader and don't need a mask.
-#[test]
-fn quad_classify_14() {
-    let mut qc = qc_new(0.0, 0.0, 768.0, 768.0);
-
-    let rect = DeviceRect::new(DevicePoint::new(128.0, 128.0), DevicePoint::new(640.0, 640.0));
-    qc.add_clip_rect(rect, ClipMode::Clip, true);
-
-    qc_verify(qc, &[
-        P,
-        P,
-        P,
     ]);
 }
 
@@ -2729,10 +2672,10 @@ fn quad_classify_12() {
     let mut qc = qc_new(100.0, 200.0, 1024.0, 1024.0);
 
     let clip_out_rect = DeviceRect::new(DevicePoint::new(130.0, 200.0), DevicePoint::new(714.0, 609.0));
-    qc.add_clip_rect(clip_out_rect, ClipMode::ClipOut, false);
+    qc.add_clip_rect(clip_out_rect, ClipMode::ClipOut);
 
     let clip_rect = DeviceRect::new(DevicePoint::new(120.0, 220.0), DevicePoint::new(714.0, 1015.0));
-    qc.add_clip_rect(clip_rect, ClipMode::Clip, false);
+    qc.add_clip_rect(clip_rect, ClipMode::Clip);
 
     let mask_rect = DeviceRect::new(DevicePoint::new(90.0, 180.0), DevicePoint::new(510.0, 710.0));
     qc.add_mask_region(mask_rect);

@@ -139,13 +139,11 @@ crate::enumerate_interners!(declare_data_stores);
 
 impl DataStores {
     /// Returns the local rect for a primitive. For most primitives, this is
-    /// the device-snapped local rect carried on the per-draw header. For
-    /// pictures, the rect is reconstructed from the picture's raster surface
-    /// since it's only known during frame building.
+    /// stored in the template. For pictures, this is stored inside the picture
+    /// primitive instance itself, since this is determined during frame building.
     pub fn get_local_prim_rect(
         &self,
         prim_instance: &PrimitiveInstance,
-        snapped_local_rect: LayoutRect,
         pictures: &[PictureInstance],
         surfaces: &[SurfaceInfo],
     ) -> LayoutRect {
@@ -164,18 +162,16 @@ impl DataStores {
                     }
                 }
             }
-            _ => snapped_local_rect,
+            _ => prim_instance.prim_rect,
         }
     }
 
-    /// Returns the local coverage (space occupied) for a primitive. For most
-    /// primitives, this is the device-snapped local rect carried on the
-    /// per-draw header. For pictures, the coverage is reconstructed from the
-    /// picture's raster surface since it's only known during frame building.
+    /// Returns the local coverage (space occupied) for a primitive. For most primitives,
+    /// this is stored in the template. For pictures, this is stored inside the picture
+    /// primitive instance itself, since this is determined during frame building.
     pub fn get_local_prim_coverage_rect(
         &self,
         prim_instance: &PrimitiveInstance,
-        snapped_local_rect: LayoutRect,
         pictures: &[PictureInstance],
         surfaces: &[SurfaceInfo],
     ) -> LayoutRect {
@@ -194,7 +190,7 @@ impl DataStores {
                     }
                 }
             }
-            _ => snapped_local_rect,
+            _ => prim_instance.prim_rect,
         }
     }
 
@@ -1163,53 +1159,6 @@ impl RenderBackend {
                         }
 
                         return RenderBackendStatus::Continue;
-                    }
-                    #[cfg(feature = "debugger")]
-                    DebugCommand::CaptureRenderDoc(..) => {
-                        // A single-frame RenderDoc capture can't replay WebRender's
-                        // persistent caches (picture tiles, glyph atlas, image cache)
-                        // populated in earlier frames. So make the captured frame
-                        // re-render everything from scratch: clear cached resources so
-                        // glyphs/images re-rasterize and re-upload, and force a full
-                        // invalidated rebuild so all picture cache tiles re-rasterize.
-                        // Then forward the command so the renderer captures that frame.
-                        self.resource_cache.clear(ClearCache::all());
-
-                        let documents: Vec<DocumentId> = self.documents.keys()
-                            .cloned()
-                            .collect();
-                        for document_id in documents {
-                            let mut invalidation_config = false;
-                            if let Some(doc) = self.documents.get_mut(&document_id) {
-                                doc.frame_is_valid = false;
-                                invalidation_config = doc.scene.config.force_invalidation;
-                                doc.scene.config.force_invalidation = true;
-                            }
-
-                            self.update_document(
-                                document_id,
-                                Vec::default(),
-                                Vec::default(),
-                                Vec::default(),
-                                true,
-                                true,
-                                false,
-                                RenderReasons::empty(),
-                                None,
-                                true,
-                                frame_counter,
-                                false,
-                                None,
-                            );
-
-                            if let Some(doc) = self.documents.get_mut(&document_id) {
-                                doc.scene.config.force_invalidation = invalidation_config;
-                            }
-                        }
-
-                        // Forward to the renderer to arm the capture for the frame
-                        // just published by the rebuild above.
-                        ResultMsg::DebugCommand(option)
                     }
                     #[cfg(feature = "capture")]
                     DebugCommand::SaveCapture(root, bits) => {
