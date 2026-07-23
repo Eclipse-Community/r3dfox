@@ -137,10 +137,10 @@ void MacIOSurfaceTextureHostOGL::PushResourceUpdates(
       }
       // The internal pixel format of MacIOSurface is always BGRX or BGRA
       // format.
-      wr::ImageDescriptor descriptor(GetSize(), wr::ImageFormat::BGRA8,
-                                     GetFormat() == gfx::SurfaceFormat::B8G8R8A8
-                                         ? wr::OpacityType::HasAlphaChannel
-                                         : wr::OpacityType::Opaque);
+      auto format = GetFormat() == gfx::SurfaceFormat::B8G8R8A8
+                        ? gfx::SurfaceFormat::B8G8R8A8
+                        : gfx::SurfaceFormat::B8G8R8X8;
+      wr::ImageDescriptor descriptor(GetSize(), format);
       (aResources.*method)(aImageKeys[0], descriptor, aExtID, imageType, 0,
                            /* aNormalizedUvs */ false);
       break;
@@ -154,8 +154,7 @@ void MacIOSurfaceTextureHostOGL::PushResourceUpdates(
         MOZ_ASSERT_UNREACHABLE("unexpected key length or plane count");
         return;
       }
-      wr::ImageDescriptor descriptor(GetSize(), wr::ImageFormat::BGRA8,
-                                     wr::OpacityType::Opaque);
+      wr::ImageDescriptor descriptor(GetSize(), gfx::SurfaceFormat::B8G8R8X8);
       (aResources.*method)(aImageKeys[0], descriptor, aExtID, imageType, 0,
                            /* aNormalizedUvs */ false);
       break;
@@ -168,11 +167,11 @@ void MacIOSurfaceTextureHostOGL::PushResourceUpdates(
       wr::ImageDescriptor descriptor0(
           gfx::IntSize(mSurface->GetDevicePixelWidth(0),
                        mSurface->GetDevicePixelHeight(0)),
-          wr::ImageFormat::R8, wr::OpacityType::HasAlphaChannel);
+          gfx::SurfaceFormat::A8);
       wr::ImageDescriptor descriptor1(
           gfx::IntSize(mSurface->GetDevicePixelWidth(1),
                        mSurface->GetDevicePixelHeight(1)),
-          wr::ImageFormat::RG8, wr::OpacityType::Opaque);
+          gfx::SurfaceFormat::R8G8);
       (aResources.*method)(aImageKeys[0], descriptor0, aExtID, imageType, 0,
                            /* aNormalizedUvs */ false);
       (aResources.*method)(aImageKeys[1], descriptor1, aExtID, imageType, 1,
@@ -180,7 +179,25 @@ void MacIOSurfaceTextureHostOGL::PushResourceUpdates(
       break;
     }
     case gfx::SurfaceFormat::P010:
-    case gfx::SurfaceFormat::P016:
+    case gfx::SurfaceFormat::P016: {
+      if (aImageKeys.length() != 2 || mSurface->GetPlaneCount() != 2) {
+        MOZ_ASSERT_UNREACHABLE("unexpected key length or plane count");
+        return;
+      }
+      wr::ImageDescriptor descriptor0(
+          gfx::IntSize(mSurface->GetDevicePixelWidth(0),
+                       mSurface->GetDevicePixelHeight(0)),
+          gfx::SurfaceFormat::A16);
+      wr::ImageDescriptor descriptor1(
+          gfx::IntSize(mSurface->GetDevicePixelWidth(1),
+                       mSurface->GetDevicePixelHeight(1)),
+          gfx::SurfaceFormat::R16G16);
+      (aResources.*method)(aImageKeys[0], descriptor0, aExtID, imageType, 0,
+                           /* aNormalizedUvs */ false);
+      (aResources.*method)(aImageKeys[1], descriptor1, aExtID, imageType, 1,
+                           /* aNormalizedUvs */ false);
+      break;
+    }
     case gfx::SurfaceFormat::NV16: {
       if (aImageKeys.length() != 2 || mSurface->GetPlaneCount() != 2) {
         MOZ_ASSERT_UNREACHABLE("unexpected key length or plane count");
@@ -189,11 +206,11 @@ void MacIOSurfaceTextureHostOGL::PushResourceUpdates(
       wr::ImageDescriptor descriptor0(
           gfx::IntSize(mSurface->GetDevicePixelWidth(0),
                        mSurface->GetDevicePixelHeight(0)),
-          wr::ImageFormat::R16, wr::OpacityType::HasAlphaChannel);
+          gfx::SurfaceFormat::A16);
       wr::ImageDescriptor descriptor1(
           gfx::IntSize(mSurface->GetDevicePixelWidth(1),
                        mSurface->GetDevicePixelHeight(1)),
-          wr::ImageFormat::RG16, wr::OpacityType::HasAlphaChannel);
+          gfx::SurfaceFormat::R16G16);
       (aResources.*method)(aImageKeys[0], descriptor0, aExtID, imageType, 0,
                            /* aNormalizedUvs */ false);
       (aResources.*method)(aImageKeys[1], descriptor1, aExtID, imageType, 1,

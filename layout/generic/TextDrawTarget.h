@@ -344,12 +344,7 @@ class TextDrawTarget : public DrawTarget {
   Maybe<wr::ImageKey> DefineImage(const IntSize& aSize, uint32_t aStride,
                                   SurfaceFormat aFormat, const uint8_t* aData) {
     wr::ImageKey key = mManager->WrBridge()->GetNextImageKey();
-    auto format = wr::SurfaceFormatToImageFormat(aFormat);
-    if (NS_WARN_IF(!format)) {
-      return Nothing();
-    }
-    wr::ImageDescriptor desc(aSize, aStride, *format,
-                             wr::ToOpacityType(aFormat));
+    wr::ImageDescriptor desc(aSize, aStride, aFormat);
     Range<uint8_t> bytes(const_cast<uint8_t*>(aData), aStride * aSize.height);
     if (mResources->AddImage(key, desc, bytes)) {
       return Some(key);

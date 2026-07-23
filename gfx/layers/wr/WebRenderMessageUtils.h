@@ -44,29 +44,25 @@ struct ParamTraits<mozilla::wr::ImageDescriptor> {
     WriteParam(aWriter, aParam.opacity);
   }
 
-  static ReadResult<paramType> Read(MessageReader* aReader) {
-    mozilla::wr::ImageFormat format;
-    int32_t width;
-    int32_t height;
-    int32_t stride;
-    mozilla::wr::OpacityType opacity;
-    if (!ReadParam(aReader, &format) || !ReadParam(aReader, &width) ||
-        !ReadParam(aReader, &height) || !ReadParam(aReader, &stride) ||
-        !ReadParam(aReader, &opacity)) {
-      return {};
+  static bool Read(MessageReader* aReader, paramType* aResult) {
+    if (!(ReadParam(aReader, &aResult->format) &&
+          ReadParam(aReader, &aResult->width) &&
+          ReadParam(aReader, &aResult->height) &&
+          ReadParam(aReader, &aResult->stride) &&
+          ReadParam(aReader, &aResult->opacity))) {
+      return false;
     }
-    if (width < 0 || height < 0 || stride < 0) {
-      return {};
+    if (aResult->width < 0 || aResult->height < 0 || aResult->stride < 0) {
+      return false;
     }
-    if (stride != 0) {
+    if (aResult->stride != 0) {
       int bpp = mozilla::gfx::BytesPerPixel(
-          mozilla::wr::ImageFormatToSurfaceFormat(format));
-      if (bpp <= 0 || stride / bpp < width) {
-        return {};
+          mozilla::wr::ImageFormatToSurfaceFormat(aResult->format));
+      if (bpp <= 0 || aResult->stride / bpp < aResult->width) {
+        return false;
       }
     }
-    return paramType(mozilla::gfx::IntSize(width, height), stride, format,
-                     opacity);
+    return true;
   }
 };
 

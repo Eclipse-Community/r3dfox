@@ -598,10 +598,10 @@ void SurfaceTextureHost::PushResourceUpdates(
 
       // XXX Add RGBA handling. Temporary hack to avoid crash
       // With BGRA format setting, rendering works without problem.
-      wr::ImageDescriptor descriptor(GetSize(), wr::ImageFormat::BGRA8,
-                                     GetFormat() == gfx::SurfaceFormat::R8G8B8A8
-                                         ? wr::OpacityType::HasAlphaChannel
-                                         : wr::OpacityType::Opaque);
+      auto format = GetFormat() == gfx::SurfaceFormat::R8G8B8A8
+                        ? gfx::SurfaceFormat::B8G8R8A8
+                        : gfx::SurfaceFormat::B8G8R8X8;
+      wr::ImageDescriptor descriptor(GetSize(), format);
       (aResources.*method)(aImageKeys[0], descriptor, aExtID, imageType, 0,
                            normalizedUvs);
       break;
@@ -887,10 +887,10 @@ void AndroidHardwareBufferTextureHost::PushResourceUpdates(
 
       // XXX Add RGBA handling. Temporary hack to avoid crash
       // With BGRA format setting, rendering works without problem.
-      wr::ImageDescriptor descriptor(GetSize(), wr::ImageFormat::BGRA8,
-                                     GetFormat() == gfx::SurfaceFormat::R8G8B8A8
-                                         ? wr::OpacityType::HasAlphaChannel
-                                         : wr::OpacityType::Opaque);
+      auto format = GetFormat() == gfx::SurfaceFormat::R8G8B8A8
+                        ? gfx::SurfaceFormat::B8G8R8A8
+                        : gfx::SurfaceFormat::B8G8R8X8;
+      wr::ImageDescriptor descriptor(GetSize(), format);
       (aResources.*method)(aImageKeys[0], descriptor, aExtID, imageType, 0,
                            /* aNormalizedUvs */ false);
       break;
@@ -1051,10 +1051,10 @@ void EGLImageTextureHost::PushResourceUpdates(
 
   // XXX Add RGBA handling. Temporary hack to avoid crash
   // With BGRA format setting, rendering works without problem.
-  wr::ImageDescriptor descriptor(GetSize(), wr::ImageFormat::BGRA8,
-                                 format == gfx::SurfaceFormat::R8G8B8A8
-                                     ? wr::OpacityType::HasAlphaChannel
-                                     : wr::OpacityType::Opaque);
+  auto formatTmp = format == gfx::SurfaceFormat::R8G8B8A8
+                       ? gfx::SurfaceFormat::B8G8R8A8
+                       : gfx::SurfaceFormat::B8G8R8X8;
+  wr::ImageDescriptor descriptor(GetSize(), formatTmp);
   (aResources.*method)(aImageKeys[0], descriptor, aExtID, imageType, 0,
                        /* aNormalizedUvs */ false);
 }

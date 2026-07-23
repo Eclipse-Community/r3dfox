@@ -569,12 +569,7 @@ void BufferTextureHost::PushResourceUpdates(
       return;
     }
 
-    auto format = wr::SurfaceFormatToImageFormat(GetFormat());
-    if (NS_WARN_IF(!format)) {
-      return;
-    }
-    wr::ImageDescriptor descriptor(GetSize(), stride.value(), *format,
-                                   wr::ToOpacityType(GetFormat()));
+    wr::ImageDescriptor descriptor(GetSize(), stride.value(), GetFormat());
     (aResources.*method)(aImageKeys[0], descriptor, aExtID, imageType, 0,
                          /* aNormalizedUvs */ false);
   } else {
@@ -586,16 +581,11 @@ void BufferTextureHost::PushResourceUpdates(
     const layers::YCbCrDescriptor& desc = mDescriptor.get_YCbCrDescriptor();
     gfx::IntSize ySize = desc.display().Size();
     gfx::IntSize cbcrSize = ImageDataSerializer::GetCroppedCbCrSize(desc);
-    gfx::SurfaceFormat surfaceFormat =
-        SurfaceFormatForColorDepth(desc.colorDepth());
-    auto format = wr::SurfaceFormatToImageFormat(surfaceFormat);
-    if (NS_WARN_IF(!format)) {
-      return;
-    }
-    auto opacity = wr::ToOpacityType(surfaceFormat);
-    wr::ImageDescriptor yDescriptor(ySize, desc.yStride(), *format, opacity);
-    wr::ImageDescriptor cbcrDescriptor(cbcrSize, desc.cbCrStride(), *format,
-                                       opacity);
+    wr::ImageDescriptor yDescriptor(
+        ySize, desc.yStride(), SurfaceFormatForColorDepth(desc.colorDepth()));
+    wr::ImageDescriptor cbcrDescriptor(
+        cbcrSize, desc.cbCrStride(),
+        SurfaceFormatForColorDepth(desc.colorDepth()));
     (aResources.*method)(aImageKeys[0], yDescriptor, aExtID, imageType, 0,
                          /* aNormalizedUvs */ false);
     (aResources.*method)(aImageKeys[1], cbcrDescriptor, aExtID, imageType, 1,

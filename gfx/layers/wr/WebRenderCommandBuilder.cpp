@@ -684,11 +684,6 @@ struct DIGroup {
     //   Contains(paintBounds);?
     wr::OpacityType opacity = wr::OpacityType::HasAlphaChannel;
 
-    auto format = wr::SurfaceFormatToImageFormat(dt->GetFormat());
-    if (NS_WARN_IF(!format)) {
-      return;
-    }
-
     bool hasItems = recorder->Finish();
     GP("%d Finish\n", hasItems);
     if (!validFonts) {
@@ -708,7 +703,7 @@ struct DIGroup {
       wr::BlobImageKey key =
           wr::BlobImageKey{aWrManager->WrBridge()->GetNextImageKey()};
       GP("No previous key making new one %d\n", key._0.mHandle);
-      wr::ImageDescriptor descriptor(dtSize, 0, *format, opacity);
+      wr::ImageDescriptor descriptor(dtSize, 0, dt->GetFormat(), opacity);
       MOZ_RELEASE_ASSERT(bytes.length() > sizeof(size_t));
       if (!aResources.AddBlobImage(
               key, descriptor, bytes,
@@ -722,7 +717,7 @@ struct DIGroup {
           aWrManager->WrBridge()->MatchesNamespace(mKey.ref()),
           "Stale blob key for group!");
 
-      wr::ImageDescriptor descriptor(dtSize, 0, *format, opacity);
+      wr::ImageDescriptor descriptor(dtSize, 0, dt->GetFormat(), opacity);
 
       // Convert mInvalidRect to image space by subtracting the corner of the
       // image bounds
@@ -2673,12 +2668,8 @@ WebRenderCommandBuilder::GenerateFallbackData(
                          recorder->mOutputStream.mLength);
     wr::BlobImageKey key =
         wr::BlobImageKey{mManager->WrBridge()->GetNextImageKey()};
-    auto imageFormat = wr::SurfaceFormatToImageFormat(dt->GetFormat());
-    if (NS_WARN_IF(!imageFormat)) {
-      return nullptr;
-    }
-    wr::ImageDescriptor descriptor(visibleSize.ToUnknownSize(), 0, *imageFormat,
-                                   opacity);
+    wr::ImageDescriptor descriptor(visibleSize.ToUnknownSize(), 0,
+                                   dt->GetFormat(), opacity);
     if (!aResources.AddBlobImage(
             key, descriptor, bytes,
             ViewAs<ImagePixel>(visibleRect,
@@ -2883,11 +2874,7 @@ Maybe<wr::ImageMask> WebRenderCommandBuilder::BuildWrMaskImage(
                          recorder->mOutputStream.mLength);
     wr::BlobImageKey key =
         wr::BlobImageKey{mManager->WrBridge()->GetNextImageKey()};
-    auto imageFormat = wr::SurfaceFormatToImageFormat(dt->GetFormat());
-    if (NS_WARN_IF(!imageFormat)) {
-      return Nothing();
-    }
-    wr::ImageDescriptor descriptor(size, 0, *imageFormat,
+    wr::ImageDescriptor descriptor(size, 0, dt->GetFormat(),
                                    wr::OpacityType::HasAlphaChannel);
     if (!aResources.AddBlobImage(key, descriptor, bytes,
                                  ImageIntRect(0, 0, size.width, size.height))) {
