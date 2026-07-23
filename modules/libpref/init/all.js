@@ -509,6 +509,8 @@ pref("ui.textHighlightBackground", "#ef0fff");
 // Used with nsISelectionController::SELECTION_FIND
 pref("ui.textHighlightForeground", "#ffffff");
 
+pref("ui.use_standins_for_native_colors", false, locked);
+
 // We want the ability to forcibly disable platform a11y, because
 // some non-a11y-related components attempt to bring it up.  See bug
 // 538530 for details about Windows; we have a pref here that allows it
