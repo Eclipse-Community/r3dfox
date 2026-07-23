@@ -12,10 +12,8 @@
 #include "Tools.h"
 #include "mozilla/Maybe.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <iterator>
 
 namespace mozilla {
 
@@ -402,7 +400,6 @@ Maybe<Rect> UnionMaybeRects(const Maybe<Rect>& a, const Maybe<Rect>& b) {
 template <typename Coord, typename Size, typename Margin>
 struct BaseRectCornerRadii {
   Size radii[eCornerCount];
-  float mShapeK[eCornerCount] = {1.0f, 1.0f, 1.0f, 1.0f};
 
   BaseRectCornerRadii() = default;
 
@@ -450,15 +447,7 @@ struct BaseRectCornerRadii {
   bool operator==(const BaseRectCornerRadii& aOther) const {
     return TopLeft() == aOther.TopLeft() && TopRight() == aOther.TopRight() &&
            BottomRight() == aOther.BottomRight() &&
-           BottomLeft() == aOther.BottomLeft() &&
-           std::equal(std::begin(mShapeK), std::end(mShapeK),
-                      std::begin(aOther.mShapeK));
-  }
-
-  // True if every corner uses the default round (K=1) shape.
-  bool AreShapesAllRound() const {
-    return std::all_of(std::begin(mShapeK), std::end(mShapeK),
-                       [](float k) { return k == 1.0f; });
+           BottomLeft() == aOther.BottomLeft();
   }
 
   bool AreRadiiSame() const {

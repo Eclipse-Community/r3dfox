@@ -7163,11 +7163,8 @@ bool nsTextFrame::PaintTextWithSelectionColors(
                 nsSize size = LayoutDeviceRect::ToAppUnits(selectionRect,
                                                            appUnitsPerDevPixel)
                                   .Size();
-
-                const auto& borderRadius = style->StyleBorder()->mBorderRadius;
-                const auto& cornerShape = style->StyleBorder()->mCornerShape;
                 hasRadii = nsIFrame::ComputeBorderRadii(
-                    borderRadius, cornerShape, size, size, {}, radii);
+                    style->StyleBorder()->mBorderRadius, size, size, {}, radii);
               }
             }
 
