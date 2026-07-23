@@ -385,6 +385,11 @@ Maybe<wr::WrSpatialId> ClipManager::DefineStickyNode(
     const ActiveScrolledRoot* aASR, nsDisplayItem* aItem) {
   nsIFrame* stickyFrame = aASR->mFrame;
 
+  if (Maybe<wr::WrSpatialId> space =
+          mBuilder->GetSpatialIdForDefinedLayer(aASR)) {
+    return space;
+  }
+
   StickyScrollContainer* stickyScrollContainer = GetStickyScrollContainer(aASR);
   if (!stickyScrollContainer) {
     // This may indicated a sticky item that does not need a webrender spatial
@@ -570,27 +575,25 @@ Maybe<wr::WrSpatialId> ClipManager::DefineSpatialNodes(
     return Nothing();
   }
 
-  Maybe<wr::WrSpatialId> space = mBuilder->GetSpatialIdForDefinedLayer(aASR);
-  if (space) {
-    // If we've already defined this layer before, we can early-exit
-    return space;
+  ScrollableLayerGuid::ViewID viewId = ScrollableLayerGuid::NULL_SCROLL_ID;
+  if (aASR->mKind == ActiveScrolledRoot::ASRKind::Scroll) {
+    viewId = aASR->GetViewId();
+    Maybe<wr::WrSpatialId> space = mBuilder->GetSpatialIdForDefinedLayer(aASR);
+    if (space) {
+      // If we've already defined this scroll layer before, we can early-exit
+      return space;
+    }
   }
 
   // Recurse to define the ancestors
   Maybe<wr::WrSpatialId> ancestorSpace =
       DefineSpatialNodes(aBuilder, aASR->mParent, aItem);
 
-  Maybe<wr::WrSpatialId> parent = ancestorSpace;
-  if (parent) {
-    *parent = SpatialIdAfterOverride(*parent);
-  }
-
   if (aASR->mKind == ActiveScrolledRoot::ASRKind::Sticky) {
+    Maybe<wr::WrSpatialId> parent = ancestorSpace.map(
+        [this](wr::WrSpatialId& aId) { return SpatialIdAfterOverride(aId); });
     return ClipManager::DefineStickyNode(aBuilder, parent, aASR, aItem);
   }
-
-  MOZ_ASSERT(aASR->mKind == ActiveScrolledRoot::ASRKind::Scroll);
-  ScrollableLayerGuid::ViewID viewId = aASR->GetViewId();
 
   MOZ_ASSERT(viewId != ScrollableLayerGuid::NULL_SCROLL_ID);
 
@@ -628,6 +631,10 @@ Maybe<wr::WrSpatialId> ClipManager::DefineSpatialNodes(
       metrics.GetExpandedScrollableRect() * metrics.GetDevPixelsPerCSSPixel();
   contentRect.MoveTo(clipBounds.TopLeft());
 
+  Maybe<wr::WrSpatialId> parent = ancestorSpace;
+  if (parent) {
+    *parent = SpatialIdAfterOverride(*parent);
+  }
   // The external scroll offset is accumulated into the local space positions of
   // display items inside WR, so that the elements hash (intern) to the same
   // content ID for quick comparisons. To avoid invalidations when the

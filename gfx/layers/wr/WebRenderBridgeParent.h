@@ -244,6 +244,8 @@ class WebRenderBridgeParent final : public PWebRenderBridgeParent,
 
   wr::Epoch GetCurrentEpoch() const { return mWrEpoch; }
 
+  bool HasReceivedDisplayList() const { return mReceivedDisplayList; }
+
   bool MatchesNamespace(const wr::ImageKey& aImageKey) const {
     return aImageKey.mNamespace == mLateInit->mIdNamespace;
   }
@@ -262,11 +264,6 @@ class WebRenderBridgeParent final : public PWebRenderBridgeParent,
 
   bool MatchesNamespace(const wr::FontInstanceKey& aFontKey) const {
     return aFontKey.mNamespace == mLateInit->mIdNamespace;
-  }
-
-  bool OwnsExternalImageId(const wr::ExternalImageId& aId) const {
-    return static_cast<uint32_t>(wr::AsUint64(aId) >> 32) ==
-           mLateInit->mIdNamespace.mHandle;
   }
 
   void FlushRendering(wr::RenderReasons aReasons, bool aBlocking);

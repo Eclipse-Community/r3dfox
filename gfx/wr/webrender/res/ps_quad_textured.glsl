@@ -22,6 +22,14 @@ void pattern_vertex(PrimitiveInfo info) {
     if (info.pattern_input.x == SHADER_MODE_TEXTURE) {
         // Textured
 
+        // TODO: Ideally we would unconditionally modulate the texture with the provided
+        // base color, however we are currently getting glitches on Adreno GPUs on Windows
+        // if the base color is set to white for composite primitives. While we figure this
+        // out, v_color is forced to white here in the textured case, which restores the
+        // behavior from before the patch that introduced the glitches.
+        // See comment in `add_composite_prim`.
+        v_color = vec4(1.0);
+
         RectWithEndpoint pattern_rect = info.local_prim_rect;
         if (info.pattern_input.y == MAP_TO_SEGMENT) {
             pattern_rect = info.segment.rect;
@@ -49,34 +57,15 @@ vec4 pattern_fragment(vec4 color) {
 
 #if defined(SWGL_DRAW_SPAN)
 void swgl_drawSpanRGBA8() {
-    if (v_flags_mode != SHADER_MODE_TEXTURE) {
-        swgl_commitSolidRGBA8(v_color);
-        return;
-    }
-
-    if (v_flags_is_mask != 0) {
-        // The fragment path broadcasts the output's r channel to all channels
-        // (output_color.rrrr in ps_quad.glsl). expand_mask in swgl produces the
-        // same broadcast from an R8 sample, so the R8ToRGBA8 commits match the
-        // mask semantics. RGBA8 + mask still falls back to the fragment shader
-        // since no swgl commit broadcasts a single channel of an RGBA8 sample.
-        if (swgl_isTextureR8(sColor0)) {
-            if (v_color != vec4(1.0)) {
-                swgl_commitTextureLinearColorR8ToRGBA8(sColor0, v_uv0, v_uv0_sample_bounds, v_color);
-            } else {
-                swgl_commitTextureLinearR8ToRGBA8(sColor0, v_uv0, v_uv0_sample_bounds);
-            }
+    if (v_flags_mode == SHADER_MODE_TEXTURE) {
+        if (v_flags_is_mask != 0) {
+            // Fall back to fragment shader as we don't specialize for mask yet. Perhaps
+            // we can use an existing swgl commit or add a new one though?
+        } else {
+            swgl_commitTextureLinearColorRGBA8(sColor0, v_uv0, v_uv0_sample_bounds, v_color);
         }
-        return;
-    }
-
-    if (!swgl_isTextureRGBA8(sColor0)) {
-        return;
-    }
-    if (v_color != vec4(1.0)) {
-        swgl_commitTextureColorRGBA8(sColor0, v_uv0, v_uv0_sample_bounds, v_color);
     } else {
-        swgl_commitTextureRGBA8(sColor0, v_uv0, v_uv0_sample_bounds);
+        swgl_commitSolidRGBA8(v_color);
     }
 }
 #endif

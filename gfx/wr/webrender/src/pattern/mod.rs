@@ -6,7 +6,6 @@ pub mod gradient;
 pub mod box_shadow;
 pub mod repeat;
 pub mod image;
-pub mod cutout;
 
 use api::units::{LayoutVector2D, LayoutPoint};
 use api::{ColorF, units::DeviceRect};
@@ -29,17 +28,10 @@ pub enum PatternKind {
 
     Mask = 3,
     BoxShadow = 4,
-    // Variants of ColorOrTexture that use a non-default sampler type
-    // (samplerExternalOES / __samplerExternal2DY2YEXT / sampler2DRect). The
-    // quad shader is compiled in matching per-kind variants; see
-    // ps_quad_textured.glsl.
-    TextureExternal = 5,
-    TextureExternalBT709 = 6,
-    TextureRect = 7,
     // When adding patterns, don't forget to update the NUM_PATTERNS constant.
 }
 
-pub const NUM_PATTERNS: u32 = 8;
+pub const NUM_PATTERNS: u32 = 5;
 
 impl PatternKind {
     pub fn from_u32(val: u32) -> Self {
@@ -150,12 +142,6 @@ impl Pattern {
 
     pub fn with_blend_mode(mut self, blend_mode: BlendMode) -> Self {
         self.blend_mode = blend_mode;
-
-        self
-    }
-
-    pub fn with_base_color(mut self, color: ColorF) -> Self {
-        self.base_color = color;
 
         self
     }

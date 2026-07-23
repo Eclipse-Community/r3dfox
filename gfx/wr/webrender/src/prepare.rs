@@ -6,16 +6,11 @@
 //!
 //! TODO: document this!
 
-use api::{BoxShadowClipMode, ColorF, DebugFlags, ExtendMode, GradientStop, RepeatMode};
+use api::{BoxShadowClipMode, ColorF, DebugFlags};
 use api::ClipMode;
-use crate::pattern::cutout::Cutout;
 use crate::util::clamp_to_scale_factor;
 use crate::box_shadow::{BoxShadowCacheKey, BLUR_SAMPLE_SCALE};
 use crate::pattern::box_shadow::BoxShadowPatternData;
-use crate::pattern::gradient::linear_gradient_pattern;
-use crate::pattern::{Pattern, PatternBuilder, PatternBuilderContext, PatternBuilderState};
-use crate::prim_store::gradient::{decompose_axis_aligned_gradient, linear_gradient_decomposes};
-use crate::segment::EdgeMask;
 use api::units::*;
 use euclid::Scale;
 use smallvec::SmallVec;
@@ -23,8 +18,6 @@ use crate::composite::CompositorSurfaceKind;
 use crate::command_buffer::{CommandBufferIndex, PrimitiveCommand};
 use crate::border;
 use crate::clip::{ClipStore, ClipNodeRange};
-use crate::pattern::image::ImagePattern;
-use crate::render_task_graph::RenderTaskId;
 use crate::renderer::{GpuBufferAddress, GpuBufferWriterF};
 use crate::spatial_tree::SpatialNodeIndex;
 use crate::clip::{clamped_radius, ClipNodeFlags, ClipChainInstance, ClipItemKind};
@@ -45,7 +38,6 @@ use crate::render_task_cache::RenderTaskCacheKeyKind;
 use crate::render_task_cache::{RenderTaskCacheKey, to_cache_size, RenderTaskParent};
 use crate::render_task::{EmptyTask, RenderTask, RenderTaskKind, MAX_BLUR_STD_DEVIATION};
 use crate::segment::SegmentBuilder;
-use crate::space::SpaceSnapper;
 use crate::visibility::{DrawState, KindScratchHandle};
 
 
@@ -271,14 +263,18 @@ fn prepare_prim_for_render(
             | PrimitiveKind::RadialGradient { .. }
             | PrimitiveKind::ConicGradient { .. }
             | PrimitiveKind::LinearGradient { .. }
-            | PrimitiveKind::Image { .. }
-            | PrimitiveKind::NormalBorder { .. }
             => {
                 use_legacy_path = false;
             }
-            PrimitiveKind::YuvImage { .. } => {
-                let prim_info = scratch.frame.draws[prim_instance_index];
-                use_legacy_path = prim_info.compositor_surface_kind != CompositorSurfaceKind::Underlay;
+            PrimitiveKind::Image { data_handle, .. } => {
+                use_legacy_path = !crate::prim_store::image::can_use_quad_shaders(
+                    &data_stores.image[*data_handle].kind,
+                    frame_state.resource_cache,
+                );
+
+                use_legacy_path = use_legacy_path || scratch.frame
+                    .draws[prim_instance_index]
+                    .compositor_surface_kind == CompositorSurfaceKind::Underlay;
             }
             _ => {}
         };
@@ -290,12 +286,10 @@ fn prepare_prim_for_render(
         // and mask generation.
         let should_update_clip_task = match &mut prim_instance.kind {
             PrimitiveKind::Rectangle { .. }
+            | PrimitiveKind::Image { .. }
             | PrimitiveKind::RadialGradient { .. }
             | PrimitiveKind::ConicGradient { .. }
             | PrimitiveKind::LinearGradient { .. }
-            | PrimitiveKind::Image { .. }
-            | PrimitiveKind::YuvImage { .. }
-            | PrimitiveKind::NormalBorder { .. }
             => {
                 use_legacy_path |= !can_use_clip_chain_for_quad_path(
                     &scratch.frame.draws[prim_instance_index].clip_chain,
@@ -313,13 +307,12 @@ fn prepare_prim_for_render(
         // Per-frame, per-kind segment construction that has to run
         // before update_clip_task (which reads the segments via
         // update_clip_task_for_brush).
-        let snapped_local_rect = scratch.frame.draws[prim_instance_index].snapped_local_rect;
         match prim_instance.kind {
             PrimitiveKind::NormalBorder { data_handle } => {
                 NormalBorderScratch::build_for_prim(
                     data_handle,
                     PrimitiveInstanceIndex(prim_instance_index as u32),
-                    snapped_local_rect.size(),
+                    prim_instance.prim_rect.size(),
                     data_stores,
                     scratch,
                 );
@@ -328,7 +321,7 @@ fn prepare_prim_for_render(
                 ImageBorderScratch::build_for_prim(
                     data_handle,
                     PrimitiveInstanceIndex(prim_instance_index as u32),
-                    snapped_local_rect.size(),
+                    prim_instance.prim_rect.size(),
                     data_stores,
                     scratch,
                 );
@@ -339,7 +332,6 @@ fn prepare_prim_for_render(
         if should_update_clip_task {
             let prim_rect = data_stores.get_local_prim_rect(
                 prim_instance,
-                scratch.frame.draws[prim_instance_index].snapped_local_rect,
                 &store.pictures,
                 frame_state.surfaces,
             );
@@ -417,52 +409,36 @@ fn prepare_interned_prim_for_render(
             let shadow_data = &prim_data.kind;
             let blur_radius = shadow_data.blur_radius;
 
-            // Build snapped element/inner/outer rects. The shader expects
-            // `inner = element.translate(offset).inflate(spread)` and
-            // `outer = inner.inflate(blur_offset)`, with element snapped to
-            // the device pixel grid. Because the inflations can have
-            // fractional components, snapping the prim's whole rect and
-            // then deflating is not equivalent to snapping the element rect
-            // directly, so we always snap the element rect itself and
-            // re-inflate.
+            // Derive inner/outer/element rects per-frame from the prim's
+            // current rect, the box-shadow offset, and the (signed) spread
+            // amount stored on the template.
             //
-            // The element rect's relation to the per-instance
-            // `unsnapped_prim_rect` differs by clip_mode (set up in
-            // `box_shadow::add_box_shadow`):
-            //   - Outset: prim rect = element.translate.inflate(spread)
-            //                                  .inflate(blur_offset);
-            //             recover element by reversing the construction.
-            //   - Inset:  prim rect = element directly.
+            // For Outset, the prim was registered with `info.rect = dest_rect`,
+            // so prim_rect == outer; inner = outer.deflate(blur_offset);
+            // element = inner.deflate(spread).translate(-box_offset).
+            //
+            // For Inset, the prim was registered with `info.rect = element_rect`,
+            // so prim_rect == element; inner = element.translate(box_offset)
+            // .inflate(spread_amount); outer = inner.inflate(blur_offset).
+            let prim_rect = prim_instance.prim_rect;
             let blur_offset = (BLUR_SAMPLE_SCALE * blur_radius).ceil();
-            let unsnapped_element_rect = match shadow_data.clip_mode {
-                BoxShadowClipMode::Outset => prim_instance.unsnapped_prim_rect
-                    .inflate(-blur_offset, -blur_offset)
-                    .inflate(-shadow_data.spread_amount, -shadow_data.spread_amount)
-                    .translate(-shadow_data.box_offset),
-                BoxShadowClipMode::Inset => prim_instance.unsnapped_prim_rect,
-            };
-            let element_rect = {
-                // Snap into the prim's surface raster space, matching how the
-                // prim's own rect was snapped in the visibility pass.
-                let mut snapper = SpaceSnapper::new(
-                    &frame_state.surfaces[pic_context.surface_index.0],
-                    frame_context.spatial_tree,
-                );
-                snapper.set_target_spatial_node(prim_spatial_node_index, frame_context.spatial_tree);
-                snapper.snap_rect(&unsnapped_element_rect)
-            };
-            let inner_shadow_rect = element_rect
-                .translate(shadow_data.box_offset)
-                .inflate(shadow_data.spread_amount, shadow_data.spread_amount);
-            let outer_shadow_rect = inner_shadow_rect.inflate(blur_offset, blur_offset);
-            // The shader-facing prim rect mirrors the (re-derived) outer for
-            // Outset and the element for Inset — i.e. whichever rect the
-            // scene-build path originally registered as `info.rect`. This is
-            // what the rest of this block, plus `prepare_quad` below, expects
-            // as the prim local-space rect.
-            let prim_rect = match shadow_data.clip_mode {
-                BoxShadowClipMode::Outset => outer_shadow_rect,
-                BoxShadowClipMode::Inset => element_rect,
+            let (inner_shadow_rect, outer_shadow_rect, element_rect) = match shadow_data.clip_mode {
+                BoxShadowClipMode::Outset => {
+                    let outer = prim_rect;
+                    let inner = outer.inflate(-blur_offset, -blur_offset);
+                    let element = inner
+                        .inflate(-shadow_data.spread_amount, -shadow_data.spread_amount)
+                        .translate(-shadow_data.box_offset);
+                    (inner, outer, element)
+                }
+                BoxShadowClipMode::Inset => {
+                    let element = prim_rect;
+                    let inner = element
+                        .translate(shadow_data.box_offset)
+                        .inflate(shadow_data.spread_amount, shadow_data.spread_amount);
+                    let outer = inner.inflate(blur_offset, blur_offset);
+                    (inner, outer, element)
+                }
             };
 
             let shadow_rect_size = inner_shadow_rect.size();
@@ -686,7 +662,7 @@ fn prepare_interned_prim_for_render(
             let prim_data = &data_stores.line_decoration[*data_handle];
 
             let (task_id, gpu_address) = prim_data.kind.prepare(
-                prim_info.snapped_local_rect.size(),
+                prim_instance.prim_rect.size(),
                 prim_spatial_node_index,
                 frame_context,
                 frame_state,
@@ -701,25 +677,23 @@ fn prepare_interned_prim_for_render(
         }
         PrimitiveKind::TextRun { data_handle } => {
             profile_scope!("TextRun");
-
             let prim_data = &data_stores.text_run[*data_handle];
 
-            // The transform has to match the prim -> raster transform applied
-            // by "ps_text_run" via `transform.m` + `device_pixel_scale`.
-            // `request_resources` uses it to map glyph pen positions into
-            // absolute device space for snapping.
+            // The glyph transform has to match `glyph_transform` in "ps_text_run" shader.
+            // It's relative to the rasterizing space of a glyph.
             let transform = frame_context.spatial_tree
                 .get_relative_transform(
                     prim_spatial_node_index,
                     pic_context.raster_spatial_node_index,
                 )
                 .into_fast_transform();
-
-            // The run anchor is the normalized prim rect origin; glyph
-            // positions in the template are stored relative to it. Use the
-            // unsnapped rect so the anchor matches what the shader receives in
-            // `PrimitiveHeader.local_rect`.
-            let local_rect = prim_instance.unsnapped_prim_rect;
+            // Template glyphs are stored relative to the run's pen origin, not
+            // the prim rect origin. Compose `prim_rect.min + run_origin_offset`
+            // so the shader formula `glyph.point + local_rect.min` still
+            // resolves to the correct absolute glyph position, and so the snap
+            // path anchors on the run pen rather than the bounding rect top.
+            let prim_offset = prim_instance.prim_rect.min.to_vector()
+                + prim_data.run_origin_offset;
 
             let surface = &frame_state.surfaces[pic_context.surface_index.0];
 
@@ -753,7 +727,7 @@ fn prepare_interned_prim_for_render(
             };
 
             let text_run_handle = prim_data.request_resources(
-                local_rect,
+                prim_offset,
                 &transform.to_transform().with_destination::<_>(),
                 surface,
                 prim_spatial_node_index,
@@ -778,8 +752,6 @@ fn prepare_interned_prim_for_render(
         PrimitiveKind::NormalBorder { data_handle } => {
             profile_scope!("NormalBorder");
             let prim_data = &mut data_stores.normal_border[*data_handle];
-            let aligned_aa_edges = prim_data.common.aligned_aa_edges;
-            let transformed_aa_edges = prim_data.common.transformed_aa_edges;
             let common_data = &mut prim_data.common;
             let border_data = &mut prim_data.kind;
 
@@ -791,6 +763,15 @@ fn prepare_interned_prim_for_render(
                 .kind_scratch
                 .unwrap_normal_border();
             let nb_scratch = scratch.frame.normal_border[nb_handle];
+
+            let brush_segments = &scratch.frame.segments[nb_scratch.brush_segments_range];
+            let gpu_address = border_data.write_brush_gpu_blocks(
+                common_data,
+                prim_instance.prim_rect.size(),
+                brush_segments,
+                frame_state,
+            );
+            scratch.frame.normal_border[nb_handle].gpu_address = gpu_address;
 
             // Hold split borrows on distinct fields of scratch.frame so
             // we can pass the border_segments slice and the task_ids
@@ -808,154 +789,6 @@ fn prepare_interned_prim_for_render(
                 frame_state,
                 &mut border_task_ids[nb_scratch.task_ids],
             );
-
-            if !use_legacy_path {
-                let offset = prim_info.snapped_local_rect.min.to_vector();
-                // TODO: as soon as the legacy path is removed we can remove the scratch handles
-                // and hoops we get through to access them here.
-                let task_ids: SmallVec<[RenderTaskId; 8]> = SmallVec::from_slice(
-                    &scratch.frame.border_task_ids[nb_scratch.task_ids],
-                );
-                let brush_segments: SmallVec<[BrushSegment; 8]> =
-                    scratch.frame.segments[nb_scratch.brush_segments_range]
-                        .iter()
-                        .cloned()
-                        .collect();
-                for (task_id, segment) in task_ids.iter().zip(brush_segments.iter()) {
-                    let pattern = ImagePattern {
-                        src_task_id: *task_id,
-                        src_is_opaque: false,
-                        premultiplied: true,
-                        sampler_kind: api::ImageBufferKind::Texture2D,
-                        color: ColorF::WHITE,
-                    };
-
-                    // TODO: Dealing with brush flags and more generally brush segments here
-                    // is awkward. We'll be able to clean this up once the brush code path
-                    // is removed.
-                    let flags = segment.brush_flags;
-                    let repeat_x = if flags.contains(BrushFlags::SEGMENT_REPEAT_X_ROUND) {
-                        RepeatMode::Round
-                    } else if flags.contains(BrushFlags::SEGMENT_REPEAT_X) {
-                        RepeatMode::Repeat
-                    } else {
-                        RepeatMode::Stretch
-                    };
-
-                    let repeat_y = if flags.contains(BrushFlags::SEGMENT_REPEAT_Y_ROUND) {
-                        RepeatMode::Round
-                    } else if flags.contains(BrushFlags::SEGMENT_REPEAT_Y) {
-                        RepeatMode::Repeat
-                    } else {
-                        RepeatMode::Stretch
-                    };
-
-                    let src_size = frame_state.rg_builder
-                        .get_task(*task_id)
-                        .get_target_size()
-                        .to_f32();
-
-                    let mut segment_local_rect = segment.local_rect.translate(offset);
-                    let mut local_clip_rect = prim_info.clip_chain.local_clip_rect;
-
-                    // Corner segments have SEGMENT_TEXEL_RECT set. In that case the
-                    // source render task contains the full corner texture (image_rect)
-                    // while segment.local_rect is only the visible (non-overlapping)
-                    // part. extra_data carries the normalized texture sub-rect
-                    // that segment.local_rect maps to. Reconstruct image_rect so
-                    // the texture is drawn at its natural size, and clip the
-                    // output to segment.local_rect.
-                    if flags.contains(BrushFlags::SEGMENT_TEXEL_RECT) {
-                        let tex_rect = segment.extra_data;
-                        let tex_w = tex_rect[2] - tex_rect[0];
-                        let tex_h = tex_rect[3] - tex_rect[1];
-                        if tex_w > 0.0 && tex_h > 0.0 {
-                            let image_size = LayoutSize::new(
-                                segment_local_rect.width() / tex_w,
-                                segment_local_rect.height() / tex_h,
-                            );
-                            let image_min = LayoutPoint::new(
-                                segment_local_rect.min.x - tex_rect[0] * image_size.width,
-                                segment_local_rect.min.y - tex_rect[1] * image_size.height,
-                            );
-                            local_clip_rect = local_clip_rect
-                                .intersection(&segment_local_rect)
-                                .unwrap_or(LayoutRect::zero());
-                            segment_local_rect = LayoutRect::from_origin_and_size(
-                                image_min,
-                                image_size,
-                            );
-                        }
-                    }
-
-                    let mut stretch_size = segment_local_rect.size();
-                    let mut spacing = LayoutSize::zero();
-                    let mut _repeat_offset = LayoutVector2D::zero();
-                    crate::border::compute_border_repetition(
-                        segment_local_rect.size(),
-                        src_size,
-                        repeat_x,
-                        repeat_y,
-                        &mut stretch_size,
-                        &mut spacing,
-                        &mut _repeat_offset,
-                    );
-
-                    // The positioning and size of the dashesdots is not specified
-                    // but browsers are encouraged to make the pattern symetrical.
-                    // One way to do this is to apply the repeat offset computed
-                    // by compute_border_repetition. However the pattern that we
-                    // are repeating is meant to be instead stretched to so that
-                    // an integer number of repetitions fills the space.
-
-                    if repeat_x == RepeatMode::Repeat {
-                        let w = segment_local_rect.width();
-                        let sw = stretch_size.width;
-                        let scale = w / ((w / sw).round() * sw);
-
-                        stretch_size.width *= scale;
-                    }
-
-                    if repeat_y == RepeatMode::Repeat {
-                        let h = segment_local_rect.height();
-                        let sh = stretch_size.height;
-                        let scale = h / ((h / sh).round() * sh);
-
-                        stretch_size.height *= scale;
-                    }
-
-                    quad::prepare_repeatable_quad(
-                        &pattern,
-                        &segment_local_rect,
-                        &local_clip_rect,
-                        stretch_size,
-                        spacing,
-                        segment.edge_flags & aligned_aa_edges,
-                        segment.edge_flags & transformed_aa_edges,
-                        prim_instance_index,
-                        &None,
-                        &prim_info.clip_chain,
-                        quad_transform,
-                        frame_context,
-                        pic_context,
-                        targets,
-                        &data_stores.clip,
-                        frame_state,
-                        scratch,
-                    );
-                }
-
-                return;
-            }
-            
-            let brush_segments = &scratch.frame.segments[nb_scratch.brush_segments_range];
-            let gpu_address = border_data.write_brush_gpu_blocks(
-                common_data,
-                prim_info.snapped_local_rect.size(),
-                brush_segments,
-                frame_state,
-            );
-            scratch.frame.normal_border[nb_handle].gpu_address = gpu_address;
         }
         PrimitiveKind::ImageBorder { data_handle, .. } => {
             profile_scope!("ImageBorder");
@@ -976,7 +809,7 @@ fn prepare_interned_prim_for_render(
             // cache with any shared template data.
             let gpu_address = prim_data.kind.update(
                 &mut prim_data.common,
-                prim_info.snapped_local_rect.size(),
+                prim_instance.prim_rect.size(),
                 brush_segments,
                 frame_state,
             );
@@ -1009,7 +842,7 @@ fn prepare_interned_prim_for_render(
                 );
             } else {
                 let prim_data = &data_stores.prim[*data_handle];
-                let prim_rect = prim_info.snapped_local_rect;
+                let prim_rect = prim_instance.prim_rect;
 
                 quad::prepare_quad(
                     prim_data,
@@ -1038,30 +871,6 @@ fn prepare_interned_prim_for_render(
             let common_data = &mut prim_data.common;
             let yuv_image_data = &mut prim_data.kind;
 
-            if !use_legacy_path {
-                if prim_info.compositor_surface_kind == CompositorSurfaceKind::Underlay {
-                    quad::prepare_quad(
-                        &Cutout,
-                        &prim_info.snapped_local_rect,
-                        &prim_info.clip_chain.local_clip_rect,
-                        common_data.aligned_aa_edges,
-                        common_data.transformed_aa_edges,
-                        prim_instance_index,
-                        &None,
-                        &prim_info.clip_chain,
-                        quad_transform,
-                        frame_context,
-                        pic_context,
-                        targets,
-                        &data_stores.clip,
-                        frame_state,
-                        scratch,
-                    );
-
-                    return;
-                }
-            }
-
             // Update the template this instane references, which may refresh the GPU
             // cache with any shared template data.
             yuv_image_data.update(
@@ -1088,29 +897,7 @@ fn prepare_interned_prim_for_render(
             let image_data = &mut prim_data.kind;
 
             if !use_legacy_path {
-                let prim_rect = prim_info.snapped_local_rect;
-
-                if prim_info.compositor_surface_kind == CompositorSurfaceKind::Underlay {
-                    quad::prepare_quad(
-                        &Cutout,
-                        &prim_rect,
-                        &prim_info.clip_chain.local_clip_rect,
-                        common_data.aligned_aa_edges,
-                        common_data.transformed_aa_edges,
-                        prim_instance_index,
-                        &None,
-                        &prim_info.clip_chain,
-                        quad_transform,
-                        frame_context,
-                        pic_context,
-                        targets,
-                        &data_stores.clip,
-                        frame_state,
-                        scratch,
-                    );
-
-                    return;
-                }
+                let prim_rect = prim_instance.prim_rect;
 
                 crate::prim_store::image::prepare_image_quads(
                     &prim_rect,
@@ -1138,14 +925,12 @@ fn prepare_interned_prim_for_render(
                 prim_spatial_node_index,
                 frame_state,
                 frame_context,
-                prim_info.snapped_local_rect,
+                prim_instance.prim_rect,
                 scratch,
             );
             scratch.frame.draws[prim_instance_index.0 as usize].kind_scratch =
                 KindScratchHandle::Image(img_scratch_handle);
             let image_adjustment = scratch.frame.images[img_scratch_handle].adjustment;
-            let effective_stretch_size =
-                image_data.stretch_size.resolve(&prim_info.snapped_local_rect);
 
             write_segment(
                 prim_info.segment_instance_index,
@@ -1153,14 +938,14 @@ fn prepare_interned_prim_for_render(
                 &mut scratch.frame.segments,
                 &mut scratch.frame.segment_instances,
                 |request| {
-                    image_data.write_prim_gpu_blocks(&image_adjustment, effective_stretch_size, request);
+                    image_data.write_prim_gpu_blocks(&image_adjustment, request);
                 },
             );
         }
         PrimitiveKind::LinearGradient { data_handle, .. } => {
             profile_scope!("LinearGradient");
-            let prim_data = &data_stores.linear_grad[*data_handle];
-            let prim_rect = prim_info.snapped_local_rect;
+            let prim_data = &mut data_stores.linear_grad[*data_handle];
+            let prim_rect = prim_instance.prim_rect;
             let stretch_size = LayoutSize::new(
                 prim_data.stretch_ratio.width * prim_rect.size().width,
                 prim_data.stretch_ratio.height * prim_rect.size().height,
@@ -1183,73 +968,6 @@ fn prepare_interned_prim_for_render(
                     &data_stores.clip,
                     frame_state,
                     scratch,
-                );
-                return;
-            }
-
-            // Fast-path: axis-aligned non-repeating gradients with multiple
-            // stops decompose into per-segment two-stop quads so the GPU can
-            // take the `sample_gradient_stops_fast` shader path. The
-            // decomposition runs at frame-build (against the snapped prim
-            // rect) so adjacent segments tile end-to-end at the snapped
-            // outer-prim grid, even when the frame-time snap pass nudges
-            // the outer rect at fractional DPR.
-            //
-            // `create_linear_gradient_prim` canonicalises the stored
-            // start/end by swapping them when the original gradient line
-            // ran "backwards" (and recording that in `reverse_stops`).
-            // `LinearGradientTemplate::build` swaps them back at render
-            // time; we have to do the same here so the decomposition sees
-            // the gecko-original gradient orientation -- otherwise the
-            // segment loop produces a gradient with stops in reverse
-            // order (e.g. `linear-gradient(to top, red, blue)` rendering
-            // as red-on-top instead of red-on-bottom).
-            let (effective_start, effective_end) = if prim_data.reverse_stops {
-                (prim_data.end_point, prim_data.start_point)
-            } else {
-                (prim_data.start_point, prim_data.end_point)
-            };
-            if linear_gradient_decomposes(
-                &prim_rect,
-                stretch_size,
-                prim_data.tile_spacing,
-                effective_start,
-                effective_end,
-                prim_data.extend_mode,
-                &prim_data.stops,
-                frame_context.fb_config.enable_dithering,
-            ) {
-                decompose_axis_aligned_gradient(
-                    &prim_rect,
-                    stretch_size,
-                    effective_start,
-                    effective_end,
-                    &prim_data.stops,
-                    &prim_info.clip_chain.local_clip_rect,
-                    |seg_rect, seg_start, seg_end, seg_stops, edge_aa_mask| {
-                        let pattern = LinearGradientSegmentPattern {
-                            start: seg_start,
-                            end: seg_end,
-                            stops: seg_stops,
-                        };
-                        quad::prepare_quad(
-                            &pattern,
-                            seg_rect,
-                            &prim_info.clip_chain.local_clip_rect,
-                            EdgeMask::empty(),
-                            edge_aa_mask,
-                            prim_instance_index,
-                            &None,
-                            &prim_info.clip_chain,
-                            quad_transform,
-                            frame_context,
-                            pic_context,
-                            targets,
-                            &data_stores.clip,
-                            frame_state,
-                            scratch,
-                        );
-                    },
                 );
                 return;
             }
@@ -1282,7 +1000,7 @@ fn prepare_interned_prim_for_render(
                 None
             };
 
-            let local_rect = prim_info.snapped_local_rect;
+            let local_rect = prim_instance.prim_rect;
             quad::prepare_repeatable_quad(
                 prim_data,
                 &local_rect,
@@ -1308,7 +1026,7 @@ fn prepare_interned_prim_for_render(
         PrimitiveKind::RadialGradient { data_handle, .. } => {
             profile_scope!("RadialGradient");
             let prim_data = &mut data_stores.radial_grad[*data_handle];
-            let local_rect = prim_info.snapped_local_rect;
+            let local_rect = prim_instance.prim_rect;
             let stretch_size = LayoutSize::new(
                 prim_data.stretch_ratio.width * local_rect.size().width,
                 prim_data.stretch_ratio.height * local_rect.size().height,
@@ -1359,7 +1077,7 @@ fn prepare_interned_prim_for_render(
         PrimitiveKind::ConicGradient { data_handle, .. } => {
             profile_scope!("ConicGradient");
             let prim_data = &mut data_stores.conic_grad[*data_handle];
-            let prim_rect = prim_info.snapped_local_rect;
+            let prim_rect = prim_instance.prim_rect;
             let stretch_size = LayoutSize::new(
                 prim_data.stretch_ratio.width * prim_rect.size().width,
                 prim_data.stretch_ratio.height * prim_rect.size().height,
@@ -1419,7 +1137,7 @@ fn prepare_interned_prim_for_render(
                 None
             };
 
-            let local_rect = prim_info.snapped_local_rect;
+            let local_rect = prim_instance.prim_rect;
             quad::prepare_repeatable_quad(
                 prim_data,
                 &local_rect,
@@ -2106,7 +1824,6 @@ fn build_segments_if_needed(
     // in the instance and primitive template.
     let prim_local_rect = data_stores.get_local_prim_rect(
         instance,
-        scratch.frame.draws[prim_instance_index.0 as usize].snapped_local_rect,
         &prim_store.pictures,
         frame_state.surfaces,
     );
@@ -2168,7 +1885,7 @@ fn build_segments_if_needed(
 
     if write_brush_segment_description(
         prim_local_rect,
-        clip_leaf.snapped_local_clip_rect,
+        clip_leaf.local_clip_rect,
         prim_clip_chain,
         &mut frame_state.segment_builder,
         frame_state.clip_store,
@@ -2236,35 +1953,5 @@ impl CompositorSurfaceKind {
             CompositorSurfaceKind::Underlay | CompositorSurfaceKind::Overlay => false,
             CompositorSurfaceKind::Blit => true,
         }
-    }
-}
-
-/// Pattern builder for a single fast-path two-stop segment emitted by
-/// `decompose_axis_aligned_gradient`. Holds the segment's gradient line and
-/// stop colors (in segment-local coords); `build` translates start/end into
-/// the prim's spatial-node space by adding `ctx.prim_origin`.
-struct LinearGradientSegmentPattern {
-    start: LayoutPoint,
-    end: LayoutPoint,
-    stops: [GradientStop; 2],
-}
-
-impl PatternBuilder for LinearGradientSegmentPattern {
-    fn build(
-        &self,
-        _sub_rect: Option<DeviceRect>,
-        offset: LayoutVector2D,
-        ctx: &PatternBuilderContext,
-        state: &mut PatternBuilderState,
-    ) -> Pattern {
-        let prim_offset = offset + ctx.prim_origin.to_vector();
-        linear_gradient_pattern(
-            self.start + prim_offset,
-            self.end + prim_offset,
-            ExtendMode::Clamp,
-            &self.stops,
-            ctx.fb_config.is_software,
-            state.frame_gpu_data,
-        )
     }
 }

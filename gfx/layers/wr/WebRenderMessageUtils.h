@@ -45,24 +45,11 @@ struct ParamTraits<mozilla::wr::ImageDescriptor> {
   }
 
   static bool Read(MessageReader* aReader, paramType* aResult) {
-    if (!(ReadParam(aReader, &aResult->format) &&
-          ReadParam(aReader, &aResult->width) &&
-          ReadParam(aReader, &aResult->height) &&
-          ReadParam(aReader, &aResult->stride) &&
-          ReadParam(aReader, &aResult->opacity))) {
-      return false;
-    }
-    if (aResult->width < 0 || aResult->height < 0 || aResult->stride < 0) {
-      return false;
-    }
-    if (aResult->stride != 0) {
-      int bpp = mozilla::gfx::BytesPerPixel(
-          mozilla::wr::ImageFormatToSurfaceFormat(aResult->format));
-      if (bpp <= 0 || aResult->stride / bpp < aResult->width) {
-        return false;
-      }
-    }
-    return true;
+    return ReadParam(aReader, &aResult->format) &&
+           ReadParam(aReader, &aResult->width) &&
+           ReadParam(aReader, &aResult->height) &&
+           ReadParam(aReader, &aResult->stride) &&
+           ReadParam(aReader, &aResult->opacity);
   }
 };
 

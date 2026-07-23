@@ -5,12 +5,11 @@
 #ifndef MOZILLA_GFX_DCLAYER_TREE_H
 #define MOZILLA_GFX_DCLAYER_TREE_H
 
-#include <windows.h>
 #include <deque>
-#include <dxgicommon.h>
 #include <dxgiformat.h>
 #include <unordered_map>
 #include <vector>
+#include <windows.h>
 
 #include "Colorspaces.h"
 #include "GLTypes.h"
@@ -44,17 +43,6 @@ struct IDXGIResource;
 struct IDXGISwapChain1;
 struct IDCompositionVirtualSurface;
 struct IDCompositionRectangleClip;
-struct ID3D11VertexShader;
-struct ID3D11PixelShader;
-struct ID3D10Blob;
-typedef ID3D10Blob ID3DBlob;
-struct D3D11_SHADER_RESOURCE_VIEW_DESC;
-struct ID3D11Buffer;
-struct ID3D11InputLayout;
-struct ID3D11ShaderResourceView;
-struct ID3D11RasterizerState;
-struct ID3D11BlendState;
-struct ID3D11SamplerState;
 
 namespace mozilla {
 
@@ -580,9 +568,6 @@ class DCSurfaceVideo : public DCSurface {
                                  bool aUseRGBA16F);
   bool CreateVideoSwapChain(DXGI_FORMAT aFormat);
   bool CallVideoProcessorBlt();
-  bool ShaderBltSetup();
-  bool ShaderBlt(DXGI_COLOR_SPACE_TYPE inputColorSpace, const RECT& sourceRect,
-                 DXGI_COLOR_SPACE_TYPE outputColorSpace, const RECT& destRect);
   void ReleaseDecodeSwapChainResources();
 
   RefPtr<ID3D11VideoProcessorOutputView> mOutputView;
@@ -609,17 +594,6 @@ class DCSurfaceVideo : public DCSurface {
   bool mVpSuperResolutionFailed = false;
   bool mContentIsHDR = false;
   bool mUseHDR = false;
-  RefPtr<ID3D11VertexShader> mShaderBltVertexShader;
-  RefPtr<ID3DBlob> mShaderBltVSBlob;
-  RefPtr<ID3D11PixelShader> mShaderBltPixelShader;
-  RefPtr<ID3DBlob> mShaderBltPSBlob;
-  RefPtr<ID3D11Buffer> mShaderBltIndexBuffer;
-  RefPtr<ID3D11Buffer> mShaderBltVertexBuffer;
-  RefPtr<ID3D11InputLayout> mShaderBltInputLayout;
-  RefPtr<ID3D11RasterizerState> mShaderBltRasterizerState;
-  RefPtr<ID3D11BlendState> mShaderBltBlendState;
-  RefPtr<ID3D11Buffer> mShaderBltConstantBuffer;
-  RefPtr<ID3D11SamplerState> mShaderBltSamplerState;
 };
 
 /**

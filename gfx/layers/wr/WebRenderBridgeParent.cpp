@@ -28,7 +28,6 @@
 #include "mozilla/layers/APZUpdater.h"
 #include "mozilla/layers/Compositor.h"
 #include "mozilla/layers/CompositorBridgeParent.h"
-#include "mozilla/layers/CompositorManagerParent.h"
 #include "mozilla/layers/CompositorAnimationStorage.h"
 #include "mozilla/layers/CompositorThread.h"
 #include "mozilla/layers/CompositorVsyncScheduler.h"
@@ -360,7 +359,7 @@ WebRenderBridgeParent::WebRenderBridgeParent(
       mPipelineId(aPipelineId),
       mLateInit(Some(LateInit{
           .mApi = aApi,
-          .mAsyncImageManager = std::move(aImageMgr),
+          .mAsyncImageManager = aImageMgr,
           .mCompositorScheduler = aScheduler,
           .mIdNamespace = aApi->GetNamespace(),
       })),
@@ -388,7 +387,7 @@ WebRenderBridgeParent::WebRenderBridgeParent(const wr::PipelineId& aPipelineId,
           .mCompositorScheduler = nullptr,
           .mIdNamespace{0},
       })),
-      mInitError(std::move(aError)),
+      mInitError(aError),
       mDestroyed(true),
       mIsFirstPaint(false) {
   LOG("WebRenderBridgeParent::WebRenderBridgeParent() PipelineId %" PRIx64 "",
@@ -872,12 +871,6 @@ bool WebRenderBridgeParent::AddSharedExternalImage(
     return true;
   }
 
-  if (!GetCompositorBridge()->GetCompositorManager()->OwnsExternalImageId(
-          aExtId)) {
-    gfxCriticalNote << "We do not own extId:" << wr::AsUint64(aExtId);
-    return false;
-  }
-
   auto key = wr::AsUint64(aKey);
   auto it = mSharedSurfaceIds.find(key);
   if (it != mSharedSurfaceIds.end()) {
@@ -988,12 +981,6 @@ bool WebRenderBridgeParent::UpdateSharedExternalImage(
   if (!MatchesNamespace(aKey)) {
     MOZ_ASSERT_UNREACHABLE("Stale shared external image key (update)!");
     return true;
-  }
-
-  if (!GetCompositorBridge()->GetCompositorManager()->OwnsExternalImageId(
-          aExtId)) {
-    gfxCriticalNote << "We do not own extId:" << wr::AsUint64(aExtId);
-    return false;
   }
 
   auto key = wr::AsUint64(aKey);
@@ -1430,15 +1417,32 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvSetDisplayList(
         CompositionPayload{CompositionPayloadType::eContentPaint, aFwdTime});
   }
 
+  // When the root WRBP for this window never receives a display list (e.g.
+  // an invisible windowless browser hosting a WebExtension in headless
+  // mode), no composite that references this child pipeline will ever run,
+  // so DidComposite would never be sent back and the content process's
+  // RefreshDriver would get stuck "waiting for paint" (bug 1782541). In
+  // that case, synthesize a DidComposite below. Suppress telemetry and
+  // composition payloads for the synthetic ack, since nothing was drawn.
+  const bool ackSynthetically =
+      validTransaction && !IsRootWebRenderBridgeParent() && !aRenderOffscreen &&
+      [this] {
+        RefPtr<WebRenderBridgeParent> root = GetRootWebRenderBridgeParent();
+        return root && !root->HasReceivedDisplayList();
+      }();
+
+  nsTArray<CompositionPayload> heldPayloads =
+      ackSynthetically ? nsTArray<CompositionPayload>{} : std::move(aPayloads);
   HoldPendingTransactionId(wrEpoch, aTransactionId, aContainsSVGGroup, aVsyncId,
                            aVsyncStartTime, aRefreshStartTime, aTxnStartTime,
                            aTxnURL, aFwdTime, mIsFirstPaint,
-                           std::move(aPayloads));
+                           std::move(heldPayloads),
+                           /* aUseForTelemetry */ !ackSynthetically);
   mIsFirstPaint = false;
 
-  if (!validTransaction) {
-    // Pretend we composited since someone is wating for this event,
-    // though DisplayList was not pushed to webrender.
+  if (!validTransaction || ackSynthetically) {
+    // Pretend we composited since someone is waiting for this event, though
+    // no composite will actually happen that includes this transaction.
     if (CompositorBridgeParent* cbp = GetRootCompositorBridgeParent()) {
       TimeStamp now = TimeStamp::Now();
       cbp->NotifyPipelineRendered(mPipelineId, wrEpoch, VsyncId(), now, now,
@@ -1563,6 +1567,15 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvEmptyTransaction(
     renderReasons |= wr::RenderReasons::RESOURCE_UPDATE;
   }
 
+  // If the root WRBP for this window never receives a display list, any
+  // composite we schedule won't acknowledge this pipeline's transactions.
+  // Treat that case like sendDidComposite so the content process's
+  // RefreshDriver doesn't get stuck (bug 1782541).
+  const bool ackSynthetically = !IsRootWebRenderBridgeParent() && [this] {
+    RefPtr<WebRenderBridgeParent> root = GetRootWebRenderBridgeParent();
+    return root && !root->HasReceivedDisplayList();
+  }();
+
   // If we are going to kick off a new composite as a result of this
   // transaction, or if there are already composite-triggering pending
   // transactions inflight, then set sendDidComposite to false because we will
@@ -1570,23 +1583,27 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvEmptyTransaction(
   // If there are no pending transactions and we're not going to do a
   // composite, then we leave sendDidComposite as true so we just send
   // the DidComposite notification now.
-  bool sendDidComposite =
-      !scheduleAnyComposite && mPendingTransactionIds.empty();
+  bool sendDidComposite = ackSynthetically || (!scheduleAnyComposite &&
+                                               mPendingTransactionIds.empty());
 
   // Only register a value for CONTENT_FRAME_TIME telemetry if we actually drew
   // something. It is for consistency with disabling WebRender.
+  nsTArray<CompositionPayload> heldPayloads =
+      ackSynthetically ? nsTArray<CompositionPayload>{} : std::move(aPayloads);
   HoldPendingTransactionId(mWrEpoch, aTransactionId, false, aVsyncId,
                            aVsyncStartTime, aRefreshStartTime, aTxnStartTime,
                            aTxnURL, aFwdTime,
-                           /* aIsFirstPaint */ false, std::move(aPayloads),
-                           /* aUseForTelemetry */ scheduleAnyComposite);
+                           /* aIsFirstPaint */ false, std::move(heldPayloads),
+                           /* aUseForTelemetry */
+                           scheduleAnyComposite && !ackSynthetically);
 
-  if (scheduleAnyComposite) {
+  if (scheduleAnyComposite && !ackSynthetically) {
     ScheduleGenerateFrame(renderReasons);
   } else if (sendDidComposite) {
-    // The only thing in the pending transaction id queue should be the entry
-    // we just added, and now we're going to pretend we rendered it
-    MOZ_ASSERT(mPendingTransactionIds.size() == 1);
+    // In the non-synthetic case the only thing in the pending transaction
+    // id queue should be the entry we just added; the synthetic case may
+    // also flush older stuck transactions.
+    MOZ_ASSERT(ackSynthetically || mPendingTransactionIds.size() == 1);
     if (CompositorBridgeParent* cbp = GetRootCompositorBridgeParent()) {
       TimeStamp now = TimeStamp::Now();
       cbp->NotifyPipelineRendered(mPipelineId, mWrEpoch, VsyncId(), now, now,
@@ -1661,7 +1678,6 @@ bool WebRenderBridgeParent::ProcessWebRenderParentCommands(
       case WebRenderParentCommand::TOpAddPipelineIdForCompositable: {
         const OpAddPipelineIdForCompositable& op =
             cmd.get_OpAddPipelineIdForCompositable();
-
         AddPipelineIdForCompositable(op.pipelineId(), op.handle(), op.owner(),
                                      aTxn, txnForImageBridge);
         break;
@@ -1669,7 +1685,6 @@ bool WebRenderBridgeParent::ProcessWebRenderParentCommands(
       case WebRenderParentCommand::TOpRemovePipelineIdForCompositable: {
         const OpRemovePipelineIdForCompositable& op =
             cmd.get_OpRemovePipelineIdForCompositable();
-
         auto* pendingOps =
             mLateInit->mApi->GetPendingAsyncImagePipelineOps(aTxn);
 
@@ -1702,7 +1717,6 @@ bool WebRenderBridgeParent::ProcessWebRenderParentCommands(
       case WebRenderParentCommand::TOpUpdatedAsyncImagePipeline: {
         const OpUpdatedAsyncImagePipeline& op =
             cmd.get_OpUpdatedAsyncImagePipeline();
-
         aTxn.InvalidateRenderedFrame(wr::RenderReasons::ASYNC_IMAGE);
 
         auto* pendingOps =
@@ -2046,12 +2060,8 @@ void WebRenderBridgeParent::AddPipelineIdForCompositable(
     return;
   }
 
-  if (mAsyncCompositables.find(wr::AsUint64(aPipelineId)) !=
-      mAsyncCompositables.end()) {
-    gfxCriticalNote << "Content attempted AddPipelineIdForCompositable with "
-                       "existing pipelineId";
-    return;
-  }
+  MOZ_ASSERT(mAsyncCompositables.find(wr::AsUint64(aPipelineId)) ==
+             mAsyncCompositables.end());
 
   RefPtr<CompositableHost> host;
   switch (aOwner) {
@@ -2078,6 +2088,9 @@ void WebRenderBridgeParent::AddPipelineIdForCompositable(
   if (!wrHost) {
     gfxCriticalNote
         << "Incompatible CompositableHost at WebRenderBridgeParent.";
+  }
+
+  if (!wrHost) {
     return;
   }
 

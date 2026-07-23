@@ -101,18 +101,12 @@ inline Maybe<wr::ImageFormat> SurfaceFormatToImageFormat(
 
 inline gfx::SurfaceFormat ImageFormatToSurfaceFormat(ImageFormat aFormat) {
   switch (aFormat) {
-    case ImageFormat::RGBA8:
-      return gfx::SurfaceFormat::R8G8B8A8;
     case ImageFormat::BGRA8:
       return gfx::SurfaceFormat::B8G8R8A8;
     case ImageFormat::R8:
       return gfx::SurfaceFormat::A8;
     case ImageFormat::R16:
       return gfx::SurfaceFormat::A16;
-    case ImageFormat::RG8:
-      return gfx::SurfaceFormat::R8G8;
-    case ImageFormat::RG16:
-      return gfx::SurfaceFormat::R16G16;
     default:
       return gfx::SurfaceFormat::UNKNOWN;
   }

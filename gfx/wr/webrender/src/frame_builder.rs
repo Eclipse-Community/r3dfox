@@ -350,22 +350,6 @@ impl FrameBuilder {
             false,
         ));
 
-        // Build the per-frame draw header storage with one entry per prim
-        // instance. Identity-indexed by `PrimitiveInstanceIndex.0` for now;
-        // a follow-up will switch this to push-per-draw. The per-prim
-        // `snapped_local_rect` is filled in by the visibility pass.
-        scratch.primitive.frame.draws.clear();
-        scratch.primitive.frame.draws.resize_with(
-            scene.prim_instances.len(),
-            crate::visibility::PrimitiveDrawHeader::new,
-        );
-
-        // Cluster, prim, and clip-leaf rects are snapped to the device pixel
-        // grid as they are produced by the in-frame picture-graph passes:
-        // `propagate_bounding_rects` snaps each cluster bounding rect, and the
-        // visibility pass snaps each prim's `snapped_local_rect` and clip-leaf
-        // rect. Both snap against the consuming surface's raster node, so only
-        // pictures reachable this frame are touched.
         scene.picture_graph.propagate_bounding_rects(
             &mut scene.prim_store.pictures,
             &mut scene.surfaces,
@@ -385,6 +369,15 @@ impl FrameBuilder {
         for _ in 0..n_pics {
             visited_pictures.push(false);
         }
+
+        // Resize the per-frame draw header storage to hold one entry per
+        // prim instance. Identity-indexed by `PrimitiveInstanceIndex.0`;
+        // a follow-up will switch this to push-per-draw.
+        scratch.primitive.frame.draws.clear();
+        scratch.primitive.frame.draws.resize_with(
+            scene.prim_instances.len(),
+            crate::visibility::PrimitiveDrawHeader::new,
+        );
 
         {
             profile_scope!("UpdateVisibility");
