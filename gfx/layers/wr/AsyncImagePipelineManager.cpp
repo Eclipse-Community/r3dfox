@@ -345,13 +345,7 @@ AsyncImagePipelineManager::UpdateWithoutExternalImage(
   }
 
   gfx::IntSize size = dSurf->GetSize();
-  auto format = wr::SurfaceFormatToImageFormat(dSurf->GetFormat());
-  if (NS_WARN_IF(!format)) {
-    dSurf->Unmap();
-    return Nothing();
-  }
-  wr::ImageDescriptor descriptor(size, map.mStride, *format,
-                                 wr::ToOpacityType(dSurf->GetFormat()));
+  wr::ImageDescriptor descriptor(size, map.mStride, dSurf->GetFormat());
 
   // Costly copy right here...
   wr::Vec<uint8_t> bytes;

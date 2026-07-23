@@ -274,10 +274,8 @@ Maybe<BlobImageKeyData> BlobSurfaceProvider::RecordDrawing(
   wr::BlobImageKey key = aBlobKey
                              ? aBlobKey.value()
                              : wr::BlobImageKey{wrBridge->GetNextImageKey()};
-  wr::ImageDescriptor descriptor(
-      imageRect.Size(), 0,
-      *wr::SurfaceFormatToImageFormat(SurfaceFormat::OS_RGBA),
-      wr::OpacityType::HasAlphaChannel);
+  wr::ImageDescriptor descriptor(imageRect.Size(), 0, SurfaceFormat::OS_RGBA,
+                                 wr::OpacityType::HasAlphaChannel);
 
   auto visibleRect = ImageIntRect::FromUnknownRect(imageRectOrigin);
   if (aBlobKey) {

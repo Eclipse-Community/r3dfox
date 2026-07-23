@@ -149,12 +149,7 @@ void DcompSurfaceHandleHost::PushResourceUpdates(
   auto method = aOp == TextureHost::ADD_IMAGE
                     ? &wr::TransactionBuilder::AddExternalImage
                     : &wr::TransactionBuilder::UpdateExternalImage;
-  auto format = wr::SurfaceFormatToImageFormat(GetFormat());
-  if (NS_WARN_IF(!format)) {
-    return;
-  }
-  wr::ImageDescriptor descriptor(mSize, *format,
-                                 wr::ToOpacityType(GetFormat()));
+  wr::ImageDescriptor descriptor(mSize, GetFormat());
   // Prefer TextureExternal unless the backend requires TextureRect.
   TextureHost::NativeTexturePolicy policy =
       TextureHost::BackendNativeTexturePolicy(aResources.GetBackendType(),
