@@ -1816,7 +1816,6 @@ nsRect nsIFrame::GetContentRect() const {
 }
 
 bool nsIFrame::ComputeBorderRadii(const BorderRadius& aBorderRadius,
-                                  const CornerShapeRect& aCornerShape,
                                   const nsSize& aFrameSize,
                                   const nsSize& aBorderArea, Sides aSkipSides,
                                   nsRectCornerRadii& aRadii) {
@@ -1827,34 +1826,16 @@ bool nsIFrame::ComputeBorderRadii(const BorderRadius& aBorderRadius,
     aRadii[i] = std::max(0, c.Resolve(axis));
   }
 
-  aRadii.mShapeK[mozilla::eCornerTopLeft] = aCornerShape.top_left.k;
-  aRadii.mShapeK[mozilla::eCornerTopRight] = aCornerShape.top_right.k;
-  aRadii.mShapeK[mozilla::eCornerBottomLeft] = aCornerShape.bottom_left.k;
-  aRadii.mShapeK[mozilla::eCornerBottomRight] = aCornerShape.bottom_right.k;
-
-  bool isTopLeftSquare =
-      std::isinf(aCornerShape.top_left.k) && (aCornerShape.top_left.k > 0.0f);
-  bool isTopRightSquare =
-      std::isinf(aCornerShape.top_right.k) && (aCornerShape.top_right.k > 0.0f);
-  bool isBottomLeftSquare = std::isinf(aCornerShape.bottom_left.k) &&
-                            (aCornerShape.bottom_left.k > 0.0f);
-  bool isBottomRightSquare = std::isinf(aCornerShape.bottom_right.k) &&
-                             (aCornerShape.bottom_right.k > 0.0f);
-
-  if (aSkipSides.Intersects(SideBits::eTop | SideBits::eLeft) ||
-      isTopLeftSquare) {
+  if (aSkipSides.Intersects(SideBits::eTop | SideBits::eLeft)) {
     aRadii.TopLeft() = {};
   }
-  if (aSkipSides.Intersects(SideBits::eTop | SideBits::eRight) ||
-      isTopRightSquare) {
+  if (aSkipSides.Intersects(SideBits::eTop | SideBits::eRight)) {
     aRadii.TopRight() = {};
   }
-  if (aSkipSides.Intersects(SideBits::eBottom | SideBits::eLeft) ||
-      isBottomLeftSquare) {
+  if (aSkipSides.Intersects(SideBits::eBottom | SideBits::eLeft)) {
     aRadii.BottomLeft() = {};
   }
-  if (aSkipSides.Intersects(SideBits::eBottom | SideBits::eRight) ||
-      isBottomRightSquare) {
+  if (aSkipSides.Intersects(SideBits::eBottom | SideBits::eRight)) {
     aRadii.BottomRight() = {};
   }
 
@@ -1914,9 +1895,8 @@ bool nsIFrame::GetBorderRadii(const nsSize& aFrameSize,
   }
 
   const auto& radii = StyleBorder()->mBorderRadius;
-  const auto& cornerShape = StyleBorder()->mCornerShape;
-  const bool hasRadii = ComputeBorderRadii(radii, cornerShape, aFrameSize,
-                                           aBorderArea, aSkipSides, aRadii);
+  const bool hasRadii =
+      ComputeBorderRadii(radii, aFrameSize, aBorderArea, aSkipSides, aRadii);
   if (!hasRadii) {
     // TODO(emilio): Maybe we can just remove this bit and do the
     // IsDefinitelyZero check unconditionally. That should still avoid most of

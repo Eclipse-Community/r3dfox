@@ -1672,7 +1672,6 @@ class nsIFrame : public nsQueryFrame {
    * Return whether any radii are nonzero.
    */
   static bool ComputeBorderRadii(const mozilla::BorderRadius&,
-                                 const mozilla::CornerShapeRect&,
                                  const nsSize& aFrameSize,
                                  const nsSize& aBorderArea, Sides aSkipSides,
                                  nsRectCornerRadii&);

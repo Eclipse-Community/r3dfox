@@ -495,8 +495,7 @@ class TextDrawTarget : public DrawTarget {
                                {color, wr::BorderStyle::Solid},
                                {color, wr::BorderStyle::Solid},
                                {color, wr::BorderStyle::Solid}};
-    wr::BorderRadius radius = {{0, 0}, {0, 0}, {0, 0}, {0, 0},
-                               1.0f,   1.0f,   1.0f,   1.0f};
+    wr::BorderRadius radius = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
     LayoutDeviceRect rect = LayoutDeviceRect::FromUnknownRect(aRect);
     rect.Inflate(aStrokeOptions.mLineWidth / 2);
     if (!rect.Intersects(GeckoClipRect())) {

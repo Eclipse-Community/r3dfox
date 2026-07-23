@@ -535,10 +535,6 @@ pub struct BorderRadius {
     pub top_right: LayoutSize,
     pub bottom_left: LayoutSize,
     pub bottom_right: LayoutSize,
-    pub shape_top_left: f32,
-    pub shape_top_right: f32,
-    pub shape_bottom_left: f32,
-    pub shape_bottom_right: f32,
 }
 
 impl Default for BorderRadius {
@@ -548,21 +544,7 @@ impl Default for BorderRadius {
             top_right: LayoutSize::zero(),
             bottom_left: LayoutSize::zero(),
             bottom_right: LayoutSize::zero(),
-            shape_top_left: 1.0,
-            shape_top_right: 1.0,
-            shape_bottom_left: 1.0,
-            shape_bottom_right: 1.0,
         }
-    }
-}
-
-impl BorderRadius {
-    /// True when every corner uses the default round (ellipse) shape.
-    pub fn shapes_all_round(&self) -> bool {
-        self.shape_top_left == 1.0 &&
-        self.shape_top_right == 1.0 &&
-        self.shape_bottom_left == 1.0 &&
-        self.shape_bottom_right == 1.0
     }
 }
 
@@ -2099,10 +2081,6 @@ impl BorderRadius {
             top_right: LayoutSize::new(0.0, 0.0),
             bottom_left: LayoutSize::new(0.0, 0.0),
             bottom_right: LayoutSize::new(0.0, 0.0),
-            shape_top_left: 1.0,
-            shape_top_right: 1.0,
-            shape_bottom_left: 1.0,
-            shape_bottom_right: 1.0,
         }
     }
 
@@ -2112,10 +2090,6 @@ impl BorderRadius {
             top_right: LayoutSize::new(radius, radius),
             bottom_left: LayoutSize::new(radius, radius),
             bottom_right: LayoutSize::new(radius, radius),
-            shape_top_left: 1.0,
-            shape_top_right: 1.0,
-            shape_bottom_left: 1.0,
-            shape_bottom_right: 1.0,
         }
     }
 
@@ -2125,10 +2099,6 @@ impl BorderRadius {
             top_right: radius,
             bottom_left: radius,
             bottom_right: radius,
-            shape_top_left: 1.0,
-            shape_top_right: 1.0,
-            shape_bottom_left: 1.0,
-            shape_bottom_right: 1.0,
         }
     }
 
@@ -2141,9 +2111,6 @@ impl BorderRadius {
     }
 
     pub fn can_use_fast_path_in(&self, rect: &LayoutRect) -> bool {
-        if !self.shapes_all_round() {
-            return false;
-        }
         if !self.all_sides_uniform() {
             // The fast path needs uniform sides.
             return false;
