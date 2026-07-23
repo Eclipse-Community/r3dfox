@@ -105,6 +105,10 @@ pref("general.useragent.override.wiki.freebsd.org", "FuckAnubis/5.0 (%OS_SLICE%;
 pref("general.useragent.override.wiki.mozilla.org", "FuckAnubis/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0 r3dfox/140.0");
 pref("general.useragent.override.wiki.postmarketos.org", "FuckAnubis/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0 r3dfox/140.0");
 
+pref("general.useragent.override.code.videolan.org", "FuckAnubis/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0 r3dfox/140.0");
+pref("general.useragent.override.pussthecat.org", "FuckAnubis/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0 r3dfox/140.0");
+pref("general.useragent.override.thereisonlyxul.org", "FuckAnubis/5.0 (%OS_SLICE%; rv:140.0) Gecko/20100101 Firefox/140.0 r3dfox/140.0");
+
 pref("general.config.obscure_value", 13); // for MCD .cfg files
 
 // Whether middle button click with a modifier key starts to autoscroll or
