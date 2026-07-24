@@ -8936,13 +8936,6 @@ class PDFViewer {
       }
     });
   }
-  #setPrintingAllowed(isAllowed) {
-    this.#printingAllowed = isAllowed;
-    this.eventBus.dispatch("printingallowed", {
-      source: this,
-      isAllowed
-    });
-  }
   #initializePermissions(permissions) {
     const params = {
       annotationEditorMode: this.#annotationEditorMode,
