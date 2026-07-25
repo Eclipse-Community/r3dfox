@@ -7639,7 +7639,7 @@
 - name: gfx.dwrite.enabled
   type: bool
   value: true
-  mirror: always
+  mirror: once
 
 # Rate by which the frame rate is divided. I.e. at a number higher than 1 we
 # will only refresh every <x> frames.
