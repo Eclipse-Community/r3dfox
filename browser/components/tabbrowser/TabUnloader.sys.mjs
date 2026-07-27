@@ -606,9 +606,16 @@ export var TabUnloader = {
 
     let lowestWeight = 1000;
     for (let tab of tabMethods.iterateTabs()) {
-      // Do not skip non-selected tabs just because they are fresh. All
-      // non-active tabs, old or fresh, should be considered before any active
-      // selected tab is used as a last-resort unload target.
+      // Protect recently accessed background tabs. Selected tabs remain in the
+      // candidate list so they can still be considered as a final fallback.
+      if (
+        typeof minInactiveDuration == "number" &&
+        !tab.tab.selected &&
+        now - tab.tab.lastAccessed < minInactiveDuration
+      ) {
+        continue;
+      }
+
       let weight = determineTabBaseWeight(tab, tabMethods);
 
       // Don't add tabs that have a weight of -1.
