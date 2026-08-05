@@ -57,8 +57,8 @@ if CONFIG["MOZ_WEBRTC"]:
 # We need to tell Glean it is being built with Gecko.
 gkrust_features += ["glean_with_gecko"]
 
-if not CONFIG["MOZILLA_OFFICIAL"]:
-    gkrust_features += ["glean_disable_upload"]
+# Disable glean upload on all configs
+gkrust_features += ["glean_disable_upload"]
 
 if CONFIG["MOZ_ENABLE_DBUS"]:
     gkrust_features += ["with_dbus"]
@@ -85,8 +85,6 @@ if CONFIG["MOZ_JXL"]:
 
 if CONFIG["MOZ_BUILD_APP"] == "browser" and CONFIG["OS_ARCH"] == "WINNT":
     gkrust_features += ["shell_windows"]
-
-gkrust_features += ["glean_disable_upload"]
 
 # This must remain last.
 gkrust_features = ["gkrust-shared/%s" % f for f in gkrust_features]
