@@ -57,9 +57,18 @@
     <menuitem id="context_unpinTab" data-lazy-l10n-id="unpin-tab" hidden="true"/>
     <menuitem id="context_pinSelectedTabs" data-lazy-l10n-id="pin-selected-tabs" hidden="true"/>
     <menuitem id="context_unpinSelectedTabs" data-lazy-l10n-id="unpin-selected-tabs" hidden="true"/>
-    <menuitem id="context_unloadTab"
-              data-lazy-l10n-id="tab-context-unload-n-tabs"
-              data-l10n-args='{"tabCount": 1}'/>
+    <menu id="context_unloadTabOptions"
+          data-lazy-l10n-id="tab-context-unload-options">
+      <menupopup id="unloadTabOptions">
+        <menuitem id="context_unloadTab"
+                  data-lazy-l10n-id="tab-context-unload-n-tabs"
+                  data-l10n-args='{"tabCount": 1}'/>
+        <menuitem id="context_unloadTabsToTheStart"
+                  data-lazy-l10n-id="unload-tabs-to-the-start"/>
+        <menuitem id="context_unloadTabsToTheEnd"
+                  data-lazy-l10n-id="unload-tabs-to-the-end"/>
+      </menupopup>
+    </menu>
     <menuitem id="context_duplicateTab" data-lazy-l10n-id="duplicate-tab"/>
     <menuitem id="context_duplicateTabs" data-lazy-l10n-id="duplicate-tabs"/>
     <menuseparator/>
@@ -462,8 +471,6 @@
               id="sidebar-bookmarks-context-open-in-window"/>
     <menuitem data-l10n-id="sidebar-context-menu-open-in-private-window"
               id="sidebar-bookmarks-context-open-in-private-window"/>
-    <menuitem data-l10n-id="places-show-in-folder"
-              id="sidebar-bookmarks-context-show-in-folder"/>
     <menuseparator id="sidebar-bookmarks-context-sep-open-options"/>
     <menuitem data-l10n-id="sidebar-bookmarks-context-menu-edit-bookmark"
               id="sidebar-bookmarks-context-edit-bookmark"/>
@@ -482,7 +489,7 @@
     <menuseparator id="sidebar-bookmarks-context-sep-edit-copy"/>
     <menuitem data-l10n-id="sidebar-context-menu-copy-link"
               id="sidebar-bookmarks-context-copy-link"/>
-    <menuseparator id="sidebar-bookmarks-context-sep-add"/>
+    <menuseparator/>
     <menuitem data-l10n-id="places-add-bookmark"
               id="sidebar-bookmarks-context-add-bookmark"/>
     <menuitem data-l10n-id="places-add-folder-contextmenu"
@@ -742,11 +749,6 @@
               data-l10n-id="page-action-remove-extension2"/>
   </menupopup>
 
-  <menupopup id="userContext-indicator-menu">
-    <menuitem data-l10n-id="user-context-manage-containers"
-              command="Browser:OpenAboutContainers"/>
-  </menupopup>
-
 #include ../../components/places/content/bookmarksHistoryTooltip.inc.xhtml
 
   <tooltip id="tabbrowser-tab-tooltip"
@@ -922,8 +924,6 @@
               type="checkbox"
               autocheck="false"
               id="translations-panel-settings-never-translate-site"/>
-    <menuitem data-l10n-id="translations-panel-disable-translations"
-              id="translations-panel-disable-translations"/>
     <menuseparator/>
     <menuitem class="manage-languages-menuitem"
               data-l10n-id="translations-panel-settings-manage-languages"
