@@ -142,12 +142,24 @@ document.addEventListener(
         case "context_unloadTab":
           TabContextMenu.explicitUnloadTabs();
           break;
-        case "context_unloadTabsToTheStart":
-          TabContextMenu.explicitUnloadTabsToTheStart();
+        case "context_unloadTabsToTheStart": {
+          const tabs = gBrowser._getTabsToTheStartFrom(
+            TabContextMenu.contextTab
+          );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
           break;
-        case "context_unloadTabsToTheEnd":
-          TabContextMenu.explicitUnloadTabsToTheEnd();
+        }
+        case "context_unloadTabsToTheEnd": {
+          const tabs = gBrowser._getTabsToTheEndFrom(
+            TabContextMenu.contextTab
+          );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
           break;
+        }
         case "context_unloadOtherTabs": {
           const contextTab = TabContextMenu.contextTab;
           const tabs = [
