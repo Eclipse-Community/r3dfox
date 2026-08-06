@@ -30,7 +30,6 @@ duplicate-tab =
 duplicate-tabs =
     .label = Duplicate Tabs
     .accesskey = D
-
 # The following string is displayed on a menuitem that will close the tabs from the start of the tabstrip to the currently targeted tab (excluding the currently targeted and any other selected tabs).
 # In left-to-right languages this should use "Left" and in right-to-left languages this should use "Right".
 close-tabs-to-the-start =
@@ -39,7 +38,6 @@ close-tabs-to-the-start =
 close-tabs-to-the-start-vertical =
     .label = Close Tabs Above
     .accesskey = l
-
 # The following string is displayed on a menuitem that will close the tabs from the end of the tabstrip to the currently targeted tab (excluding the currently targeted and any other selected tabs).
 # In left-to-right languages this should use "Right" and in right-to-left languages this should use "Left".
 close-tabs-to-the-end =
@@ -129,7 +127,6 @@ move-to-end =
 move-to-new-window =
     .label = Move to New Window
     .accesskey = W
-
 # Variables
 #  $profileName (string): The name of the profile to move tab to
 move-to-new-profile =
@@ -177,7 +174,6 @@ tab-context-send-to-device =
            *[other] Send { $tabCount } Tabs to Device
         }
     .accesskey = n
-
 # The following string intentionally omits the word "Tab" from the singular and includes it in the plural.
 tab-context-send-to-mobile =
     .label =
@@ -191,4 +187,3 @@ tab-context-send-to-mobile =
 tab-context-share-selected-tabs =
     .label = Create Shareable Link
     .accesskey = a
-```
