@@ -139,29 +139,27 @@ document.addEventListener(
             lazy.TabMetrics.userTriggeredContext()
           );
           break;
-case "context_unloadTab":
-  TabContextMenu.explicitUnloadTabs();
-  break;
-
-case "context_unloadTabsToTheStart": {
-  const contextTab = TabContextMenu.contextTab;
-  const tabs = gBrowser._getTabsToTheStartFrom(contextTab);
-
-  if (tabs.length) {
-    gBrowser.explicitUnloadTabs(tabs);
-  }
-  break;
-}
-
-case "context_unloadTabsToTheEnd": {
-  const contextTab = TabContextMenu.contextTab;
-  const tabs = gBrowser._getTabsToTheEndFrom(contextTab);
-
-  if (tabs.length) {
-    gBrowser.explicitUnloadTabs(tabs);
-  }
-  break;
-}        case "context_fullscreenAutohide":
+        case "context_unloadTab":
+          TabContextMenu.explicitUnloadTabs();
+          break;
+        case "context_unloadTabsToTheStart":
+          TabContextMenu.explicitUnloadTabsToTheStart();
+          break;
+        case "context_unloadTabsToTheEnd":
+          TabContextMenu.explicitUnloadTabsToTheEnd();
+          break;
+        case "context_unloadOtherTabs": {
+          const contextTab = TabContextMenu.contextTab;
+          const tabs = [
+            ...gBrowser._getTabsToTheStartFrom(contextTab),
+            ...gBrowser._getTabsToTheEndFrom(contextTab),
+          ];
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
+        case "context_fullscreenAutohide":
           FullScreen.setAutohide();
           break;
         case "context_fullscreenExit":
@@ -226,7 +224,6 @@ case "context_unloadTabsToTheEnd": {
             SessionStore.forgetSavedTabGroup(tabGroupId);
           }
           break;
-
         // == editBookmarkPanel ==
         case "editBookmarkPanelDoneButton":
           StarUI.panel.hidePopup();
