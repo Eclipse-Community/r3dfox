@@ -18,13 +18,6 @@ document.addEventListener(
       switch (event.target.id) {
         // == tabContextMenu ==
         case "context_openANewTab":
-          // The tab context menu can be invoked on a window that isn't the
-          // OS-level frontmost window (most reproducibly on macOS in a
-          // multi-monitor setup). Raise the window so the new tab's
-          // focusUrlBar request can actually land OS keyboard focus on the
-          // address bar. Bug 2039674 tracks routing this through
-          // URILoadingHelper instead.
-          window.focus();
           gBrowser.addAdjacentNewTab(TabContextMenu.contextTab);
           break;
         case "context_moveTabToNewGroup":
@@ -149,6 +142,35 @@ document.addEventListener(
         case "context_unloadTab":
           TabContextMenu.explicitUnloadTabs();
           break;
+        case "context_unloadTabsToTheStart": {
+          const tabs = gBrowser._getTabsToTheStartFrom(
+            TabContextMenu.contextTab
+          );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
+        case "context_unloadTabsToTheEnd": {
+          const tabs = gBrowser._getTabsToTheEndFrom(
+            TabContextMenu.contextTab
+          );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
+        case "context_unloadOtherTabs": {
+          const contextTab = TabContextMenu.contextTab;
+          const tabs = [
+            ...gBrowser._getTabsToTheStartFrom(contextTab),
+            ...gBrowser._getTabsToTheEndFrom(contextTab),
+          ];
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
         case "context_fullscreenAutohide":
           FullScreen.setAutohide();
           break;
@@ -442,16 +464,6 @@ document.addEventListener(
           gSharedTabWarning.allowSharedTabSwitch();
           break;
       }
-    });
-
-    const userContextIcons = document.getElementById("userContext-icons");
-    userContextIcons.addEventListener("click", event => {
-      if (event.button !== 0) {
-        return;
-      }
-      document
-        .getElementById("userContext-indicator-menu")
-        .openPopup(userContextIcons, "after_start", 0, 0, false, false, event);
     });
 
     const containerHistoryPopup = document.getElementById(
