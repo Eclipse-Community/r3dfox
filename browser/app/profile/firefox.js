@@ -1153,7 +1153,7 @@ pref("browser.tabs.unloadOnLowMemory", false);
 
 // Tab Unloader does not unload tabs whose last inactive period is longer than
 // this value (in milliseconds).
-pref("browser.tabs.min_inactive_duration_before_unload", 600000);
+pref("browser.tabs.min_inactive_duration_before_unload", 300000);
 
 // Does middleclick paste of clipboard to new tab button
 #ifdef UNIX_BUT_NOT_MAC
