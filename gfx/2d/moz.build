@@ -79,6 +79,7 @@ elif CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
     EXPORTS.mozilla.gfx += [
         "DWriteSettings.h",
         "UnscaledFontDWrite.h",
+        "UnscaledFontGDI.h",
     ]
     SOURCES += [
         "ConicGradientEffectD2D1.cpp",
@@ -87,9 +88,11 @@ elif CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
         "ExtendInputEffectD2D1.cpp",
         "FilterNodeD2D1.cpp",
         "NativeFontResourceDWrite.cpp",
+        "NativeFontResourceGDI.cpp",
         "PathD2D.cpp",
         "RadialGradientEffectD2D1.cpp",
         "ScaledFontDWrite.cpp",
+        "ScaledFontWin.cpp",
         "SourceSurfaceD2D1.cpp",
     ]
     DEFINES["WIN32"] = True
