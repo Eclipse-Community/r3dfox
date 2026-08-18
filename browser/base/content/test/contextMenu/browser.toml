@@ -33,9 +33,6 @@ skip-if = [
   "os == 'linux' && socketprocess_networking",
 ]
 
-["browser_contextmenu_blocked_image_protocols.js"]
-support-files = ["file_blocked_image_protocols.html"]
-
 ["browser_contextmenu_contenteditable.js"]
 
 ["browser_contextmenu_cross_boundary_selection.js"]
