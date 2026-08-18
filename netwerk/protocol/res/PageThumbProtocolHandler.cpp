@@ -75,7 +75,7 @@ PageThumbProtocolHandler::PageThumbProtocolHandler()
     : SubstitutingProtocolHandler(PAGE_THUMB_SCHEME) {}
 
 RefPtr<RemoteStreamPromise> PageThumbProtocolHandler::NewStream(
-    nsIURI* aChildURI, nsILoadInfo* aLoadInfo, bool* aTerminateSender) {
+    nsIURI* aChildURI, bool* aTerminateSender) {
   MOZ_ASSERT(!IsNeckoChild());
   MOZ_ASSERT(NS_IsMainThread());
 
@@ -94,11 +94,6 @@ RefPtr<RemoteStreamPromise> PageThumbProtocolHandler::NewStream(
   if (NS_FAILED(aChildURI->SchemeIs(PAGE_THUMB_SCHEME, &isPageThumbScheme)) ||
       !isPageThumbScheme) {
     return RemoteStreamPromise::CreateAndReject(NS_ERROR_UNKNOWN_PROTOCOL,
-                                                __func__);
-  }
-
-  if (!nsContentUtils::IsImageType(aLoadInfo->GetExternalContentPolicyType())) {
-    return RemoteStreamPromise::CreateAndReject(NS_ERROR_CONTENT_BLOCKED,
                                                 __func__);
   }
 
@@ -254,10 +249,6 @@ bool PageThumbProtocolHandler::ResolveSpecialCases(const nsACString& aHost,
 nsresult PageThumbProtocolHandler::SubstituteChannel(nsIURI* aURI,
                                                      nsILoadInfo* aLoadInfo,
                                                      nsIChannel** aRetVal) {
-  if (!nsContentUtils::IsImageType(aLoadInfo->GetExternalContentPolicyType())) {
-    return NS_ERROR_CONTENT_BLOCKED;
-  }
-
   // Check if URI resolves to a file URI.
   nsAutoCString resolvedSpec;
   MOZ_TRY(ResolveURI(aURI, resolvedSpec));

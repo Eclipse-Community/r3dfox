@@ -91,12 +91,7 @@ XPCOMUtils.defineLazyServiceGetter(
 const PASSWORD_FIELDNAME_HINTS = ["current-password", "new-password"];
 const USERNAME_FIELDNAME_HINT = "username";
 
-const IMAGE_ONLY_PROTOCOLS = [
-  "cached-favicon:",
-  "moz-icon:",
-  "moz-page-thumb:",
-  "page-icon:",
-];
+const IMAGE_ONLY_PROTOCOLS = ["moz-icon:", "page-icon:"];
 
 export class nsContextMenu {
   /**

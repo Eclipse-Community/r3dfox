@@ -257,10 +257,6 @@ nsCachedFaviconProtocolHandler::NewChannel(nsIURI* aURI, nsILoadInfo* aLoadInfo,
                                            nsIChannel** _retval) {
   NS_ENSURE_ARG_POINTER(aURI);
 
-  if (!nsContentUtils::IsImageType(aLoadInfo->GetExternalContentPolicyType())) {
-    return NS_ERROR_CONTENT_BLOCKED;
-  }
-
   nsCOMPtr<nsIURI> cachedFaviconURI;
   nsresult rv = ParseCachedFaviconURI(aURI, getter_AddRefs(cachedFaviconURI));
   NS_ENSURE_SUCCESS(rv, rv);

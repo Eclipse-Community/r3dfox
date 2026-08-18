@@ -33,7 +33,6 @@ class PageThumbProtocolHandler final : public nsISubstitutingProtocolHandler,
    * given thumbnail.
    *
    * @param aChildURI a moz-page-thumb URI sent from the child.
-   * @param aLoadInfo the loadinfo send from the child.
    * @param aTerminateSender out param set to true when the params are invalid
    *        and indicate the child should be terminated. If |aChildURI| is
    *        not a moz-page-thumb URI, the child is in an invalid state and
@@ -44,7 +43,6 @@ class PageThumbProtocolHandler final : public nsISubstitutingProtocolHandler,
    *        success, and reject with an nsresult on failure.
    */
   RefPtr<RemoteStreamPromise> NewStream(nsIURI* aChildURI,
-                                        nsILoadInfo* aLoadInfo,
                                         bool* aTerminateSender);
 
  protected:
