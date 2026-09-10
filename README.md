@@ -33,6 +33,7 @@ SourceForge Downloads: ![SourceForge Downloads](https://img.shields.io/sourcefor
 - Instant one off searches and classic one off search UI!
 - Ability to restore classic right click menu items such as view image and text navigation buttons!
 - Ability to disable CSP, CORS, HSTS, and SOP!
+- Able to bypass some Anubis bot checks without requiring JS or Cookies. [(Suggest websites to add to Anubis bypass here)](https://github.com/Eclipse-Community/r3dfox/issues/30)
 - Experimental (and kinda broken) ability to disable e10s (multiprocess), Skia, and DirectWrite!
 - Other options including the ability to easily disable geolocation, Web Audio, tab groups, screenshot component, tab hover preview, drop to pin tabs, add tab to taskbar button, urlbar foratting, switch to tab behavior, and more!
 
