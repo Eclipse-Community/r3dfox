@@ -98,8 +98,10 @@ def dependentlibs_mac_objdump(lib):
 def is_skiplisted(dep):
     # Skip the ICU data DLL because preloading it at startup
     # leads to startup performance problems because of its excessive
-    # size (around 10MB).
-    if dep.startswith("icu"):
+    # size (around 10MB).  Same thing with d3dcompiler_47.dll, but
+    # to a lesser extent, and we were going to dynamically load it
+    # anyway.
+    if dep.startswith(("icu", "d3dcompiler_47")):
         return True
     # Skip the MSVC Runtimes. See bug #1921713.
     if substs.get("WIN32_REDIST_DIR"):
