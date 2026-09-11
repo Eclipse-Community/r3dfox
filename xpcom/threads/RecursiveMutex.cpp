@@ -35,7 +35,7 @@ RecursiveMutex::RecursiveMutex(const char* aName)
   DWORD flags = 0;
 #  endif
   BOOL r =
-      InitializeCriticalSectionEx(NativeHandle(mMutex), sLockSpinCount, flags);
+      InitializeCriticalSectionAndSpinCount(NativeHandle(mMutex), sLockSpinCount);
   MOZ_RELEASE_ASSERT(r);
 #else
   pthread_mutexattr_t attr;
