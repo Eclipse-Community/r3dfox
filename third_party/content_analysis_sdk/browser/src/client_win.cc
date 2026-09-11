@@ -255,10 +255,13 @@ ClientWin::ClientWin(Config config, int* rc) : ClientBase(std::move(config)) {
   std::string pipename =
     internal::GetPipeNameForClient(configuration().name,
                                    configuration().user_specific);
+typedef	BOOL (WINAPI *GetNamedPipeClientProcessIdfunc)(HANDLE, PULONG);
+GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerProcessId = NULL;
   if (!pipename.empty()) {
     unsigned long pid = 0;
+    pfnGetNamedPipeServerProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetNamedPipeServerProcessId");
     if (ConnectToPipe(pipename, &hPipe_) == ERROR_SUCCESS &&
-        GetNamedPipeServerProcessId(hPipe_, &pid)) {
+        pfnGetNamedPipeServerProcessId && pfnGetNamedPipeServerProcessId(hPipe_, &pid)) {
       agent_info().pid = pid;
 
       // Getting the process path is best effort.
