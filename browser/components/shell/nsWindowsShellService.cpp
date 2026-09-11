@@ -1116,6 +1116,16 @@ nsWindowsShellService::GetLaunchOnLoginShortcuts(
   return NS_OK;
 }
 
+    // Function load a function from library
+    template <typename Function>
+	HRESULT loadFunctionFromLibrary(HINSTANCE library, LPCSTR name, Function &func) {
+		if (!library) {
+			return E_INVALIDARG;
+		}
+        func = reinterpret_cast<Function>(GetProcAddress(library, name));
+        return (func != nullptr) ? S_OK : E_FAIL;
+    }
+
 // Look for any installer-created shortcuts in the given location that match
 // the given AUMID and EXE Path. If one is found, output its path.
 //
@@ -1602,6 +1612,16 @@ static bool IsCurrentAppPinnedToTaskbarSync(const nsAString& aumid) {
       }
 
       wchar_t storedAUMID[MAX_PATH];
+    typedef HRESULT(FAR STDAPICALLTYPE *f_PropVariantToString)(_In_ REFPROPVARIANT propvar, _Out_writes_(cch) PWSTR psz, _In_ UINT cch);
+
+    static f_PropVariantToString                        PropVariantToString;
+
+            HINSTANCE LibPropSys = LoadLibraryW(L"PROPSYS.DLL");
+            hr = loadFunctionFromLibrary(LibPropSys, "PropVariantToString", PropVariantToString);
+  if (NS_WARN_IF(FAILED(hr))) {
+    continue;
+  }
+
       hr = PropVariantToString(pv, storedAUMID, MAX_PATH);
       PropVariantClear(&pv);
       if (NS_WARN_IF(FAILED(hr))) {
