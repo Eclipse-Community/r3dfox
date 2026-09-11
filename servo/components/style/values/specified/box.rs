@@ -1622,6 +1622,11 @@ pub enum Appearance {
     /// A tooltip.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Tooltip,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    MozWinBorderlessGlass,
+    /// -moz-apperance style used in setting proper glass margins.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    MozWinExcludeGlass,
 
     /// Mac help button.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
@@ -1636,6 +1641,8 @@ pub enum Appearance {
     /// Windows themed window frame elements.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozWindowButtonBox,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    MozWindowButtonBoxMaximized,
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozWindowButtonClose,
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
