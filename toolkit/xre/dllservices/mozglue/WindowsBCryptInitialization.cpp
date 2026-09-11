@@ -15,10 +15,10 @@
 namespace mozilla {
 
 bool WindowsBCryptInitialization() {
-  UCHAR buffer[32];
-  NTSTATUS status = ::BCryptGenRandom(nullptr, buffer, sizeof(buffer),
-                                      BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-  return NT_SUCCESS(status);
+  // Call RandomUint64 to pre-load bcryptPrimitives.dll while the current
+  // thread still has an unrestricted impersonation token.
+  RandomUint64OrDie();
+  return true;
 }
 
 }  // namespace mozilla
