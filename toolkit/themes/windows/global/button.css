@@ -41,6 +41,10 @@ button {
   &:where([disabled="true"]) {
     color: GrayText;
     background-color: ButtonFace;
+    @media (-moz-windows-classic) {
+      color: ThreeDShadow;
+      text-shadow: 1px 1px ThreeDHighlight;
+    }
   }
 
   &.plain {

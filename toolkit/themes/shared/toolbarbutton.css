@@ -50,6 +50,12 @@ toolbarbutton {
   &:where([disabled="true"]) {
     color: GrayText;
     text-shadow: none;
+    @media (-moz-windows-classic) {
+      @media not (prefers-contrast) {
+        text-shadow: 1px 1px ThreeDHighlight;
+      }
+      color: ThreeDShadow;
+    }
   }
 }
 
