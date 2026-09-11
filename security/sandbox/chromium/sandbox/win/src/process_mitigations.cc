@@ -18,6 +18,8 @@
 #include "sandbox/win/src/win_utils.h"
 
 namespace {
+// API defined in winbase.h >= Vista.
+using SetProcessDEPPolicyFunction = decltype(&SetProcessDEPPolicy);
 
 // API defined in libloaderapi.h >= Win8.
 using SetDefaultDllDirectoriesFunction = decltype(&SetDefaultDllDirectories);
@@ -153,8 +155,15 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags flags) {
     if (flags & MITIGATION_DEP_NO_ATL_THUNK)
       dep_flags |= PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION;
 
-    if (!::SetProcessDEPPolicy(dep_flags) &&
-        ERROR_ACCESS_DENIED != ::GetLastError()) {
+    SetProcessDEPPolicyFunction set_process_dep_policy =
+        reinterpret_cast<SetProcessDEPPolicyFunction>(
+            ::GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetProcessDEPPolicy"));
+    if (set_process_dep_policy) {
+      if (!set_process_dep_policy(dep_flags) &&
+          ERROR_ACCESS_DENIED != ::GetLastError()) {
+        return false;
+      }
+    } else {
       return false;
     }
   }
