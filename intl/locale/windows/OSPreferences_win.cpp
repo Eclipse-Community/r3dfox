@@ -8,9 +8,8 @@
 #include "mozilla/intl/Locale.h"
 #include "mozilla/intl/LocaleService.h"
 #include "mozilla/WindowsVersion.h"
+#include "nsWin32Locale.h"
 #include "nsReadableUtils.h"
-
-#include <windows.h>
 
 #ifndef __MINGW32__  // WinRT headers not yet supported by MinGW
 #  include <roapi.h>
@@ -82,11 +81,10 @@ bool OSPreferences::ReadSystemLocales(nsTArray<nsCString>& aLocaleList) {
     // https://stackoverflow.com/questions/52849233/getuserpreferreduilanguages-never-returns-more-than-two-languages,
     // this may not always return the full list of languages we'd expect.
     // We should always get at least the first-preference lang, though.
-    WCHAR locale[LOCALE_NAME_MAX_LENGTH];
-    if (NS_WARN_IF(!LCIDToLocaleName(LOCALE_SYSTEM_DEFAULT, locale,
-                                     LOCALE_NAME_MAX_LENGTH, 0))) {
-      return false;
-    }
+  nsAutoString locale;
+
+  LCID win_lcid = GetSystemDefaultLCID();
+  nsWin32Locale::GetXPLocale(win_lcid, locale);
 
     NS_LossyConvertUTF16toASCII loc(locale);
     if (CanonicalizeLanguageTag(loc)) {
@@ -100,11 +98,10 @@ bool OSPreferences::ReadSystemLocales(nsTArray<nsCString>& aLocaleList) {
 bool OSPreferences::ReadRegionalPrefsLocales(nsTArray<nsCString>& aLocaleList) {
   MOZ_ASSERT(aLocaleList.IsEmpty());
 
-  WCHAR locale[LOCALE_NAME_MAX_LENGTH];
-  if (NS_WARN_IF(!LCIDToLocaleName(LOCALE_USER_DEFAULT, locale,
-                                   LOCALE_NAME_MAX_LENGTH, 0))) {
-    return false;
-  }
+  nsAutoString locale;
+
+  LCID win_lcid = GetSystemDefaultLCID();
+  nsWin32Locale::GetXPLocale(win_lcid, locale);
 
   NS_LossyConvertUTF16toASCII loc(locale);
 
