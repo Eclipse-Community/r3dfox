@@ -223,7 +223,7 @@ impl KeyHandle {
         unsafe {
             if CryptAcquireCertificatePrivateKey(
                 **cert,
-                CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG,
+                0,
                 std::ptr::null_mut(),
                 &mut key_handle,
                 &mut key_spec,
@@ -255,7 +255,7 @@ impl KeyHandle {
     ) -> Result<Vec<u8>, Error> {
         match &self {
             KeyHandle::NCrypt(ncrypt_handle) => {
-                sign_ncrypt(ncrypt_handle, data, params, do_signature, key_type)
+                Err(error_here!(ErrorType::LibraryFailure))//sign_ncrypt(ncrypt_handle, data, params, do_signature, key_type)
             }
             KeyHandle::CryptoAPI(hcryptprov, key_spec) => {
                 sign_cryptoapi(hcryptprov, key_spec, data, params, do_signature)
@@ -268,7 +268,7 @@ impl Drop for KeyHandle {
     fn drop(&mut self) {
         match self {
             KeyHandle::NCrypt(ncrypt_handle) => unsafe {
-                let _ = NCryptFreeObject(*ncrypt_handle);
+//              let _ = NCryptFreeObject(*ncrypt_handle);
             },
             KeyHandle::CryptoAPI(hcryptprov, _) => unsafe {
                 let _ = CryptReleaseContext(*hcryptprov, 0);
