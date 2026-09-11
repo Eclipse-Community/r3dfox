@@ -373,9 +373,9 @@ static inline void EmitETWMarker(const mozilla::ProfilerString8View& aName,
       }
     }
 
-    _tlgWriteTransfer(kFirefoxTraceLoggingProvider,
-                      &staticData.metaData.Channel, NULL, NULL,
-                      descriptors.size(), descriptors.data());
+//  _tlgWriteTransfer(kFirefoxTraceLoggingProvider,
+//                    &staticData.metaData.Channel, NULL, NULL,
+//                    descriptors.size(), descriptors.data());
   }
 }
 
