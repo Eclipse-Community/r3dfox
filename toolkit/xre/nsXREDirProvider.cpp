@@ -904,7 +904,7 @@ void nsXREDirProvider::DoShutdown() {
 }
 
 #ifdef XP_WIN
-static nsresult GetShellFolderPath(KNOWNFOLDERID folder, nsAString& _retval) {
+static nsresult GetShellFolderPath(int folder, nsAString& _retval) {
   wchar_t* buf;
   uint32_t bufLength = _retval.GetMutableData(&buf, MAXPATHLEN + 3);
   NS_ENSURE_TRUE(bufLength >= (MAXPATHLEN + 3), NS_ERROR_OUT_OF_MEMORY);
@@ -914,7 +914,7 @@ static nsresult GetShellFolderPath(KNOWNFOLDERID folder, nsAString& _retval) {
   LPITEMIDLIST pItemIDList = nullptr;
 
   DWORD flags = KF_FLAG_SIMPLE_IDLIST | KF_FLAG_DONT_VERIFY | KF_FLAG_NO_ALIAS;
-  if (SUCCEEDED(SHGetKnownFolderIDList(folder, flags, NULL, &pItemIDList)) &&
+  if (SUCCEEDED(SHGetSpecialFolderLocation(nullptr, folder, &pItemIDList)) &&
       SHGetPathFromIDListW(pItemIDList, buf)) {
     // We're going to use wcslen (wcsnlen not available in msvc7.1) so make
     // sure to null terminate.
@@ -1288,11 +1288,11 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
 #elif defined(XP_WIN)
   nsString path;
   if (aLocal) {
-    rv = GetShellFolderPath(FOLDERID_LocalAppData, path);
+    rv = GetShellFolderPath(CSIDL_LOCAL_APPDATA, path);
     if (NS_FAILED(rv)) rv = GetRegWindowsAppDataFolder(aLocal, path);
   }
   if (!aLocal || NS_FAILED(rv)) {
-    rv = GetShellFolderPath(FOLDERID_RoamingAppData, path);
+    rv = GetShellFolderPath(CSIDL_APPDATA, path);
     if (NS_FAILED(rv)) {
       if (!aLocal) rv = GetRegWindowsAppDataFolder(aLocal, path);
     }
