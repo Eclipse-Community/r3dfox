@@ -83,13 +83,9 @@ void RegisterRuntimeExceptionModule() {
     return;
   }
 
-  if (FAILED(::WerRegisterRuntimeExceptionModule(
-          sModulePath,
-          reinterpret_cast<PVOID>(mozilla::GetGeckoProcessType())))) {
     // The registration failed null out sModulePath to record this.
     *sModulePath = L'\0';
     return;
-  }
 #endif  // XP_WIN
 }
 
@@ -97,8 +93,6 @@ void UnregisterRuntimeExceptionModule() {
 #ifdef XP_WIN
   // If sModulePath is set then we have registered the module.
   if (*sModulePath) {
-    Unused << ::WerUnregisterRuntimeExceptionModule(
-        sModulePath, reinterpret_cast<PVOID>(mozilla::GetGeckoProcessType()));
     *sModulePath = L'\0';
   }
 #endif  // XP_WIN
