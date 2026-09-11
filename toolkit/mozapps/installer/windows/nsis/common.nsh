@@ -6293,6 +6293,7 @@
       Push $0
 
 !ifndef NONADMIN_ELEVATE
+       ${If} ${AtLeastWinVista}
       UAC::IsAdmin
       ; If the user is not an admin already
       ${If} "$0" != "1"
@@ -6321,7 +6322,9 @@
           ${EndUnless}
         ${EndIf}
       ${EndIf}
+       ${EndIf}
 !else
+       ${If} ${AtLeastWinVista}
       UAC::IsAdmin
       ; If the user is not an admin already
       ${If} "$0" != "1"
@@ -6376,6 +6379,7 @@
           UAC::RunElevated
         ${EndUnless}
       ${EndIf}
+       ${EndIf}
 !endif
 
       ClearErrors
@@ -6438,6 +6442,10 @@
     !define ${_MOZFUNC_UN}UnloadUAC "!insertmacro ${_MOZFUNC_UN}UnloadUACCall"
 
     Function ${_MOZFUNC_UN}UnloadUAC
+      ${Unless} ${AtLeastWinVista}
+        Return
+      ${EndUnless}
+
       Push $R9
 
       ClearErrors
@@ -7037,8 +7045,8 @@
 # Macros for managing specific Windows version features
 
 /**
- * Sets the permitted layered service provider (LSP) categories
- * for the application. Consumers should call this after an
+ * Sets the permitted layered service provider (LSP) categories on Windows
+ * Vista and above for the application. Consumers should call this after an
  * installation log section has completed since this macro will log the results
  * to the installation log along with a header.
  *
@@ -7071,6 +7079,10 @@
     !define ${_MOZFUNC_UN}SetAppLSPCategories "!insertmacro ${_MOZFUNC_UN}SetAppLSPCategoriesCall"
 
     Function ${_MOZFUNC_UN}SetAppLSPCategories
+      ${Unless} ${AtLeastWinVista}
+        Return
+      ${EndUnless}
+
       Exch $R9
       Push $R8
       Push $R7

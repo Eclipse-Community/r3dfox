@@ -1760,34 +1760,36 @@ Function SetAsDefaultAppUserHKCU
 
   ${SetHandlers}
 
-  ; Only register as the handler if the app registry name
-  ; exists under the RegisteredApplications registry key. The protocol and
-  ; file handlers set previously at the user level will associate this install
-  ; as the default browser.
-  ClearErrors
-  ReadRegStr $0 HKLM "Software\RegisteredApplications" "$R9"
-  ${Unless} ${Errors}
-    ; This is all protected by a user choice hash in Windows 8 so it won't
-    ; help, but it also won't hurt.
-    AppAssocReg::SetAppAsDefault "$R9" ".htm" "file"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" ".html" "file"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" ".shtml" "file"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" ".webp" "file"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" ".avif" "file"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" ".xht" "file"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" ".xhtml" "file"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" "http" "protocol"
-    Pop $0
-    AppAssocReg::SetAppAsDefault "$R9" "https" "protocol"
-    Pop $0
-  ${EndUnless}
+  ${If} ${AtLeastWinVista}
+    ; Only register as the handler on Vista and above if the app registry name
+    ; exists under the RegisteredApplications registry key. The protocol and
+    ; file handlers set previously at the user level will associate this install
+    ; as the default browser.
+    ClearErrors
+    ReadRegStr $0 HKLM "Software\RegisteredApplications" "$R9"
+    ${Unless} ${Errors}
+      ; This is all protected by a user choice hash in Windows 8 so it won't
+      ; help, but it also won't hurt.
+      AppAssocReg::SetAppAsDefault "$R9" ".htm" "file"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" ".html" "file"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" ".shtml" "file"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" ".webp" "file"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" ".avif" "file"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" ".xht" "file"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" ".xhtml" "file"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" "http" "protocol"
+      Pop $0
+      AppAssocReg::SetAppAsDefault "$R9" "https" "protocol"
+      Pop $0
+    ${EndUnless}
+  ${EndIf}
   ${RemoveDeprecatedKeys}
   ${MigrateTaskBarShortcut} "$R0"
 FunctionEnd
