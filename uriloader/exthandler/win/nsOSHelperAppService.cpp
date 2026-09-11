@@ -73,39 +73,64 @@ nsresult nsOSHelperAppService::OSProtocolHandlerExists(
   // then we have a handler for it...
   *aHandlerExists = false;
   if (aProtocolScheme && *aProtocolScheme) {
-    NS_ENSURE_TRUE(mAppAssoc, NS_ERROR_NOT_AVAILABLE);
-    wchar_t* pResult = nullptr;
-    NS_ConvertASCIItoUTF16 scheme(aProtocolScheme);
-    // We are responsible for freeing returned strings.
-    HRESULT hr = mAppAssoc->QueryCurrentDefault(scheme.get(), AT_URLPROTOCOL,
-                                                AL_EFFECTIVE, &pResult);
-    if (SUCCEEDED(hr)) {
-      CoTaskMemFree(pResult);
-      nsCOMPtr<nsIWindowsRegKey> regKey =
-          do_CreateInstance("@mozilla.org/windows-registry-key;1");
-      if (!regKey) {
-        return NS_ERROR_NOT_AVAILABLE;
-      }
+    // Vista: use the application association interface.
+    if (mAppAssoc) {
+      wchar_t* pResult = nullptr;
+      NS_ConvertASCIItoUTF16 scheme(aProtocolScheme);
+      // We are responsible for freeing returned strings.
+      HRESULT hr = mAppAssoc->QueryCurrentDefault(scheme.get(), AT_URLPROTOCOL,
+                                                  AL_EFFECTIVE, &pResult);
+      if (SUCCEEDED(hr)) {
+        CoTaskMemFree(pResult);
+        nsCOMPtr<nsIWindowsRegKey> regKey =
+            do_CreateInstance("@mozilla.org/windows-registry-key;1");
+        if (!regKey) {
+          return NS_ERROR_NOT_AVAILABLE;
+        }
 
-      nsresult rv = regKey->Open(nsIWindowsRegKey::ROOT_KEY_CLASSES_ROOT,
-                                 nsDependentString(scheme.get()),
-                                 nsIWindowsRegKey::ACCESS_QUERY_VALUE);
-      if (NS_FAILED(rv)) {
-        // Open will fail if the registry key path doesn't exist.
-        return NS_OK;
-      }
+        nsresult rv = regKey->Open(nsIWindowsRegKey::ROOT_KEY_CLASSES_ROOT,
+                                   nsDependentString(scheme.get()),
+                                   nsIWindowsRegKey::ACCESS_QUERY_VALUE);
+        if (NS_FAILED(rv)) {
+          // Open will fail if the registry key path doesn't exist.
+          return NS_OK;
+        }
 
-      bool hasValue;
-      rv = regKey->HasValue(u"URL Protocol"_ns, &hasValue);
-      if (NS_FAILED(rv)) {
-        return NS_ERROR_FAILURE;
-      }
-      if (!hasValue) {
-        return NS_OK;
-      }
+        bool hasValue;
+        rv = regKey->HasValue(u"URL Protocol"_ns, &hasValue);
+        if (NS_FAILED(rv)) {
+          return NS_ERROR_FAILURE;
+        }
+        if (!hasValue) {
+          return NS_OK;
+        }
 
-      *aHandlerExists = true;
+        *aHandlerExists = true;
+      }
+      return NS_OK;
     }
+
+    // Windows XP does not provide IApplicationAssociationRegistration.
+    nsCOMPtr<nsIWindowsRegKey> regKey =
+        do_CreateInstance("@mozilla.org/windows-registry-key;1");
+    if (!regKey) {
+      return NS_ERROR_NOT_AVAILABLE;
+    }
+
+    NS_ConvertASCIItoUTF16 scheme(aProtocolScheme);
+    nsresult rv = regKey->Open(nsIWindowsRegKey::ROOT_KEY_CLASSES_ROOT, scheme,
+                               nsIWindowsRegKey::ACCESS_QUERY_VALUE);
+    if (NS_FAILED(rv)) {
+      // Open will fail if the registry key path doesn't exist.
+      return NS_OK;
+    }
+
+    bool hasValue;
+    rv = regKey->HasValue(u"URL Protocol"_ns, &hasValue);
+    if (NS_FAILED(rv)) {
+      return NS_ERROR_FAILURE;
+    }
+    *aHandlerExists = hasValue;
   }
 
   return NS_OK;
@@ -131,19 +156,41 @@ NS_IMETHODIMP nsOSHelperAppService::GetApplicationDescription(
     }
   }
 
-  NS_ENSURE_TRUE(mAppAssoc, NS_ERROR_NOT_AVAILABLE);
-  wchar_t* pResult = nullptr;
-  // We are responsible for freeing returned strings.
-  HRESULT hr = mAppAssoc->QueryCurrentDefault(buf.get(), AT_URLPROTOCOL,
-                                              AL_EFFECTIVE, &pResult);
-  if (SUCCEEDED(hr)) {
-    nsCOMPtr<nsIFile> app;
-    nsAutoString appInfo(pResult);
-    CoTaskMemFree(pResult);
-    if (NS_SUCCEEDED(GetDefaultAppInfo(appInfo, _retval, getter_AddRefs(app))))
-      return NS_OK;
+  if (mAppAssoc) {
+    // Vista: use the application association interface.
+    wchar_t* pResult = nullptr;
+    // We are responsible for freeing returned strings.
+    HRESULT hr = mAppAssoc->QueryCurrentDefault(buf.get(), AT_URLPROTOCOL,
+                                                AL_EFFECTIVE, &pResult);
+    if (SUCCEEDED(hr)) {
+      nsCOMPtr<nsIFile> app;
+      nsAutoString appInfo(pResult);
+      CoTaskMemFree(pResult);
+      if (NS_SUCCEEDED(
+              GetDefaultAppInfo(appInfo, _retval, getter_AddRefs(app)))) {
+        return NS_OK;
+      }
+    }
+    return NS_ERROR_NOT_AVAILABLE;
   }
-  return NS_ERROR_NOT_AVAILABLE;
+
+  nsCOMPtr<nsIFile> app;
+  GetDefaultAppInfo(buf, _retval, getter_AddRefs(app));
+
+  if (!_retval.Equals(buf)) {
+    return NS_OK;
+  }
+
+  // Fall back to the protocol's shell command in the registry.
+  buf.AppendLiteral("\\shell\\open\\command");
+  nsresult rv = regKey->Open(nsIWindowsRegKey::ROOT_KEY_CLASSES_ROOT, buf,
+                             nsIWindowsRegKey::ACCESS_QUERY_VALUE);
+  if (NS_FAILED(rv)) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+
+  rv = regKey->ReadStringValue(u""_ns, _retval);
+  return NS_SUCCEEDED(rv) ? NS_OK : NS_ERROR_NOT_AVAILABLE;
 }
 
 NS_IMETHODIMP nsOSHelperAppService::IsCurrentAppOSDefaultForProtocol(
@@ -398,19 +445,31 @@ nsresult nsOSHelperAppService::InternalSetDefaultsOnMIME(
   }
 
   nsAutoString appInfo;
-  bool found;
+  bool found = false;
 
   // Retrieve the default application for this extension
-  NS_ENSURE_TRUE(mAppAssoc, NS_ERROR_NOT_AVAILABLE);
-  wchar_t* pResult = nullptr;
-  HRESULT hr = mAppAssoc->QueryCurrentDefault(assocType.get(), AT_FILEEXTENSION,
-                                              AL_EFFECTIVE, &pResult);
-  if (SUCCEEDED(hr)) {
-    found = true;
-    appInfo.Assign(pResult);
-    CoTaskMemFree(pResult);
+  if (mAppAssoc) {
+    // Vista: use the application association interface.
+    wchar_t* pResult = nullptr;
+    HRESULT hr = mAppAssoc->QueryCurrentDefault(
+        assocType.get(), AT_FILEEXTENSION, AL_EFFECTIVE, &pResult);
+    if (SUCCEEDED(hr)) {
+      found = true;
+      appInfo.Assign(pResult);
+      CoTaskMemFree(pResult);
+    }
   } else {
-    found = false;
+    nsCOMPtr<nsIWindowsRegKey> regKey =
+        do_CreateInstance("@mozilla.org/windows-registry-key;1");
+    if (!regKey) {
+      return NS_ERROR_NOT_AVAILABLE;
+    }
+    nsresult rv = regKey->Open(nsIWindowsRegKey::ROOT_KEY_CLASSES_ROOT,
+                               assocType,
+                               nsIWindowsRegKey::ACCESS_QUERY_VALUE);
+    if (NS_SUCCEEDED(rv)) {
+      found = NS_SUCCEEDED(regKey->ReadStringValue(u""_ns, appInfo));
+    }
   }
 
   // Bug 358297 - ignore the default handler, force the user to choose app
