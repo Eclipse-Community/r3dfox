@@ -6,8 +6,11 @@
 
 #include "AgnosticDecoderModule.h"
 
+#include "OpusDecoder.h"
 #include "TheoraDecoder.h"
 #include "VPXDecoder.h"
+#include "VorbisDecoder.h"
+#include "WAVDecoder.h"
 #include "mozilla/Logging.h"
 #include "mozilla/StaticPrefs_media.h"
 #include "VideoUtils.h"
@@ -131,6 +134,9 @@ media::DecodeSupportSet AgnosticDecoderModule::Supports(
       (AOMDecoder::IsAV1(mimeType) && IsAvailable(DecoderType::AV1)) ||
 #endif
       (VPXDecoder::IsVPX(mimeType) && IsAvailable(DecoderType::VPX)) ||
+      (VorbisDataDecoder::IsVorbis(mimeType) && IsAvailable(DecoderType::Vorbis)) ||
+      (WaveDataDecoder::IsWave(mimeType) && IsAvailable(DecoderType::Wave)) ||
+      (OpusDataDecoder::IsOpus(mimeType) && IsAvailable(DecoderType::Opus));
       (TheoraDecoder::IsTheora(mimeType) && IsAvailable(DecoderType::Theora) &&
        StaticPrefs::media_theora_enabled());
   MOZ_LOG(sPDMLog, LogLevel::Debug,
@@ -177,7 +183,22 @@ already_AddRefed<MediaDataDecoder> AgnosticDecoderModule::CreateVideoDecoder(
 
 already_AddRefed<MediaDataDecoder> AgnosticDecoderModule::CreateAudioDecoder(
     const CreateDecoderParams& aParams) {
-  return nullptr;
+  if (Supports(SupportDecoderParams(aParams), nullptr /* diagnostic */)
+          .isEmpty()) {
+    return nullptr;
+  }
+  RefPtr<MediaDataDecoder> m;
+
+  const TrackInfo& config = aParams.mConfig;
+  if (VorbisDataDecoder::IsVorbis(config.mMimeType)) {
+    m = new VorbisDataDecoder(aParams);
+  } else if (OpusDataDecoder::IsOpus(config.mMimeType)) {
+    m = new OpusDataDecoder(aParams);
+  } else if (WaveDataDecoder::IsWave(config.mMimeType)) {
+    m = new WaveDataDecoder(aParams);
+  }
+
+  return m.forget();
 }
 
 /* static */

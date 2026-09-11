@@ -19,9 +19,12 @@
 #include "MP4Decoder.h"
 #include "MediaChangeMonitor.h"
 #include "MediaInfo.h"
+#include "OpusDecoder.h"
 #include "TheoraDecoder.h"
 #include "VPXDecoder.h"
 #include "VideoUtils.h"
+#include "VorbisDecoder.h"
+#include "WAVDecoder.h"
 #include "mozilla/ClearOnShutdown.h"
 #include "mozilla/RemoteDecodeUtils.h"
 #include "mozilla/RemoteDecoderManagerChild.h"
@@ -860,16 +863,16 @@ DecodeSupportSet PDMFactory::SupportsMimeType(
     if (aMimeType.EqualsLiteral("audio/mpeg")) {
       return MCSInfo::GetDecodeSupportSet(MediaCodec::MP3, aSupported);
     }
-    if (aMimeType.EqualsLiteral("audio/opus")) {
+    if (OpusDataDecoder::IsOpus(aMimeType)) {
       return MCSInfo::GetDecodeSupportSet(MediaCodec::Opus, aSupported);
     }
-    if (aMimeType.EqualsLiteral("audio/vorbis")) {
+    if (VorbisDataDecoder::IsVorbis(aMimeType)) {
       return MCSInfo::GetDecodeSupportSet(MediaCodec::Vorbis, aSupported);
     }
     if (aMimeType.EqualsLiteral("audio/flac")) {
       return MCSInfo::GetDecodeSupportSet(MediaCodec::FLAC, aSupported);
     }
-    if (IsWaveMimetype(aMimeType)) {
+    if (WaveDataDecoder::IsWave(aMimeType)) {
       return MCSInfo::GetDecodeSupportSet(MediaCodec::Wave, aSupported);
     }
   }

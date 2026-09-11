@@ -10,13 +10,15 @@
 #endif
 #include "MediaCodecsSupport.h"
 #include "MP4Decoder.h"
+#include "OpusDecoder.h"
 #include "PlatformDecoderModule.h"
 #include "TheoraDecoder.h"
 #include "VPXDecoder.h"
+#include "VorbisDecoder.h"
+#include "WAVDecoder.h"
 #include "mozilla/AppShutdown.h"
 #include "mozilla/gfx/gfxVars.h"
 #include "nsTHashMap.h"
-#include "VideoUtils.h"
 
 using MediaCodecsSupport = mozilla::media::MediaCodecsSupport;
 
@@ -258,16 +260,16 @@ MediaCodec MCSInfo::GetMediaCodecFromMimeType(const nsACString& aMimeType) {
   if (MP4Decoder::IsAAC(aMimeType)) {
     return MediaCodec::AAC;
   }
-  if (aMimeType.EqualsLiteral("audio/vorbis")) {
+  if (VorbisDataDecoder::IsVorbis(aMimeType)) {
     return MediaCodec::Vorbis;
   }
   if (aMimeType.EqualsLiteral("audio/flac")) {
     return MediaCodec::FLAC;
   }
-  if (IsWaveMimetype(aMimeType)) {
+  if (WaveDataDecoder::IsWave(aMimeType)) {
     return MediaCodec::Wave;
   }
-  if (aMimeType.EqualsLiteral("audio/opus")) {
+  if (OpusDataDecoder::IsOpus(aMimeType)) {
     return MediaCodec::Opus;
   }
   if (aMimeType.EqualsLiteral("audio/mpeg")) {

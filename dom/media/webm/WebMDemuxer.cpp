@@ -9,6 +9,7 @@
 #ifdef MOZ_AV1
 #  include "AOMDecoder.h"
 #endif
+#include "OpusDecoder.h"
 #include "VPXDecoder.h"
 #include "WebMDemuxer.h"
 #include "WebMBufferedParser.h"

@@ -17,6 +17,7 @@
 
 #include "OggCodecState.h"
 #include "OggRLBox.h"
+#include "OpusDecoder.h"
 #include "OpusParser.h"
 #include "VideoUtils.h"
 #include "XiphExtradata.h"

@@ -12,4 +12,10 @@
 using namespace mozilla;
 
 TEST(CanCreateMFTDecoder, NoIPC)
-{ EXPECT_TRUE(WMFDecoderModule::CanCreateMFTDecoder(WMFStreamType::H264)); }
+{
+  const auto ffvpxMP3Pref = StaticPrefs::GetPrefName_media_ffvpx_mp3_enabled();
+  const bool ffvpxMP3WasOn = Preferences::GetBool(ffvpxMP3Pref);
+  Preferences::SetBool(ffvpxMP3Pref, false);
+  EXPECT_TRUE(WMFDecoderModule::CanCreateMFTDecoder(WMFStreamType::MP3));
+  Preferences::SetBool(ffvpxMP3Pref, ffvpxMP3WasOn);
+}
