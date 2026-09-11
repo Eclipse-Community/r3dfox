@@ -1230,6 +1230,16 @@ static nsresult GetMatchingShortcut(int aCSIDL, const nsAString& aAUMID,
       continue;
     }
 
+    typedef HRESULT(FAR STDAPICALLTYPE *f_PropVariantToString)(_In_ REFPROPVARIANT propvar, _Out_writes_(cch) PWSTR psz, _In_ UINT cch);
+
+    static f_PropVariantToString                        PropVariantToString;
+
+            HINSTANCE LibPropSys = LoadLibraryW(L"PROPSYS.DLL");
+            hr = loadFunctionFromLibrary(LibPropSys, "PropVariantToString", PropVariantToString);
+  if (NS_WARN_IF(FAILED(hr))) {
+    continue;
+  }
+
     wchar_t storedAUMID[MAX_PATH];
     hr = PropVariantToString(pv, storedAUMID, MAX_PATH);
     PropVariantClear(&pv);
