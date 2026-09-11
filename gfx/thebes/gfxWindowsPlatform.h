@@ -156,6 +156,11 @@ class gfxWindowsPlatform final : public gfxPlatform {
 
   mozilla::gfx::BackendType GetPreferredCanvasBackend() override;
 
+  // ClearType is not always enabled even when available (e.g. Windows XP).
+  // If either pref is enabled and applies, use ClearType rendering.
+  bool UseClearTypeForDownloadableFonts();
+  bool UseClearTypeAlways();
+
   static void GetDLLVersion(char16ptr_t aDLLPath, nsAString& aVersion);
 
   // returns ClearType tuning information for each display
@@ -214,6 +219,9 @@ class gfxWindowsPlatform final : public gfxPlatform {
   BackendPrefsData GetBackendPrefs() const override;
 
   RenderMode mRenderMode;
+
+  int8_t mUseClearTypeForDownloadableFonts;
+  int8_t mUseClearTypeAlways;
 
  private:
   enum class DwmCompositionStatus : uint32_t {
