@@ -6575,7 +6575,13 @@
       ${LogMsg} "App Version: $R8"
       ${LogMsg} "GRE Version: $R9"
 
-      ${If} ${IsWin7}
+      ${If} ${IsWinXP}
+        ${LogMsg} "OS Name    : Windows XP"
+      ${ElseIf} ${IsWin2003}
+        ${LogMsg} "OS Name    : Windows 2003"
+      ${ElseIf} ${IsWinVista}
+        ${LogMsg} "OS Name    : Windows Vista"
+      ${ElseIf} ${IsWin7}
         ${LogMsg} "OS Name    : Windows 7"
       ${ElseIf} ${IsWin8}
         ${LogMsg} "OS Name    : Windows 8"
