@@ -42,7 +42,6 @@ class BASE_EXPORT StartupInformation {
   }
 
  private:
-  std::unique_ptr<char[]> attribute_list_;
   STARTUPINFOEXW startup_info_;
   DISALLOW_COPY_AND_ASSIGN(StartupInformation);
 };
