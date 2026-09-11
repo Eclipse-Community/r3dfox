@@ -119,7 +119,8 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags flags) {
   base::win::Version version = base::win::GetVersion();
   HMODULE module = ::GetModuleHandleA("kernel32.dll");
 
-  if (flags & MITIGATION_DLL_SEARCH_ORDER) {
+  if (version >= base::win::Version::VISTA &&
+      (flags & MITIGATION_DLL_SEARCH_ORDER)) {
     SetDefaultDllDirectoriesFunction set_default_dll_directories =
         reinterpret_cast<SetDefaultDllDirectoriesFunction>(
             ::GetProcAddress(module, "SetDefaultDllDirectories"));
@@ -134,7 +135,8 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags flags) {
   }
 
   // Set the heap to terminate on corruption
-  if (flags & MITIGATION_HEAP_TERMINATE) {
+  if (version >= base::win::Version::VISTA &&
+      (flags & MITIGATION_HEAP_TERMINATE)) {
     if (!::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption,
                               nullptr, 0) &&
         ERROR_ACCESS_DENIED != ::GetLastError()) {
@@ -142,7 +144,8 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags flags) {
     }
   }
 
-  if (flags & MITIGATION_HARDEN_TOKEN_IL_POLICY) {
+  if (version >= base::win::Version::WIN7 &&
+      (flags & MITIGATION_HARDEN_TOKEN_IL_POLICY)) {
     DWORD error = HardenProcessIntegrityLevelPolicy();
     if ((error != ERROR_SUCCESS) && (error != ERROR_ACCESS_DENIED))
       return false;
@@ -151,6 +154,8 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags flags) {
 #if !defined(_WIN64)  // DEP is always enabled on 64-bit.
   if (flags & MITIGATION_DEP) {
     DWORD dep_flags = PROCESS_DEP_ENABLE;
+    // DEP support is quirky on XP, so don't force a failure in that case.
+    const bool return_on_fail = version >= base::win::Version::VISTA;
 
     if (flags & MITIGATION_DEP_NO_ATL_THUNK)
       dep_flags |= PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION;
@@ -160,11 +165,30 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags flags) {
             ::GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetProcessDEPPolicy"));
     if (set_process_dep_policy) {
       if (!set_process_dep_policy(dep_flags) &&
-          ERROR_ACCESS_DENIED != ::GetLastError()) {
+          ERROR_ACCESS_DENIED != ::GetLastError() && return_on_fail) {
         return false;
       }
     } else {
-      return false;
+      // We're on XP sp2, so use the less standard approach.
+      // For reference: http://www.uninformed.org/?v=2&a=4
+      static const int MEM_EXECUTE_OPTION_DISABLE = 2;
+      static const int MEM_EXECUTE_OPTION_ATL7_THUNK_EMULATION = 4;
+      static const int MEM_EXECUTE_OPTION_PERMANENT = 8;
+
+      NtSetInformationProcessFunction set_information_process = NULL;
+      ResolveNTFunctionPtr("NtSetInformationProcess",
+                           &set_information_process);
+      if (!set_information_process)
+        return false;
+      ULONG dep = MEM_EXECUTE_OPTION_DISABLE | MEM_EXECUTE_OPTION_PERMANENT;
+      if (!(dep_flags & PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION))
+        dep |= MEM_EXECUTE_OPTION_ATL7_THUNK_EMULATION;
+      if (!SUCCEEDED(set_information_process(GetCurrentProcess(),
+                                             ProcessExecuteFlags,
+                                             &dep, sizeof(dep))) &&
+          ERROR_ACCESS_DENIED != ::GetLastError() && return_on_fail) {
+        return false;
+      }
     }
   }
 #endif
@@ -386,6 +410,10 @@ void ConvertProcessMitigationsToPolicy(MitigationFlags flags,
 #error This platform is not supported.
 #endif
 
+  // Nothing for Win XP or Vista.
+  if (version <= base::win::Version::VISTA)
+    return;
+
 // DEP and SEHOP are not valid for 64-bit Windows
 #if !defined(_WIN64)
   if (flags & MITIGATION_DEP) {
@@ -550,6 +578,19 @@ void ConvertProcessMitigationsToPolicy(MitigationFlags flags,
 
 MitigationFlags FilterPostStartupProcessMitigations(MitigationFlags flags) {
   base::win::Version version = base::win::GetVersion();
+
+  // Windows XP SP2+.
+  if (version < base::win::Version::VISTA) {
+    return flags & (MITIGATION_DEP |
+                    MITIGATION_DEP_NO_ATL_THUNK);
+  }
+
+  // Windows Vista
+  if (version < base::win::Version::WIN7) {
+    return flags & (MITIGATION_BOTTOM_UP_ASLR |
+                    MITIGATION_DLL_SEARCH_ORDER |
+                    MITIGATION_HEAP_TERMINATE);
+  }
 
   // Windows 7.
   if (version < base::win::Version::WIN8) {

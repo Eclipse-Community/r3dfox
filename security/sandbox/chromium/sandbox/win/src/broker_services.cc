@@ -489,8 +489,10 @@ ResultCode BrokerServicesBase::SpawnTarget(const wchar_t* exe_path,
         const_cast<wchar_t*>(desktop.c_str());
   }
 
-  bool inherit_handles = false;
+  bool inherit_handles = true;
 
+  scoped_refptr<AppContainerProfileBase> profile =nullptr;
+  if (base::win::GetVersion() >= base::win::Version::VISTA) {
   int attribute_count = 0;
 
   size_t mitigations_size;
@@ -524,7 +526,7 @@ ResultCode BrokerServicesBase::SpawnTarget(const wchar_t* exe_path,
   if (inherited_handle_list.size())
     ++attribute_count;
 
-  scoped_refptr<AppContainerProfileBase> profile =
+  profile =
       policy_base->GetAppContainerProfileBase();
   if (profile) {
     if (base::win::GetVersion() < base::win::Version::WIN8)
@@ -570,6 +572,7 @@ ResultCode BrokerServicesBase::SpawnTarget(const wchar_t* exe_path,
     // Allowing inheritance of handles is only secure now that we
     // have limited which handles will be inherited.
     inherit_handles = true;
+  }
   }
 
   // Declared here to ensure they stay in scope until after process creation.
