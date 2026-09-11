@@ -193,6 +193,7 @@ bool ToastNotification::AssignIfNsisAumid(nsAutoString& aInstallHash,
 
 bool ToastNotification::RegisterRuntimeAumid(nsAutoString& aInstallHash,
                                              Maybe<nsAutoString>& aAumid) {
+  return false;
   // Portable AUMID slightly differs from installed AUMID so we can
   // differentiate installed to HKCU vs portable installs if necessary.
   nsAutoString portableAumid =
