@@ -137,7 +137,13 @@ bool GetCpuTimeSinceThreadStartInNs(
   int frequencyInMHz = GetCycleTimeFrequencyMHz();
   if (frequencyInMHz) {
     uint64_t cpuCycleCount;
-    if (!QueryThreadCycleTime(profiledThread, &cpuCycleCount)) {
+// Returns a pointer to the QueryThreadCycleTime() function from Windows.
+// Can't statically link to it because it is not available on XP.
+using QueryThreadCycleTimePtr = decltype(::QueryThreadCycleTime)*;
+  static const QueryThreadCycleTimePtr query_thread_cycle_time_fn =
+      reinterpret_cast<QueryThreadCycleTimePtr>(::GetProcAddress(
+          ::GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime"));
+    if (!query_thread_cycle_time_fn || !query_thread_cycle_time_fn(profiledThread, &cpuCycleCount)) {
       return false;
     }
 
