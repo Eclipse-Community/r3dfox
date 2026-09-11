@@ -15,6 +15,22 @@ toolbarbutton {
     padding-inline: 2px;
   }
 
+  @media (-moz-windows-default-theme) {
+    :root[lwtheme-image] & {
+      text-shadow: none;
+    }
+
+    :root[lwtheme-image] &:not([disabled="true"]) {
+      text-shadow: inherit;
+    }
+  }
+
+  @media (-moz-windows-default-theme: 0) {
+    :root[lwtheme-image] &:not([disabled="true"]) {
+      text-shadow: inherit;
+    }
+  }
+
   @media (-moz-platform: windows) {
     &:focus-visible {
       outline: var(--default-focusring);

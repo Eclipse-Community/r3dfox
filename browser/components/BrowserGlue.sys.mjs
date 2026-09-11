@@ -4395,44 +4395,6 @@ BrowserGlue.prototype = {
       }
     }
 
-    if (currentUIVersion < 139) {
-      // Reset the default permissions to ALLOW_ACTION to rollback issues for
-      // affected users, see Bug 1579517
-      // originInfo in the format [origin, type]
-      [
-        ["https://www.mozilla.org", "uitour"],
-        ["https://support.mozilla.org", "uitour"],
-        ["about:home", "uitour"],
-        ["about:newtab", "uitour"],
-        ["https://addons.mozilla.org", "install"],
-        ["https://support.mozilla.org", "remote-troubleshooting"],
-        ["about:welcome", "autoplay-media"],
-      ].forEach(originInfo => {
-        // Reset permission on the condition that it is set to
-        // UNKNOWN_ACTION, we want to prevent resetting user
-        // manipulated permissions
-        if (
-          Services.perms.UNKNOWN_ACTION ==
-          Services.perms.testPermissionFromPrincipal(
-            Services.scriptSecurityManager.createContentPrincipalFromOrigin(
-              originInfo[0]
-            ),
-            originInfo[1]
-          )
-        ) {
-          // Adding permissions which have default values does not create
-          // new permissions, but rather remove the UNKNOWN_ACTION permission
-          // overrides. User's not affected by Bug 1579517 will not be affected by this addition.
-          Services.perms.addFromPrincipal(
-            Services.scriptSecurityManager.createContentPrincipalFromOrigin(
-              originInfo[0]
-            ),
-            originInfo[1],
-            Services.perms.ALLOW_ACTION
-          );
-        }
-      });
-    }
 
     if (currentUIVersion < 140) {
       // Remove browser.fixup.alternate.enabled pref in Bug 1850902.
