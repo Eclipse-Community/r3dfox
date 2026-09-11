@@ -36,7 +36,7 @@ static int cbs_av1_read_uvlc(CodedBitstreamContext *ctx, GetBitContext *gbc,
     CBS_TRACE_READ_START();
 
     zeroes = 0;
-    while (1) {
+    while (zeroes < 32) {
         if (get_bits_left(gbc) < 1) {
             av_log(ctx->log_ctx, AV_LOG_ERROR, "Invalid uvlc code at "
                    "%s: bitstream ended.\n", name);
@@ -49,10 +49,18 @@ static int cbs_av1_read_uvlc(CodedBitstreamContext *ctx, GetBitContext *gbc,
     }
 
     if (zeroes >= 32) {
-        // Note that the spec allows an arbitrarily large number of
-        // zero bits followed by a one bit in this case, but the
-        // libaom implementation does not support it.
-        value = MAX_UINT_BITS(32);
+        // The spec allows at least thirty-two zero bits followed by a
+        // one to mean 2^32-1, with no constraint on the number of
+        // zeroes.  The libaom reference decoder does not match this,
+        // instead reading thirty-two zeroes but not the following one
+        // to mean 2^32-1.  These two interpretations are incompatible
+        // and other implementations may follow one or the other.
+        // Therefore we reject thirty-two zeroes because the intended
+        // behaviour is not clear.
+        av_log(ctx->log_ctx, AV_LOG_ERROR, "Thirty-two zero bits in "
+               "%s uvlc code: considered invalid due to conflicting "
+               "standard and reference decoder behaviour.\n", name);
+        return AVERROR_INVALIDDATA;
     } else {
         if (get_bits_left(gbc) < zeroes) {
             av_log(ctx->log_ctx, AV_LOG_ERROR, "Invalid uvlc code at "
@@ -301,7 +309,7 @@ static int cbs_av1_write_increment(CodedBitstreamContext *ctx, PutBitContext *pb
         return AVERROR(ENOSPC);
 
     if (len > 0)
-        put_bits(pbc, len, (1 << len) - 1 - (value != range_max));
+        put_bits(pbc, len, (1U << len) - 1 - (value != range_max));
 
     CBS_TRACE_WRITE_END_NO_SUBSCRIPTS();
 
@@ -720,16 +728,16 @@ static int cbs_av1_split_fragment(CodedBitstreamContext *ctx,
     }
 
     while (size > 0) {
-        AV1RawOBUHeader header;
+        AV1RawOBUHeader obu_header;
         uint64_t obu_size;
 
         init_get_bits(&gbc, data, 8 * size);
 
-        err = cbs_av1_read_obu_header(ctx, &gbc, &header);
+        err = cbs_av1_read_obu_header(ctx, &gbc, &obu_header);
         if (err < 0)
             goto fail;
 
-        if (header.obu_has_size_field) {
+        if (obu_header.obu_has_size_field) {
             if (get_bits_left(&gbc) < 8) {
                 av_log(ctx->log_ctx, AV_LOG_ERROR, "Invalid OBU: fragment "
                        "too short (%"SIZE_SPECIFIER" bytes).\n", size);
@@ -740,7 +748,7 @@ static int cbs_av1_split_fragment(CodedBitstreamContext *ctx,
             if (err < 0)
                 goto fail;
         } else
-            obu_size = size - 1 - header.obu_extension_flag;
+            obu_size = size - 1 - obu_header.obu_extension_flag;
 
         pos = get_bits_count(&gbc);
         av_assert0(pos % 8 == 0 && pos / 8 <= size);
@@ -755,7 +763,7 @@ static int cbs_av1_split_fragment(CodedBitstreamContext *ctx,
             goto fail;
         }
 
-        err = ff_cbs_append_unit_data(frag, header.obu_type,
+        err = ff_cbs_append_unit_data(frag, obu_header.obu_type,
                                       data, obu_length, frag->data_ref);
         if (err < 0)
             goto fail;

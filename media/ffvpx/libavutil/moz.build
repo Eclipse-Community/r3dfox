@@ -1,94 +1,108 @@
-# -*- Mode: python; indent-tabs-mode: nil; tab-width: 40 -*-
-# vim: set filetype=python:
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Auto-generated file. Do not edit!
 
-# Due to duplicate file names, we compile libavutil/x86 in its own
-# moz.build file.
-if CONFIG['FFVPX_ASFLAGS']:
-    if CONFIG['TARGET_CPU'] == 'x86' or CONFIG['TARGET_CPU'] == 'x86_64':
-        DIRS += ['x86']
-    elif CONFIG['TARGET_CPU'] == 'arm':
-        DIRS += ['arm']
-
-if CONFIG['TARGET_CPU'] == 'aarch64':
-    DIRS += ['aarch64']
+DIRS += [
+    'x86',
+]
 
 SharedLibrary('mozavutil')
 SOURCES += [
+    'adler32.c',
+    'aes.c',
+    'aes_ctr.c',
+    'ambient_viewing_environment.c',
+    'audio_fifo.c',
     'avsscanf.c',
     'avstring.c',
+    'base64.c',
+    'blowfish.c',
     'bprint.c',
     'buffer.c',
+    'camellia.c',
+    'cast5.c',
     'channel_layout.c',
     'cpu.c',
     'crc.c',
+    'csp.c',
+    'des.c',
+    'detection_bbox.c',
     'dict.c',
+    'display.c',
+    'dovi_meta.c',
+    'downmix_info.c',
+    'encryption_info.c',
     'error.c',
     'eval.c',
+    'executor.c',
     'fifo.c',
+    'file.c',
+    'file_open.c',
+    'film_grain_params.c',
     'fixed_dsp.c',
     'float_dsp.c',
     'frame.c',
+    'hash.c',
+    'hdr_dynamic_metadata.c',
+    'hdr_dynamic_vivid_metadata.c',
+    'hmac.c',
     'hwcontext.c',
+    'hwcontext_stub.c',
+    'iamf.c',
     'imgutils.c',
+    'integer.c',
+    'intmath.c',
+    'lfg.c',
+    'lls.c',
     'log.c',
     'log2_tab.c',
+    'lzo.c',
     'mastering_display_metadata.c',
     'mathematics.c',
+    'md5.c',
     'mem.c',
+    'murmur3.c',
     'opt.c',
     'parseutils.c',
     'pixdesc.c',
+    'pixelutils.c',
+    'random_seed.c',
     'rational.c',
+    'rc4.c',
     'reverse.c',
+    'ripemd.c',
     'samplefmt.c',
+    'sha.c',
+    'sha512.c',
     'slicethread.c',
+    'spherical.c',
+    'stereo3d.c',
+    'tea.c',
+    'threadmessage.c',
     'time.c',
+    'timecode.c',
+    'timestamp.c',
+    'tree.c',
+    'twofish.c',
     'tx.c',
     'tx_double.c',
     'tx_float.c',
     'tx_int32.c',
-    'utils.c'
+    'utils.c',
+    'uuid.c',
+    'version.c',
+    'video_enc_params.c',
+    'video_hint.c',
+    'xga_font_data.c',
+    'xtea.c',
 ]
-
-if not CONFIG['MOZ_FFVPX_AUDIOONLY']:
-    SOURCES += [
-        'adler32.c',
-        'base64.c',
-        'film_grain_params.c',
-        'hdr_dynamic_metadata.c',
-        'integer.c',
-        'intmath.c',
-        'lls.c',
-        'pixelutils.c',
-        'threadmessage.c',
-        'timecode.c',
-        'video_enc_params.c'
-    ]
-    if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
-        LOCAL_INCLUDES += ['/media/mozva']
-        SOURCES += [
-            'hwcontext_vaapi.c',
-        ]
-        USE_LIBS += ['mozva']
 
 EXPORTS.ffvpx = [
     "tx.h"
 ]
 
-c11_flags = ["-std=gnu11"]
-if CONFIG["CC_TYPE"] == "clang-cl":
-    c11_flags.insert(0, "-Xclang")
-CFLAGS += c11_flags
-
 SYMBOLS_FILE =  'avutil.symbols'
 NoVisibilityFlags()
 
 OS_LIBS += CONFIG['REALTIME_LIBS']
-if CONFIG['OS_TARGET'] != 'WINNT':
-    OS_LIBS += ['m']
 
 OS_LIBS += CONFIG["LIBATOMIC_LIBS"]
 

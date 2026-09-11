@@ -93,9 +93,13 @@ int ff_attach_decode_data(AVFrame *frame);
  */
 int ff_copy_palette(void *dst, const AVPacket *src, void *logctx);
 
-/**
- * Check that the provided frame dimensions are valid and set them on the codec
- * context.
+/*
+ * Validate and set video frame dimensions on AVCodecContext.
+ *
+ * Dimensions accepted here satisfy FFmpeg's generic image-size validation
+ * (see av_image_check_size2()). Decoder code normally should not duplicate
+ * generic width/height overflow checks before ff_get_buffer(); add local
+ * checks only for codec-specific derived sizes or complexity bounds.
  */
 int ff_set_dimensions(AVCodecContext *s, int width, int height);
 
@@ -173,7 +177,16 @@ int ff_frame_new_side_data(const AVCodecContext *avctx, AVFrame *frame,
  */
 int ff_frame_new_side_data_from_buf(const AVCodecContext *avctx,
                                     AVFrame *frame, enum AVFrameSideDataType type,
-                                    AVBufferRef **buf, AVFrameSideData **sd);
+                                    AVBufferRef **buf);
+
+/**
+ * Same as `ff_frame_new_side_data_from_buf`, but taking a AVFrameSideData
+ * array directly instead of an AVFrame.
+ */
+int ff_frame_new_side_data_from_buf_ext(const AVCodecContext *avctx,
+                                        AVFrameSideData ***sd, int *nb_sd,
+                                        enum AVFrameSideDataType type,
+                                        AVBufferRef **buf);
 
 struct AVMasteringDisplayMetadata;
 struct AVContentLightMetadata;
@@ -188,6 +201,14 @@ int ff_decode_mastering_display_new(const AVCodecContext *avctx, AVFrame *frame,
                                     struct AVMasteringDisplayMetadata **mdm);
 
 /**
+ * Same as `ff_decode_mastering_display_new`, but taking a AVFrameSideData
+ * array directly instead of an AVFrame.
+ */
+int ff_decode_mastering_display_new_ext(const AVCodecContext *avctx,
+                                        AVFrameSideData ***sd, int *nb_sd,
+                                        struct AVMasteringDisplayMetadata **mdm);
+
+/**
  * Wrapper around av_content_light_metadata_create_side_data(), which
  * rejects side data overridden by the demuxer. Returns 0 on success, and a
  * negative error code otherwise. If successful, *clm may either be a pointer to
@@ -196,4 +217,11 @@ int ff_decode_mastering_display_new(const AVCodecContext *avctx, AVFrame *frame,
 int ff_decode_content_light_new(const AVCodecContext *avctx, AVFrame *frame,
                                 struct AVContentLightMetadata **clm);
 
+/**
+ * Same as `ff_decode_content_light_new`, but taking a AVFrameSideData
+ * array directly instead of an AVFrame.
+ */
+int ff_decode_content_light_new_ext(const AVCodecContext *avctx,
+                                    AVFrameSideData ***sd, int *nb_sd,
+                                    struct AVContentLightMetadata **clm);
 #endif /* AVCODEC_DECODE_H */

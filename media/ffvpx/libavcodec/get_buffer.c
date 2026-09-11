@@ -65,20 +65,15 @@ static void frame_pool_free(FFRefStructOpaque unused, void *obj)
 static int update_frame_pool(AVCodecContext *avctx, AVFrame *frame)
 {
     FramePool *pool = avctx->internal->pool;
-    int i, ret, ch, planes;
-
-    if (avctx->codec_type == AVMEDIA_TYPE_AUDIO) {
-        int planar = av_sample_fmt_is_planar(frame->format);
-        ch     = frame->ch_layout.nb_channels;
-        planes = planar ? ch : 1;
-    }
+    int i, ret;
 
     if (pool && pool->format == frame->format) {
         if (avctx->codec_type == AVMEDIA_TYPE_VIDEO &&
             pool->width == frame->width && pool->height == frame->height)
             return 0;
-        if (avctx->codec_type == AVMEDIA_TYPE_AUDIO && pool->planes == planes &&
-            pool->channels == ch && frame->nb_samples == pool->samples)
+        if (avctx->codec_type == AVMEDIA_TYPE_AUDIO &&
+            pool->channels == frame->ch_layout.nb_channels &&
+            frame->nb_samples == pool->samples)
             return 0;
     }
 
@@ -100,7 +95,7 @@ static int update_frame_pool(AVCodecContext *avctx, AVFrame *frame)
         do {
             // NOTE: do not align linesizes individually, this breaks e.g. assumptions
             // that linesize[0] == 2*linesize[1] in the MPEG-encoder for 4:2:2
-            ret = av_image_fill_linesizes(linesize, avctx->pix_fmt, w);
+            ret = av_image_fill_linesizes(linesize, frame->format, w);
             if (ret < 0)
                 goto fail;
             // increase alignment of w for next try (rhs gives the lowest bit set in w)
@@ -113,7 +108,7 @@ static int update_frame_pool(AVCodecContext *avctx, AVFrame *frame)
 
         for (i = 0; i < 4; i++)
             linesize1[i] = linesize[i];
-        ret = av_image_fill_plane_sizes(size, avctx->pix_fmt, h, linesize1);
+        ret = av_image_fill_plane_sizes(size, frame->format, h, linesize1);
         if (ret < 0)
             goto fail;
 
@@ -141,21 +136,25 @@ static int update_frame_pool(AVCodecContext *avctx, AVFrame *frame)
         break;
         }
     case AVMEDIA_TYPE_AUDIO: {
-        ret = av_samples_get_buffer_size(&pool->linesize[0], ch,
+        ret = av_samples_get_buffer_size(&pool->linesize[0],
+                                         frame->ch_layout.nb_channels,
                                          frame->nb_samples, frame->format, 0);
         if (ret < 0)
             goto fail;
 
-        pool->pools[0] = av_buffer_pool_init(pool->linesize[0], NULL);
+        pool->pools[0] = av_buffer_pool_init(pool->linesize[0],
+                                             CONFIG_MEMORY_POISONING ?
+                                                NULL :
+                                                av_buffer_allocz);
         if (!pool->pools[0]) {
             ret = AVERROR(ENOMEM);
             goto fail;
         }
 
         pool->format     = frame->format;
-        pool->planes     = planes;
-        pool->channels   = ch;
+        pool->channels   = frame->ch_layout.nb_channels;
         pool->samples = frame->nb_samples;
+        pool->planes     = av_sample_fmt_is_planar(pool->format) ? pool->channels : 1;
         break;
         }
     default: av_assert0(0);

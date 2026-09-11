@@ -1,0 +1,18 @@
+# Auto-generated file. Do not edit!
+
+DIRS += [
+]
+
+SOURCES += [
+    'vvc_alf.asm',
+    'vvc_dmvr.asm',
+    'vvc_mc.asm',
+    'vvc_of.asm',
+    'vvc_sad.asm',
+    'vvcdsp_init.c',
+]
+
+LOCAL_INCLUDES += [ "../" ]
+
+FINAL_LIBRARY = 'mozavcodec'
+include('/media/ffvpx/ffvpxcommon.mozbuild')

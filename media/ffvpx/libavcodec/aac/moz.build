@@ -1,0 +1,19 @@
+# Auto-generated file. Do not edit!
+
+DIRS += [
+]
+
+SOURCES += [
+    'aacdec.c',
+    'aacdec_ac.c',
+    'aacdec_fixed.c',
+    'aacdec_float.c',
+    'aacdec_lpd.c',
+    'aacdec_tab.c',
+    'aacdec_usac.c',
+]
+
+LOCAL_INCLUDES += [ "../" ]
+
+FINAL_LIBRARY = 'mozavcodec'
+include('/media/ffvpx/ffvpxcommon.mozbuild')
