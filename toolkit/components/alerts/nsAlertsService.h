@@ -10,6 +10,13 @@
 #include "nsCOMPtr.h"
 #include "nsXULAlerts.h"
 
+#ifdef XP_WIN
+extern "C" {
+// This function is Windows Vista or later
+typedef HRESULT (__stdcall *SHQueryUserNotificationStatePtr)(QUERY_USER_NOTIFICATION_STATE *pquns);
+}
+#endif // defined(XP_WIN)
+
 class nsAlertsService : public nsIAlertsService, public nsIAlertsDoNotDisturb {
  public:
   NS_DECL_NSIALERTSDONOTDISTURB
