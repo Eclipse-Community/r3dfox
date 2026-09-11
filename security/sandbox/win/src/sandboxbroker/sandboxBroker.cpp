@@ -941,8 +941,10 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
       "SetDelayedIntegrityLevel should never fail, what happened?");
 
   if (aSandboxLevel > 5) {
+    if (IsVistaOrLater()) {
     mPolicy->SetLockdownDefaultDacl();
     mPolicy->AddRestrictingRandomSid();
+    }
   }
 
   if (aSandboxLevel > 4) {
