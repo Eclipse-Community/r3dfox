@@ -145,34 +145,28 @@ class PDMInitializer final {
   }
 
   static void InitContentPDMs() {
-#if !defined(MOZ_WIDGET_ANDROID)  // Still required for video?
-    if (StaticPrefs::media_allow_audio_non_utility()) {
-#endif  // !defined(MOZ_WIDGET_ANDROID)
 #ifdef XP_WIN
-      if (!IsWin7AndPre2000Compatible()) {
+    if (!IsWin7AndPre2000Compatible()) {
 #  ifdef MOZ_WMF
-        if (!StaticPrefs::media_rdd_process_enabled() ||
-            !StaticPrefs::media_rdd_wmf_enabled() ||
-            !StaticPrefs::media_utility_process_enabled() ||
-            !StaticPrefs::media_utility_wmf_enabled()) {
-          WMFDecoderModule::Init();
-        }
-#  endif
+      if (!StaticPrefs::media_rdd_process_enabled() ||
+          !StaticPrefs::media_rdd_wmf_enabled() ||
+          !StaticPrefs::media_utility_process_enabled() ||
+          !StaticPrefs::media_utility_wmf_enabled()) {
+        WMFDecoderModule::Init();
       }
+#  endif
+    }
 #endif
 #ifdef MOZ_APPLEMEDIA
-      AppleDecoderModule::Init();
+    AppleDecoderModule::Init();
 #endif
 #ifdef MOZ_OMX
-      OmxDecoderModule::Init();
+    OmxDecoderModule::Init();
 #endif
-      FFVPXRuntimeLinker::Init();
+    FFVPXRuntimeLinker::Init();
 #ifdef MOZ_FFMPEG
-      FFmpegRuntimeLinker::Init();
+    FFmpegRuntimeLinker::Init();
 #endif
-#if !defined(MOZ_WIDGET_ANDROID)  // Still required for video?
-    }
-#endif  // !defined(MOZ_WIDGET_ANDROID)
 
     RemoteDecoderManagerChild::Init();
   }
@@ -639,46 +633,40 @@ void PDMFactory::CreateContentPDMs() {
   }
 #endif
 
-#if !defined(MOZ_WIDGET_ANDROID)  // Still required for video?
-  if (StaticPrefs::media_allow_audio_non_utility()) {
-#endif  // !defined(MOZ_WIDGET_ANDROID)
 #ifdef XP_WIN
-    if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
+  if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
 #  ifdef MOZ_WMF
-      if (!StaticPrefs::media_rdd_process_enabled() ||
-          !StaticPrefs::media_rdd_wmf_enabled()) {
-        if (!StartupPDM(WMFDecoderModule::Create())) {
-          mFailureFlags += DecoderDoctorDiagnostics::Flags::WMFFailedToLoad;
-        }
+    if (!StaticPrefs::media_rdd_process_enabled() ||
+        !StaticPrefs::media_rdd_wmf_enabled()) {
+      if (!StartupPDM(WMFDecoderModule::Create())) {
+        mFailureFlags += DecoderDoctorDiagnostics::Flags::WMFFailedToLoad;
       }
-#  endif
-    } else if (StaticPrefs::media_decoder_doctor_wmf_disabled_is_failure()) {
-      mFailureFlags += DecoderDoctorDiagnostics::Flags::WMFFailedToLoad;
     }
+#  endif
+  } else if (StaticPrefs::media_decoder_doctor_wmf_disabled_is_failure()) {
+    mFailureFlags += DecoderDoctorDiagnostics::Flags::WMFFailedToLoad;
+  }
 #endif
 
 #ifdef MOZ_APPLEMEDIA
-    StartupPDM(AppleDecoderModule::Create());
+  StartupPDM(AppleDecoderModule::Create());
 #endif
 #ifdef MOZ_OMX
-    if (StaticPrefs::media_omx_enabled()) {
-      StartupPDM(OmxDecoderModule::Create());
-    }
+  if (StaticPrefs::media_omx_enabled()) {
+    StartupPDM(OmxDecoderModule::Create());
+  }
 #endif
-    StartupPDM(FFVPXRuntimeLinker::CreateDecoder());
+  StartupPDM(FFVPXRuntimeLinker::CreateDecoder());
 #ifdef MOZ_FFMPEG
-    if (StaticPrefs::media_ffmpeg_enabled() &&
-        !StartupPDM(FFmpegRuntimeLinker::CreateDecoder())) {
-      mFailureFlags += GetFailureFlagBasedOnFFmpegStatus(
-          FFmpegRuntimeLinker::LinkStatusCode());
-    }
+  if (StaticPrefs::media_ffmpeg_enabled() &&
+      !StartupPDM(FFmpegRuntimeLinker::CreateDecoder())) {
+    mFailureFlags += GetFailureFlagBasedOnFFmpegStatus(
+        FFmpegRuntimeLinker::LinkStatusCode());
+  }
 #endif
 
-    StartupPDM(AgnosticDecoderModule::Create(),
-               StaticPrefs::media_prefer_non_ffvpx());
-#if !defined(MOZ_WIDGET_ANDROID)  // Still required for video?
-  }
-#endif  // !defined(MOZ_WIDGET_ANDROID)
+  StartupPDM(AgnosticDecoderModule::Create(),
+             StaticPrefs::media_prefer_non_ffvpx());
 
   // Android still needs this, the actual decoder is remoted on java side
 #ifdef MOZ_WIDGET_ANDROID

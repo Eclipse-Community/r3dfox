@@ -278,6 +278,17 @@ UtilityProcessManager::StartUtility(RefPtr<Actor> aActor,
               LaunchError("UPM::GetProcessParent"), __func__);
         }
 
+        // The Utility process can die between LaunchProcess() resolving and
+        // this continuation running.  If the top-level actor is no longer able
+        // to send, endpoint creation / BindToUtilityProcess() below would fail
+        // or (worse) silently no-op.  Reject early so the caller can retry or
+        // surface a clear error instead of binding an actor to a dead channel.
+        if (!utilityParent->CanSend()) {
+          NS_WARNING("Utility parent not ready to send in StartUtility");
+          return RetPromise::CreateAndReject(LaunchError("BindToUtilityProcess", NS_ERROR_FAILURE),
+                                                             __func__);
+        }
+
         // It is possible if multiple processes concurrently request a utility
         // actor that the previous CanSend() check returned false for both but
         // that by the time we have started our process for real, one of them

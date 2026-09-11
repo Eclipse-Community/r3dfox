@@ -10405,13 +10405,6 @@
     mirror: always
 #endif  # ANDROID
 
-# Now we will completely disable the ability to perform audio decoding outside
-# of Utility.
--   name: media.allow-audio-non-utility
-    type: RelaxedAtomicBool
-    value: false
-    mirror: always
-
 #ifdef MOZ_OMX
 -   name: media.omx.enabled
     type: bool

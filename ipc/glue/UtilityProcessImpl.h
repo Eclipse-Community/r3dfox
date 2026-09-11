@@ -34,6 +34,19 @@ class UtilityProcessImpl final : public ipc::ProcessChild {
   RefPtr<UtilityProcessChild> mUtility = UtilityProcessChild::GetSingleton();
 
 #if defined(XP_WIN)
+  // ole32.dll is delay-loaded from xul.dll. In the Utility process the
+  // mscom::ProcessRuntime member below initializes COM (and thus delay-loads
+  // ole32) in its constructor, before Init() runs and before the sandbox is
+  // lowered. On Windows XP the Generic Utility process had not loaded ole32
+  // by that point, and the very first delay-load resolved a bogus module
+  // handle (0x1B), failing GetProcAddress(CoInitializeEx) and crashing with
+  // 0xC06D007F. Preload ole32.dll (a required system DLL) first so that the
+  // subsequent delay-load is a no-op against the already-loaded module.
+  // Mirrors WMFPreloadForSandbox's LoadLibraryOrCrash(L"ole32.dll").
+  struct Ole32Preloader {
+    Ole32Preloader() { ::LoadLibraryW(L"ole32.dll"); }
+  };
+  Ole32Preloader mOle32Preloader;
   mozilla::mscom::ProcessRuntime mCOMRuntime;
 #endif
 };
