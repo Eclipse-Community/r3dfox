@@ -248,6 +248,9 @@ static void InitializeJS() {
   }
 }
 
+extern void StartupSpecialSystemDirectory();
+
+
 // Note that on OSX, aBinDirectory will point to .app/Contents/Resources/browser
 EXPORT_XPCOM_API(nsresult)
 NS_InitXPCOM(nsIServiceManager** aResult, nsIFile* aBinDirectory,
@@ -343,6 +346,8 @@ NS_InitXPCOM(nsIServiceManager** aResult, nsIFile* aBinDirectory,
     setlocale(LC_ALL, "");
   }
 #endif
+
+  StartupSpecialSystemDirectory();
 
   nsDirectoryService::RealInit();
 
