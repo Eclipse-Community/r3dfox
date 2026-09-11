@@ -158,6 +158,10 @@ class GPUAdapterReporter final : public nsIMemoryReporter {
     HMODULE gdi32Handle;
     PFND3DKMTQS queryD3DKMTStatistics = nullptr;
 
+        // GPU memory reporting is not available before Windows 7
+        if (!IsWin7OrLater())
+            return NS_OK;
+
     if ((gdi32Handle = LoadLibrary(TEXT("gdi32.dll"))))
       queryD3DKMTStatistics =
           (PFND3DKMTQS)GetProcAddress(gdi32Handle, "D3DKMTQueryStatistics");
@@ -1517,11 +1521,13 @@ void gfxWindowsPlatform::InitGPUProcessSupport() {
                     "Not using GPU Process since D3D11 is unavailable",
                     "FEATURE_FAILURE_NO_D3D11"_ns);
   } else if (!IsWin7SP1OrLater()) {
-    // On Windows 7 Pre-SP1, DXGI 1.2 is not available and remote presentation
-    // for D3D11 will not work. Rather than take a regression we revert back
-    // to in-process rendering.
+    // For Windows XP, we simply don't care enough to support this
+    // configuration. On Windows Vista and 7 Pre-SP1, DXGI 1.2 is not
+    // available and remote presentation for D3D11 will not work. Rather
+    // than take a regression and use D3D9, we revert back to in-process
+    // rendering.
     gpuProc.Disable(FeatureStatus::Unavailable,
-                    "Windows 7 Pre-SP1 cannot use the GPU process",
+                    "Windows XP, Vista, and 7 Pre-SP1 cannot use the GPU process",
                     "FEATURE_FAILURE_OLD_WINDOWS"_ns);
   } else if (!IsWin8OrLater()) {
     // Windows 7 SP1 can have DXGI 1.2 only via the Platform Update, so we
