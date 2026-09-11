@@ -341,6 +341,12 @@ var snapshotFormatters = {
   },
 
   securitySoftware(data) {
+    if (!AppConstants.isPlatformAndVersionAtLeast("win", "6.2")) {
+      $("security-software").hidden = true;
+      $("security-software-table").hidden = true;
+      return;
+    }
+
     if (AppConstants.platform !== "win") {
       $("security-software").hidden = true;
       $("security-software-table").hidden = true;
