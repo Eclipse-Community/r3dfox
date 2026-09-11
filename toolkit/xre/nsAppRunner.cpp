@@ -3628,7 +3628,6 @@ NS_VISIBILITY_DEFAULT PRBool nspr_use_zone_allocator = PR_FALSE;
 #ifdef CAIRO_HAS_DWRITE_FONT
 
 #  include <dwrite.h>
-#  include "nsWindowsHelpers.h"
 
 #  ifdef DEBUG_DWRITE_STARTUP
 
@@ -3655,7 +3654,7 @@ static void LogRegistryEvent(const wchar_t* msg) {
 static DWORD WINAPI InitDwriteBG(LPVOID lpdwThreadParam) {
   SetThreadPriority(GetCurrentThread(), THREAD_MODE_BACKGROUND_BEGIN);
   LOGREGISTRY(L"loading dwrite.dll");
-  HMODULE dwdll = LoadLibrarySystem32(L"dwrite.dll");
+  HMODULE dwdll = LoadLibraryW(L"dwrite.dll");
   if (dwdll) {
     decltype(DWriteCreateFactory)* createDWriteFactory =
         (decltype(DWriteCreateFactory)*)GetProcAddress(dwdll,
