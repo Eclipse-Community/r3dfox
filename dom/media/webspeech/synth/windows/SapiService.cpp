@@ -7,6 +7,7 @@
 #include "nsISupports.h"
 #include "SapiService.h"
 #include "nsServiceManagerUtils.h"
+#include "../../../../../intl/locale/nsWin32Locale.h"
 #include "nsEscape.h"
 #include "nsXULAppAPI.h"
 
@@ -272,7 +273,6 @@ bool SapiService::RegisterVoices(nsCOMPtr<nsISynthVoiceRegistry>& registry,
     return false;
   }
 
-  WCHAR locale[LOCALE_NAME_MAX_LENGTH];
   while (true) {
     RefPtr<ISpObjectToken> voiceToken;
     if (voiceTokens->Next(1, getter_AddRefs(voiceToken), nullptr) != S_OK) {
@@ -295,10 +295,8 @@ bool SapiService::RegisterVoices(nsCOMPtr<nsISynthVoiceRegistry>& registry,
     nsAutoString hexLcid;
     LCID lcid = wcstol(language, nullptr, 16);
     CoTaskMemFree(language);
-    if (NS_WARN_IF(
-            !LCIDToLocaleName(lcid, locale, LOCALE_NAME_MAX_LENGTH, 0))) {
-      continue;
-    }
+    nsAutoString locale;
+    nsWin32Locale::GetXPLocale(lcid, locale);
 
     WCHAR* description = nullptr;
     if (FAILED(voiceToken->GetStringValue(nullptr, &description))) {
@@ -314,8 +312,7 @@ bool SapiService::RegisterVoices(nsCOMPtr<nsISynthVoiceRegistry>& registry,
     // This service can only speak one utterance at a time, se we set
     // aQueuesUtterances to true in order to track global state and schedule
     // access to this service.
-    rv = registry->AddVoice(this, uri, nsDependentString(description),
-                            nsDependentString(locale), true, true);
+    rv = registry->AddVoice(this, uri, nsDependentString(description), locale, true, true);
     CoTaskMemFree(description);
     if (NS_FAILED(rv)) {
       continue;
