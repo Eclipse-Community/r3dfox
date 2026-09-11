@@ -101,7 +101,6 @@ SOURCES += [
     'rv40dsp_init.c',
     'sbrdsp.asm',
     'sbrdsp_init.c',
-    'simple_idct.asm',
     'snowdsp.c',
     'synth_filter.asm',
     'synth_filter_init.c',
@@ -143,6 +142,12 @@ SOURCES += [
     'xvididct.asm',
     'xvididct_init.c',
 ]
+
+if CONFIG['TARGET_CPU'] == 'x86':
+    SOURCES += [ 'simple_idct.asm' ]
+
+if CONFIG['TARGET_CPU'] == 'x86_64':
+    SOURCES += [ 'simple_idct10.asm' ]
 
 LOCAL_INCLUDES += [ "../" ]
 

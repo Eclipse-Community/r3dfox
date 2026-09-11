@@ -6,6 +6,7 @@ DIRS += [
 SOURCES += [
     'cpu.c',
     'cpuid.asm',
+    'emms.asm',
     'fixed_dsp.asm',
     'fixed_dsp_init.c',
     'float_dsp.asm',
