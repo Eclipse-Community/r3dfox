@@ -120,7 +120,7 @@ void SharedSection::Reset(HANDLE aNewSectionObject) {
   if (sWriteCopyView) {
     nt::AutoMappedView view(sWriteCopyView);
     sWriteCopyView = nullptr;
-    ::RtlRunOnceInitialize(&sEnsureOnce);
+    sEnsureOnce = RTL_RUN_ONCE_INIT;
   }
 
   if (sSectionHandle != aNewSectionObject) {
