@@ -24,12 +24,28 @@ class ProcessImagePath final {
   // Initialize with an NT path string of a given process handle
   explicit ProcessImagePath(const nsAutoHandle& aProcess)
       : mType(PathType::eNtPath), mLastError(Ok()) {
-    DWORD len = mozilla::ArrayLength(mPathBuffer);
-    if (!::QueryFullProcessImageNameW(aProcess.get(), PROCESS_NAME_NATIVE,
-                                      mPathBuffer, &len)) {
-      mLastError = LAUNCHER_ERROR_FROM_LAST();
+    PUNICODE_STRING NtPathName;
+    WCHAR Buffer[(MAX_PATH * 2) + 1] = {};
+    NTSTATUS NtStatus = STATUS_UNSUCCESSFUL;
+
+    NtPathName = (PUNICODE_STRING)Buffer;
+        NtStatus = NtQueryInformationProcess(
+                       aProcess.get(),
+                       ProcessImageFileName,
+                       NtPathName,
+                       sizeof (Buffer),
+                       NULL
+                       );
+    if (!NT_SUCCESS(NtStatus)) {
+      mLastError = LAUNCHER_ERROR_FROM_NTSTATUS(NtStatus);
       return;
     }
+
+    memcpy (mPathBuffer, NtPathName->Buffer, NtPathName->Length);
+
+    // add terminating null character
+
+    *( mPathBuffer+ NtPathName->Length / sizeof(WCHAR) ) = L'\0';
   }
 
   // Initizlize with a DOS path string of a given imagebase address
@@ -74,7 +90,7 @@ static inline mozilla::LauncherResult<bool> IsSameBinaryAsParentProcess(
     return parentPid.propagateErr();
   }
 
-  nsAutoHandle parentProcess(::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,
+  nsAutoHandle parentProcess(::OpenProcess(PROCESS_QUERY_INFORMATION,
                                            FALSE, parentPid.unwrap()));
   if (!parentProcess.get()) {
     DWORD err = ::GetLastError();
