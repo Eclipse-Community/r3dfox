@@ -363,6 +363,9 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::MozColheaderactivetext:
       idx = COLOR_WINDOWTEXT;
       break;
+    case ColorID::MozButtondefault:
+      idx = COLOR_3DDKSHADOW;
+      break;
     case ColorID::MozNativehyperlinktext:
       idx = COLOR_HOTLIGHT;
       break;
