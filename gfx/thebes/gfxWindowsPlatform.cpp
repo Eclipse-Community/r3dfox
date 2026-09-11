@@ -45,6 +45,8 @@
 #include "mozilla/layers/CanvasChild.h"
 #include "mozilla/layers/CompositorThread.h"
 
+#include "WinUtils.h"
+
 #include "gfxDWriteFontList.h"
 #include "gfxDWriteFonts.h"
 #include "gfxDWriteCommon.h"
@@ -62,7 +64,6 @@
 #include "mozilla/gfx/2D.h"
 #include "mozilla/gfx/gfxVars.h"
 
-#include <dwmapi.h>
 #include <d3d11.h>
 #include <d2d1_1.h>
 
@@ -413,7 +414,7 @@ void gfxWindowsPlatform::InitAcceleration() {
 
   if (XRE_IsParentProcess()) {
     BOOL dwmEnabled = FALSE;
-    if (FAILED(::DwmIsCompositionEnabled(&dwmEnabled)) || !dwmEnabled) {
+    if (!WinUtils::dwmIsCompositionEnabledPtr || FAILED(WinUtils::dwmIsCompositionEnabledPtr(&dwmEnabled)) || !dwmEnabled) {
       gfxVars::SetDwmCompositionEnabled(false);
     } else {
       gfxVars::SetDwmCompositionEnabled(true);
@@ -1539,7 +1540,7 @@ class D3DVsyncSource final : public VsyncSource {
     DWM_TIMING_INFO vblankTime;
     // Make sure to init the cbSize, otherwise GetCompositionTiming will fail
     vblankTime.cbSize = sizeof(DWM_TIMING_INFO);
-    HRESULT hr = DwmGetCompositionTimingInfo(0, &vblankTime);
+    HRESULT hr = WinUtils::dwmGetCompositionTimingInfoPtr(0, &vblankTime);
     if (SUCCEEDED(hr)) {
       UNSIGNED_RATIO refreshRate = vblankTime.rateRefresh;
       // We get the rate in hertz / time, but we want the rate in ms.
@@ -1616,7 +1617,7 @@ class D3DVsyncSource final : public VsyncSource {
     // Make sure to init the cbSize, otherwise
     // GetCompositionTiming will fail
     vblankTime.cbSize = sizeof(DWM_TIMING_INFO);
-    HRESULT hr = DwmGetCompositionTimingInfo(0, &vblankTime);
+    HRESULT hr = WinUtils::dwmGetCompositionTimingInfoPtr(0, &vblankTime);
     if (!SUCCEEDED(hr)) {
       return vsync;
     }
@@ -1717,7 +1718,7 @@ class D3DVsyncSource final : public VsyncSource {
         }
       }
       if (!SUCCEEDED(hr)) {
-        hr = DwmFlush();
+        hr = WinUtils::dwmFlushProcPtr();
       }
       if (!SUCCEEDED(hr)) {
         // DWMFlush isn't working, fallback to software vsync.

@@ -180,7 +180,7 @@ void nsUXThemeData::UpdateTitlebarInfo(HWND aWnd) {
   if (!sTitlebarInfoPopulatedAero &&
       gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
     RECT captionButtons;
-    if (SUCCEEDED(DwmGetWindowAttribute(aWnd, DWMWA_CAPTION_BUTTON_BOUNDS,
+    if (SUCCEEDED(WinUtils::dwmGetWindowAttributePtr(aWnd, DWMWA_CAPTION_BUTTON_BOUNDS,
                                         &captionButtons,
                                         sizeof(captionButtons)))) {
       sCommandButtonBoxMetrics.cx =

@@ -415,6 +415,22 @@ class WinUtils {
   static bool GetIsMouseFromTouch(EventMessage aEventType);
 
   /**
+   * SHCreateItemFromParsingName() calls native SHCreateItemFromParsingName()
+   * API which is available on Vista and up.
+   */
+  static HRESULT SHCreateItemFromParsingName(PCWSTR pszPath, IBindCtx *pbc,
+                                             REFIID riid, void **ppv);
+
+  /**
+   * SHGetKnownFolderPath() calls native SHGetKnownFolderPath()
+   * API which is available on Vista and up.
+   */
+  static HRESULT SHGetKnownFolderPath(REFKNOWNFOLDERID rfid,
+                                      DWORD dwFlags,
+                                      HANDLE hToken,
+                                      PWSTR *ppszPath);
+
+  /**
    * ConvertHRGNToRegion converts a Windows HRGN to an LayoutDeviceIntRegion.
    *
    * aRgn the HRGN to convert.
@@ -488,6 +504,31 @@ class WinUtils {
    */
   static bool RunningFromANetworkDrive();
 
+  /**
+  * dwmapi.dll function typedefs and declarations
+  */
+  typedef HRESULT (WINAPI*DwmExtendFrameIntoClientAreaProc)(HWND hWnd, const MARGINS *pMarInset);
+  typedef HRESULT (WINAPI*DwmIsCompositionEnabledProc)(BOOL *pfEnabled);
+  typedef HRESULT (WINAPI*DwmSetIconicThumbnailProc)(HWND hWnd, HBITMAP hBitmap, DWORD dwSITFlags);
+  typedef HRESULT (WINAPI*DwmSetIconicLivePreviewBitmapProc)(HWND hWnd, HBITMAP hBitmap, POINT *pptClient, DWORD dwSITFlags);
+  typedef HRESULT (WINAPI*DwmGetWindowAttributeProc)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+  typedef HRESULT (WINAPI*DwmSetWindowAttributeProc)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+  typedef HRESULT (WINAPI*DwmInvalidateIconicBitmapsProc)(HWND hWnd);
+  typedef HRESULT (WINAPI*DwmDefWindowProcProc)(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *aRetValue);
+  typedef HRESULT (WINAPI*DwmGetCompositionTimingInfoProc)(HWND hWnd, DWM_TIMING_INFO *info);
+  typedef HRESULT (WINAPI*DwmFlushProc)(void);
+
+  static DwmExtendFrameIntoClientAreaProc dwmExtendFrameIntoClientAreaPtr;
+  static DwmIsCompositionEnabledProc dwmIsCompositionEnabledPtr;
+  static DwmSetIconicThumbnailProc dwmSetIconicThumbnailPtr;
+  static DwmSetIconicLivePreviewBitmapProc dwmSetIconicLivePreviewBitmapPtr;
+  static DwmGetWindowAttributeProc dwmGetWindowAttributePtr;
+  static DwmSetWindowAttributeProc dwmSetWindowAttributePtr;
+  static DwmInvalidateIconicBitmapsProc dwmInvalidateIconicBitmapsPtr;
+  static DwmDefWindowProcProc dwmDwmDefWindowProcPtr;
+  static DwmGetCompositionTimingInfoProc dwmGetCompositionTimingInfoPtr;
+  static DwmFlushProc dwmFlushProcPtr;
+
   static void Initialize();
 
   static nsresult WriteBitmap(nsIFile* aFile,
@@ -549,6 +590,17 @@ class WinUtils {
   static bool PreparePathForTelemetry(
       nsAString& aPath,
       PathTransformFlags aFlags = PathTransformFlags::Default);
+
+  typedef HRESULT (WINAPI * SHCreateItemFromParsingNamePtr)(PCWSTR pszPath,
+                                                            IBindCtx *pbc,
+                                                            REFIID riid,
+                                                            void **ppv);
+  static SHCreateItemFromParsingNamePtr sCreateItemFromParsingName;
+  typedef HRESULT (WINAPI * SHGetKnownFolderPathPtr)(REFKNOWNFOLDERID rfid,
+                                                     DWORD dwFlags,
+                                                     HANDLE hToken,
+                                                     PWSTR *ppszPath);
+  static SHGetKnownFolderPathPtr sGetKnownFolderPath;
 
   static const size_t kMaxWhitelistedItems = 3;
   using WhitelistVec =
