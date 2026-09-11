@@ -1483,6 +1483,13 @@ pub enum Appearance {
     /// A dual toolbar button (e.g., a Back button with a dropdown)
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Dualbutton,
+    /// A groupbox.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Groupbox,
+    /// For text on non-iconic menuitems only
+    /// The text part of a dropdown list, to left of button.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    MenulistText,
     /// <menu> and <menuitem> appearances
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Menuitem,
