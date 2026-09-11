@@ -109,6 +109,7 @@ class nsFilePicker final : public nsBaseWinFilePicker {
   int32_t mSelectedType;
   nsCOMArray<nsIFile> mFiles;
   nsString mUnicodeFile;
+  HWND mDlgWnd;
 
   struct FreeDeleter {
     void operator()(void* aPtr) { ::free(aPtr); }

@@ -45,6 +45,7 @@
 #include "mozilla/widget/filedialog/WinFileDialogCommands.h"
 #include "mozilla/widget/filedialog/WinFileDialogParent.h"
 
+using mozilla::MakeUnique;
 using mozilla::LogLevel;
 using mozilla::UniquePtr;
 
@@ -60,6 +61,34 @@ UniquePtr<char16_t[], nsFilePicker::FreeDeleter>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper classes
+
+// Manages the current working path.
+class AutoRestoreWorkingPath {
+ public:
+  AutoRestoreWorkingPath() {
+    DWORD bufferLength = GetCurrentDirectoryW(0, nullptr);
+    if (!bufferLength) {
+      return;
+    }
+
+    mWorkingPath = MakeUnique<wchar_t[]>(bufferLength);
+    DWORD pathLength = GetCurrentDirectoryW(bufferLength, mWorkingPath.get());
+    if (!pathLength || pathLength >= bufferLength) {
+      mWorkingPath = nullptr;
+    }
+  }
+
+  ~AutoRestoreWorkingPath() {
+    if (HasWorkingPath()) {
+      ::SetCurrentDirectoryW(mWorkingPath.get());
+    }
+  }
+
+  inline bool HasWorkingPath() const { return mWorkingPath != nullptr; }
+
+ private:
+  UniquePtr<wchar_t[]> mWorkingPath;
+};
 
 // Manages matching PickerOpen/PickerClosed calls on the parent widget.
 class AutoWidgetPickerState {
@@ -93,7 +122,7 @@ class AutoWidgetPickerState {
 ///////////////////////////////////////////////////////////////////////////////
 // nsIFilePicker
 
-nsFilePicker::nsFilePicker() : mSelectedType(1) {}
+nsFilePicker::nsFilePicker() : mSelectedType(1), mDlgWnd(nullptr) {}
 
 NS_IMPL_ISUPPORTS(nsFilePicker, nsIFilePicker)
 
