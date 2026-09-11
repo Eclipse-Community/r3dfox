@@ -650,6 +650,7 @@ class nsWindow final : public nsBaseWidget {
       mozilla::layers::WebRenderBridgeChild* aWrBridge,
       mozilla::wr::DisplayListBuilder& aBuilder,
       mozilla::wr::IpcResourceUpdateQueue& aResourceUpdates) override;
+  static void ActivateOtherWindowHelper(HWND aWnd);
 
   void CreateCompositor() override;
   void DestroyCompositor() override;
@@ -701,6 +702,7 @@ class nsWindow final : public nsBaseWidget {
   static bool sJustGotActivate;
   static bool sIsInMouseCapture;
   static bool sIsRestoringSession;
+  static int sTrimOnMinimize;
 
   // Message postponement hack. See the definition-site of
   // WndProcUrgentInvocation::sDepth for details.

@@ -105,6 +105,7 @@
 #include "nsITheme.h"
 #include "nsIObserverService.h"
 #include "nsIScreenManager.h"
+#include "nsISound.h"
 #include "imgIContainer.h"
 #include "nsIFile.h"
 #include "nsIRollupListener.h"
@@ -339,6 +340,8 @@ UINT nsWindow::sHookTimerId = 0;
 POINT nsWindow::sLastMouseMovePoint = {0};
 
 bool nsWindow::sIsRestoringSession = false;
+// Trim heap on minimize. (initialized, but still true.)
+int nsWindow::sTrimOnMinimize = 2;
 
 bool nsWindow::sTouchInjectInitialized = false;
 InjectTouchInputPtr nsWindow::sInjectTouchFuncPtr;
@@ -965,7 +968,8 @@ nsresult nsWindow::Create(nsIWidget* aParent, nsNativeWidget aNativeParent,
       parent = nullptr;
     }
 
-    if (!IsWin8OrLater() && HasBogusPopupsDropShadowOnMultiMonitor() &&
+    if (IsVistaOrLater() && !IsWin8OrLater() &&
+        HasBogusPopupsDropShadowOnMultiMonitor() &&
         ShouldUseOffMainThreadCompositing()) {
       extendedStyle |= WS_EX_COMPOSITED;
     }
@@ -1206,6 +1210,20 @@ const wchar_t kShellLibraryName[] =  L"shell32.dll";
 
   mDefaultIMC.Init(this);
   IMEHandler::InitInputContext(this, mInputContext);
+
+  // If the internal variable set by the config.trim_on_minimize pref has not
+  // been initialized, and if this is the hidden window (conveniently created
+  // before any visible windows, and after the profile has been initialized),
+  // do some initialization work.
+  if (sTrimOnMinimize == 2 && mWindowType == WindowType::Invisible) {
+    // Our internal trim prevention logic is effective on 2K/XP at maintaining
+    // the working set when windows are minimized, but on Vista and up it has
+    // little to no effect. Since this feature has been the source of numerous
+    // bugs over the years, disable it (sTrimOnMinimize=1) on Vista and up.
+    sTrimOnMinimize =
+      Preferences::GetBool("config.trim_on_minimize",
+        IsVistaOrLater() ? 1 : 0);
+  }
 
   // Query for command button metric data for rendering the titlebar. We
   // only do this once on the first window that has an actual titlebar
@@ -1833,7 +1851,7 @@ bool nsWindow::IsVisible() const { return mIsVisible; }
 // operations.
 // XXX this is apparently still needed in Windows 7 and later
 void nsWindow::ClearThemeRegion() {
-  if (!HasGlass() &&
+  if (IsVistaOrLater() && !HasGlass() &&
       (mWindowType == WindowType::Popup &&
        (mPopupType == PopupType::Tooltip || mPopupType == PopupType::Panel))) {
     SetWindowRgn(mWnd, nullptr, false);
@@ -6262,6 +6280,12 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
 
     case WM_SYSCOMMAND: {
       WPARAM const filteredWParam = (wParam & 0xFFF0);
+      // prevent Windows from trimming the working set. bug 76831
+      if (!sTrimOnMinimize && filteredWParam == SC_MINIMIZE) {
+        ::ShowWindow(mWnd, SW_SHOWMINIMIZED);
+        result = true;
+      }
+
 
       // SC_CLOSE may trigger a synchronous confirmation prompt. If we're in the
       // middle of something important, put off responding to it.
@@ -7024,6 +7048,31 @@ void nsWindow::OnWindowPosChanged(WINDOWPOS* wp) {
     }
     // Send a gecko resize event
     OnResize(clientSize);
+  }
+}
+
+// static
+void nsWindow::ActivateOtherWindowHelper(HWND aWnd)
+{
+  // Find the next window that is enabled, visible, and not minimized.
+  HWND hwndBelow = ::GetNextWindow(aWnd, GW_HWNDNEXT);
+  while (hwndBelow && (!::IsWindowEnabled(hwndBelow) || !::IsWindowVisible(hwndBelow) ||
+                       ::IsIconic(hwndBelow))) {
+    hwndBelow = ::GetNextWindow(hwndBelow, GW_HWNDNEXT);
+  }
+
+  // Push ourselves to the bottom of the stack, then activate the
+  // next window.
+  ::SetWindowPos(aWnd, HWND_BOTTOM, 0, 0, 0, 0,
+                 SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+  if (hwndBelow)
+    ::SetForegroundWindow(hwndBelow);
+
+  // Play the minimize sound while we're here, since that is also
+  // forgotten when we use SW_SHOWMINIMIZED.
+  nsCOMPtr<nsISound> sound(do_CreateInstance("@mozilla.org/sound;1"));
+  if (sound) {
+//  sound->PlaySystemSound(NS_LITERAL_STRING("Minimize"));
   }
 }
 
@@ -9355,7 +9404,8 @@ static nsSizeMode GetSizeModeForWindowFrame(HWND aWnd, bool aFullscreenMode) {
   }
 }
 
-static void ShowWindowWithMode(HWND aWnd, nsSizeMode aMode) {
+static void ShowWindowWithMode(HWND aWnd, nsSizeMode aMode,
+                               bool aTrimOnMinimize) {
   // This will likely cause a callback to
   // nsWindow::FrameState::{OnFrameChanging() and OnFrameChanged()}
   switch (aMode) {
@@ -9368,7 +9418,10 @@ static void ShowWindowWithMode(HWND aWnd, nsSizeMode aMode) {
       break;
 
     case nsSizeMode_Minimized:
-      ::ShowWindow(aWnd, SW_MINIMIZE);
+      // SW_SHOWMINIMIZED avoids trimming the working set, but leaves this
+      // window active. WM_WINDOWPOSCHANGED will fix activation afterward.
+      // Use normal minimization when trimming was explicitly requested.
+      ::ShowWindow(aWnd, aTrimOnMinimize ? SW_MINIMIZE : SW_SHOWMINIMIZED);
       break;
 
     default:
@@ -9478,6 +9531,12 @@ void nsWindow::FrameState::OnFrameChanged() {
       GetSizeModeForWindowFrame(mWindow->mWnd, mFullscreenMode);
   EnsureSizeMode(newSizeMode, DoShowWindow::No);
 
+  // SW_SHOWMINIMIZED keeps the minimized window active, so activate another
+  // window after the native frame state has been synchronized.
+  if (!nsWindow::sTrimOnMinimize && mSizeMode == nsSizeMode_Minimized) {
+    nsWindow::ActivateOtherWindowHelper(mWindow->mWnd);
+  }
+
   // If window was restored, activate the window now to get correct attributes.
   if (mWindow->mIsVisible && mWindow->IsForegroundWindow() &&
       mLastSizeMode == nsSizeMode_Minimized &&
@@ -9510,7 +9569,7 @@ void nsWindow::FrameState::SetSizeModeInternal(nsSizeMode aMode,
   MaybeLogSizeMode(mSizeMode);
 
   if (bool(aDoShowWindow) && mWindow->mIsVisible) {
-    ShowWindowWithMode(mWindow->mWnd, aMode);
+    ShowWindowWithMode(mWindow->mWnd, aMode, nsWindow::sTrimOnMinimize);
   }
 
   mWindow->UpdateNonClientMargins(false);

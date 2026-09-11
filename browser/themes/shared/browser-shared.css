@@ -214,6 +214,7 @@ body {
        declarations into the ruleset above. We must set background properties on
        :root and not #navigator-toolbox on Windows 7/8 due to a WebRender bug that
        hides the minimize/maximize/close buttons. */
+  @media not (-moz-platform: windows-xp) {
     @media not (-moz-platform: windows-win7) {
       @media not (-moz-platform: windows-win8) {
         background-color: var(--lwt-accent-color);
@@ -232,10 +233,12 @@ body {
       }
     }
   }
+  }
 }
 
 /* TODO bug 1695280: Remove this block. */
-@media (-moz-platform: windows-win7),
+@media (-moz-platform: windows-xp),
+       (-moz-platform: windows-win7),
        (-moz-platform: windows-win8) {
   :root[lwtheme] {
     background-color: var(--lwt-accent-color);

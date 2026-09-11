@@ -244,9 +244,13 @@ bool Gecko_MediaFeatures_MatchesPlatform(StylePlatform aPlatform) {
 #if defined(XP_WIN)
     case StylePlatform::Windows:
       return true;
+    case StylePlatform::WindowsXp:
     case StylePlatform::WindowsWin10:
     case StylePlatform::WindowsWin7:
     case StylePlatform::WindowsWin8: {
+      if (!IsVistaOrLater()) {
+        return aPlatform == StylePlatform::WindowsXp;
+      }
       if (IsWin10OrLater()) {
         return aPlatform == StylePlatform::WindowsWin10;
       }

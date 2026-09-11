@@ -249,7 +249,7 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
         aColor = kNonNativeMenuText;
         return NS_OK;
       }
-      if (!nsUXThemeData::IsAppThemed()) {
+      if (!IsVistaOrLater() || !nsUXThemeData::IsAppThemed()) {
         idx = COLOR_MENUTEXT;
         break;
       }
@@ -725,8 +725,8 @@ LookAndFeelFont nsLookAndFeel::GetLookAndFeelFont(LookAndFeel::FontID anID) {
   }
 
   NONCLIENTMETRICSW ncm;
-  ncm.cbSize = sizeof(NONCLIENTMETRICSW);
-  if (!::SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm),
+  ncm.cbSize = sizeof(NONCLIENTMETRICSW) - sizeof(ncm.iPaddedBorderWidth);
+  if (!::SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, ncm.cbSize,
                                (PVOID)&ncm, 0)) {
     return result;
   }

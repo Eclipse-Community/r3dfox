@@ -31,6 +31,7 @@ const CHROME_ONLY_QUERIES = [
   "(-moz-platform: windows)",
   "(-moz-platform: macos)",
   "(-moz-platform: android)",
+  "(-moz-platform: windows-xp)",
   "(-moz-platform: windows-win7)",
   "(-moz-platform: windows-win8)",
   "(-moz-platform: windows-win10)",
