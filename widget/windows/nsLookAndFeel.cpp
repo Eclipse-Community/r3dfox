@@ -13,6 +13,7 @@
 #include "nsWindowsHelpers.h"
 #include "WinUtils.h"
 #include "WindowsUIUtils.h"
+#include "mozilla/WindowsVersion.h"
 #include "mozilla/FontPropertyTypes.h"
 #include "mozilla/Telemetry.h"
 #include "mozilla/widget/WinRegistry.h"
@@ -48,6 +49,10 @@ static int32_t GetTooltipOffsetVertical() {
 }
 
 static bool SystemWantsDarkTheme() {
+  if (!IsWin10OrLater()) {
+    return false;
+  }
+
   if (nsUXThemeData::IsHighContrastOn()) {
     return LookAndFeel::IsDarkColor(
         LookAndFeel::Color(StyleSystemColor::Window, ColorScheme::Light,

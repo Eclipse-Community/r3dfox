@@ -554,6 +554,9 @@ void JumpListBuilder::DoPopulateJumpList(
     return;
   }
 
+  // Initializes the COM library on the current thread.
+  CoInitialize(nullptr);
+
   if (aTaskDescriptions.Length()) {
     RefPtr<IObjectCollection> taskCollection;
     hr = CoCreateInstance(CLSID_EnumerableObjectCollection, nullptr,
