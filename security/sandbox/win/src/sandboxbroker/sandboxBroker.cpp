@@ -1056,8 +1056,21 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
   if (aSandboxLevel >= 20) {
     // Content process still needs to be able to read fonts.
     wchar_t* fontsPath;
-    if (SUCCEEDED(
-            ::SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &fontsPath))) {
+typedef HRESULT (WINAPI* nsGetKnownFolderPath)(const GUID& rfid,
+                                               DWORD dwFlags,
+                                               HANDLE hToken,
+                                               PWSTR* ppszPath);
+
+static nsGetKnownFolderPath gGetKnownFolderPath = nullptr;
+  // SHGetKnownFolderPath is only available on Windows Vista
+  // so that we need to use GetProcAddress to get the pointer.
+  HMODULE hShell32DLLInst = GetModuleHandleW(L"shell32.dll");
+  if (hShell32DLLInst) {
+    gGetKnownFolderPath = (nsGetKnownFolderPath)
+      GetProcAddress(hShell32DLLInst, "SHGetKnownFolderPath");
+  }
+    if (gGetKnownFolderPath && SUCCEEDED(
+            gGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &fontsPath))) {
       std::wstring fontsStr = fontsPath;
       ::CoTaskMemFree(fontsPath);
       result = mPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_FILES,
