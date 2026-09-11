@@ -70,9 +70,25 @@ static BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,
   return TRUE;
 }
 
+static BOOL CALLBACK EnumLocalesProc(LPTSTR lpLocaleString) {
+  return TRUE;
+}
+
 // Additional warmup done just when CSRSS is being disconnected.
 bool CsrssDisconnectWarmup() {
-  return ::EnumSystemLocalesEx(EnumLocalesProcEx, LOCALE_WINDOWS, 0, 0);
+      typedef BOOL (WINAPI *PfnEnumSystemLocalesEx)
+          (LOCALE_ENUMPROCEX, DWORD, LPARAM, LPVOID);
+
+      HMODULE handle_kern32 = GetModuleHandleW(L"Kernel32.dll");
+      PfnEnumSystemLocalesEx enum_sys_locales_ex =
+          reinterpret_cast<PfnEnumSystemLocalesEx>
+              (GetProcAddress(handle_kern32, "EnumSystemLocalesEx"));
+
+    if (enum_sys_locales_ex) {
+      return enum_sys_locales_ex(EnumLocalesProcEx, LOCALE_WINDOWS, 0, 0);
+    } else {
+      return EnumSystemLocalesW(EnumLocalesProc, LCID_INSTALLED);
+    }
 }
 
 // Checks if we have handle entries pending and runs the closer.
