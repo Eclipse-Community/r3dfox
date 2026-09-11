@@ -83,6 +83,8 @@ namespace detail {
  */
 class NativeThreadHandle {
 #ifdef XP_WIN
+  typedef BOOL(WINAPI* TCancelSynchronousIo)(HANDLE hThread);
+  TCancelSynchronousIo mCancelSynchronousIo;
   // The native handle to the thread
   HANDLE mThread;
 #endif
@@ -102,7 +104,20 @@ class NativeThreadHandle {
 
 #ifdef XP_WIN
 
-NativeThreadHandle::NativeThreadHandle() : mThread(NULL) {}
+NativeThreadHandle::NativeThreadHandle()
+    : mCancelSynchronousIo(NULL), mThread(NULL) {
+  HMODULE kernel32_dll = GetModuleHandleW(L"kernel32.dll");
+  if (!kernel32_dll) {
+    return;
+  }
+
+  FARPROC ptr = GetProcAddress(kernel32_dll, "CancelSynchronousIo");
+  if (!ptr) {
+    return;
+  }
+
+  mCancelSynchronousIo = reinterpret_cast<TCancelSynchronousIo>(ptr);
+}
 
 NativeThreadHandle::~NativeThreadHandle() {
   if (mThread) {
@@ -118,6 +133,10 @@ void NativeThreadHandle::InitThread() {
 }
 
 void NativeThreadHandle::CancelBlockingIO(Monitor& aMonitor) {
+  if (!mCancelSynchronousIo) {
+    return;
+  }
+
   HANDLE thread;
   {
     MonitorAutoLock lock(aMonitor);
@@ -129,7 +148,7 @@ void NativeThreadHandle::CancelBlockingIO(Monitor& aMonitor) {
   }
 
   LOG(("CacheIOThread: Attempting to cancel a long blocking IO operation"));
-  BOOL result = ::CancelSynchronousIo(thread);
+  BOOL result = mCancelSynchronousIo(thread);
   if (result) {
     LOG(("  cancelation signal succeeded"));
   } else {
