@@ -95,8 +95,24 @@ static void AddToRecentDocs(nsIFile* aTarget, nsAutoString& aPath) {
       nsCString spec;
       if (NS_SUCCEEDED(uri->GetSpec(spec))) {
         IShellItem2* psi = nullptr;
+    HMODULE shell32_handle = NULL;
+
+    typedef HRESULT(WINAPI *pfnSHCreateItemFromParsingName)(PCWSTR, IBindCtx *, REFIID, void **);
+    pfnSHCreateItemFromParsingName pSHCreateItemFromParsingName = NULL;
+
+    // We can assume shell32 is already loaded here.
+    shell32_handle = GetModuleHandleW(L"shell32.dll");
+    if (!shell32_handle) {
+        goto quit;
+    }
+
+    pSHCreateItemFromParsingName = (pfnSHCreateItemFromParsingName)GetProcAddress(shell32_handle, "SHCreateItemFromParsingName");
+    if (!pSHCreateItemFromParsingName) {
+        goto quit;
+    }
+
         if (SUCCEEDED(
-                SHCreateItemFromParsingName(NS_ConvertASCIItoUTF16(spec).get(),
+                pSHCreateItemFromParsingName(NS_ConvertASCIItoUTF16(spec).get(),
                                             nullptr, IID_PPV_ARGS(&psi)))) {
           SHARDAPPIDINFO info = {psi, modelId.get()};
           ::SHAddToRecentDocs(SHARD_APPIDINFO, &info);
@@ -107,6 +123,7 @@ static void AddToRecentDocs(nsIFile* aTarget, nsAutoString& aPath) {
     }
   }
 
+quit:
   ::SHAddToRecentDocs(SHARD_PATHW, aPath.get());
 }
 #endif
