@@ -85,3 +85,5 @@ FINAL_LIBRARY = "xul"
 
 # Add libFuzzer configuration directives
 include("/tools/fuzzing/libfuzzer-config.mozbuild")
+OS_LIBS += ["psapi"]
+DEFINES["PSAPI_VERSION"] = "1"

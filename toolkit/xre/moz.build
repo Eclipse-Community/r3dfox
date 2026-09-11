@@ -281,3 +281,5 @@ FINAL_TARGET_PP_FILES += ["platform.ini"]
 
 if CONFIG["ENABLE_TESTS"]:
     DIRS += ["test/gtest"]
+OS_LIBS += ["psapi"]
+DEFINES["PSAPI_VERSION"] = "1"
