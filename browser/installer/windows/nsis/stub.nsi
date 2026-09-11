@@ -298,9 +298,9 @@ Function .onInit
   System::Call "kernel32::IsProcessorFeaturePresent(i 10)i .R7"
 
 !ifdef HAVE_64BIT_BUILD
-  ; Restrict x64 builds from being installed on x86 and pre Win7
+  ; Restrict x64 builds from being installed on x86 and pre Vista
   ${Unless} ${RunningX64}
-  ${OrUnless} ${AtLeastWin7}
+  ${OrUnless} ${AtLeastWinXP}
     ${If} "$R7" == "0"
       strCpy $R7 "$(WARN_MIN_SUPPORTED_OSVER_CPU_MSG)"
     ${Else}

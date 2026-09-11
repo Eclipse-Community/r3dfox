@@ -5381,7 +5381,7 @@
 
       !ifdef HAVE_64BIT_BUILD
         ${Unless} ${RunningX64}
-        ${OrUnless} ${AtLeastWin7}
+        ${OrUnless} ${AtLeastWinXP}
           MessageBox MB_OK|MB_ICONSTOP "$R9"
           ; Nothing initialized so no need to call OnEndCommon
           Quit
