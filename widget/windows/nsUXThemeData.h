@@ -27,6 +27,7 @@ enum nsUXThemeClass {
   eUXCombobox,
   eUXListview,
   eUXMenu,
+  eUXWindowFrame,
   eUXNumClasses
 };
 
