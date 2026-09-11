@@ -268,6 +268,13 @@ Result<Ok, LaunchError> LaunchApp(const std::wstring& cmdline,
     handlesToInherit.push_back(h);
   }
 
+    // Even if we can't limit what gets inherited, we sometimes want to inherit
+    // stdout/err for testing purposes.
+    startup_info.dwFlags |= STARTF_USESTDHANDLES;
+    startup_info.hStdOutput = ::GetStdHandle(STD_OUTPUT_HANDLE);
+    startup_info.hStdError = ::GetStdHandle(STD_ERROR_HANDLE);
+    startup_info.hStdInput = INVALID_HANDLE_VALUE;
+    bInheritHandles = TRUE;
   // setup our handle array first - if we end up with no handles that can
   // be inherited we can avoid trying to do the ThreadAttributeList dance...
   HANDLE stdOut = ::GetStdHandle(STD_OUTPUT_HANDLE);

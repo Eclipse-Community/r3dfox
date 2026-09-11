@@ -593,6 +593,13 @@ ResultCode BrokerServicesBase::SpawnTarget(const wchar_t* exe_path,
       }
     }
   }
+    // On pre-Vista versions even if we can't limit what gets inherited, we
+    // sometimes want to inherit stdout/err for testing purposes.
+    startup_info.startup_info()->dwFlags |= STARTF_USESTDHANDLES;
+    startup_info.startup_info()->hStdInput = INVALID_HANDLE_VALUE;
+    startup_info.startup_info()->hStdOutput = policy_base->GetStdoutHandle();
+    startup_info.startup_info()->hStdError = policy_base->GetStderrHandle();
+    inherit_handles = true;
 
   // Construct the thread pool here in case it is expensive.
   // The thread pool is shared by all the targets
