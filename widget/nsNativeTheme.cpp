@@ -51,6 +51,11 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
 
   const bool isXULElement = frameContent->IsXULElement();
   if (isXULElement) {
+    if (aAppearance == StyleAppearance::CheckboxLabel ||
+        aAppearance == StyleAppearance::RadioLabel) {
+      aFrame = aFrame->GetParent()->GetParent();
+      frameContent = aFrame->GetContent();
+    } else
     if (aAppearance == StyleAppearance::Checkbox ||
         aAppearance == StyleAppearance::Radio ||
         aAppearance == StyleAppearance::ToolbarbuttonDropdown ||
@@ -88,6 +93,7 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
   }
 
   switch (aAppearance) {
+    case StyleAppearance::RadioLabel:
     case StyleAppearance::Radio: {
       if (CheckBooleanAttr(aFrame, nsGkAtoms::focused)) {
         flags |= ElementState::FOCUS;
@@ -103,6 +109,7 @@ NS_IMPL_ISUPPORTS(nsNativeTheme, nsITimerCallback, nsINamed)
       }
       break;
     }
+    case StyleAppearance::CheckboxLabel:
     case StyleAppearance::Checkbox: {
       if (CheckBooleanAttr(aFrame, nsGkAtoms::checked)) {
         flags |= ElementState::CHECKED;
