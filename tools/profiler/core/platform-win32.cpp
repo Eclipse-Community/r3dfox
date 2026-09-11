@@ -187,6 +187,16 @@ typedef BOOL (WINAPI *Func_QueryProcessCycleTime)(HANDLE Process, PULONG64 Cycle
   return diff;
 }
 
+// Returns a pointer to the QueryThreadCycleTime() function from Windows.
+// Can't statically link to it because it is not available on XP.
+using QueryThreadCycleTimePtr = decltype(::QueryThreadCycleTime)*;
+QueryThreadCycleTimePtr GetQueryThreadCycleTimeFunction() {
+  static const QueryThreadCycleTimePtr query_thread_cycle_time_fn =
+      reinterpret_cast<QueryThreadCycleTimePtr>(::GetProcAddress(
+          ::GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime"));
+  return query_thread_cycle_time_fn;
+}
+
 static RunningTimes GetThreadRunningTimesDiff(
     PSLockRef aLock,
     ThreadRegistration::UnlockedRWForLockedProfiler& aThreadData) {
@@ -200,7 +210,7 @@ static RunningTimes GetThreadRunningTimesDiff(
       [profiledThread](RunningTimes& aRunningTimes) {
         AUTO_PROFILER_STATS(GetThreadRunningTimes_QueryThreadCycleTime);
         if (ULONG64 cycles;
-            QueryThreadCycleTime(profiledThread, &cycles) != 0) {
+            GetQueryThreadCycleTimeFunction() && GetQueryThreadCycleTimeFunction()(profiledThread, &cycles) != 0) {
           aRunningTimes.ResetThreadCPUDelta(cycles);
         } else {
           aRunningTimes.ClearThreadCPUDelta();
