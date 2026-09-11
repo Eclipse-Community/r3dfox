@@ -508,7 +508,16 @@ void PDMFactory::CreatePDMs() {
 
 void PDMFactory::CreateGpuPDMs() {
 #ifdef XP_WIN
-  if (StaticPrefs::media_wmf_enabled() && !IsWin7AndPre2000Compatible()) {
+  if (StaticPrefs::media_wmf_enabled() && IsVistaOrLater() && !IsWin7AndPre2000Compatible()) {
+    // *Only* use WMF on Vista and later, as if Firefox is run in Windows 95
+    // compatibility mode on Windows 7 (it does happen!) we may crash trying
+    // to startup WMF. So we need to detect the OS version here, as in
+    // compatibility mode IsVistaOrLater() and friends behave as if we're on
+    // the emulated version of Windows. See bug 1279171.
+    // Additionally, we don't want to start the RemoteDecoderModule if we
+    // expect it's not going to work (i.e. on Windows older than Vista).
+    // IsWin7AndPre2000Compatible() uses GetVersionEx as the user specified OS version can
+    // be reflected when compatibility mode is in effect.
     StartupPDM(WMFDecoderModule::Create());
   }
 #endif
@@ -619,7 +628,9 @@ void PDMFactory::CreateContentPDMs() {
         RemoteDecoderModule::Create(RemoteDecodeIn::UtilityProcess_AppleMedia));
 #endif
 #ifdef XP_WIN
-    StartupPDM(RemoteDecoderModule::Create(RemoteDecodeIn::UtilityProcess_WMF));
+    if (IsVistaOrLater() && !IsWin7AndPre2000Compatible()) {
+      StartupPDM(RemoteDecoderModule::Create(RemoteDecodeIn::UtilityProcess_WMF));
+    }
 #endif
     // WMF and AppleMedia should be created before Generic because the order
     // affects what decoder module would be chose first.
