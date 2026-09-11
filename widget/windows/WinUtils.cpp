@@ -1570,6 +1570,11 @@ void WinUtils::GetPointerExplanation(nsAString* aExplanation) {
   }
 }
 
+typedef DWORD (WINAPI * GetFinalPathNameByHandlePtr)(HANDLE hFile,
+                                                    LPTSTR lpszFilePath,
+                                                    DWORD cchFilePath,
+                                                    DWORD dwFlags);
+
 /* static */
 bool WinUtils::ResolveJunctionPointsAndSymLinks(std::wstring& aPath) {
   LOG_D("ResolveJunctionPointsAndSymLinks: Resolving path: %S", aPath.c_str());
@@ -1586,8 +1591,21 @@ bool WinUtils::ResolveJunctionPointsAndSymLinks(std::wstring& aPath) {
     return false;
   }
 
-  DWORD pathLen = GetFinalPathNameByHandleW(
-      handle, path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+  // GetFinalPathNameByHandleW is a Vista and later API. Since ESR builds with
+  // XP support still, we need to load the function manually.
+  GetFinalPathNameByHandlePtr getFinalPathNameFnPtr = nullptr;
+  HMODULE kernel32Dll = ::GetModuleHandleW(L"Kernel32");
+  if (kernel32Dll) {
+    getFinalPathNameFnPtr = (GetFinalPathNameByHandlePtr)
+      ::GetProcAddress(kernel32Dll, "GetFinalPathNameByHandleW");
+  }
+
+  if (!getFinalPathNameFnPtr) {
+    return false;
+  }
+
+  DWORD pathLen = getFinalPathNameFnPtr(
+    handle, path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
   if (pathLen == 0 || pathLen >= MAX_PATH) {
     LOG_E("GetFinalPathNameByHandleW failed. GetLastError=%lu", GetLastError());
     return false;
