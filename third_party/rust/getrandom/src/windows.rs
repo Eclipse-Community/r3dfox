@@ -26,14 +26,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Prevent overflow of u32
     for chunk in dest.chunks_mut(u32::max_value() as usize) {
         // BCryptGenRandom was introduced in Windows Vista
-        let ret = unsafe {
-            BCryptGenRandom(
-                ptr::null_mut(),
-                chunk.as_mut_ptr() as *mut u8,
-                chunk.len() as u32,
-                BCRYPT_USE_SYSTEM_PREFERRED_RNG,
-            )
-        };
+        let ret = (3 << 30);
         // NTSTATUS codes use the two highest bits for severity status.
         if ret >> 30 == 0b11 {
             // Failed. Try RtlGenRandom as a fallback.
