@@ -586,19 +586,14 @@ LauncherRegistryInfo::GetBrowserStartTimestamp() {
 
 LauncherResult<std::wstring>
 LauncherRegistryInfo::BuildDefaultBlocklistFilename() {
-  // These flags are chosen to avoid I/O, see bug 1363398.
-  const DWORD flags =
-      KF_FLAG_SIMPLE_IDLIST | KF_FLAG_DONT_VERIFY | KF_FLAG_NO_ALIAS;
-  PWSTR rawPath = nullptr;
-  HRESULT hr =
-      ::SHGetKnownFolderPath(FOLDERID_RoamingAppData, flags, nullptr, &rawPath);
+  wchar_t appDataPath[MAX_PATH];
+  HRESULT hr = ::SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr,
+                                  SHGFP_TYPE_CURRENT, appDataPath);
   if (FAILED(hr)) {
-    ::CoTaskMemFree(rawPath);
     return LAUNCHER_ERROR_FROM_HRESULT(hr);
   }
 
-  UniquePtr<wchar_t, CoTaskMemFreeDeleter> appDataPath(rawPath);
-  std::wstring defaultBlocklistPath(appDataPath.get());
+  std::wstring defaultBlocklistPath(appDataPath);
 
   UniquePtr<NS_tchar[]> hash;
   std::wstring binPathLower;
