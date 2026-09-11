@@ -27,9 +27,9 @@ namespace internal {
 class BASE_EXPORT LockImpl {
  public:
 #if defined(OS_WIN)
-  using NativeHandle = CHROME_SRWLOCK;
+  typedef char NativeHandle[100];
 #elif defined(OS_POSIX) || defined(OS_FUCHSIA)
-  using NativeHandle = pthread_mutex_t;
+  typedef pthread_mutex_t NativeHandle;
 #endif
 
   LockImpl();
@@ -64,7 +64,7 @@ class BASE_EXPORT LockImpl {
 
 #if defined(OS_WIN)
 void LockImpl::Unlock() {
-  ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
+  ::LeaveCriticalSection(reinterpret_cast<PCRITICAL_SECTION>(&native_handle_));
 }
 #elif defined(OS_POSIX) || defined(OS_FUCHSIA)
 void LockImpl::Unlock() {

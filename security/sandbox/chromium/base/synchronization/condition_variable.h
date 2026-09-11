@@ -112,7 +112,7 @@ class BASE_EXPORT ConditionVariable {
 
 #if defined(OS_WIN)
   CHROME_CONDITION_VARIABLE cv_;
-  CHROME_SRWLOCK* const srwlock_;
+  char const crit_sec_[100];
 #elif defined(OS_POSIX) || defined(OS_FUCHSIA)
   pthread_cond_t condition_;
   pthread_mutex_t* user_mutex_;

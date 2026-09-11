@@ -24,9 +24,9 @@ namespace internal {
 class LockImpl {
  public:
 #if defined(XP_WIN)
-  using NativeHandle = SRWLOCK;
+  typedef CRITICAL_SECTION NativeHandle;
 #else
-  using NativeHandle = pthread_mutex_t;
+  typedef pthread_mutex_t NativeHandle;
 #endif
 
   LockImpl();
