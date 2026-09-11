@@ -326,7 +326,12 @@ case "$target" in
         if test "$TARGET_CPU" = "aarch64"; then
             WIN32_SUBSYSTEM_VERSION=6.02
         else
+        dnl Set subsystem version 5 for Windows XP.
+        if test "$TARGET_CPU" = "x86"; then
+            WIN32_SUBSYSTEM_VERSION=5.01
+        else
             WIN32_SUBSYSTEM_VERSION=6.01
+        fi
         fi
         WIN32_CONSOLE_EXE_LDFLAGS=-SUBSYSTEM:CONSOLE,$WIN32_SUBSYSTEM_VERSION
         WIN32_GUI_EXE_LDFLAGS=-SUBSYSTEM:WINDOWS,$WIN32_SUBSYSTEM_VERSION
