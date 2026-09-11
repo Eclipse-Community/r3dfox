@@ -82,33 +82,15 @@ bool OSPreferences::ReadSystemLocales(nsTArray<nsCString>& aLocaleList) {
     // https://stackoverflow.com/questions/52849233/getuserpreferreduilanguages-never-returns-more-than-two-languages,
     // this may not always return the full list of languages we'd expect.
     // We should always get at least the first-preference lang, though.
-    ULONG numLanguages = 0;
-    DWORD cchLanguagesBuffer = 0;
-    if (!GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numLanguages, nullptr,
-                                     &cchLanguagesBuffer)) {
+    WCHAR locale[LOCALE_NAME_MAX_LENGTH];
+    if (NS_WARN_IF(!LCIDToLocaleName(LOCALE_SYSTEM_DEFAULT, locale,
+                                     LOCALE_NAME_MAX_LENGTH, 0))) {
       return false;
     }
 
-    AutoTArray<WCHAR, 64> locBuffer;
-    locBuffer.SetCapacity(cchLanguagesBuffer);
-    if (!GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numLanguages,
-                                     locBuffer.Elements(),
-                                     &cchLanguagesBuffer)) {
-      return false;
-    }
-
-    const WCHAR* start = locBuffer.Elements();
-    const WCHAR* bufEnd = start + cchLanguagesBuffer;
-    while (bufEnd - start > 1 && *start) {
-      const WCHAR* end = start + 1;
-      while (bufEnd - end > 1 && *end) {
-        end++;
-      }
-      NS_LossyConvertUTF16toASCII loc(start, end - start);
-      if (CanonicalizeLanguageTag(loc)) {
-        aLocaleList.AppendElement(loc);
-      }
-      start = end + 1;
+    NS_LossyConvertUTF16toASCII loc(locale);
+    if (CanonicalizeLanguageTag(loc)) {
+      aLocaleList.AppendElement(loc);
     }
   }
 
