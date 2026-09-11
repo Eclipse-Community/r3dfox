@@ -181,8 +181,38 @@ static void BuildCapabilitiesArray(
       sizeof(PROPVARIANT) * aCapabilities.Length());
   for (size_t idx = 0; idx < aCapabilities.Length(); idx++) {
     ComPtr<IPropertyStore> capabilitiesProperty;
+typedef HRESULT (__stdcall *MYPROC)(REFIID riid, void   **ppv); 
+ 
+    HINSTANCE hinstLib; 
+    MYPROC ProcAdd= NULL; 
+    BOOL fRunTimeLinkSuccess = FALSE; 
+ 
+    // Get a handle to the DLL module.
+ 
+    hinstLib = LoadLibraryW(L"Propsys.dll"); 
+ 
+    // If the handle is valid, try to get the function address.
+ 
+    if (hinstLib != NULL) 
+    { 
+        ProcAdd = (MYPROC) GetProcAddress(hinstLib, "PSCreateMemoryPropertyStore"); 
+ 
+        // If the function address is valid, call the function.
+ 
+        if (NULL != ProcAdd) 
+        {
+            fRunTimeLinkSuccess = TRUE;
     RETURN_VOID_IF_FAILED(
-        PSCreateMemoryPropertyStore(IID_PPV_ARGS(&capabilitiesProperty)));
+        ProcAdd(IID_PPV_ARGS(&capabilitiesProperty)));
+        }
+        // Free the DLL module.
+ 
+        FreeLibrary(hinstLib); 
+    } 
+
+    // If unable to call the DLL function, use an alternative.
+    if (! fRunTimeLinkSuccess) 
+        return;
 
     AutoPropVar contentType;
     auto* var = contentType.Receive();
@@ -210,7 +240,37 @@ static void BuildCapabilitiesArray(
 static HRESULT BuildCDMAccessConfig(const MFCDMInitParamsIPDL& aParams,
                                     ComPtr<IPropertyStore>& aConfig) {
   ComPtr<IPropertyStore> mksc;  // EME MediaKeySystemConfiguration
-  MFCDM_RETURN_IF_FAILED(PSCreateMemoryPropertyStore(IID_PPV_ARGS(&mksc)));
+typedef HRESULT (__stdcall *MYPROC)(REFIID riid, void   **ppv); 
+ 
+    HINSTANCE hinstLib; 
+    MYPROC ProcAdd= NULL; 
+    BOOL fRunTimeLinkSuccess = FALSE; 
+ 
+    // Get a handle to the DLL module.
+ 
+    hinstLib = LoadLibraryW(L"Propsys.dll"); 
+ 
+    // If the handle is valid, try to get the function address.
+ 
+    if (hinstLib != NULL) 
+    { 
+        ProcAdd = (MYPROC) GetProcAddress(hinstLib, "PSCreateMemoryPropertyStore"); 
+ 
+        // If the function address is valid, call the function.
+ 
+        if (NULL != ProcAdd) 
+        {
+            fRunTimeLinkSuccess = TRUE;
+            MFCDM_RETURN_IF_FAILED((ProcAdd)(IID_PPV_ARGS(&mksc)));
+        }
+        // Free the DLL module.
+ 
+        FreeLibrary(hinstLib); 
+    } 
+
+    // If unable to call the DLL function, use an alternative.
+    if (! fRunTimeLinkSuccess) 
+        return E_NOTIMPL;
 
   // Init type. If we don't set `MF_EME_INITDATATYPES` then we won't be able
   // to create CDM module on Windows 10, which is not documented officially.
@@ -263,7 +323,37 @@ static HRESULT BuildCDMProperties(const nsString& aOrigin,
   MOZ_ASSERT(!aOrigin.IsEmpty());
 
   ComPtr<IPropertyStore> props;
-  MFCDM_RETURN_IF_FAILED(PSCreateMemoryPropertyStore(IID_PPV_ARGS(&props)));
+typedef HRESULT (__stdcall *MYPROC)(REFIID riid, void   **ppv); 
+ 
+    HINSTANCE hinstLib; 
+    MYPROC ProcAdd= NULL; 
+    BOOL fRunTimeLinkSuccess = FALSE; 
+ 
+    // Get a handle to the DLL module.
+ 
+    hinstLib = LoadLibraryW(L"Propsys.dll"); 
+ 
+    // If the handle is valid, try to get the function address.
+ 
+    if (hinstLib != NULL) 
+    { 
+        ProcAdd = (MYPROC) GetProcAddress(hinstLib, "PSCreateMemoryPropertyStore"); 
+ 
+        // If the function address is valid, call the function.
+ 
+        if (NULL != ProcAdd) 
+        {
+            fRunTimeLinkSuccess = TRUE;
+  MFCDM_RETURN_IF_FAILED(ProcAdd(IID_PPV_ARGS(&props)));
+        }
+        // Free the DLL module.
+ 
+        FreeLibrary(hinstLib); 
+    } 
+
+    // If unable to call the DLL function, use an alternative.
+    if (! fRunTimeLinkSuccess) 
+        return E_NOTIMPL;
 
   AutoPropVar origin;
   MFCDM_RETURN_IF_FAILED(
