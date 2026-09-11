@@ -105,12 +105,29 @@ NS_IMETHODIMP AboutThirdParty::OpenAndCloseFileDialogForTesting(
     return NS_ERROR_UNEXPECTED;
   }
 
+    HMODULE shell32_handle = NULL;
+
+    typedef HRESULT(WINAPI *pfnSHCreateItemFromParsingName)(PCWSTR, IBindCtx *, REFIID, void **);
+    pfnSHCreateItemFromParsingName pSHCreateItemFromParsingName = NULL;
+
+    // We can assume shell32 is already loaded here.
+    shell32_handle = GetModuleHandleW(L"shell32.dll");
+    if (!shell32_handle) {
+        return NS_ERROR_UNEXPECTED;
+    }
+
+    pSHCreateItemFromParsingName = (pfnSHCreateItemFromParsingName)GetProcAddress(shell32_handle, "SHCreateItemFromParsingName");
+    if (!pSHCreateItemFromParsingName) {
+        return NS_ERROR_UNEXPECTED;
+    }
+
   RefPtr<IShellItem> folder;
-  if (FAILED(::SHCreateItemFromParsingName(PromiseFlatString(aInitialDir).get(),
+  if (FAILED(pSHCreateItemFromParsingName(PromiseFlatString(aInitialDir).get(),
                                            nullptr, IID_IShellItem,
                                            getter_AddRefs(folder)))) {
     return NS_ERROR_UNEXPECTED;
   }
+  FreeLibrary(shell32_handle);
 
   // Need to send a first notification outside FileDialogEventsForTesting.
   if (FAILED(dialog->SetFolder(folder))) {
