@@ -616,6 +616,7 @@ bool gfxPlatformFontList::InitFontList() {
   // Try to initialize the cross-process shared font list if enabled by prefs,
   // but not if we're running in Safe Mode.
   if (StaticPrefs::gfx_e10s_font_list_shared_AtStartup() &&
+      LoadLibraryW(L"dwrite.dll") &&
       !gfxPlatform::InSafeMode()) {
     for (const auto& entry : mFontEntries.Values()) {
       if (!entry) {
