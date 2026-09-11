@@ -11,6 +11,9 @@ use winapi::um::fileapi::*;
 use winapi::um::minwinbase::*;
 use winapi::um::winbase::*;
 use winapi::um::winnt::*;
+use winapi::um::ntifs::{IO_STATUS_BLOCK, NtQueryInformationFile, NtSetInformationFile};
+#[link(name = "ntdll")]
+extern "system" { fn NtQueryObject(Handle: HANDLE, ObjectInformationClass: UINT, ObjectInformation: LPCWSTR, ObjectInformationLength: ULONG, ReturnLength: *mut ULONG) -> winapi::shared::ntdef::NTSTATUS; }
 
 pub const VOLUME_NAME_DOS: DWORD = 0x0;
 
@@ -191,26 +194,74 @@ fn rename(file: &File, new: &Path, replace: bool) -> io::Result<()> {
         (*info).ReplaceIfExists = if replace { -1 } else { FALSE };
         (*info).RootDirectory = ptr::null_mut();
         (*info).FileNameLength = (size - STRUCT_SIZE) as DWORD;
-        let result = SetFileInformationByHandle(
+        let mut io: IO_STATUS_BLOCK = std::mem::zeroed();
+        let result = NtSetInformationFile(
             file.as_raw_handle(),
-            FileRenameInfo,
+            &mut io as *mut _ as *mut _,
             data.as_mut_ptr() as *mut _ as *mut _,
             size as DWORD,
+            10,
         );
 
         if result == 0 {
-            Err(io::Error::last_os_error())
-        } else {
             Ok(())
+        } else {
+            Err(io::Error::last_os_error())
         }
     }
 }
 
 fn get_path(f: &File) -> io::Result<PathBuf> {
-    fill_utf16_buf(
-        |buf, sz| unsafe { GetFinalPathNameByHandleW(f.as_raw_handle(), buf, sz, VOLUME_NAME_DOS) },
-        |buf| PathBuf::from(OsString::from_wide(buf)),
-    )
+   const MAX_PATH: usize = 1024;
+   const MAXSIZE: usize = MAX_PATH+4;
+
+   unsafe {
+      let mut drives = [0u16; MAX_PATH];
+      let mut path = [0u16; MAXSIZE];
+      let mut path2 = [0u16; MAX_PATH];
+      let mut sz: DWORD = MAXSIZE as u32;
+      if NtQueryObject(f.as_raw_handle() as *mut _, 1, &mut path as *mut _ as *mut _, sz, &mut sz as *mut _ as *mut _) == 0 {
+         let len_bytes = path[0] as usize;
+         let len_chars = len_bytes / 2;
+
+         #[cfg(target_pointer_width = "64")]
+         let s = 8;
+         #[cfg(not(target_pointer_width = "64"))]
+         let s = 4;
+
+         let mut i = s;
+         while path[i] != 0 && i < len_chars + s {
+            i += 1;
+         }
+         let sz = i;
+
+         i = 0;
+         GetLogicalDriveStringsW((MAX_PATH - 1) as u32, &mut drives as *mut _ as *mut _);
+         while drives[i] != 0 {
+             drives[i+2] = 0;
+             QueryDosDeviceW(&mut drives[i] as *mut _ as *mut _, &mut path2 as *mut _ as *mut _, MAX_PATH as u32);
+             let mut j = 0;
+             while path2[j] != 0 {
+                j += 1;
+             }
+             if OsString::from_wide(&path2[0..j]) == OsString::from_wide(&path[s..s+j]) {
+                path[s+j-6] = '\\' as u16;
+                path[s+j-5] = '\\' as u16;
+                path[s+j-4] = '?' as u16;
+                path[s+j-3] = '\\' as u16;
+                path[s+j-2] = drives[i];
+                path[s+j-1] = drives[i+1];
+                let final_start = s + j - 6; 
+                return Ok(PathBuf::from(OsString::from_wide(&path[final_start..sz])));
+             }
+             i += 4;
+         }
+         Ok(PathBuf::from(OsString::from_wide(&path[s..sz])))
+      }
+      else {
+         Err(io::Error::last_os_error())
+      }
+   }
 }
 
 fn remove_dir_all_recursive(path: &Path, ctx: &mut RmdirContext) -> io::Result<()> {
