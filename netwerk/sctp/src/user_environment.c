@@ -142,29 +142,39 @@ finish_random(void)
 	return;
 }
 #elif defined(_WIN32)
-#include <stdlib.h>
-
 void
 init_random(void)
 {
+	struct timeval now;
+	unsigned int seed;
+
+	(void)SCTP_GETTIME_TIMEVAL(&now);
+	seed = 0;
+	seed |= (unsigned int)now.tv_sec;
+	seed |= (unsigned int)now.tv_usec;
+#if !defined(_WIN32) && !defined(__native_client__)
+	seed |= getpid();
+#endif
+#if defined(_WIN32) || defined(__native_client__)
+	srand(seed);
+#else
+	srandom(seed);
+#endif
 	return;
 }
 
 void
-read_random(void *buf, size_t size)
+read_random(void *buf, size_t count)
 {
-	unsigned int randval;
-	size_t position, remaining;
+	uint32_t randval;
+	size_t size, i;
 
-	position = 0;
-	while (position < size) {
-		if (rand_s(&randval) == 0) {
-			remaining = MIN(size - position, sizeof(unsigned int));
-			memcpy((char *)buf + position, &randval, remaining);
-			position += sizeof(unsigned int);
-		}
+	/* Fill buf[] with random(9) output */
+	for (i = 0; i < count; i += sizeof(uint32_t)) {
+		randval = random();
+		size = MIN(count - i, sizeof(uint32_t));
+		memcpy((char *)buf + i, &randval, size);
 	}
-	return;
 }
 
 void
