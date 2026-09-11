@@ -517,6 +517,7 @@ class nsWindow final : public nsBaseWidget {
   bool CanTakeFocus();
   bool UpdateNonClientMargins(bool aReflowWindow = true);
   void UpdateDarkModeToolbar();
+  void UpdateGetWindowInfoCaptionStatus(bool aActiveCaption);
   void ResetLayout();
   void InvalidateNonClientRegion();
   HWND GetOwnerWnd() const { return ::GetWindow(mWnd, GW_OWNER); }
