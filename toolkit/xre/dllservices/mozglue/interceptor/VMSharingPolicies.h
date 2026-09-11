@@ -242,11 +242,7 @@ class MOZ_TRIVIAL_CTOR_DTOR VMSharingPolicyShared : public MMPolicyInProcess {
  private:
   static CRITICAL_SECTION* GetCS() {
     static const bool isAlloc = []() -> bool {
-      DWORD flags = 0;
-#if defined(RELEASE_OR_BETA)
-      flags |= CRITICAL_SECTION_NO_DEBUG_INFO;
-#endif  // defined(RELEASE_OR_BETA)
-      ::InitializeCriticalSectionEx(&sCS, 4000, flags);
+      ::InitializeCriticalSectionAndSpinCount(&sCS, 4000);
       return true;
     }();
     Unused << isAlloc;
