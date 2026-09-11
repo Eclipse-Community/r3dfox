@@ -108,6 +108,7 @@
 #include "js/Prefs.h"
 #include "mozilla/StaticPrefs_javascript.h"
 #include "XPCSelfHostedShmem.h"
+#include "mozilla/WindowsVersion.h"
 
 #include "gfxPlatform.h"
 
