@@ -58,14 +58,92 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
  private:
   ~Impl() { MOZ_ASSERT(IsStopped()); }
 
+  class WaitRegistration final {
+    NS_INLINE_DECL_THREADSAFE_REFCOUNTING(WaitRegistration)
+
+   public:
+    explicit WaitRegistration(Impl* aOwner) : mOwner(aOwner) {}
+
+    bool Start(HANDLE aHandle) {
+      MOZ_ASSERT(!mWaitHandle);
+
+      if (!::RegisterWaitForSingleObject(
+              &mWaitHandle, aHandle, &WaitRegistration::WaitCallback, this,
+              INFINITE, WT_EXECUTEDEFAULT | WT_EXECUTEONLYONCE)) {
+        mWaitHandle = nullptr;
+        return false;
+      }
+
+      return true;
+    }
+
+    HANDLE Handle() const { return mWaitHandle; }
+
+    // Cancel the wait and block until an already-running callback finishes.
+    // This must never be called from WaitCallback.
+    void UnregisterBlocking() {
+      MOZ_ASSERT(mWaitHandle);
+
+      HANDLE const waitHandle = mWaitHandle;
+      if (!::UnregisterWaitEx(waitHandle, INVALID_HANDLE_VALUE)) {
+        DWORD const error = ::GetLastError();
+        MOZ_LOG(sHWLog, LogLevel::Error,
+                ("UnregisterWaitEx(%p) failed: %lu", waitHandle, error));
+        MOZ_RELEASE_ASSERT(false,
+                           "Could not synchronously unregister a wait");
+      }
+
+      mWaitHandle = nullptr;
+    }
+
+   private:
+    ~WaitRegistration() { MOZ_ASSERT(!mWaitHandle); }
+
+    static void CALLBACK WaitCallback(void* aContext, BOOLEAN aTimedOut) {
+      // The active Data or the thread synchronously unregistering it keeps the
+      // raw callback context alive until this callback has started. Keep it
+      // alive on the callback stack while OnWaitCompleted removes that Data.
+      RefPtr<WaitRegistration> wait(
+          static_cast<WaitRegistration*>(aContext));
+
+      MOZ_ASSERT(!aTimedOut);
+      if (wait->mOwner->OnWaitCompleted(wait.get())) {
+        wait->UnregisterFromCallback();
+      }
+    }
+
+    // Even a WT_EXECUTEONLYONCE wait must be unregistered. Blocking here would
+    // deadlock because this method runs from the wait's own callback.
+    void UnregisterFromCallback() {
+      MOZ_ASSERT(mWaitHandle);
+
+      HANDLE const waitHandle = mWaitHandle;
+      bool const ok = !!::UnregisterWaitEx(waitHandle, nullptr);
+      DWORD const error = ok ? ERROR_SUCCESS : ::GetLastError();
+      if (!ok && error != ERROR_IO_PENDING) {
+        MOZ_LOG(sHWLog, LogLevel::Error,
+                ("UnregisterWaitEx(%p) failed: %lu", waitHandle, error));
+        MOZ_RELEASE_ASSERT(false,
+                           "Could not unregister a completed wait");
+      }
+
+      // ERROR_IO_PENDING means that unregistration will finish after this
+      // callback returns. It is the expected result for this non-blocking call.
+      mWaitHandle = nullptr;
+    }
+
+    Impl* const mOwner;
+    HANDLE mWaitHandle = nullptr;
+  };
+
   struct Data {
     // The watched handle and its callback.
     HANDLE handle;
     RefPtr<nsIEventTarget> target;
     nsCOMPtr<nsIRunnable> runnable;
 
-    // Handle to the threadpool wait-object.
-    WaitHandlePtr waitHandle;
+    // Registration with the Windows thread pool.
+    RefPtr<WaitRegistration> wait;
     // A pointer to ourselves, notionally owned by the wait-object.
     RefPtr<Impl> self;
 
@@ -78,39 +156,32 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
   mozilla::Mutex mMutex{"HandleWatcher::Impl"};
   Data mData MOZ_GUARDED_BY(mMutex) = {};
 
-  // Callback from OS threadpool wait-object.
-  static void CALLBACK WaitCallback(PTP_CALLBACK_INSTANCE, void* ctx,
-                                    PTP_WAIT aWaitHandle,
-                                    TP_WAIT_RESULT aResult) {
-    static_cast<Impl*>(ctx)->OnWaitCompleted(aWaitHandle, aResult);
-  }
-
-  void OnWaitCompleted(PTP_WAIT aWaitHandle, TP_WAIT_RESULT aResult)
-      MOZ_EXCLUDES(mMutex) {
-    MOZ_ASSERT(aResult == WAIT_OBJECT_0);
-
+  // Returns true when aWait was the active wait. The callback then owns
+  // unregistering it without blocking.
+  bool OnWaitCompleted(WaitRegistration* aWait) MOZ_EXCLUDES(mMutex) {
     mMutex.Lock();
     // If this callback is no longer the active callback, skip out.
     // All cleanup is someone else's problem.
-    if (aWaitHandle != mData.waitHandle.get()) {
+    if (aWait != mData.wait.get()) {
       MOZ_LOG(sHWLog, LogLevel::Debug,
-              ("Recv'd already-stopped callback: HW %p | PTP_WAIT %p", this,
-               aWaitHandle));
+              ("Recv'd already-stopped callback: HW %p | wait %p", this,
+               aWait->Handle()));
       mMutex.Unlock();
-      return;
+      return false;
     }
 
     // Take our self-pointer so that we release it on exit.
     RefPtr<Impl> self = std::move(mData.self);
 
     MOZ_LOG(sHWLog, LogLevel::Info,
-            ("Recv'd callback: HW %p | handle %p | target %p | PTP_WAIT %p",
-             this, mData.handle, mData.target.get(), aWaitHandle));
+            ("Recv'd callback: HW %p | handle %p | target %p | wait %p", this,
+             mData.handle, mData.target.get(), aWait->Handle()));
 
     // This may fail if (for example) `mData.target` is being shut down, but we
     // have not yet received the shutdown callback.
     mData.target->Dispatch(mData.runnable.forget());
     Replace(Data{});
+    return true;
   }
 
  public:
@@ -131,11 +202,7 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
 
     RefPtr<nsIEventTarget> target(aTarget);
 
-    WaitHandlePtr waitHandle{
-        ::CreateThreadpoolWait(&WaitCallback, this, nullptr)};
-    if (!waitHandle) {
-      return false;
-    }
+    RefPtr<WaitRegistration> wait = MakeRefPtr<WaitRegistration>(this);
 
     {
       mMutex.Lock();
@@ -146,21 +213,23 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
         return false;
       }
 
-      MOZ_LOG(sHWLog, LogLevel::Info,
-              ("Setting callback: HW %p | handle %p | target %p | PTP_WAIT %p",
-               this, aHandle, aTarget, waitHandle.get()));
+      // Register while holding mMutex. A callback for an already-signaled
+      // handle can start immediately, but it cannot inspect mData until the new
+      // registration has been installed by Replace().
+      if (!wait->Start(aHandle)) {
+        aTarget->UnregisterShutdownTask(this);
+        mMutex.Unlock();
+        return false;
+      }
 
-      // returns `void`; presumably always succeeds given a successful
-      // `::CreateThreadpoolWait()`
-      ::SetThreadpoolWait(waitHandle.get(), aHandle, nullptr);
-      // After this point, you must call `FlushWaitHandle(waitHandle.get())`
-      // before destroying the wait handle. (Note that this must be done while
-      // *not* holding `mMutex`!)
+      MOZ_LOG(sHWLog, LogLevel::Info,
+              ("Setting callback: HW %p | handle %p | target %p | wait %p",
+               this, aHandle, aTarget, wait->Handle()));
 
       Replace(Data{.handle = aHandle,
                    .target = std::move(target),
                    .runnable = aRunnable,
-                   .waitHandle = std::move(waitHandle),
+                   .wait = std::move(wait),
                    .self = this});
     }
 
@@ -171,8 +240,9 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
     mMutex.Lock();
 
     MOZ_LOG(sHWLog, LogLevel::Debug,
-            ("Target shutdown: HW %p | handle %p | target %p | PTP_WAIT %p",
-             this, mData.handle, mData.target.get(), mData.waitHandle.get()));
+            ("Target shutdown: HW %p | handle %p | target %p | wait %p", this,
+             mData.handle, mData.target.get(),
+             mData.wait ? mData.wait->Handle() : nullptr));
 
     // Clear mData.target, since there's no need to unregister the shutdown task
     // anymore. Hold onto it until we release the mutex, though, to avoid any
@@ -219,13 +289,13 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
   // checker that such a guard is associated with `mMutex`.
   //
   void Replace(Data&& aData) MOZ_CAPABILITY_RELEASE(mMutex) {
-    // either both handles are NULL, or neither is
-    MOZ_ASSERT(!!aData.handle == !!aData.waitHandle);
+    // Either both handles are NULL, or neither is.
+    MOZ_ASSERT(!!aData.handle == !!aData.wait);
 
     if (mData.handle) {
       MOZ_LOG(sHWLog, LogLevel::Info,
-              ("Stop callback: HW %p | handle %p | target %p | PTP_WAIT %p",
-               this, mData.handle, mData.target.get(), mData.waitHandle.get()));
+              ("Stop callback: HW %p | handle %p | target %p | wait %p", this,
+               mData.handle, mData.target.get(), mData.wait->Handle()));
     }
 
     if (mData.target) {
@@ -245,8 +315,8 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
     // there was no old callback in the first place). If it's set, though, we
     // need to explicitly clear out the wait-object first.
     if (oldData.self) {
-      MOZ_ASSERT(oldData.waitHandle);
-      FlushWaitHandle(oldData.waitHandle.get());
+      MOZ_ASSERT(oldData.wait);
+      oldData.wait->UnregisterBlocking();
     }
 
     // [2] oldData also includes several other reference-counted pointers. It's
@@ -256,15 +326,6 @@ class HandleWatcher::Impl final : public nsITargetShutdownTask {
     //
     // Now that we've released the mutex, we can (implicitly) release them all
     // here.
-  }
-
-  // Either confirm as complete or cancel any callbacks on aWaitHandle. Block
-  // until this is done. (See documentation for ::CloseThreadpoolWait().)
-  void FlushWaitHandle(PTP_WAIT aWaitHandle) MOZ_EXCLUDES(mMutex) {
-    ::SetThreadpoolWait(aWaitHandle, nullptr, nullptr);
-    // This might block on `OnWaitCompleted()`, so we can't hold `mMutex` here.
-    ::WaitForThreadpoolWaitCallbacks(aWaitHandle, TRUE);
-    // ::CloseThreadpoolWait() itself is the caller's responsibility.
   }
 };
 
