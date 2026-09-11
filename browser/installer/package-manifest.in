@@ -97,10 +97,16 @@
 @BINPATH@/@MSVC_C_RUNTIME_1_DLL@
 #endif
 @BINPATH@/@MSVC_CXX_RUNTIME_DLL@
+@BINPATH@/@MSVC_CONCUR_RUNTIME_DLL@
 #endif
 #if MOZ_PACKAGE_WIN_UCRT_DLLS
 @BINPATH@/api-ms-win-*.dll
 @BINPATH@/ucrtbase.dll
+@BINPATH@/advapiwp.dll
+@BINPATH@/DWrite.dll
+@BINPATH@/krnwrp.dll
+@BINPATH@/olewp.dll
+@BINPATH@/shellwp.dll
 #endif
 #endif
 #ifdef MOZ_GTK
