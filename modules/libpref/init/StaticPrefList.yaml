@@ -16314,6 +16314,11 @@
   value: -1 # -1 => default for platform, 0 => no limit, >0 => max valid size
   mirror: always
 
+- name: webgl.force-swiftshader
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
 - name: webgl.lose-context-on-memory-pressure
   type: RelaxedAtomicBool
   value: false
