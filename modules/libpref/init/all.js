@@ -81,6 +81,7 @@ pref("general.useragent.site_specific_overrides", true);
 pref("general.useragent.override.aistudio.google.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0");
 pref("general.useragent.override.gemini.google.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0");
 pref("general.useragent.override.chase.com", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0");
+pref("general.useragent.override.dlproxy.uk", "Mozilla/5.0 (%OS_SLICE%; rv:128.0) Gecko/20100101 Firefox/128.0");
 pref("general.useragent.override.discord.com", "Mozilla/5.0 (%OS_SLICE%; rv:128.0) Gecko/20100101 Firefox/128.0");
 pref("general.useragent.override.gmx.com", "Mozilla/5.0 (%OS_SLICE%; rv:128.0) Gecko/20100101 Firefox/128.0");
 pref("general.useragent.override.ipcamlive.com", "Mozilla/5.0 (%OS_SLICE%; rv:128.0) Gecko/20100101 Firefox/128.0");
