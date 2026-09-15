@@ -32,13 +32,11 @@ class MozNewTabWallpaperProtocolHandler final
    * Obtains an input stream for a user-uploaded New Tab wallpaper.
    *
    * @param aChildURI moz-newtab-wallpaper URI from child process
-   * @param aLoadInfo the loadinfo from the child process
    * @param aTerminateSender set to true if URI is invalid (terminates child)
    * @return RemoteStreamPromise resolving to RemoteStreamInfo on success or
    * nsresult on failure
    */
   RefPtr<RemoteStreamPromise> NewStream(nsIURI* aChildURI,
-                                        nsILoadInfo* aLoadInfo,
                                         bool* aTerminateSender);
 
  protected:

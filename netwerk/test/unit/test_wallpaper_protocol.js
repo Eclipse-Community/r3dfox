@@ -20,7 +20,6 @@ function run_test() {
   let dummyChannel = NetUtil.newChannel({
     uri: dummyURI,
     loadUsingSystemPrincipal: true,
-    contentPolicyType: Ci.nsIContentPolicy.TYPE_IMAGE,
   });
   let dummyLoadInfo = dummyChannel.loadInfo;
 
