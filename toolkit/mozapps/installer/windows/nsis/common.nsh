@@ -5202,6 +5202,10 @@
   !define INSTALLTYPE_CUSTOM    2
 !endif
 
+!ifndef INSTALLTYPE_PORTABLE
+  !define INSTALLTYPE_PORTABLE  3
+!endif
+
 /**
  * Checks whether to display the current page (e.g. if not performing a custom
  * install don't display the custom pages).
@@ -5217,6 +5221,7 @@
 
       ; Abort if not a custom install
       IntCmp $InstallType ${INSTALLTYPE_CUSTOM} +2 +1 +1
+      IntCmp $InstallType ${INSTALLTYPE_PORTABLE} +2 +1 +1
       Abort
 
     FunctionEnd
