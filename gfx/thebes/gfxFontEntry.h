@@ -308,11 +308,12 @@ class gfxFontEntry {
     if (map) {
       if (mShmemFace && TrySetShmemCharacterMap()) {
         // Forget our temporary local copy, now we can use the shared cmap.
-        {
-          mozilla::AutoWriteLock lock(mLock);
-          auto* oldCmap = mCharacterMap.exchange(nullptr);
-          NS_IF_RELEASE(oldCmap);
-        }
+        // Ignore the MOZ_GUARDED_BY of mCharacterMap as we're doing an
+        // atomic exchange.
+        MOZ_PUSH_IGNORE_THREAD_SAFETY
+        auto* oldCmap = mCharacterMap.exchange(nullptr);
+        MOZ_POP_THREAD_SAFETY
+        NS_IF_RELEASE(oldCmap);
         return GetShmemCharacterMap()->test(ch);
       }
       if (map->test(ch)) {
@@ -590,8 +591,7 @@ class gfxFontEntry {
 
   // Return a new strong ref to mCharacterMap. This can safely be dereferenced
   // by the caller as long as it keeps its reference alive.
-  already_AddRefed<gfxCharacterMap> GetCharacterMapAddRefed() const
-      MOZ_EXCLUDES(mLock) {
+  already_AddRefed<gfxCharacterMap> GetCharacterMapAddRefed() const {
     mozilla::AutoReadLock lock(mLock);
     RefPtr map = static_cast<gfxCharacterMap*>(mCharacterMap);
     return map.forget();
@@ -600,7 +600,7 @@ class gfxFontEntry {
   // Check for presence of either shmem or local charmap.
   bool HasCharacterMap() const MOZ_NO_THREAD_SAFETY_ANALYSIS {
     // Although mCharacterMap is MOZ_GUARDED_BY(mLock), we don't lock here
-    // as it is an atomic var, and we're not holding on to or dereferencing it,
+    // as it is an atomic var, and we're not holding on to dereferencing it,
     // just checking whether it's non-null.
     return mShmemCharacterMap || mCharacterMap;
   }
