@@ -2,28 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
-#pragma allow_unsafe_buffers
-#endif
-
 #include "sandbox/win/src/sandbox_nt_util.h"
 
 #include <ntstatus.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
 #include <string>
 
 #include "base/compiler_specific.h"
 #include "base/containers/span.h"
 #include "base/win/pe_image.h"
-#include "base/win/win_util.h"
 #include "sandbox/win/src/internal_types.h"
 #include "sandbox/win/src/nt_internals.h"
 #include "sandbox/win/src/sandbox_factory.h"
 #include "sandbox/win/src/target_services.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace sandbox {
 
@@ -33,13 +27,6 @@ SANDBOX_INTERCEPT NtExports g_nt;
 }  // namespace sandbox
 
 namespace {
-
-// Uses value of FILE_INFORMATION_CLASS defined in Wdm.h but not in user-mode.
-// https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ne-wdm-_file_information_class
-// MinGW's winternl.h defines FILE_INFORMATION_CLASS including this value.
-#if !defined(__MINGW32__)
-constexpr uint32_t FileRenameInformation = 10;
-#endif  // !defined(__MINGW32__)
 
 #if defined(_WIN64)
 // Align a pointer to the next allocation granularity boundary.
@@ -235,8 +222,8 @@ bool MapGlobalMemory() {
       g_shared_policy_memory =
           reinterpret_cast<char*>(g_shared_IPC_memory) + g_shared_IPC_size;
     }
-    // TODO(crbug.com/40265190) make this a read-only mapping in the child,
-    // distinct from the IPC & policy memory as it should be const.
+    // TODO(1435571) make this a read-only mapping in the child, distinct from
+    // the IPC & policy memory as it should be const.
     if (g_delegate_data_size > 0) {
       g_shared_delegate_data = reinterpret_cast<char*>(g_shared_IPC_memory) +
                                g_shared_IPC_size + g_shared_policy_size;
@@ -258,15 +245,16 @@ void* GetGlobalPolicyMemoryForTesting() {
   return g_shared_policy_memory;
 }
 
-std::optional<base::span<const uint8_t>> GetGlobalDelegateData() {
+absl::optional<base::span<const uint8_t>> GetGlobalDelegateData() {
   if (!g_delegate_data_size) {
-    return std::nullopt;
+    return absl::nullopt;
   }
   if (!MapGlobalMemory()) {
-    return std::nullopt;
+    return absl::nullopt;
   }
-  return base::span(reinterpret_cast<const uint8_t*>(g_shared_delegate_data),
-                    g_delegate_data_size);
+  return base::make_span(
+      reinterpret_cast<const uint8_t*>(g_shared_delegate_data),
+      g_delegate_data_size);
 }
 
 const NtExports* GetNtExports() {
@@ -335,62 +323,59 @@ NTSTATUS CopyData(void* destination, const void* source, size_t bytes) {
   return ret;
 }
 
-NtHeapWString::NtHeapWString(std::initializer_list<std::wstring_view> parts) {
-  size_t total = 0;
-  for (auto part : parts) {
-    total += part.size();
+NTSTATUS CopyNameAndAttributes(
+    const OBJECT_ATTRIBUTES* in_object,
+    std::unique_ptr<wchar_t, NtAllocDeleter>* out_name,
+    size_t* out_name_len,
+    uint32_t* attributes) {
+  if (!InitHeap())
+    return STATUS_NO_MEMORY;
+
+  DCHECK_NT(out_name);
+  DCHECK_NT(out_name_len);
+  NTSTATUS ret = STATUS_UNSUCCESSFUL;
+  __try {
+    do {
+      if (in_object->RootDirectory != nullptr)
+        break;
+      if (!in_object->ObjectName)
+        break;
+      if (!in_object->ObjectName->Buffer)
+        break;
+
+      size_t size = in_object->ObjectName->Length / sizeof(wchar_t);
+      out_name->reset(new (NT_ALLOC) wchar_t[size + 1]);
+      if (!*out_name)
+        break;
+
+      ret = CopyData(out_name->get(), in_object->ObjectName->Buffer,
+                     size * sizeof(wchar_t));
+      if (!NT_SUCCESS(ret))
+        break;
+
+      *out_name_len = size;
+      out_name->get()[size] = L'\0';
+      if (attributes)
+        *attributes = in_object->Attributes;
+
+      ret = STATUS_SUCCESS;
+    } while (false);
+  } __except (EXCEPTION_EXECUTE_HANDLER) {
+    ret = (NTSTATUS)GetExceptionCode();
   }
 
-  data_.reset(new (NT_ALLOC) wchar_t[total + 1]);
-  if (!data_) {
-    return;
-  }
+  if (!NT_SUCCESS(ret) && *out_name)
+    out_name->reset(nullptr);
 
-  wchar_t* dst = data_.get();
-  for (auto part : parts) {
-    NTSTATUS ret = CopyData(dst, part.data(), part.size() * sizeof(wchar_t));
-    if (!NT_SUCCESS(ret)) {
-      data_.reset();
-      return;
-    }
-    dst += part.size();
-  }
-  *dst = L'\0';
-  length_ = total;
+  return ret;
 }
+NTSTATUS AllocAndGetFullPath(
+    HANDLE root, const wchar_t* path,
+    std::unique_ptr<wchar_t, NtAllocDeleter>* full_path) {
+  if (!InitHeap()) return STATUS_NO_MEMORY;
 
-bool NtHeapWString::is_valid() const {
-  return data_ != nullptr;
-}
-
-std::wstring_view NtHeapWString::view() const {
-  return {data_.get(), length_};
-}
-
-void ResolveNTFunctionPtr(const char* name, void* ptr) {
-  static volatile HMODULE ntdll = nullptr;
-
-  if (!ntdll) {
-    HMODULE ntdll_local = ::GetModuleHandle(sandbox::kNtdllName);
-    // Use PEImage to sanity-check that we have a valid ntdll handle.
-    base::win::PEImage ntdll_peimage(ntdll_local);
-    CHECK_NT(ntdll_peimage.VerifyMagic());
-    // Race-safe way to set static ntdll.
-    ::InterlockedCompareExchangePointer(
-        reinterpret_cast<PVOID volatile*>(&ntdll), ntdll_local, nullptr);
-  }
-
-  CHECK_NT(ntdll);
-  FARPROC* function_ptr = reinterpret_cast<FARPROC*>(ptr);
-  *function_ptr = ::GetProcAddress(ntdll, name);
-  CHECK_NT(*function_ptr);
-}
-
-NtHeapWString AllocAndGetFullPath(HANDLE root, const std::wstring_view& path) {
-  if (!InitHeap()) return {};
-
-  DCHECK_NT(!path.empty());
-  NtHeapWString result;
+  DCHECK_NT(full_path);
+  DCHECK_NT(path);
   NTSTATUS ret = STATUS_UNSUCCESSFUL;
   __try {
     do {
@@ -412,16 +397,70 @@ NtHeapWString AllocAndGetFullPath(HANDLE root, const std::wstring_view& path) {
                             size, &size);
       }
 
-      if (!NT_SUCCESS(ret)) break;
+      if (STATUS_SUCCESS != ret) break;
 
-      size_t handle_name_len = handle_name->Name.Length / sizeof(wchar_t);
-      result = NtHeapWString(
-          {{handle_name->Name.Buffer, handle_name_len}, L"\\", path});
+      // Space for path + '\' + name + '\0'.
+      size_t name_length =
+          handle_name->Name.Length + (wcslen(path) + 2) * sizeof(wchar_t);
+      full_path->reset(new (NT_ALLOC) wchar_t[name_length / sizeof(wchar_t)]);
+      if (!*full_path) break;
+      wchar_t* off = full_path->get();
+      ret = CopyData(off, handle_name->Name.Buffer,
+                     handle_name->Name.Length);
+      if (!NT_SUCCESS(ret)) break;
+      off += handle_name->Name.Length / sizeof(wchar_t);
+      *off = L'\\';
+      off += 1;
+      ret = CopyData(off, path, wcslen(path) * sizeof(wchar_t));
+      if (!NT_SUCCESS(ret)) break;
+      off += wcslen(path);
+      *off = L'\0';
     } while (false);
   } __except (EXCEPTION_EXECUTE_HANDLER) {
+    ret = GetExceptionCode();
   }
 
-  return result;
+  if (!NT_SUCCESS(ret) && *full_path) full_path->reset(nullptr);
+
+  return ret;
+}
+
+// Hacky code... replace with AllocAndCopyObjectAttributes.
+NTSTATUS AllocAndCopyName(const OBJECT_ATTRIBUTES* in_object,
+                          std::unique_ptr<wchar_t, NtAllocDeleter>* out_name,
+                          uint32_t* attributes, HANDLE* root) {
+  if (!InitHeap()) return STATUS_NO_MEMORY;
+
+  DCHECK_NT(out_name);
+  NTSTATUS ret = STATUS_UNSUCCESSFUL;
+  __try {
+    do {
+      if (in_object->RootDirectory != static_cast<HANDLE>(0) && !root) break;
+      if (!in_object->ObjectName) break;
+      if (!in_object->ObjectName->Buffer) break;
+
+      size_t size = in_object->ObjectName->Length + sizeof(wchar_t);
+      out_name->reset(new (NT_ALLOC) wchar_t[size / sizeof(wchar_t)]);
+      if (!*out_name) break;
+
+      ret = CopyData(out_name->get(), in_object->ObjectName->Buffer,
+                     size - sizeof(wchar_t));
+      if (!NT_SUCCESS(ret)) break;
+
+      out_name->get()[size / sizeof(wchar_t) - 1] = L'\0';
+
+      if (attributes) *attributes = in_object->Attributes;
+
+      if (root) *root = in_object->RootDirectory;
+      ret = STATUS_SUCCESS;
+    } while (false);
+  } __except (EXCEPTION_EXECUTE_HANDLER) {
+    ret = GetExceptionCode();
+  }
+
+  if (!NT_SUCCESS(ret) && *out_name) out_name->reset(nullptr);
+
+  return ret;
 }
 
 NTSTATUS GetProcessId(HANDLE process, DWORD* process_id) {
@@ -676,19 +715,6 @@ UNICODE_STRING* ExtractModuleName(const UNICODE_STRING* module_path) {
   return out_string;
 }
 
-std::optional<bool> EqualUnicodeString(std::wstring_view left,
-                                       std::wstring_view right) {
-  UNICODE_STRING left_ustr;
-  UNICODE_STRING right_ustr;
-  if (!base::win::ViewToUnicodeString(left, left_ustr) ||
-      !base::win::ViewToUnicodeString(right, right_ustr)) {
-    return std::nullopt;
-  }
-
-  return GetNtExports()->RtlCompareUnicodeString(&left_ustr, &right_ustr,
-                                                 TRUE) == 0;
-}
-
 NTSTATUS AutoProtectMemory::ChangeProtection(void* address,
                                              size_t bytes,
                                              ULONG protect) {
@@ -756,6 +782,41 @@ bool IsSupportedRenameCall(FILE_RENAME_INFORMATION* file_info,
       file_info->FileName[3] != kPathPrefix[3])
     return false;
 
+  return true;
+}
+
+bool NtGetPathFromHandle(HANDLE handle,
+                         std::unique_ptr<wchar_t, NtAllocDeleter>* path) {
+  OBJECT_NAME_INFORMATION initial_buffer;
+  OBJECT_NAME_INFORMATION* name;
+  ULONG size = 0;
+  // Query the name information a first time to get the size of the name.
+  NTSTATUS status = GetNtExports()->QueryObject(handle, ObjectNameInformation,
+                                                &initial_buffer, size, &size);
+
+  if (!NT_SUCCESS(status) && status != STATUS_INFO_LENGTH_MISMATCH)
+    return false;
+
+  std::unique_ptr<BYTE[], NtAllocDeleter> name_ptr;
+  if (!size)
+    return false;
+  name_ptr.reset(new (NT_ALLOC) BYTE[size]);
+  name = reinterpret_cast<OBJECT_NAME_INFORMATION*>(name_ptr.get());
+
+  // Query the name information a second time to get the name of the
+  // object referenced by the handle.
+  status = GetNtExports()->QueryObject(handle, ObjectNameInformation, name,
+                                       size, &size);
+
+  if (STATUS_SUCCESS != status)
+    return false;
+  size_t num_path_wchars = (name->Name.Length / sizeof(wchar_t)) + 1;
+  path->reset(new (NT_ALLOC) wchar_t[num_path_wchars]);
+  status =
+      CopyData(path->get(), name->Name.Buffer, name->Name.Length);
+  path->get()[num_path_wchars - 1] = L'\0';
+  if (STATUS_SUCCESS != status)
+    return false;
   return true;
 }
 

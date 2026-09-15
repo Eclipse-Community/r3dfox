@@ -8,15 +8,12 @@
 #include <stdint.h>
 
 #include <memory>
-#include <optional>
-#include <string_view>
 #include <vector>
 
 #include "base/base_export.h"
-#include "base/compiler_specific.h"
-#include "base/containers/heap_array.h"
 #include "base/win/sid.h"
 #include "base/win/windows_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base::win {
 
@@ -40,7 +37,7 @@ class BASE_EXPORT ExplicitAccessEntry {
   ExplicitAccessEntry& operator=(ExplicitAccessEntry&&);
   ~ExplicitAccessEntry();
 
-  const Sid& sid() const LIFETIME_BOUND { return sid_; }
+  const Sid& sid() const { return sid_; }
   SecurityAccessMode mode() const { return mode_; }
   DWORD access_mask() const { return access_mask_; }
   DWORD inheritance() const { return inheritance_; }
@@ -62,13 +59,13 @@ class BASE_EXPORT AccessControlList {
  public:
   // Create from an existing ACL pointer.
   // |acl| The ACL pointer. Passing nullptr will create a null ACL.
-  static std::optional<AccessControlList> FromPACL(ACL* acl);
+  static absl::optional<AccessControlList> FromPACL(ACL* acl);
 
   // Create an AccessControlList from a mandatory label.
   // |integrity_level| is the integrity level for the label.
   // |inheritance| inheritance flags.
   // |mandatory_policy| is the policy, e.g. SYSTEM_MANDATORY_LABEL_NO_WRITE_UP.
-  static std::optional<AccessControlList> FromMandatoryLabel(
+  static absl::optional<AccessControlList> FromMandatoryLabel(
       DWORD integrity_level,
       DWORD inheritance,
       DWORD mandatory_policy);
@@ -96,18 +93,6 @@ class BASE_EXPORT AccessControlList {
                 DWORD access_mask,
                 DWORD inheritance);
 
-  // Add an access allowed conditional ACE to the ACL.
-  // |sid| the SID for the ACE.
-  // |ace_flags| the flags for the ACE, such as inheritance.
-  // |access_mask| the granted access mask.
-  // |condition| the conditional expression to filter the ACE. The conditional
-  // expression must be enclosed with parentheses.
-  // Returns true if successful, false on error with the Win32 last error set.
-  bool AddAccessAllowedConditionalAce(const Sid& sid,
-                                      DWORD ace_flags,
-                                      DWORD access_mask,
-                                      std::wstring_view condition);
-
   // Make a clone of the current AccessControlList object.
   AccessControlList Clone() const;
 
@@ -117,21 +102,14 @@ class BASE_EXPORT AccessControlList {
   // Returns the AccessControlList as a ACL*. The AccessControlList object
   // retains owenership of the pointer. This can return nullptr if the ACL is
   // null.
-  ACL* get() { return reinterpret_cast<ACL*>(acl_.data()); }
-  const ACL* get() const { return reinterpret_cast<const ACL*>(acl_.data()); }
+  ACL* get() const { return reinterpret_cast<ACL*>(acl_.get()); }
 
   // Returns whether the AccessControlList is considered a null ACL.
-  bool is_null() const {
-    // Note: there is a distinction between null ACL (ACL that occupies 0 bytes)
-    // and an empty ACL (an ACL that occupies sizeof(ACL) bytes and has no ACEs
-    // following it). If the underlying storage is empty, it means that we're
-    // dealing with a null ACL.
-    return acl_.empty();
-  }
+  bool is_null() const { return !acl_; }
 
  private:
   explicit AccessControlList(const ACL* acl);
-  base::HeapArray<uint8_t> acl_;
+  std::unique_ptr<uint8_t[]> acl_;
 };
 
 }  // namespace base::win

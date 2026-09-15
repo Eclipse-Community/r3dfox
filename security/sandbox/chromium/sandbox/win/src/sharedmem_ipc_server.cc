@@ -8,7 +8,6 @@
 #include <stdint.h>
 
 #include "base/check.h"
-#include "base/compiler_specific.h"
 #include "base/functional/callback.h"
 #include "base/memory/ptr_util.h"
 #include "base/notreached.h"
@@ -101,8 +100,7 @@ bool SharedMemIPCServer::Init(void* shared_mem,
   // 4) initialize the server side of the channel (service_context).
   // 5) call the thread provider RegisterWait to register the ping events.
   for (size_t ix = 0; ix != channel_count; ++ix) {
-    ChannelControl* client_context =
-        &UNSAFE_TODO(client_control_->channels[ix]);
+    ChannelControl* client_context = &client_control_->channels[ix];
     ServerControl* service_context = new ServerControl;
     server_contexts_.push_back(base::WrapUnique(service_context));
 
@@ -122,18 +120,17 @@ bool SharedMemIPCServer::Init(void* shared_mem,
     service_context->shared_base = reinterpret_cast<char*>(shared_mem);
     service_context->channel_size = channel_size;
     service_context->channel = client_context;
-    service_context->channel_buffer = UNSAFE_TODO(service_context->shared_base +
-                                                  client_context->channel_base);
+    service_context->channel_buffer =
+        service_context->shared_base + client_context->channel_base;
     service_context->dispatcher = call_dispatcher_;
     service_context->target_info.process = target_process_;
     service_context->target_info.process_id = target_process_id_;
     // Advance to the next channel.
     base_start += channel_size;
     // Register the ping event with the threadpool.
-    thread_pool_->RegisterWait(this, service_context->ping_event.get(),
+    thread_pool_->RegisterWait(this, service_context->ping_event.Get(),
                                ThreadPingEventReady, service_context);
   }
-  // All handles are locally created, or trusted.
   if (!::DuplicateHandle(::GetCurrentProcess(), g_alive_mutex, target_process_,
                          &client_control_->server_alive,
                          SYNCHRONIZE | EVENT_MODIFY_STATE, false, 0)) {
@@ -266,6 +263,7 @@ bool SharedMemIPCServer::InvokeCallback(const ServerControl* service_context,
       }
       default: {
         NOTREACHED();
+        break;
       }
     }
   }
@@ -274,13 +272,12 @@ bool SharedMemIPCServer::InvokeCallback(const ServerControl* service_context,
     if (handler)
       SetCallError(SBOX_ERROR_FAILED_IPC, call_result);
   } else {
-    UNSAFE_TODO(
-        memcpy(call_result, &ipc_info.return_info, sizeof(*call_result)));
+    memcpy(call_result, &ipc_info.return_info, sizeof(*call_result));
     SetCallSuccess(call_result);
     if (params->IsInOut()) {
       // Maybe the params got changed by the broker. We need to upadte the
       // memory section.
-      UNSAFE_TODO(memcpy(ipc_buffer, params.get(), output_size));
+      memcpy(ipc_buffer, params.get(), output_size);
     }
   }
 
@@ -318,10 +315,9 @@ void __stdcall SharedMemIPCServer::ThreadPingEventReady(void* context,
   // Copy the answer back into the channel and signal the pong event. This
   // should wake up the client so it can finish the ipc cycle.
   CrossCallParams* call_params = reinterpret_cast<CrossCallParams*>(buffer);
-  UNSAFE_TODO(
-      memcpy(call_params->GetCallReturn(), &call_result, sizeof(call_result)));
+  memcpy(call_params->GetCallReturn(), &call_result, sizeof(call_result));
   ::InterlockedExchange(&service_context->channel->state, kAckChannel);
-  ::SetEvent(service_context->pong_event.get());
+  ::SetEvent(service_context->pong_event.Get());
 }
 
 bool SharedMemIPCServer::MakeEvents(base::win::ScopedHandle* server_ping,
@@ -334,22 +330,14 @@ bool SharedMemIPCServer::MakeEvents(base::win::ScopedHandle* server_ping,
 
   // The events are auto reset, and start not signaled.
   server_ping->Set(::CreateEventW(nullptr, false, false, nullptr));
-  // Avoid duplicating an invalid handle into the client.
-  if (!server_ping->is_valid()) {
-    return false;
-  }
-  if (!::DuplicateHandle(::GetCurrentProcess(), server_ping->get(),
+  if (!::DuplicateHandle(::GetCurrentProcess(), server_ping->Get(),
                          target_process_, client_ping, kDesiredAccess, false,
                          0)) {
     return false;
   }
 
   server_pong->Set(::CreateEventW(nullptr, false, false, nullptr));
-  // Avoid duplicating an invalid handle into the client.
-  if (!server_pong->is_valid()) {
-    return false;
-  }
-  if (!::DuplicateHandle(::GetCurrentProcess(), server_pong->get(),
+  if (!::DuplicateHandle(::GetCurrentProcess(), server_pong->Get(),
                          target_process_, client_pong, kDesiredAccess, false,
                          0)) {
     return false;

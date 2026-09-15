@@ -2,11 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/390223051): Remove C-library calls to fix the errors.
-#pragma allow_unsafe_libc_calls
-#endif
-
 #ifndef BASE_CONTAINERS_VECTOR_BUFFER_H_
 #define BASE_CONTAINERS_VECTOR_BUFFER_H_
 
@@ -19,7 +14,7 @@
 #include "base/check.h"
 #include "base/check_op.h"
 #include "base/compiler_specific.h"
-#include "base/containers/span.h"
+#include "base/containers/util.h"
 #include "base/memory/raw_ptr_exclusion.h"
 #include "base/numerics/checked_math.h"
 
@@ -47,7 +42,7 @@ class VectorBuffer {
  public:
   constexpr VectorBuffer() = default;
 
-#if defined(__clang__)
+#if defined(__clang__) && !defined(__native_client__)
   // This constructor converts an uninitialized void* to a T* which triggers
   // clang Control Flow Integrity. Since this is as-designed, disable.
   __attribute__((no_sanitize("cfi-unrelated-cast", "vptr")))
@@ -81,95 +76,114 @@ class VectorBuffer {
   size_t capacity() const { return capacity_; }
 
   T& operator[](size_t i) {
-    CHECK_LT(i, capacity_);
-    // SAFETY: `capacity_` is the size of the array pointed to by `buffer_`,
-    // which `i` is less than, so the dereference is inside the allocation.
-    return UNSAFE_BUFFERS(buffer_[i]);
+    // TODO(crbug.com/817982): Some call sites (at least circular_deque.h) are
+    // calling this with `i == capacity_` as a way of getting `end()`. Therefore
+    // we have to allow this for now (`i <= capacity_`), until we fix those call
+    // sites to use real iterators. This comment applies here and to `const T&
+    // operator[]`, below.
+    CHECK_LE(i, capacity_);
+    return buffer_[i];
   }
 
   const T& operator[](size_t i) const {
-    CHECK_LT(i, capacity_);
-    // SAFETY: `capacity_` is the size of the array pointed to by `buffer_`,
-    // which `i` is less than, so the dereference is inside the allocation.
-    return UNSAFE_BUFFERS(buffer_[i]);
+    CHECK_LE(i, capacity_);
+    return buffer_[i];
   }
-
-  const T* data() const { return buffer_; }
-  T* data() { return buffer_; }
 
   T* begin() { return buffer_; }
-  T* end() {
-    // SAFETY: `capacity_` is the size of the array pointed to by `buffer_`.
-    return UNSAFE_BUFFERS(buffer_ + capacity_);
-  }
-
-  span<T> as_span() {
-    // SAFETY: The `buffer_` array's size is `capacity_` so this gives the
-    // pointer to the start and one-past-the-end of the `buffer_`.
-    return UNSAFE_BUFFERS(span(buffer_, buffer_ + capacity_));
-  }
-
-  span<T> subspan(size_t index) { return as_span().subspan(index); }
-
-  span<T> subspan(size_t index, size_t size) {
-    return as_span().subspan(index, size);
-  }
-
-  T* get_at(size_t index) { return as_span().get_at(index); }
+  T* end() { return &buffer_[capacity_]; }
 
   // DestructRange ------------------------------------------------------------
 
-  static void DestructRange(span<T> range) {
-    // Trivially destructible objects need not have their destructors called.
-    if constexpr (!std::is_trivially_destructible_v<T>) {
-      for (T& t : range) {
-        t.~T();
-      }
+  // Trivially destructible objects need not have their destructors called.
+  template <typename T2 = T,
+            std::enable_if_t<std::is_trivially_destructible_v<T2>, int> = 0>
+  void DestructRange(T* begin, T* end) {}
+
+  // Non-trivially destructible objects must have their destructors called
+  // individually.
+  template <typename T2 = T,
+            std::enable_if_t<!std::is_trivially_destructible_v<T2>, int> = 0>
+  void DestructRange(T* begin, T* end) {
+    CHECK_LE(begin, end);
+    while (begin != end) {
+      begin->~T();
+      begin++;
     }
   }
 
   // MoveRange ----------------------------------------------------------------
+  //
+  // The destructor will be called (as necessary) for all moved types. The
+  // ranges must not overlap.
+  //
+  // The parameters and begin and end (one past the last) of the input buffer,
+  // and the address of the first element to copy to. There must be sufficient
+  // room in the destination for all items in the range [begin, end).
+
+  // Trivially copyable types can use memcpy. Trivially copyable implies
+  // that there is a trivial destructor as we don't have to call it.
+
+  // Trivially relocatable types can also use memcpy. Trivially relocatable
+  // imples that memcpy is equivalent to move + destroy.
 
   template <typename T2>
   static inline constexpr bool is_trivially_copyable_or_relocatable =
       std::is_trivially_copyable_v<T2> || IS_TRIVIALLY_RELOCATABLE(T2);
 
-  // Moves or copies elements from the `from` span to the `to` span. Uses memcpy
-  // when possible. The memory in `to` must be uninitialized and the ranges must
-  // not overlap.
-  //
-  // The objects in `from` are destroyed afterward.
-  static void MoveConstructRange(span<T> from, span<T> to) {
-    CHECK(!RangesOverlap(from, to));
-    CHECK_EQ(from.size(), to.size());
+  template <typename T2 = T,
+            std::enable_if_t<is_trivially_copyable_or_relocatable<T2>, int> = 0>
+  static void MoveRange(T* from_begin, T* from_end, T* to) {
+    CHECK(!RangesOverlap(from_begin, from_end, to));
 
-    if constexpr (is_trivially_copyable_or_relocatable<T>) {
-      // We can't use span::copy_from() as it tries to call copy constructors,
-      // and fails to compile on move-only trivially-relocatable types.
-      // TODO(https://crbug.com/432507886): find a way to remove the void* cast
-      memcpy(static_cast<void*>(to.data()), from.data(), to.size_bytes());
-      // Destructors are skipped because they are trivial or should be elided in
-      // trivial relocation (https://reviews.llvm.org/D114732).
-    } else {
-      for (size_t i = 0; i < from.size(); ++i) {
-        T* to_pointer = to.subspan(i).data();
-        if constexpr (std::move_constructible<T>) {
-          new (to_pointer) T(std::move(from[i]));
-        } else {
-          new (to_pointer) T(from[i]);
-        }
-        from[i].~T();
-      }
+    memcpy(
+        static_cast<void*>(to), from_begin,
+        CheckSub(get_uintptr(from_end), get_uintptr(from_begin)).ValueOrDie());
+  }
+
+  // Not trivially copyable, but movable: call the move constructor and
+  // destruct the original.
+  template <typename T2 = T,
+            std::enable_if_t<std::is_move_constructible_v<T2> &&
+                                 !is_trivially_copyable_or_relocatable<T2>,
+                             int> = 0>
+  static void MoveRange(T* from_begin, T* from_end, T* to) {
+    CHECK(!RangesOverlap(from_begin, from_end, to));
+    while (from_begin != from_end) {
+      new (to) T(std::move(*from_begin));
+      from_begin->~T();
+      from_begin++;
+      to++;
+    }
+  }
+
+  // Not movable, not trivially copyable: call the copy constructor and
+  // destruct the original.
+  template <typename T2 = T,
+            std::enable_if_t<!std::is_move_constructible_v<T2> &&
+                                 !is_trivially_copyable_or_relocatable<T2>,
+                             int> = 0>
+  static void MoveRange(T* from_begin, T* from_end, T* to) {
+    CHECK(!RangesOverlap(from_begin, from_end, to));
+    while (from_begin != from_end) {
+      new (to) T(*from_begin);
+      from_begin->~T();
+      from_begin++;
+      to++;
     }
   }
 
  private:
-  static bool RangesOverlap(span<T> a, span<T> b) {
-    const auto a_start = reinterpret_cast<uintptr_t>(a.data());
-    const auto a_end = reinterpret_cast<uintptr_t>(a.data()) + a.size();
-    const auto b_start = reinterpret_cast<uintptr_t>(b.data());
-    const auto b_end = reinterpret_cast<uintptr_t>(b.data()) + b.size();
-    return a_end > b_start && a_start < b_end;
+  static bool RangesOverlap(const T* from_begin,
+                            const T* from_end,
+                            const T* to) {
+    const auto from_begin_uintptr = get_uintptr(from_begin);
+    const auto from_end_uintptr = get_uintptr(from_end);
+    const auto to_uintptr = get_uintptr(to);
+    return !(
+        to >= from_end ||
+        CheckAdd(to_uintptr, CheckSub(from_end_uintptr, from_begin_uintptr))
+                .ValueOrDie() <= from_begin_uintptr);
   }
 
   // `buffer_` is not a raw_ptr<...> for performance reasons (based on analysis

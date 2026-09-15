@@ -10,11 +10,11 @@
 #include <ntstatus.h>
 #include <stdint.h>
 
+#include <algorithm>
 #include <string>
 
 #include "base/notreached.h"
 #include "base/win/scoped_handle.h"
-#include "base/win/windows_handle_util.h"
 #include "sandbox/win/src/internal_types.h"
 #include "sandbox/win/src/ipc_tags.h"
 #include "sandbox/win/src/nt_internals.h"
@@ -65,8 +65,6 @@ NTSTATUS NtCreateFileInTarget(HANDLE* target_file_handle,
     return status;
   }
 
-  // `local_handle` must be valid from CreateFile() call, `target_process` is
-  // trusted and `target_file_handle` is an outparam.
   if (!::DuplicateHandle(::GetCurrentProcess(), local_handle, target_process,
                          target_file_handle, 0, false,
                          DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) {
@@ -86,11 +84,17 @@ bool FileSystemPolicy::GenerateRules(const wchar_t* name,
   }
 
   bool is_pipe = IsPipe(mod_name);
+  if (!PreProcessName(&mod_name)) {
+    // The path to be added might contain a reparse point.
+    NOTREACHED();
+    return false;
+  }
 
-  // If the path starts with '\' then we assume it's a native path, otherwise
-  // it's a Win32 path and we need to add the NT DOS devices prefix.
-  if (mod_name[0] != L'\\') {
-    mod_name.insert(0, kNTPrefix);
+  // TODO(cpu) bug 32224: This prefix add is a hack because we don't have the
+  // infrastructure to normalize names. In any case we need to escape the
+  // question marks.
+  if (_wcsnicmp(mod_name.c_str(), kNTDevicePrefix, kNTDevicePrefixLen)) {
+    mod_name = FixNTPrefixForMatch(mod_name);
     name = mod_name.c_str();
   }
 
@@ -117,23 +121,23 @@ bool FileSystemPolicy::GenerateRules(const wchar_t* name,
 
   // Create and open are not allowed for query.
   if (semantics != FileSemantics::kAllowQuery) {
-    if (!create.AddStringMatch(IF, OpenFile::NAME, name) ||
+    if (!create.AddStringMatch(IF, OpenFile::NAME, name, CASE_INSENSITIVE) ||
         !policy->AddRule(IpcTag::NTCREATEFILE, &create)) {
       return false;
     }
 
-    if (!open.AddStringMatch(IF, OpenFile::NAME, name) ||
+    if (!open.AddStringMatch(IF, OpenFile::NAME, name, CASE_INSENSITIVE) ||
         !policy->AddRule(IpcTag::NTOPENFILE, &open)) {
       return false;
     }
   }
 
-  if (!query.AddStringMatch(IF, OpenFile::NAME, name) ||
+  if (!query.AddStringMatch(IF, OpenFile::NAME, name, CASE_INSENSITIVE) ||
       !policy->AddRule(IpcTag::NTQUERYATTRIBUTESFILE, &query)) {
     return false;
   }
 
-  if (!query_full.AddStringMatch(IF, OpenFile::NAME, name) ||
+  if (!query_full.AddStringMatch(IF, OpenFile::NAME, name, CASE_INSENSITIVE) ||
       !policy->AddRule(IpcTag::NTQUERYFULLATTRIBUTESFILE, &query_full)) {
     return false;
   }
@@ -141,7 +145,7 @@ bool FileSystemPolicy::GenerateRules(const wchar_t* name,
   // Rename is not allowed for read-only and does not make sense for pipes.
   if (semantics == FileSemantics::kAllowAny && !is_pipe) {
     PolicyRule rename(result);
-    if (!rename.AddStringMatch(IF, OpenFile::NAME, name) ||
+    if (!rename.AddStringMatch(IF, OpenFile::NAME, name, CASE_INSENSITIVE) ||
         !policy->AddRule(IpcTag::NTSETINFO_RENAME, &rename)) {
       return false;
     }
@@ -265,13 +269,6 @@ bool FileSystemPolicy::SetInformationFileAction(EvalResult eval_result,
     return false;
   }
 
-  // `target_file_handle` is not trustworthy, providing a pseudohandle here
-  // will cause it to be sent to SetInformationFile which is likely harmless,
-  // but ok to reject before duplication.
-  if (base::win::IsPseudoHandle(target_file_handle)) {
-    return false;
-  }
-
   HANDLE local_handle = nullptr;
   if (!::DuplicateHandle(client_info.process, target_file_handle,
                          ::GetCurrentProcess(), &local_handle, 0, false,
@@ -288,6 +285,47 @@ bool FileSystemPolicy::SetInformationFileAction(EvalResult eval_result,
       local_handle, io_block, file_info, length, file_info_class);
 
   return true;
+}
+
+bool PreProcessName(std::wstring* path) {
+  // We now allow symbolic links to be opened via the broker, so we can no
+  // longer rely on the same object check where we checked the path of the
+  // opened file against the original. We don't specify a root when creating
+  // OBJECT_ATTRIBUTES from file names for brokering so they must be fully
+  // qualified and we can just check for the parent directory double dot between
+  // two backslashes. NtCreateFile doesn't seem to allow it anyway, but this is
+  // just an extra precaution. It also doesn't seem to allow the forward slash,
+  // but this is also used for checking policy rules, so we just replace forward
+  // slashes with backslashes.
+  std::replace(path->begin(), path->end(), L'/', L'\\');
+  if (path->find(L"\\..\\") != std::wstring::npos) {
+    return false;
+  }
+
+  ConvertToLongPath(path);
+  return true;
+}
+
+std::wstring FixNTPrefixForMatch(const std::wstring& name) {
+  std::wstring mod_name = name;
+
+  // NT prefix escaped for rule matcher
+  const wchar_t kNTPrefixEscaped[] = L"\\/?/?\\";
+  const int kNTPrefixEscapedLen = std::size(kNTPrefixEscaped) - 1;
+
+  if (0 != mod_name.compare(0, kNTPrefixLen, kNTPrefix)) {
+    if (0 != mod_name.compare(0, kNTPrefixEscapedLen, kNTPrefixEscaped)) {
+      // TODO(nsylvain): Find a better way to do name resolution. Right now we
+      // take the name and we expand it.
+      mod_name.insert(0, kNTPrefixEscaped);
+    }
+  } else {
+    // Start of name matches NT prefix, replace with escaped format
+    // Fixes bug: 334882
+    mod_name.replace(0, kNTPrefixLen, kNTPrefixEscaped);
+  }
+
+  return mod_name;
 }
 
 }  // namespace sandbox

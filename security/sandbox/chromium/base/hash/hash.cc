@@ -4,17 +4,13 @@
 
 #include "base/hash/hash.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <limits>
-#include <string>
 #include <string_view>
 
-#include "base/containers/span.h"
-#include "base/dcheck_is_on.h"
+#include "base/check_op.h"
 #include "base/notreached.h"
-#include "base/numerics/safe_conversions.h"
+#include "base/rand_util.h"
 #include "base/third_party/cityhash/city.h"
+#include "build/build_config.h"
 
 // Definition in base/third_party/superfasthash/superfasthash.c. (Third-party
 // code did not come with its own header file, so declaring the function here.)
@@ -26,15 +22,14 @@ namespace base {
 namespace {
 
 size_t FastHashImpl(base::span<const uint8_t> data) {
-  auto chars = as_chars(data);
   // We use the updated CityHash within our namespace (not the deprecated
   // version from third_party/smhasher).
   if constexpr (sizeof(size_t) > 4) {
-    return base::internal::cityhash_v111::CityHash64(chars.data(),
-                                                     chars.size());
+    return base::internal::cityhash_v111::CityHash64(
+        reinterpret_cast<const char*>(data.data()), data.size());
   } else {
-    return base::internal::cityhash_v111::CityHash32(chars.data(),
-                                                     chars.size());
+    return base::internal::cityhash_v111::CityHash32(
+        reinterpret_cast<const char*>(data.data()), data.size());
   }
 }
 
@@ -51,9 +46,8 @@ size_t HashInts32Impl(uint32_t value1, uint32_t value2) {
   uint64_t value1_64 = value1;
   uint64_t hash64 = (value1_64 << 32) | value2;
 
-  if (sizeof(size_t) >= sizeof(uint64_t)) {
+  if (sizeof(size_t) >= sizeof(uint64_t))
     return static_cast<size_t>(hash64);
-  }
 
   uint64_t odd_random = 481046412LL << 32 | 1025306955LL;
   uint32_t shift_random = 10121U << 16;
@@ -87,9 +81,8 @@ size_t HashInts64Impl(uint64_t value1, uint64_t value2) {
 
   uint64_t hash64 = product1 + product2 + product3 + product4;
 
-  if (sizeof(size_t) >= sizeof(uint64_t)) {
+  if (sizeof(size_t) >= sizeof(uint64_t))
     return static_cast<size_t>(hash64);
-  }
 
   uint64_t odd_random = 1578233944LL << 32 | 194370989LL;
   uint32_t shift_random = 20591U << 16;
@@ -128,29 +121,34 @@ size_t FastHash(base::span<const uint8_t> data) {
   return Scramble(FastHashImpl(data));
 }
 
-uint32_t Hash(base::span<const uint8_t> data) {
+uint32_t Hash(const void* data, size_t length) {
   // Currently our in-memory hash is the same as the persistent hash. The
   // split between in-memory and persistent hash functions is maintained to
   // allow the in-memory hash function to be updated in the future.
-  return PersistentHash(data);
+  return PersistentHash(data, length);
 }
 
 uint32_t Hash(const std::string& str) {
-  return PersistentHash(as_byte_span(str));
+  return PersistentHash(as_bytes(make_span(str)));
 }
 
 uint32_t PersistentHash(span<const uint8_t> data) {
   // This hash function must not change, since it is designed to be persistable
   // to disk.
-  if (data.size() > size_t{std::numeric_limits<int>::max()}) {
+  if (data.size() > static_cast<size_t>(std::numeric_limits<int>::max())) {
     NOTREACHED();
+    return 0;
   }
-  auto chars = as_chars(data);
-  return ::SuperFastHash(chars.data(), checked_cast<int>(chars.size()));
+  return ::SuperFastHash(reinterpret_cast<const char*>(data.data()),
+                         static_cast<int>(data.size()));
+}
+
+uint32_t PersistentHash(const void* data, size_t length) {
+  return PersistentHash(make_span(static_cast<const uint8_t*>(data), length));
 }
 
 uint32_t PersistentHash(std::string_view str) {
-  return PersistentHash(as_byte_span(str));
+  return PersistentHash(as_bytes(make_span(str)));
 }
 
 size_t HashInts32(uint32_t value1, uint32_t value2) {

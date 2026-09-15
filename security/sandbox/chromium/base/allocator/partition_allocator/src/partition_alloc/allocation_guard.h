@@ -2,17 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/40284755): Remove this and spanify to fix the errors.
-#pragma allow_unsafe_buffers
-#endif
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_ALLOCATION_GUARD_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_ALLOCATION_GUARD_H_
 
-#ifndef PARTITION_ALLOC_ALLOCATION_GUARD_H_
-#define PARTITION_ALLOC_ALLOCATION_GUARD_H_
-
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_config.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_config.h"
+#include "build/build_config.h"
 
 namespace partition_alloc {
 
@@ -51,4 +46,4 @@ using ::partition_alloc::ScopedDisallowAllocations;
 
 }  // namespace base::internal
 
-#endif  // PARTITION_ALLOC_ALLOCATION_GUARD_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_ALLOCATION_GUARD_H_

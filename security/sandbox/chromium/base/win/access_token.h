@@ -6,17 +6,15 @@
 #define BASE_WIN_ACCESS_TOKEN_H_
 
 #include <memory>
-#include <optional>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "base/base_export.h"
-#include "base/compiler_specific.h"
 #include "base/win/access_control_list.h"
 #include "base/win/scoped_handle.h"
 #include "base/win/sid.h"
 #include "base/win/windows_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base::win {
 
@@ -35,7 +33,7 @@ class BASE_EXPORT AccessToken {
   class BASE_EXPORT Group {
    public:
     // Get the group SID.
-    const Sid& GetSid() const LIFETIME_BOUND { return sid_; }
+    const Sid& GetSid() const { return sid_; }
     // Get the group attribute flags.
     DWORD GetAttributes() const { return attributes_; }
     // Returns true if the group is an integrity level.
@@ -82,14 +80,14 @@ class BASE_EXPORT AccessToken {
   // the original can be closed.
   // |desired_access| specifies additional access for the token handle,
   // TOKEN_QUERY will always be requested.
-  static std::optional<AccessToken> FromToken(HANDLE token,
-                                              ACCESS_MASK desired_access = 0);
+  static absl::optional<AccessToken> FromToken(HANDLE token,
+                                               ACCESS_MASK desired_access = 0);
 
   // Creates an AccessToken object from an existing token handle.
   // |token| the token handle. The AccessToken object will take ownership of
   // this handle without duplicating it. It must have been opened with at least
   // TOKEN_QUERY access to succeed.
-  static std::optional<AccessToken> FromToken(ScopedHandle&& token);
+  static absl::optional<AccessToken> FromToken(ScopedHandle&& token);
 
   // Creates an AccessToken object from a process handle.
   // |process| the process handle. The handle needs to have
@@ -101,9 +99,10 @@ class BASE_EXPORT AccessToken {
   // required.
   // |desired_access| specifies additional access for the token handle,
   // TOKEN_QUERY will always be requested.
-  static std::optional<AccessToken> FromProcess(HANDLE process,
-                                                bool impersonation = false,
-                                                ACCESS_MASK desired_access = 0);
+  static absl::optional<AccessToken> FromProcess(
+      HANDLE process,
+      bool impersonation = false,
+      ACCESS_MASK desired_access = 0);
 
   // Creates an AccessToken object for the current process.
   // |impersonation| if true then the process token will be duplicated to an
@@ -112,7 +111,7 @@ class BASE_EXPORT AccessToken {
   // required.
   // |desired_access| specifies additional access for the token handle,
   // TOKEN_QUERY will always be requested.
-  static std::optional<AccessToken> FromCurrentProcess(
+  static absl::optional<AccessToken> FromCurrentProcess(
       bool impersonation = false,
       ACCESS_MASK desired_access = 0);
 
@@ -127,9 +126,9 @@ class BASE_EXPORT AccessToken {
   // Win32 last error code will be ERROR_NO_TOKEN.
   // |desired_access| specifies additional access for the token handle,
   // TOKEN_QUERY will always be requested.
-  static std::optional<AccessToken> FromThread(HANDLE thread,
-                                               bool open_as_self = true,
-                                               ACCESS_MASK desired_access = 0);
+  static absl::optional<AccessToken> FromThread(HANDLE thread,
+                                                bool open_as_self = true,
+                                                ACCESS_MASK desired_access = 0);
 
   // Creates an AccessToken object from the current thread. The thread must be
   // impersonating a token for this to succeed.
@@ -139,7 +138,7 @@ class BASE_EXPORT AccessToken {
   // Win32 last error code will be ERROR_NO_TOKEN.
   // |desired_access| specifies additional access for the token handle,
   // TOKEN_QUERY will always be requested.
-  static std::optional<AccessToken> FromCurrentThread(
+  static absl::optional<AccessToken> FromCurrentThread(
       bool open_as_self = true,
       ACCESS_MASK desired_access = 0);
 
@@ -148,7 +147,7 @@ class BASE_EXPORT AccessToken {
   // otherwise it'll open the process token.
   // |desired_access| specifies additional access for the token handle,
   // TOKEN_QUERY will always be requested.
-  static std::optional<AccessToken> FromEffective(
+  static absl::optional<AccessToken> FromEffective(
       ACCESS_MASK desired_access = 0);
 
   AccessToken(const AccessToken&) = delete;
@@ -173,7 +172,7 @@ class BASE_EXPORT AccessToken {
   // Get the token logon SID. Returns an empty value if the token doesn't have
   // a logon SID. If the logon SID doesn't exist then the Win32 last error code
   // will be ERROR_NOT_FOUND.
-  std::optional<Sid> LogonId() const;
+  absl::optional<Sid> LogonId() const;
 
   // Get the token's integrity level. Returns MAXDWORD if the token doesn't
   // have an integrity level.
@@ -202,17 +201,17 @@ class BASE_EXPORT AccessToken {
 
   // Get the token's appcontainer SID. If not an appcontainer token this will
   // return an empty value.
-  std::optional<Sid> AppContainerSid() const;
+  absl::optional<Sid> AppContainerSid() const;
 
   // The token's capabilities. If not an appcontainer token this will return an
   // empty vector.
   std::vector<Group> Capabilities() const;
 
   // Get the UAC linked token.
-  std::optional<AccessToken> LinkedToken() const;
+  absl::optional<AccessToken> LinkedToken() const;
 
   // Get the default DACL for the token. Returns an empty value on error.
-  std::optional<AccessControlList> DefaultDacl() const;
+  absl::optional<AccessControlList> DefaultDacl() const;
 
   // Set the default DACL of the token. Token needs to have been opened with
   // TOKEN_ADJUST_DEFAULT access.
@@ -261,7 +260,7 @@ class BASE_EXPORT AccessToken {
   // TOKEN_QUERY will always be requested.
   // The original token must have TOKEN_DUPLICATE access to successfully
   // duplicate the token.
-  std::optional<AccessToken> DuplicatePrimary(
+  absl::optional<AccessToken> DuplicatePrimary(
       ACCESS_MASK desired_access = 0) const;
 
   // Duplicate the token to a new impersonation token.
@@ -270,7 +269,7 @@ class BASE_EXPORT AccessToken {
   // TOKEN_QUERY will always be requested.
   // The original token must have TOKEN_DUPLICATE access to successfully
   // duplicate the token.
-  std::optional<AccessToken> DuplicateImpersonation(
+  absl::optional<AccessToken> DuplicateImpersonation(
       SecurityImpersonationLevel impersonation_level =
           SecurityImpersonationLevel::kImpersonation,
       ACCESS_MASK desired_access = 0) const;
@@ -283,7 +282,7 @@ class BASE_EXPORT AccessToken {
   // |sids_to_restrict| is the list of SIDs to add as restricted SIDs.
   // |desired_access| specifies additional access for the token handle.
   // The token needs to be opened with TOKEN_DUPLICATE access.
-  std::optional<AccessToken> CreateRestricted(
+  absl::optional<AccessToken> CreateRestricted(
       DWORD flags,
       const std::vector<Sid>& sids_to_disable,
       const std::vector<std::wstring>& privileges_to_delete,
@@ -295,7 +294,7 @@ class BASE_EXPORT AccessToken {
   // |capabilities| the list of AppContainer capabilities.
   // |desired_access| specifies additional access for the token handle.
   // The token needs to be opened with TOKEN_DUPLICATE access.
-  std::optional<AccessToken> CreateAppContainer(
+  absl::optional<AccessToken> CreateAppContainer(
       const Sid& appcontainer_sid,
       const std::vector<Sid>& capabilities,
       ACCESS_MASK desired_access = 0) const;
@@ -305,38 +304,13 @@ class BASE_EXPORT AccessToken {
   // |enable| specify whether to enable or disable the privilege.
   // Returns the previous enable state of the privilege, or nullopt if failed.
   // The token must be opened with TOKEN_ADJUST_PRIVILEGES access.
-  std::optional<bool> SetPrivilege(const std::wstring& name, bool enable);
+  absl::optional<bool> SetPrivilege(const std::wstring& name, bool enable);
 
   // Remove a privilege permanently from the token.
   // |name| the name of the privilege to remove.
   // Returns true if successfully removed the privilege.
   // The token must be opened with TOKEN_ADJUST_PRIVILEGES access.
   bool RemovePrivilege(const std::wstring& name);
-
-  // Permanently remove all privileges from the token.
-  // Returns true if the operation was successful.
-  // The token must be opened with TOKEN_ADJUST_PRIVILEGES access.
-  bool RemoveAllPrivileges();
-
-  // Add a security attribute by name to the token.
-  // |name| the name of the attribute to add.
-  // |inherit| whether the attribute can be inherited by child processes.
-  // |value| the value of the attribute as a string.
-  // The token must be opened with TOKEN_ADJUST_DEFAULT access. The caller must
-  // have SeTcbPrivilege enabled to successfully add the attribute.
-  bool AddSecurityAttribute(std::wstring_view name,
-                            bool inherit,
-                            std::wstring_view value);
-
-  // Returns whether or not the token has the specified security attribute. The
-  // value of the security attribute is ignored. Returns std::nullopt if the
-  // token's security attributes could not be queried.
-  std::optional<bool> HasSecurityAttribute(std::wstring_view name) const;
-
-  // Returns a string value from a security attribute. Returns std::nullopt if
-  // the attribute doesn't exist or does not contain a string value.
-  std::optional<std::wstring> GetSecurityAttributeString(
-      std::wstring_view name) const;
 
   // Indicates if the AccessToken object is valid.
   bool is_valid() const;

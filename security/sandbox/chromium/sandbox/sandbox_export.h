@@ -11,7 +11,11 @@
 
 #if defined(COMPONENT_BUILD)
 
+#if defined(SANDBOX_IMPLEMENTATION)
 #define SANDBOX_EXPORT __attribute__((visibility("default")))
+#else
+#define SANDBOX_EXPORT
+#endif  // defined(SANDBOX_IMPLEMENTATION)
 
 #else  // defined(COMPONENT_BUILD)
 

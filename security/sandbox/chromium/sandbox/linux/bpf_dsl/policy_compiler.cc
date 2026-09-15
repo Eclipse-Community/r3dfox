@@ -9,11 +9,10 @@
 #include <stdint.h>
 #include <sys/syscall.h>
 
-#include <array>
-#include <bit>
 #include <limits>
 #include <ostream>
 
+#include "base/bits.h"
 #include "base/check_op.h"
 #include "sandbox/linux/bpf_dsl/bpf_dsl.h"
 #include "sandbox/linux/bpf_dsl/bpf_dsl_impl.h"
@@ -42,7 +41,7 @@ const bool kIsX32 = true;
 const bool kIsX32 = false;
 #endif
 
-constexpr auto kSyscallsRequiredForUnsafeTraps = std::to_array<int>({
+const int kSyscallsRequiredForUnsafeTraps[] = {
     __NR_rt_sigprocmask,
     __NR_rt_sigreturn,
 #if defined(__NR_sigprocmask)
@@ -51,7 +50,7 @@ constexpr auto kSyscallsRequiredForUnsafeTraps = std::to_array<int>({
 #if defined(__NR_sigreturn)
     __NR_sigreturn,
 #endif
-});
+};
 
 ResultExpr DefaultPanic(const char* error) {
   return Kill();
@@ -405,7 +404,7 @@ CodeGen::Node PolicyCompiler::MaskedEqualHalf(int argno,
   // For (arg & x) == x where x is a single-bit value, emit:
   //   LDW  [idx]
   //   JSET mask, passed, failed
-  if (mask == value && std::has_single_bit(mask)) {
+  if (mask == value && base::bits::IsPowerOfTwo(mask)) {
     return gen_.MakeInstruction(
         BPF_LD + BPF_W + BPF_ABS,
         idx,

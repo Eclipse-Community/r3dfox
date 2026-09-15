@@ -7,7 +7,6 @@
 #include <memory>
 #include <vector>
 
-#include <optional>
 #include "base/check.h"
 #include "base/notreached.h"
 #include "base/win/access_token.h"
@@ -17,6 +16,7 @@
 #include "sandbox/win/src/sandbox_nt_util.h"
 #include "sandbox/win/src/security_level.h"
 #include "sandbox/win/src/win_utils.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace sandbox {
 
@@ -29,12 +29,12 @@ void AddSidException(std::vector<base::win::Sid>& sids,
 
 }  // namespace
 
-std::optional<base::win::AccessToken> CreateRestrictedToken(
+absl::optional<base::win::AccessToken> CreateRestrictedToken(
     TokenLevel security_level,
     IntegrityLevel integrity_level,
     TokenType token_type,
     bool lockdown_default_dacl,
-    const std::optional<base::win::Sid>& unique_restricted_sid,
+    const absl::optional<base::win::Sid>& unique_restricted_sid,
     bool use_restricting_sids) {
   RestrictedToken restricted_token;
   if (lockdown_default_dacl) {
@@ -164,7 +164,7 @@ std::optional<base::win::AccessToken> CreateRestrictedToken(
       }
       break;
     case USER_LAST:
-      return std::nullopt;
+      return absl::nullopt;
   }
 
   if (deny_sids) {
@@ -176,10 +176,10 @@ std::optional<base::win::AccessToken> CreateRestrictedToken(
   }
 
   restricted_token.SetIntegrityLevel(integrity_level);
-  std::optional<base::win::AccessToken> result =
+  absl::optional<base::win::AccessToken> result =
       restricted_token.GetRestrictedToken();
   if (!result) {
-    return std::nullopt;
+    return absl::nullopt;
   }
 
   if (token_type == TokenType::kPrimary) {
@@ -189,14 +189,14 @@ std::optional<base::win::AccessToken> CreateRestrictedToken(
   result = result->DuplicateImpersonation(
       base::win::SecurityImpersonationLevel::kImpersonation, TOKEN_ALL_ACCESS);
   if (!result) {
-    return std::nullopt;
+    return absl::nullopt;
   }
 
   return result;
 }
 
 DWORD HardenTokenIntegrityLevelPolicy(const base::win::AccessToken& token) {
-  std::optional<base::win::SecurityDescriptor> sd =
+  absl::optional<base::win::SecurityDescriptor> sd =
       base::win::SecurityDescriptor::FromHandle(
           token.get(), base::win::SecurityObjectType::kKernel,
           LABEL_SECURITY_INFORMATION);

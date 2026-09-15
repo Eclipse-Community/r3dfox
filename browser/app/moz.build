@@ -139,7 +139,6 @@ if CONFIG["MOZ_SANDBOX"] and CONFIG["OS_ARCH"] == "WINNT":
     ]
 
     OS_LIBS += [
-        "shlwapi",
         "winmm",
     ]
     DELAYLOAD_DLLS += [

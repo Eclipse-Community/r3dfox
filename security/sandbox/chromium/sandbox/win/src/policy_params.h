@@ -30,11 +30,27 @@ POLPARAMS_BEGIN(NameBased)
   POLPARAM(NAME)
 POLPARAMS_END(NameBased)
 
+// Policy parameters for open event.
+POLPARAMS_BEGIN(OpenEventParams)
+  POLPARAM(NAME)
+  POLPARAM(ACCESS)
+POLPARAMS_END(OpenEventParams)
+
 // Policy Parameters for reg open / create.
 POLPARAMS_BEGIN(OpenKey)
-POLPARAM(NAME)
-POLPARAM(ACCESS)
+  POLPARAM(NAME)
+  POLPARAM(ACCESS)
 POLPARAMS_END(OpenKey)
+
+// Policy parameter for name-based policies.
+POLPARAMS_BEGIN(HandleTarget)
+  POLPARAM(NAME)
+  POLPARAM(TARGET)
+POLPARAMS_END(HandleTarget)
+
+// Policy parameters where no parameter based checks are done.
+POLPARAMS_BEGIN(EmptyParams)
+POLPARAMS_END(EmptyParams)
 
 }  // namespace sandbox
 

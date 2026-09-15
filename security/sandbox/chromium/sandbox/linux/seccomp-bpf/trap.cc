@@ -30,7 +30,8 @@
 namespace {
 
 struct arch_sigsys {
-  // RAW_PTR_EXCLUSION: Points to a code address given to us by the kernel.
+  // This is not raw_ptr because it is a pointer to a code address given to us
+  // by the kernel.
   RAW_PTR_EXCLUSION void* ip;
   int nr;
   unsigned int arch;
@@ -226,7 +227,7 @@ void Trap::SigSys(int nr, LinuxSigInfo* info, ucontext_t* ctx) {
                        SECCOMP_PARM6(ctx));
 #endif  // defined(__mips__)
   } else {
-    const auto& trap = UNSAFE_TODO(trap_array_[info->si_errno - 1]);
+    const auto& trap = trap_array_[info->si_errno - 1];
     if (!trap.safe) {
       SetIsInSigHandler();
     }
@@ -333,7 +334,7 @@ uint16_t Trap::Add(const Handler& handler) {
 
   uint16_t id = trap_array_size_ + 1;
   trap_ids_[handler] = id;
-  UNSAFE_TODO(trap_array_[trap_array_size_]) = handler;
+  trap_array_[trap_array_size_] = handler;
   trap_array_size_++;
   return id;
 }

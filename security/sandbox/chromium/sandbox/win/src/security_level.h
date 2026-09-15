@@ -288,11 +288,6 @@ const MitigationFlags MITIGATION_CET_STRICT_MODE = 0x02000000;
 // PROCESS_CREATION_MITIGATION_POLICY2_FSCTL_SYSTEM_CALL_DISABLE_ALWAYS_ON.
 const MitigationFlags MITIGATION_FSCTL_DISABLED = 0x04000000;
 
-// Restrict a process thread to never share a CPU core with another process
-// thread outside of its security domain. Corresponds to
-// PROCESS_CREATION_MITIGATION_POLICY2_RESTRICT_CORE_SHARING_ALWAYS_ON.
-const MitigationFlags MITIGATION_RESTRICT_CORE_SHARING = 0x08000000;
-
 // Begin Mozilla-added flags.
 // Working down from the high bit to avoid conflict with new upstream flags.
 

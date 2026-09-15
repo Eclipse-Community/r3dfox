@@ -8,13 +8,14 @@
 #include <string.h>
 
 #include "base/check.h"
-#include "base/compiler_specific.h"
 #include "base/notreached.h"
 #include "sandbox/win/src/crosscall_server.h"
 #include "sandbox/win/src/filesystem_dispatcher.h"
 #include "sandbox/win/src/interception.h"
 #include "sandbox/win/src/internal_types.h"
 #include "sandbox/win/src/ipc_tags.h"
+#include "sandbox/win/src/line_break_dispatcher.h"
+#include "sandbox/win/src/named_pipe_dispatcher.h"
 #include "sandbox/win/src/process_mitigations_win32k_dispatcher.h"
 #include "sandbox/win/src/process_thread_dispatcher.h"
 #include "sandbox/win/src/registry_dispatcher.h"
@@ -25,80 +26,51 @@ namespace sandbox {
 
 TopLevelDispatcher::TopLevelDispatcher(PolicyBase* policy) : policy_(policy) {
   // Initialize the IPC dispatcher array.
-  UNSAFE_TODO(memset(ipc_targets_, 0, sizeof(ipc_targets_)));
+  memset(ipc_targets_, 0, sizeof(ipc_targets_));
+  Dispatcher* dispatcher;
 
-  ConfigBase* config = policy_->config();
-  CHECK(config->IsConfigured());
+  dispatcher = new FilesystemDispatcher(policy_);
+  ipc_targets_[static_cast<size_t>(IpcTag::NTCREATEFILE)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::NTOPENFILE)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::NTSETINFO_RENAME)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::NTQUERYATTRIBUTESFILE)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::NTQUERYFULLATTRIBUTESFILE)] =
+      dispatcher;
+  filesystem_dispatcher_.reset(dispatcher);
 
-  for (IpcTag service :
-       {IpcTag::NTCREATEFILE, IpcTag::NTOPENFILE, IpcTag::NTSETINFO_RENAME,
-        IpcTag::NTQUERYATTRIBUTESFILE, IpcTag::NTQUERYFULLATTRIBUTESFILE}) {
-    if (config->NeedsIpc(service)) {
-      if (!filesystem_dispatcher_) {
-        filesystem_dispatcher_ =
-            std::make_unique<FilesystemDispatcher>(policy_);
-      }
-      UNSAFE_TODO(ipc_targets_[static_cast<size_t>(service)]) =
-          filesystem_dispatcher_.get();
-    }
-  }
+  dispatcher = new NamedPipeDispatcher(policy_);
+  ipc_targets_[static_cast<size_t>(IpcTag::CREATENAMEDPIPEW)] = dispatcher;
+  named_pipe_dispatcher_.reset(dispatcher);
 
-  for (IpcTag service : {IpcTag::NTOPENTHREAD, IpcTag::NTOPENPROCESSTOKENEX,
-                         IpcTag::CREATETHREAD}) {
-    if (config->NeedsIpc(service)) {
-      if (!thread_process_dispatcher_) {
-        thread_process_dispatcher_ =
-            std::make_unique<ThreadProcessDispatcher>();
-      }
-      UNSAFE_TODO(ipc_targets_[static_cast<size_t>(service)]) =
-          thread_process_dispatcher_.get();
-    }
-  }
+  dispatcher = new ThreadProcessDispatcher();
+  ipc_targets_[static_cast<size_t>(IpcTag::NTOPENTHREAD)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::NTOPENPROCESSTOKENEX)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::CREATETHREAD)] = dispatcher;
+  thread_process_dispatcher_.reset(dispatcher);
 
-  for (IpcTag service : {IpcTag::NTCREATEKEY, IpcTag::NTOPENKEY}) {
-    if (config->NeedsIpc(service)) {
-      if (!registry_dispatcher_) {
-        registry_dispatcher_ =
-            std::make_unique<RegistryDispatcher>(policy_);
-      }
-      UNSAFE_TODO(ipc_targets_[static_cast<size_t>(service)]) =
-          registry_dispatcher_.get();
-    }
-  }
+  dispatcher = new RegistryDispatcher(policy_);
+  ipc_targets_[static_cast<size_t>(IpcTag::NTCREATEKEY)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::NTOPENKEY)] = dispatcher;
+  registry_dispatcher_.reset(dispatcher);
 
-  for (IpcTag service :
-       {IpcTag::GDI_GDIDLLINITIALIZE, IpcTag::GDI_GETSTOCKOBJECT,
-        IpcTag::USER_GETFOREGROUNDWINDOW, IpcTag::USER_REGISTERCLASSW}) {
-    if (config->NeedsIpc(service)) {
-      if (!process_mitigations_win32k_dispatcher_) {
-        process_mitigations_win32k_dispatcher_ =
-            std::make_unique<ProcessMitigationsWin32KDispatcher>(policy_);
-      }
-      // Technically we don't need to register for IPCs but we do need this
-      // here to write the intercepts in SetupService.
-      UNSAFE_TODO(ipc_targets_[static_cast<size_t>(service)]) =
-          process_mitigations_win32k_dispatcher_.get();
-    }
-  }
+  dispatcher = new ProcessMitigationsWin32KDispatcher(policy_);
+  ipc_targets_[static_cast<size_t>(IpcTag::GDI_GDIDLLINITIALIZE)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::GDI_GETSTOCKOBJECT)] = dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::USER_GETFOREGROUNDWINDOW)] =
+      dispatcher;
+  ipc_targets_[static_cast<size_t>(IpcTag::USER_REGISTERCLASSW)] = dispatcher;
+  process_mitigations_win32k_dispatcher_.reset(dispatcher);
 
-  if (config->NeedsIpc(IpcTag::NTCREATESECTION)) {
-    signed_dispatcher_ = std::make_unique<SignedDispatcher>(policy_);
-    ipc_targets_[static_cast<size_t>(IpcTag::NTCREATESECTION)] =
-        signed_dispatcher_.get();
-  }
+  dispatcher = new SignedDispatcher(policy_);
+  ipc_targets_[static_cast<size_t>(IpcTag::NTCREATESECTION)] = dispatcher;
+  signed_dispatcher_.reset(dispatcher);
+
+  dispatcher = new LineBreakDispatcher(policy_);
+  ipc_targets_[static_cast<size_t>(IpcTag::GETCOMPLEXLINEBREAKS)] = dispatcher;
+  line_break_dispatcher_.reset(dispatcher);
 }
 
 TopLevelDispatcher::~TopLevelDispatcher() {}
-
-std::vector<IpcTag> TopLevelDispatcher::ipc_targets() {
-  std::vector<IpcTag> results = {IpcTag::PING1, IpcTag::PING2};
-  for (size_t ipc = 0; ipc < kSandboxIpcCount; ipc++) {
-    if (UNSAFE_TODO(ipc_targets_[ipc])) {
-      results.push_back(static_cast<IpcTag>(ipc));
-    }
-  }
-  return results;
-}
 
 // When an IPC is ready in any of the targets we get called. We manage an array
 // of IPC dispatchers which are keyed on the IPC tag so we normally delegate
@@ -118,6 +90,7 @@ Dispatcher* TopLevelDispatcher::OnMessageReady(IPCParams* ipc,
   Dispatcher* dispatcher = GetDispatcher(ipc->ipc_tag);
   if (!dispatcher) {
     NOTREACHED();
+    return nullptr;
   }
   return dispatcher->OnMessageReady(ipc, callback);
 }
@@ -131,6 +104,7 @@ bool TopLevelDispatcher::SetupService(InterceptionManager* manager,
   Dispatcher* dispatcher = GetDispatcher(service);
   if (!dispatcher) {
     NOTREACHED();
+    return false;
   }
   return dispatcher->SetupService(manager, service);
 }
@@ -163,11 +137,10 @@ bool TopLevelDispatcher::Ping(IPCInfo* ipc, void* arg1) {
 }
 
 Dispatcher* TopLevelDispatcher::GetDispatcher(IpcTag ipc_tag) {
-  if (ipc_tag > IpcTag::kMaxValue || ipc_tag == IpcTag::UNUSED) {
+  if (ipc_tag >= IpcTag::LAST || ipc_tag <= IpcTag::UNUSED)
     return nullptr;
-  }
 
-  return UNSAFE_TODO(ipc_targets_[static_cast<size_t>(ipc_tag)]);
+  return ipc_targets_[static_cast<size_t>(ipc_tag)];
 }
 
 }  // namespace sandbox

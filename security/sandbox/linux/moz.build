@@ -26,7 +26,6 @@ EXPORTS.mozilla += [
 ]
 
 UNIFIED_SOURCES += [
-    "../chromium-shim/base/debug/dump_without_crashing.cpp",
     "../chromium-shim/base/debug/stack_trace.cpp",
     "../chromium-shim/base/logging.cpp",
     "../chromium-shim/base/threading/platform_thread_linux.cpp",
@@ -39,6 +38,7 @@ UNIFIED_SOURCES += [
     "../chromium/base/lazy_instance_helpers.cc",
     "../chromium/base/location.cc",
     "../chromium/base/memory/ref_counted.cc",
+    "../chromium/base/posix/can_lower_nice_to.cc",
     "../chromium/base/posix/safe_strerror.cc",
     "../chromium/base/strings/string_number_conversions.cc",
     "../chromium/base/strings/string_util.cc",
@@ -47,9 +47,12 @@ UNIFIED_SOURCES += [
     "../chromium/base/strings/utf_ostream_operators.cc",
     "../chromium/base/strings/utf_string_conversion_utils.cc",
     "../chromium/base/strings/utf_string_conversions.cc",
+    "../chromium/base/synchronization/condition_variable_posix.cc",
     "../chromium/base/synchronization/lock.cc",
     "../chromium/base/synchronization/lock_impl_posix.cc",
+    "../chromium/base/synchronization/waitable_event_posix.cc",
     "../chromium/base/threading/platform_thread.cc",
+    "../chromium/base/threading/platform_thread_internal_posix.cc",
     "../chromium/base/threading/platform_thread_posix.cc",
     "../chromium/base/threading/platform_thread_ref.cc",
     "../chromium/base/threading/thread_collision_warner.cc",
@@ -59,6 +62,7 @@ UNIFIED_SOURCES += [
     "../chromium/base/threading/thread_restrictions.cc",
     "../chromium/base/time/time.cc",
     "../chromium/base/time/time_now_posix.cc",
+    "../chromium/base/trace_event/trace_event_stub.cc",
     "../chromium/sandbox/linux/bpf_dsl/bpf_dsl.cc",
     "../chromium/sandbox/linux/bpf_dsl/codegen.cc",
     "../chromium/sandbox/linux/bpf_dsl/dump_bpf.cc",
@@ -86,27 +90,6 @@ SOURCES += [
     "../chromium/sandbox/linux/seccomp-bpf/trap.cc",
     "../chromium/sandbox/linux/services/syscall_wrappers.cc",
 ]
-
-SOURCES += [
-    "/third_party/abseil-cpp/absl/base/internal/raw_logging.cc",
-    "/third_party/abseil-cpp/absl/numeric/int128.cc",
-    "/third_party/abseil-cpp/absl/strings/ascii.cc",
-    "/third_party/abseil-cpp/absl/strings/charconv.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/charconv_bigint.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/charconv_parse.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/memutil.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/str_format/arg.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/str_format/bind.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/str_format/extension.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/str_format/float_conversion.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/str_format/output.cc",
-    "/third_party/abseil-cpp/absl/strings/internal/str_format/parser.cc",
-    "/third_party/abseil-cpp/absl/strings/match.cc",
-    "/third_party/abseil-cpp/absl/strings/numbers.cc",
-]
-
-if CONFIG["CC_TYPE"] in ("clang", "gcc"):
-    SOURCES["/third_party/abseil-cpp/absl/strings/numbers.cc"].flags += ["-Wno-comma"]
 
 # This copy of SafeSPrintf doesn't need to avoid the Chromium logging
 # dependency like the one in libxul does, but this way the behavior is
@@ -144,7 +127,6 @@ LOCAL_INCLUDES += ["/security/sandbox/chromium/base/allocator/partition_allocato
 LOCAL_INCLUDES += ["/third_party/abseil-cpp"]
 LOCAL_INCLUDES += ["/nsprpub"]
 LOCAL_INCLUDES += ["/mozglue/baseprofiler/core/"]
-LOCAL_INCLUDES += ["/tools/profiler"]
 
 if CONFIG["OS_TARGET"] != "Android":
     # Needed for clock_gettime with glibc < 2.17:

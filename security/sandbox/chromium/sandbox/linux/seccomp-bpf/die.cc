@@ -57,8 +57,7 @@ void Die::SandboxDie(const char* msg, const char* file, int line) {
   if (simple_exit_) {
     LogToStderr(msg, file, line);
   } else {
-    logging::LogMessageFatal(file, line, logging::LOGGING_FATAL).stream()
-        << msg;
+    logging::LogMessage(file, line, logging::LOG_FATAL).stream() << msg;
   }
   ExitGroup();
 }
@@ -72,7 +71,7 @@ void Die::RawSandboxDie(const char* msg) {
 
 void Die::SandboxInfo(const char* msg, const char* file, int line) {
   if (!suppress_info_) {
-    logging::LogMessage(file, line, logging::LOGGING_INFO).stream() << msg;
+    logging::LogMessage(file, line, logging::LOG_INFO).stream() << msg;
   }
 }
 

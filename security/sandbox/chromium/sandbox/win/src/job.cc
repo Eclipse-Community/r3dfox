@@ -7,10 +7,9 @@
 #include <windows.h>
 
 #include <stddef.h>
-
 #include <utility>
 
-#include "sandbox/win/src/security_level.h"
+#include "sandbox/win/src/restricted_token.h"
 
 namespace sandbox {
 
@@ -67,14 +66,14 @@ DWORD Job::Init(JobLevel security_level,
     }
   }
 
-  if (!::SetInformationJobObject(job_handle_.get(),
+  if (!::SetInformationJobObject(job_handle_.Get(),
                                  JobObjectExtendedLimitInformation, &jeli,
                                  sizeof(jeli))) {
     return ::GetLastError();
   }
 
   jbur.UIRestrictionsClass = jbur.UIRestrictionsClass & (~ui_exceptions);
-  if (!::SetInformationJobObject(job_handle_.get(),
+  if (!::SetInformationJobObject(job_handle_.Get(),
                                  JobObjectBasicUIRestrictions, &jbur,
                                  sizeof(jbur))) {
     return ::GetLastError();

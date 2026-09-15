@@ -7,11 +7,10 @@
 
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 
 #include "base/base_export.h"
-#include "base/strings/cstring_view.h"
+#include "base/strings/string_piece.h"
 #include "build/build_config.h"
 
 namespace base {
@@ -19,9 +18,7 @@ namespace base {
 namespace env_vars {
 
 #if BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-// On Posix systems, this variable contains the location of the user's home
-// directory. (e.g, /home/username/).
-inline constexpr char kHome[] = "HOME";
+BASE_EXPORT extern const char kHome[];
 #endif
 
 }  // namespace env_vars
@@ -33,22 +30,21 @@ class BASE_EXPORT Environment {
   // Returns the appropriate platform-specific instance.
   static std::unique_ptr<Environment> Create();
 
-  // Returns an environment variable's value.
-  // Returns std::nullopt if the key is unset.
-  // Note that the variable may be set to an empty string.
-  virtual std::optional<std::string> GetVar(cstring_view variable_name) = 0;
+  // Gets an environment variable's value and stores it in |result|.
+  // Returns false if the key is unset.
+  virtual bool GetVar(StringPiece variable_name, std::string* result) = 0;
 
-  // Syntactic sugar for GetVar(variable_name).has_value();
-  bool HasVar(cstring_view variable_name);
+  // Syntactic sugar for GetVar(variable_name, nullptr);
+  virtual bool HasVar(StringPiece variable_name);
 
   // Returns true on success, otherwise returns false. This method should not
   // be called in a multi-threaded process.
-  virtual bool SetVar(cstring_view variable_name,
+  virtual bool SetVar(StringPiece variable_name,
                       const std::string& new_value) = 0;
 
   // Returns true on success, otherwise returns false. This method should not
   // be called in a multi-threaded process.
-  virtual bool UnSetVar(cstring_view variable_name) = 0;
+  virtual bool UnSetVar(StringPiece variable_name) = 0;
 };
 
 #if BUILDFLAG(IS_WIN)

@@ -11,7 +11,6 @@
 
 #include <string>
 
-#include "base/compiler_specific.h"
 #include "base/strings/stringprintf.h"
 #include "sandbox/linux/bpf_dsl/codegen.h"
 #include "sandbox/linux/bpf_dsl/seccomp_macros.h"
@@ -147,7 +146,7 @@ void AppendInstruction(std::string* dst, size_t pc, const sock_filter& insn) {
 }  // namespace
 
 void DumpBPF::PrintProgram(const CodeGen::Program& program) {
-  UNSAFE_TODO(fputs(StringPrintProgram(program).c_str(), stderr));
+  fputs(StringPrintProgram(program).c_str(), stderr);
 }
 
 std::string DumpBPF::StringPrintProgram(const CodeGen::Program& program) {

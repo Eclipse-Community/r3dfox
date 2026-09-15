@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <compare>
 #include <iosfwd>
 
 #include "base/base_export.h"
@@ -67,8 +66,29 @@ class UniqueProcId {
   // valid within the current process sandbox.
   ProcessId GetUnsafeValue() const { return value_; }
 
-  friend bool operator==(const UniqueProcId&, const UniqueProcId&) = default;
-  friend auto operator<=>(const UniqueProcId&, const UniqueProcId&) = default;
+  bool operator==(const UniqueProcId& other) const {
+    return value_ == other.value_;
+  }
+
+  bool operator!=(const UniqueProcId& other) const {
+    return value_ != other.value_;
+  }
+
+  bool operator<(const UniqueProcId& other) const {
+    return value_ < other.value_;
+  }
+
+  bool operator<=(const UniqueProcId& other) const {
+    return value_ <= other.value_;
+  }
+
+  bool operator>(const UniqueProcId& other) const {
+    return value_ > other.value_;
+  }
+
+  bool operator>=(const UniqueProcId& other) const {
+    return value_ >= other.value_;
+  }
 
  private:
   ProcessId value_;

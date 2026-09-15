@@ -5,23 +5,36 @@
 #ifndef BASE_NUMERICS_SAFE_MATH_SHARED_IMPL_H_
 #define BASE_NUMERICS_SAFE_MATH_SHARED_IMPL_H_
 
-// IWYU pragma: private
+#include <stddef.h>
+#include <stdint.h>
 
-#include <concepts>
+#include <cassert>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <limits>
 #include <type_traits>
 
 #include "base/numerics/safe_conversions.h"
+#include "build/build_config.h"
 
-#if defined(__asmjs__) || defined(__wasm__)
+#if BUILDFLAG(IS_ASMJS)
 // Optimized safe math instructions are incompatible with asmjs.
 #define BASE_HAS_OPTIMIZED_SAFE_MATH (0)
-#else
-#include "base/numerics/safe_math_clang_gcc_impl.h"  // IWYU pragma: export
+// Where available use builtin math overflow support on Clang and GCC.
+#elif !defined(__native_client__) &&                       \
+    ((defined(__clang__) &&                                \
+      ((__clang_major__ > 3) ||                            \
+       (__clang_major__ == 3 && __clang_minor__ >= 4))) || \
+     (defined(__GNUC__) && __GNUC__ >= 5))
+#include "base/numerics/safe_math_clang_gcc_impl.h"
 #define BASE_HAS_OPTIMIZED_SAFE_MATH (1)
+#else
+#define BASE_HAS_OPTIMIZED_SAFE_MATH (0)
 #endif
 
 namespace base {
-namespace numerics_internal {
+namespace internal {
 
 // These are the non-functioning boilerplate implementations of the optimized
 // safe math routines.
@@ -101,18 +114,18 @@ struct ClampedNegFastOp {
 // template instantiations even though we don't actually support the operations.
 // However, there is no corresponding implementation of e.g. SafeUnsignedAbs,
 // so the float versions will not compile.
-template <typename Numeric>
+template <typename Numeric,
+          bool IsInteger = std::is_integral_v<Numeric>,
+          bool IsFloat = std::is_floating_point_v<Numeric>>
 struct UnsignedOrFloatForSize;
 
 template <typename Numeric>
-  requires(std::integral<Numeric>)
-struct UnsignedOrFloatForSize<Numeric> {
+struct UnsignedOrFloatForSize<Numeric, true, false> {
   using type = typename std::make_unsigned<Numeric>::type;
 };
 
 template <typename Numeric>
-  requires(std::floating_point<Numeric>)
-struct UnsignedOrFloatForSize<Numeric> {
+struct UnsignedOrFloatForSize<Numeric, false, true> {
   using type = Numeric;
 };
 
@@ -121,45 +134,40 @@ struct UnsignedOrFloatForSize<Numeric> {
 // exhibit well-defined overflow semantics and rely on the caller to detect
 // if an overflow occurred.
 
-template <typename T>
-  requires(std::integral<T>)
+template <typename T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
 constexpr T NegateWrapper(T value) {
   using UnsignedT = typename std::make_unsigned<T>::type;
   // This will compile to a NEG on Intel, and is normal negation on ARM.
   return static_cast<T>(UnsignedT(0) - static_cast<UnsignedT>(value));
 }
 
-template <typename T>
-  requires(std::floating_point<T>)
+template <typename T, std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
 constexpr T NegateWrapper(T value) {
   return -value;
 }
 
-template <typename T>
-  requires(std::integral<T>)
+template <typename T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
 constexpr typename std::make_unsigned<T>::type InvertWrapper(T value) {
   return ~value;
 }
 
-template <typename T>
-  requires(std::integral<T>)
+template <typename T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
 constexpr T AbsWrapper(T value) {
   return static_cast<T>(SafeUnsignedAbs(value));
 }
 
-template <typename T>
-  requires(std::floating_point<T>)
+template <typename T, std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
 constexpr T AbsWrapper(T value) {
   return value < 0 ? -value : value;
 }
 
-template <template <typename, typename> class M,
+template <template <typename, typename, typename> class M,
           typename L,
-          typename R,
-          typename Math = M<UnderlyingType<L>, UnderlyingType<R>>>
-  requires requires { typename Math::result_type; }
+          typename R>
 struct MathWrapper {
-  using math = Math;
+  using math = M<typename UnderlyingType<L>::type,
+                 typename UnderlyingType<R>::type,
+                 void>;
   using type = typename math::result_type;
 };
 
@@ -168,32 +176,33 @@ struct MathWrapper {
 // solution, but it beats rewriting these over and over again.
 #define BASE_NUMERIC_ARITHMETIC_VARIADIC(CLASS, CL_ABBR, OP_NAME)       \
   template <typename L, typename R, typename... Args>                   \
-  constexpr auto CL_ABBR##OP_NAME(L lhs, R rhs, Args... args) {         \
+  constexpr auto CL_ABBR##OP_NAME(const L lhs, const R rhs,             \
+                                  const Args... args) {                 \
     return CL_ABBR##MathOp<CLASS##OP_NAME##Op, L, R, Args...>(lhs, rhs, \
                                                               args...); \
   }
 
 #define BASE_NUMERIC_ARITHMETIC_OPERATORS(CLASS, CL_ABBR, OP_NAME, OP, CMP_OP) \
   /* Binary arithmetic operator for all CLASS##Numeric operations. */          \
-  template <typename L, typename R>                                            \
-    requires(Is##CLASS##Op<L, R>)                                              \
+  template <typename L, typename R,                                            \
+            std::enable_if_t<Is##CLASS##Op<L, R>::value>* = nullptr>           \
   constexpr CLASS##Numeric<                                                    \
       typename MathWrapper<CLASS##OP_NAME##Op, L, R>::type>                    \
-  operator OP(L lhs, R rhs) {                                                  \
+  operator OP(const L lhs, const R rhs) {                                      \
     return decltype(lhs OP rhs)::template MathOp<CLASS##OP_NAME##Op>(lhs,      \
                                                                      rhs);     \
   }                                                                            \
   /* Assignment arithmetic operator implementation from CLASS##Numeric. */     \
   template <typename L>                                                        \
-    requires std::is_arithmetic_v<L>                                           \
   template <typename R>                                                        \
-  constexpr CLASS##Numeric<L>& CLASS##Numeric<L>::operator CMP_OP(R rhs) {     \
+  constexpr CLASS##Numeric<L>& CLASS##Numeric<L>::operator CMP_OP(             \
+      const R rhs) {                                                           \
     return MathOp<CLASS##OP_NAME##Op>(rhs);                                    \
   }                                                                            \
   /* Variadic arithmetic functions that return CLASS##Numeric. */              \
   BASE_NUMERIC_ARITHMETIC_VARIADIC(CLASS, CL_ABBR, OP_NAME)
 
-}  // namespace numerics_internal
+}  // namespace internal
 }  // namespace base
 
 #endif  // BASE_NUMERICS_SAFE_MATH_SHARED_IMPL_H_

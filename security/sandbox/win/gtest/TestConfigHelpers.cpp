@@ -59,10 +59,13 @@ class MockConfig : public TargetConfig {
               (JobLevel job_level, uint32_t ui_exceptions), (override));
   MOCK_METHOD(JobLevel, GetJobLevel, (), (const, override));
   MOCK_METHOD(void, SetJobMemoryLimit, (size_t memory_limit), (override));
+  MOCK_METHOD(ResultCode, AllowNamedPipes, (const wchar_t* pattern),
+              (override));
   MOCK_METHOD(ResultCode, AllowRegistryRead, (const wchar_t* pattern),
               (override));
-  MOCK_METHOD(ResultCode, AllowExtraDll, (const wchar_t* path), (override));
+  MOCK_METHOD(ResultCode, AllowExtraDlls, (const wchar_t* pattern), (override));
   MOCK_METHOD(ResultCode, SetFakeGdiInit, (), (override));
+  MOCK_METHOD(ResultCode, AllowLineBreaking, (), (override));
   MOCK_METHOD(void, AddDllToUnload, (const wchar_t* dll_name), (override));
   MOCK_METHOD(ResultCode, SetIntegrityLevel, (IntegrityLevel level),
               (override));
@@ -79,12 +82,13 @@ class MockConfig : public TargetConfig {
               (const, override));
   MOCK_METHOD(void, AddRestrictingRandomSid, (), (override));
   MOCK_METHOD(void, SetLockdownDefaultDacl, (), (override));
-  MOCK_METHOD(ResultCode, AddAppContainerProfile, (const wchar_t* package_name),
+  MOCK_METHOD(ResultCode, AddAppContainerProfile,
+              (const wchar_t* package_name, bool create_profile), (override));
+  MOCK_METHOD(scoped_refptr<AppContainer>, GetAppContainer, (), (override));
+  MOCK_METHOD(ResultCode, AddKernelObjectToClose,
+              (const wchar_t* handle_type, const wchar_t* handle_name),
               (override));
-  MOCK_METHOD(AppContainer*, GetAppContainer, (), (override));
-  MOCK_METHOD(void, AddKernelObjectToClose, (HandleToClose handle_info),
-              (override));
-  MOCK_METHOD(void, SetDisconnectCsrss, (), (override));
+  MOCK_METHOD(ResultCode, SetDisconnectCsrss, (), (override));
   MOCK_METHOD(void, SetDesktop, (Desktop desktop), (override));
   MOCK_METHOD(void, SetFilterEnvironment, (bool filter), (override));
   MOCK_METHOD(bool, GetEnvironmentFiltered, (), (override));

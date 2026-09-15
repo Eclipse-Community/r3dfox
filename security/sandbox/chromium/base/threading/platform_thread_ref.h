@@ -42,8 +42,8 @@ class PlatformThreadRef {
   constexpr PlatformThreadRef() = default;
   explicit constexpr PlatformThreadRef(RefType id) : id_(id) {}
 
-  friend bool operator==(const PlatformThreadRef&,
-                         const PlatformThreadRef&) = default;
+  bool operator==(PlatformThreadRef other) const { return id_ == other.id_; }
+  bool operator!=(PlatformThreadRef other) const { return id_ != other.id_; }
 
   bool is_null() const { return id_ == 0; }
 

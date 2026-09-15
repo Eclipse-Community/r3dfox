@@ -13,10 +13,6 @@ for var in ("UNICODE", "_UNICODE"):
 
 LOCAL_INCLUDES += ["/security/sandbox/chromium-shim"]
 LOCAL_INCLUDES += ["/security/sandbox/chromium"]
-LOCAL_INCLUDES += [
-    "/security/sandbox/chromium-shim/base/allocator/partition_allocator/src"
-]
-LOCAL_INCLUDES += ["/security/sandbox/chromium/base/allocator/partition_allocator/src"]
 LOCAL_INCLUDES += ["/third_party/abseil-cpp"]
 
 FINAL_LIBRARY = "xul-gtest"

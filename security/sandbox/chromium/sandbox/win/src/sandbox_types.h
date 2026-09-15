@@ -5,12 +5,17 @@
 #ifndef SANDBOX_WIN_SRC_SANDBOX_TYPES_H_
 #define SANDBOX_WIN_SRC_SANDBOX_TYPES_H_
 
-#include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/process/kill.h"
 #include "base/process/launch.h"
 
 namespace sandbox {
+
+#ifdef __MINGW32__
+// Map Microsoft's proprietary more-safe version of copy() back to
+// the std::basic_string method
+#define _Copy_s copy
+#endif
 
 // Operation result codes returned by the sandbox API.
 //
@@ -177,10 +182,7 @@ enum ResultCode : int {
 };
 
 // If the sandbox cannot create a secure environment for the target, the
-// target will be forcibly terminated. The sandbox may terminate the broker
-// process during shutdown if continuing would be unsafe. These are the process
-// exit codes. Note: keep up to date with CrashExitCodes enum in
-// tools/metrics/histograms/enums.xml.
+// target will be forcibly terminated. These are the process exit codes.
 enum TerminationCodes {
   SBOX_FATAL_INTEGRITY = 7006,        // Could not set the integrity level.
   SBOX_FATAL_DROPTOKEN = 7007,        // Could not lower the token.
@@ -190,7 +192,6 @@ enum TerminationCodes {
   SBOX_FATAL_MITIGATION = 7011,       // Could not set the mitigation policy.
   SBOX_FATAL_MEMORY_EXCEEDED = 7012,  // Exceeded the job memory limit.
   SBOX_FATAL_WARMUP = 7013,           // Failed to warmup.
-  SBOX_FATAL_BROKER_SHUTDOWN_HUNG = 7014,  // Broker terminated in shutdown.
   SBOX_FATAL_LAST
 };
 
@@ -220,13 +221,6 @@ enum InterceptionType {
   INTERCEPTION_UNLOAD_MODULE,  // Unload the module (don't patch)
   INTERCEPTION_LAST            // Placeholder for last item in the enumeration
 };
-
-// This callback is used for returning a process launch result from
-// StartSandboxedProcess() to the child process launcher helper. The parameters
-// include the new process handle, the Win32 last error code, and the sandbox
-// ResultCode.
-using StartSandboxedProcessCallback =
-    base::OnceCallback<void(base::Process, DWORD, int)>;
 
 }  // namespace sandbox
 

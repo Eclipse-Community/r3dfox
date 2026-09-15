@@ -6,10 +6,12 @@
 
 #include "base/compiler_specific.h"
 
-namespace base::debug {
+namespace base {
+namespace debug {
 
 // This file/function should be excluded from LTO/LTCG to ensure that the
 // compiler can't see this function's implementation when compiling calls to it.
 NOINLINE void Alias(const void* var) {}
 
-}  // namespace base::debug
+}  // namespace debug
+}  // namespace base

@@ -10,57 +10,50 @@
 #include <cstdio>
 #include <sstream>
 
-#include "base/compiler_specific.h"
-#if defined(__clang__)
-// span.h uses <ranges> which the sixgill GCC 10 plugin (used for hazard
-// analysis) cannot handle; guard the span-heavy implementation below.
-#include "base/containers/span.h"
-#endif
 #include "base/logging.h"
-#include "base/strings/cstring_view.h"
 
 namespace logging {
 
 char* CheckOpValueStr(int v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%d", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* CheckOpValueStr(unsigned v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%u", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* CheckOpValueStr(long v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%ld", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* CheckOpValueStr(unsigned long v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%lu", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* CheckOpValueStr(long long v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%lld", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* CheckOpValueStr(unsigned long long v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%llu", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* CheckOpValueStr(const void* v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%p", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* CheckOpValueStr(std::nullptr_t v) {
@@ -68,55 +61,41 @@ char* CheckOpValueStr(std::nullptr_t v) {
 }
 
 char* CheckOpValueStr(const std::string& v) {
-  return UNSAFE_TODO(strdup(v.c_str()));
+  return strdup(v.c_str());
 }
 
 char* CheckOpValueStr(std::string_view v) {
-  // Ideally this would be `strndup`, but `strndup` is not portable. We have to
-  // use malloc() instead of HeapArray in order to match strdup() in the other
-  // overloads. The API contract is that the caller uses free() to release the
-  // pointer returned here.
-  char* ret = static_cast<char*>(malloc(v.size() + 1u));
-#if defined(__clang__)
-  auto [val, nul] =
-      // SAFETY: We allocated `ret` as `v.size() + 1` bytes above.
-      UNSAFE_BUFFERS(base::span<char>(ret, v.size() + 1u)).split_at(v.size());
-  val.copy_from(v);
-  nul.copy_from(base::span_from_ref('\0'));
-#else
+  // Ideally this would be `strndup`, but `strndup` is not portable.
+  char* ret = static_cast<char*>(malloc(v.size() + 1));
   if (ret) {
     std::copy(v.begin(), v.end(), ret);
     ret[v.size()] = 0;
   }
-#endif
   return ret;
-}
-
-char* CheckOpValueStr(base::cstring_view v) {
-  return UNSAFE_TODO(strdup(v.c_str()));
 }
 
 char* CheckOpValueStr(double v) {
   char buf[50];
   snprintf(buf, sizeof(buf), "%.6lf", v);
-  return UNSAFE_TODO(strdup(buf));
+  return strdup(buf);
 }
 
 char* StreamValToStr(const void* v,
                      void (*stream_func)(std::ostream&, const void*)) {
   std::stringstream ss;
   stream_func(ss, v);
-  return UNSAFE_TODO(strdup(ss.str().c_str()));
+  return strdup(ss.str().c_str());
 }
 
 char* CreateCheckOpLogMessageString(const char* expr_str,
                                     char* v1_str,
                                     char* v2_str) {
   std::stringstream ss;
-  ss << expr_str << " (" << v1_str << " vs. " << v2_str << ")";
+  ss << "Check failed: " << expr_str << " (" << v1_str << " vs. " << v2_str
+     << ")";
   free(v1_str);
   free(v2_str);
-  return UNSAFE_TODO(strdup(ss.str().c_str()));
+  return strdup(ss.str().c_str());
 }
 
 }  // namespace logging

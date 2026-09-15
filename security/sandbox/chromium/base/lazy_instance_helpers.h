@@ -7,7 +7,6 @@
 
 #include <atomic>
 #include <cstdint>
-
 #include "base/base_export.h"
 #include "base/check.h"
 

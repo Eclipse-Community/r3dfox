@@ -7,7 +7,6 @@
 #include <ntstatus.h>
 #include <stdint.h>
 
-#include "base/win/win_util.h"
 #include "sandbox/win/src/crosscall_client.h"
 #include "sandbox/win/src/ipc_tags.h"
 #include "sandbox/win/src/policy_params.h"
@@ -73,9 +72,7 @@ TargetNtCreateSection(NtCreateSectionFunction orig_CreateSection,
     }
 
     CountedParameterSet<NameBased> params;
-    std::wstring_view object_name =
-        base::win::UnicodeStringToView(path->Name);
-    params[NameBased::NAME] = ParamPickerMake(object_name);
+    params[NameBased::NAME] = ParamPickerMake(path->Name.Buffer);
 
     // Check if this will be sent to the broker.
     if (!QueryBroker(IpcTag::NTCREATESECTION, params.GetBase()))

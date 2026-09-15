@@ -16,13 +16,13 @@
 //
 //  Operating System:
 //    IS_AIX / IS_ANDROID / IS_ASMJS / IS_CHROMEOS / IS_FREEBSD / IS_FUCHSIA /
-//    IS_IOS / IS_IOS_MACCATALYST / IS_IOS_TVOS / IS_LINUX / IS_MAC /
-//    IS_NETBSD / IS_OPENBSD / IS_QNX / IS_SOLARIS / IS_WATCHOS / IS_WIN
+//    IS_IOS / IS_IOS_MACCATALYST / IS_LINUX / IS_MAC / IS_NACL / IS_NETBSD /
+//    IS_OPENBSD / IS_QNX / IS_SOLARIS / IS_WIN
 //  Operating System family:
-//    IS_APPLE: IOS or MAC or IOS_MACCATALYST or IOS_TVOS or WATCHOS
+//    IS_APPLE: IOS or MAC or IOS_MACCATALYST
 //    IS_BSD: FREEBSD or NETBSD or OPENBSD
 //    IS_POSIX: AIX or ANDROID or ASMJS or CHROMEOS or FREEBSD or IOS or LINUX
-//              or MAC or NETBSD or OPENBSD or QNX or SOLARIS
+//              or MAC or NACL or NETBSD or OPENBSD or QNX or SOLARIS
 
 // This file also adds defines specific to the platform, architecture etc.
 //
@@ -49,22 +49,16 @@
 //    ARCH_CPU_31_BITS / ARCH_CPU_32_BITS / ARCH_CPU_64_BITS
 //    ARCH_CPU_BIG_ENDIAN / ARCH_CPU_LITTLE_ENDIAN
 
-// Mapping to some Rust conditionals:
-//
-// * `#[cfg(unix)]` ~= `BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)`
-
 #ifndef BUILD_BUILD_CONFIG_H_
 #define BUILD_BUILD_CONFIG_H_
 
 #include "build/buildflag.h"  // IWYU pragma: export
 
-// Clangd does not detect BUILDFLAG_INTERNAL_* indirect usage, so mark the
-// header as "always_keep" to avoid "unused include" warning.
-//
-// IWYU pragma: always_keep
-
 // A set of macros to use for platform detection.
-#if defined(ANDROID)
+#if defined(__native_client__)
+// __native_client__ must be first, so that other OS_ defines are not set.
+#define OS_NACL 1
+#elif defined(ANDROID)
 #define OS_ANDROID 1
 #elif defined(__APPLE__)
 // Only include TargetConditionals after testing ANDROID as some Android builds
@@ -78,12 +72,6 @@
 #if defined(TARGET_OS_MACCATALYST) && TARGET_OS_MACCATALYST
 #define OS_IOS_MACCATALYST
 #endif  // defined(TARGET_OS_MACCATALYST) && TARGET_OS_MACCATALYST
-#if defined(TARGET_OS_TV) && TARGET_OS_TV
-#define OS_IOS_TVOS 1
-#endif  // defined(TARGET_OS_TV) && TARGET_OS_TV
-#if defined(TARGET_OS_WATCH) && TARGET_OS_WATCH
-#define OS_WATCHOS 1
-#endif  // defined(TARGET_OS_WATCH) && TARGET_OS_WATCH
 #else
 #define OS_MAC 1
 #endif  // defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
@@ -93,8 +81,8 @@
 // The OS_CHROMEOS macro is defined in GN.
 #define OS_LINUX 1
 #endif  // !defined(OS_CHROMEOS)
-// Include features.h for glibc/uclibc macros.
-#include <features.h>
+// Include a system header to pull in features.h for glibc/uclibc macros.
+#include <assert.h>
 #if defined(__GLIBC__) && !defined(__UCLIBC__)
 // We really are using glibc, not uClibc pretending to be glibc.
 #define LIBC_GLIBC 1
@@ -137,11 +125,11 @@
 
 // For access to standard POSIXish features, use OS_POSIX instead of a
 // more specific macro.
-#if defined(OS_AIX) || defined(OS_ANDROID) || defined(OS_ASMJS) ||   \
-    defined(OS_FREEBSD) || defined(OS_IOS) || defined(OS_LINUX) ||   \
-    defined(OS_CHROMEOS) || defined(OS_MAC) || defined(OS_NETBSD) || \
-    defined(OS_OPENBSD) || defined(OS_QNX) || defined(OS_SOLARIS) || \
-    defined(OS_ZOS)
+#if defined(OS_AIX) || defined(OS_ANDROID) || defined(OS_ASMJS) ||  \
+    defined(OS_FREEBSD) || defined(OS_IOS) || defined(OS_LINUX) ||  \
+    defined(OS_CHROMEOS) || defined(OS_MAC) || defined(OS_NACL) ||  \
+    defined(OS_NETBSD) || defined(OS_OPENBSD) || defined(OS_QNX) || \
+    defined(OS_SOLARIS) || defined(OS_ZOS)
 #define OS_POSIX 1
 #endif
 
@@ -206,12 +194,6 @@
 #define BUILDFLAG_INTERNAL_IS_IOS_MACCATALYST() (0)
 #endif
 
-#if defined(OS_IOS_TVOS)
-#define BUILDFLAG_INTERNAL_IS_IOS_TVOS() (1)
-#else
-#define BUILDFLAG_INTERNAL_IS_IOS_TVOS() (0)
-#endif
-
 #if defined(OS_LINUX)
 #define BUILDFLAG_INTERNAL_IS_LINUX() (1)
 #else
@@ -222,6 +204,12 @@
 #define BUILDFLAG_INTERNAL_IS_MAC() (1)
 #else
 #define BUILDFLAG_INTERNAL_IS_MAC() (0)
+#endif
+
+#if defined(OS_NACL)
+#define BUILDFLAG_INTERNAL_IS_NACL() (1)
+#else
+#define BUILDFLAG_INTERNAL_IS_NACL() (0)
 #endif
 
 #if defined(OS_NETBSD)
@@ -252,12 +240,6 @@
 #define BUILDFLAG_INTERNAL_IS_SOLARIS() (1)
 #else
 #define BUILDFLAG_INTERNAL_IS_SOLARIS() (0)
-#endif
-
-#if defined(OS_WATCHOS)
-#define BUILDFLAG_INTERNAL_IS_WATCHOS() (1)
-#else
-#define BUILDFLAG_INTERNAL_IS_WATCHOS() (0)
 #endif
 
 #if defined(OS_WIN)
@@ -326,7 +308,7 @@
 #define ARCH_CPU_ARM64 1
 #define ARCH_CPU_64_BITS 1
 #define ARCH_CPU_LITTLE_ENDIAN 1
-#elif defined(__asmjs__) || defined(__wasm__)
+#elif defined(__pnacl__) || defined(__asmjs__) || defined(__wasm__)
 #define ARCH_CPU_32_BITS 1
 #define ARCH_CPU_LITTLE_ENDIAN 1
 #elif defined(__MIPSEL__)
@@ -374,19 +356,19 @@
 
 // Type detection for wchar_t.
 #if defined(OS_WIN)
-#define WCHAR_T_IS_16_BIT
+#define WCHAR_T_IS_UTF16
 #elif defined(OS_FUCHSIA)
-#define WCHAR_T_IS_32_BIT
+#define WCHAR_T_IS_UTF32
 #elif defined(OS_POSIX) && defined(COMPILER_GCC) && defined(__WCHAR_MAX__) && \
     (__WCHAR_MAX__ == 0x7fffffff || __WCHAR_MAX__ == 0xffffffff)
-#define WCHAR_T_IS_32_BIT
+#define WCHAR_T_IS_UTF32
 #elif defined(OS_POSIX) && defined(COMPILER_GCC) && defined(__WCHAR_MAX__) && \
     (__WCHAR_MAX__ == 0x7fff || __WCHAR_MAX__ == 0xffff)
 // On Posix, we'll detect short wchar_t, but projects aren't guaranteed to
 // compile in this mode (in particular, Chrome doesn't). This is intended for
 // other projects using base who manage their own dependencies and make sure
 // short wchar works for them.
-#define WCHAR_T_IS_16_BIT
+#define WCHAR_T_IS_UTF16
 #else
 #error Please add support for your compiler in build/build_config.h
 #endif
@@ -398,26 +380,6 @@
 // The compiler thinks std::u16string::const_iterator and "char16*" are
 // equivalent types.
 #define BASE_STRING16_ITERATOR_IS_CHAR16_POINTER
-#endif
-
-// Architecture-specific feature detection.
-
-#if !defined(CPU_ARM_NEON)
-#if defined(ARCH_CPU_ARM_FAMILY) && \
-    (defined(__ARM_NEON__) || defined(__ARM_NEON))
-#define CPU_ARM_NEON 1
-#endif
-#endif  // !defined(CPU_ARM_NEON)
-
-// Sanity check.
-#if defined(ARCH_CPU_ARM64) && !defined(CPU_ARM_NEON)
-#error "AArch64 mandates NEON, should be detected"
-#endif
-
-#if !defined(HAVE_MIPS_MSA_INTRINSICS)
-#if defined(__mips_msa) && defined(__mips_isa_rev) && (__mips_isa_rev >= 5)
-#define HAVE_MIPS_MSA_INTRINSICS 1
-#endif
 #endif
 
 #endif  // BUILD_BUILD_CONFIG_H_

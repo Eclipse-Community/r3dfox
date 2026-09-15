@@ -5,8 +5,6 @@
 #ifndef BASE_TYPES_STRONG_ALIAS_H_
 #define BASE_TYPES_STRONG_ALIAS_H_
 
-#include <compare>
-#include <functional>
 #include <ostream>
 #include <type_traits>
 #include <utility>
@@ -61,11 +59,12 @@ namespace base {
 // used) if UnderlyingType doesn't support them.
 //
 // StrongAlias only directly exposes comparison operators (for convenient use in
-// ordered containers). It's impossible, without reflection, to expose all
-// methods of the UnderlyingType in StrongAlias's interface. It's also
-// potentially unwanted (ex. you don't want to be able to add two StrongAliases
-// that represent socket handles). A getter and dereference operators are
-// provided in case you need to access the UnderlyingType.
+// ordered containers) and a Hasher struct (for unordered_map/set). It's
+// impossible, without reflection, to expose all methods of the UnderlyingType
+// in StrongAlias's interface. It's also potentially unwanted (ex. you don't
+// want to be able to add two StrongAliases that represent socket handles).
+// A getter and dereference operators are provided in case you need to access
+// the UnderlyingType.
 //
 // See also
 // - //styleguide/c++/blink-c++.md which provides recommendation and examples of
@@ -79,7 +78,7 @@ class StrongAlias {
  public:
   using underlying_type = UnderlyingType;
 
-  StrongAlias() = default;
+  constexpr StrongAlias() = default;
   constexpr explicit StrongAlias(const UnderlyingType& v) : value_(v) {}
   constexpr explicit StrongAlias(UnderlyingType&& v) noexcept
       : value_(std::move(v)) {}
@@ -101,27 +100,43 @@ class StrongAlias {
 
   constexpr explicit operator const UnderlyingType&() const& { return value_; }
 
-  // Comparison operators that default to the behavior of `UnderlyingType`.
-  // Note that if you wish to compare `StrongAlias<UnderlyingType>`, e.g.,
-  // by using `operator<` in a `std::set`, then `UnderlyingType` must
-  // implement `operator<=>`. If you cannot modify `UnderlyingType` (e.g.,
-  // because it is from an external library), then a work-around is to create a
-  // thin wrapper `W` around it, define `operator<=>` for the wrapper and create
-  // a `StrongAlias<W>`.
-  friend auto operator<=>(const StrongAlias& lhs,
-                          const StrongAlias& rhs) = default;
-  friend bool operator==(const StrongAlias& lhs,
-                         const StrongAlias& rhs) = default;
-
-  // Make this type hashable by Abseil if the underlying type is hashable
-  // by Abseil.
-  template <typename H>
-    requires requires(H h, const StrongAlias& strong_alias) {
-      { H::combine(std::move(h), strong_alias.value()) } -> std::same_as<H>;
-    }
-  friend H AbslHashValue(H h, const StrongAlias& strong_alias) {
-    return H::combine(std::move(h), strong_alias.value_);
+  constexpr bool operator==(const StrongAlias& other) const {
+    return value_ == other.value_;
   }
+  constexpr bool operator!=(const StrongAlias& other) const {
+    return value_ != other.value_;
+  }
+  constexpr bool operator<(const StrongAlias& other) const {
+    return value_ < other.value_;
+  }
+  constexpr bool operator<=(const StrongAlias& other) const {
+    return value_ <= other.value_;
+  }
+  constexpr bool operator>(const StrongAlias& other) const {
+    return value_ > other.value_;
+  }
+  constexpr bool operator>=(const StrongAlias& other) const {
+    return value_ >= other.value_;
+  }
+
+  // Hasher to use in std::unordered_map, std::unordered_set, etc.
+  //
+  // Example usage:
+  //     using MyType = base::StrongAlias<...>;
+  //     using MySet = std::unordered_set<MyType, typename MyType::Hasher>;
+  //
+  // https://google.github.io/styleguide/cppguide.html#std_hash asks to avoid
+  // defining specializations of `std::hash` - this is why the hasher needs to
+  // be explicitly specified and why the following code will *not* work:
+  //     using MyType = base::StrongAlias<...>;
+  //     using MySet = std::unordered_set<MyType>;  // This won't work.
+  struct Hasher {
+    using argument_type = StrongAlias;
+    using result_type = std::size_t;
+    result_type operator()(const argument_type& id) const {
+      return std::hash<UnderlyingType>()(id.value());
+    }
+  };
 
   // If UnderlyingType can be serialised into trace, its alias is also
   // serialisable.
@@ -136,21 +151,15 @@ class StrongAlias {
 };
 
 // Stream operator for convenience, streams the UnderlyingType.
-template <typename TagType, typename UnderlyingType>
-  requires(internal::SupportsOstreamOperator<UnderlyingType>)
+template <typename TagType,
+          typename UnderlyingType,
+          typename = std::enable_if_t<
+              internal::SupportsOstreamOperator<UnderlyingType>::value>>
 std::ostream& operator<<(std::ostream& stream,
                          const StrongAlias<TagType, UnderlyingType>& alias) {
   return stream << alias.value();
 }
 
 }  // namespace base
-
-template <typename TagType, typename UnderlyingType>
-struct std::hash<base::StrongAlias<TagType, UnderlyingType>> {
-  size_t operator()(
-      const base::StrongAlias<TagType, UnderlyingType>& id) const {
-    return std::hash<UnderlyingType>()(id.value());
-  }
-};
 
 #endif  // BASE_TYPES_STRONG_ALIAS_H_

@@ -5,10 +5,10 @@
 #ifndef SANDBOX_WIN_SRC_TARGET_SERVICES_H_
 #define SANDBOX_WIN_SRC_TARGET_SERVICES_H_
 
-#include <optional>
 #include "base/containers/span.h"
 #include "sandbox/win/src/sandbox.h"
 #include "sandbox/win/src/win_utils.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace sandbox {
 
@@ -25,21 +25,13 @@ class ProcessState {
   bool RevertedToSelf() const;
   // Returns true if Csrss is connected.
   bool IsCsrssConnected() const;
-  // Returns true if the LowerToken operation has been completed.
-  bool InitCompleted() const;
   // Set the current state.
   void SetInitCalled();
   void SetRevertedToSelf();
   void SetCsrssConnected(bool csrss_connected);
-  void SetInitCompleted();
 
  private:
-  enum class ProcessStateInternal {
-    NONE = 0,
-    INIT_CALLED,
-    REVERTED_TO_SELF,
-    INIT_COMPLETED
-  };
+  enum class ProcessStateInternal { NONE = 0, INIT_CALLED, REVERTED_TO_SELF };
 
   ProcessStateInternal process_state_;
   bool csrss_connected_;
@@ -58,9 +50,11 @@ class TargetServicesBase : public TargetServices {
 
   // Public interface of TargetServices. See comments in sandbox.h.
   ResultCode Init() override;
-  std::optional<base::span<const uint8_t>> GetDelegateData() override;
+  absl::optional<base::span<const uint8_t>> GetDelegateData() override;
   void LowerToken() override;
   ProcessState* GetState() override;
+  ResultCode GetComplexLineBreaks(const WCHAR* text, uint32_t length,
+                                  uint8_t* break_before) final;
 
   // Factory method.
   static TargetServicesBase* GetInstance();

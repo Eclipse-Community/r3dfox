@@ -9,13 +9,9 @@ EXPORTS.mozilla += [
 ]
 
 UNIFIED_SOURCES += [
+    "SandboxBroker.cpp",
     "SandboxBrokerCommon.cpp",
     "SandboxBrokerPolicyFactory.cpp",
-]
-
-# Conflicts with ipc/chromium headers in a unified build.
-SOURCES += [
-    "SandboxBroker.cpp",
     "SandboxBrokerRealpath.cpp",
 ]
 
@@ -33,8 +29,6 @@ LOCAL_INCLUDES += [
     "/security/sandbox/chromium-shim",
     "/security/sandbox/chromium-shim/base/allocator/partition_allocator/src",
     "/security/sandbox/chromium/base/allocator/partition_allocator/src",
-    "/third_party/abseil-cpp",
-    "/tools/profiler",
 ]
 
 if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":

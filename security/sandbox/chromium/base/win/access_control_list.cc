@@ -4,18 +4,13 @@
 
 #include "base/win/access_control_list.h"
 
+#include <aclapi.h>
 #include <windows.h>
 
-#include <aclapi.h>
-#include <stdint.h>
-
-#include <string>
 #include <utility>
 #include <vector>
 
 #include "base/check.h"
-#include "base/compiler_specific.h"
-#include "base/containers/heap_array.h"
 #include "base/logging.h"
 #include "base/notreached.h"
 #include "base/numerics/checked_math.h"
@@ -25,22 +20,18 @@ namespace base::win {
 
 namespace {
 
-base::HeapArray<uint8_t> AclToBuffer(const ACL* acl) {
+std::unique_ptr<uint8_t[]> AclToBuffer(const ACL* acl) {
   if (!acl) {
-    return {};
+    return nullptr;
   }
-  const size_t size = acl->AclSize;
-  CHECK_GE(size, sizeof(*acl));
-  // SAFETY: ACL structure is followed in memory by ACEs. The size of the ACL
-  // struct and all the data related to it is placed in `acl->AclSize`, thus it
-  // is safe to copy `acl->AclSize` bytes starting at address of `acl`. The fact
-  // that the data pertaining to ACL is placed after the ACL structure in memory
-  // is also the reason why we cannot use `base::span_from_ref()` here.
-  return base::HeapArray<uint8_t>::CopiedFrom(
-      UNSAFE_BUFFERS(base::span(reinterpret_cast<const uint8_t*>(acl), size)));
+  size_t size = acl->AclSize;
+  DCHECK(size >= sizeof(*acl));
+  std::unique_ptr<uint8_t[]> ptr = std::make_unique<uint8_t[]>(size);
+  memcpy(ptr.get(), acl, size);
+  return ptr;
 }
 
-base::HeapArray<uint8_t> EmptyAclToBuffer() {
+std::unique_ptr<uint8_t[]> EmptyAclToBuffer() {
   ACL acl = {};
   acl.AclRevision = ACL_REVISION;
   acl.AclSize = static_cast<WORD>(sizeof(acl));
@@ -60,10 +51,7 @@ ACCESS_MODE ConvertAccessMode(SecurityAccessMode access_mode) {
   }
 }
 
-// Note: on error, this function returns an empty heap array. If such an array
-// were placed inside `AccessControlList::acl_`, it would cause the access
-// control list to become a null ACL (allowing everyone access!).
-base::HeapArray<uint8_t> AddACEToAcl(
+std::unique_ptr<uint8_t[]> AddACEToAcl(
     ACL* old_acl,
     const std::vector<ExplicitAccessEntry>& entries) {
   std::vector<EXPLICIT_ACCESS> access_entries(entries.size());
@@ -82,7 +70,7 @@ base::HeapArray<uint8_t> AddACEToAcl(
   if (error != ERROR_SUCCESS) {
     ::SetLastError(error);
     DPLOG(ERROR) << "Failed adding ACEs to ACL";
-    return {};
+    return nullptr;
   }
   auto new_acl_ptr = TakeLocalAlloc(new_acl);
   return AclToBuffer(new_acl_ptr.get());
@@ -114,15 +102,15 @@ ExplicitAccessEntry& ExplicitAccessEntry::operator=(ExplicitAccessEntry&&) =
     default;
 ExplicitAccessEntry::~ExplicitAccessEntry() = default;
 
-std::optional<AccessControlList> AccessControlList::FromPACL(ACL* acl) {
+absl::optional<AccessControlList> AccessControlList::FromPACL(ACL* acl) {
   if (acl && !::IsValidAcl(acl)) {
     ::SetLastError(ERROR_INVALID_ACL);
-    return std::nullopt;
+    return absl::nullopt;
   }
   return AccessControlList{acl};
 }
 
-std::optional<AccessControlList> AccessControlList::FromMandatoryLabel(
+absl::optional<AccessControlList> AccessControlList::FromMandatoryLabel(
     DWORD integrity_level,
     DWORD inheritance,
     DWORD mandatory_policy) {
@@ -131,16 +119,16 @@ std::optional<AccessControlList> AccessControlList::FromMandatoryLabel(
   // of the SID so remove it from total.
   DWORD length = sizeof(ACL) + sizeof(SYSTEM_MANDATORY_LABEL_ACE) +
                  ::GetLengthSid(sid.GetPSID()) - sizeof(DWORD);
-  auto sacl_ptr = base::HeapArray<uint8_t>::Uninit(length);
-  PACL sacl = reinterpret_cast<PACL>(sacl_ptr.data());
+  std::unique_ptr<uint8_t[]> sacl_ptr = std::make_unique<uint8_t[]>(length);
+  PACL sacl = reinterpret_cast<PACL>(sacl_ptr.get());
 
   if (!::InitializeAcl(sacl, length, ACL_REVISION)) {
-    return std::nullopt;
+    return absl::nullopt;
   }
 
   if (!::AddMandatoryAce(sacl, ACL_REVISION, inheritance, mandatory_policy,
                          sid.GetPSID())) {
-    return std::nullopt;
+    return absl::nullopt;
   }
 
   DCHECK(::IsValidAcl(sacl));
@@ -156,14 +144,12 @@ AccessControlList::~AccessControlList() = default;
 
 bool AccessControlList::SetEntries(
     const std::vector<ExplicitAccessEntry>& entries) {
-  if (entries.empty()) {
+  if (entries.empty())
     return true;
-  }
 
-  base::HeapArray<uint8_t> acl = AddACEToAcl(get(), entries);
-  if (acl.empty()) {
+  std::unique_ptr<uint8_t[]> acl = AddACEToAcl(get(), entries);
+  if (!acl)
     return false;
-  }
 
   acl_ = std::move(acl);
   return true;
@@ -176,42 +162,6 @@ bool AccessControlList::SetEntry(const Sid& sid,
   std::vector<ExplicitAccessEntry> ace_list;
   ace_list.emplace_back(sid, mode, access_mask, inheritance);
   return SetEntries(ace_list);
-}
-
-bool AccessControlList::AddAccessAllowedConditionalAce(
-    const Sid& sid,
-    DWORD ace_flags,
-    DWORD access_mask,
-    std::wstring_view condition) {
-  base::HeapArray<uint8_t> base_acl =
-      acl_.empty() ? EmptyAclToBuffer()
-                   : base::HeapArray<uint8_t>::CopiedFrom(acl_);
-  std::wstring condition_str(condition);
-  DWORD length;
-  if (::AddConditionalAce(reinterpret_cast<ACL*>(base_acl.data()), ACL_REVISION,
-                          ace_flags, ACCESS_ALLOWED_CALLBACK_ACE_TYPE,
-                          access_mask, sid.GetPSID(), condition_str.data(),
-                          &length)) {
-    ::SetLastError(ERROR_INVALID_PARAMETER);
-    return false;
-  }
-
-  if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-    return false;
-  }
-
-  base::HeapArray<uint8_t> acl = base::HeapArray<uint8_t>::Uninit(length);
-  acl.copy_prefix_from(base_acl);
-  ACL* pacl = reinterpret_cast<ACL*>(acl.data());
-  pacl->AclSize = checked_cast<WORD>(length);
-  if (!::AddConditionalAce(pacl, ACL_REVISION, ace_flags,
-                           ACCESS_ALLOWED_CALLBACK_ACE_TYPE, access_mask,
-                           sid.GetPSID(), condition_str.data(), &length)) {
-    return false;
-  }
-
-  acl_ = std::move(acl);
-  return true;
 }
 
 AccessControlList AccessControlList::Clone() const {

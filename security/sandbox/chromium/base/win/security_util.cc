@@ -7,16 +7,14 @@
 #include <windows.h>
 #include <winternl.h>
 
-#include <optional>
-
 #include "base/check.h"
-#include "base/containers/to_vector.h"
 #include "base/files/file_path.h"
 #include "base/logging.h"
 #include "base/threading/scoped_blocking_call.h"
 #include "base/win/access_control_list.h"
 #include "base/win/scoped_handle.h"
 #include "base/win/security_descriptor.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 namespace win {
@@ -36,7 +34,7 @@ bool AddACEToPath(const FilePath& path,
   base::ScopedBlockingCall scoped_blocking_call(FROM_HERE,
                                                 base::BlockingType::MAY_BLOCK);
 
-  std::optional<SecurityDescriptor> sd =
+  absl::optional<SecurityDescriptor> sd =
       SecurityDescriptor::FromFile(path, DACL_SECURITY_INFORMATION);
   if (!sd) {
     return false;
@@ -87,54 +85,13 @@ bool DenyAccessToPath(const FilePath& path,
                       SecurityAccessMode::kDeny);
 }
 
-bool HasAccessToPath(const FilePath& path,
-                     const std::vector<Sid>& sids,
-                     DWORD access_mask,
-                     DWORD inheritance) {
-  DCHECK(!path.empty());
-  if (sids.empty()) {
-    return true;
-  }
-  base::ScopedBlockingCall scoped_blocking_call(FROM_HERE,
-                                                base::BlockingType::MAY_BLOCK);
-
-  std::optional<SecurityDescriptor> sd =
-      SecurityDescriptor::FromFile(path, DACL_SECURITY_INFORMATION);
-  if (!sd || !sd->dacl()) {
-    return false;
-  }
-
-  if (sd->dacl()->is_null()) {
-    // If the DACL is null, access is allowed.
-    return true;
-  }
-
-  PACL pacl = sd->dacl()->get();
-  // Verify that each SID has the specified access.
-  // Note that this does not check for the presence of a deny ACE.
-  for (const Sid& sid : sids) {
-    bool sid_found = false;
-    for (DWORD ace_index = 0; ace_index < pacl->AceCount; ++ace_index) {
-      PACCESS_ALLOWED_ACE ace = nullptr;
-      if (::GetAce(pacl, ace_index, reinterpret_cast<LPVOID*>(&ace)) &&
-          ace->Header.AceType == ACCESS_ALLOWED_ACE_TYPE &&
-          (ace->Header.AceFlags & inheritance) == inheritance &&
-          (ace->Mask & access_mask) == access_mask &&
-          sid.Equal(&ace->SidStart)) {
-        sid_found = true;
-        break;
-      }
-    }
-
-    if (!sid_found) {
-      return false;
-    }
-  }
-  return true;
-}
-
 std::vector<Sid> CloneSidVector(const std::vector<Sid>& sids) {
-  return base::ToVector(sids, &Sid::Clone);
+  std::vector<Sid> clone;
+  clone.reserve(sids.size());
+  for (const Sid& sid : sids) {
+    clone.push_back(sid.Clone());
+  }
+  return clone;
 }
 
 void AppendSidVector(std::vector<Sid>& base_sids,
@@ -144,11 +101,11 @@ void AppendSidVector(std::vector<Sid>& base_sids,
   }
 }
 
-std::optional<ACCESS_MASK> GetGrantedAccess(HANDLE handle) {
+absl::optional<ACCESS_MASK> GetGrantedAccess(HANDLE handle) {
   PUBLIC_OBJECT_BASIC_INFORMATION basic_info = {};
   if (!NT_SUCCESS(::NtQueryObject(handle, ObjectBasicInformation, &basic_info,
                                   sizeof(basic_info), nullptr))) {
-    return std::nullopt;
+    return absl::nullopt;
   }
   return basic_info.GrantedAccess;
 }

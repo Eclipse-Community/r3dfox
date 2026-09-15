@@ -5,12 +5,12 @@
 #ifndef BASE_WIN_SID_H_
 #define BASE_WIN_SID_H_
 
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "base/base_export.h"
 #include "base/win/windows_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base::win {
 
@@ -65,8 +65,7 @@ class BASE_EXPORT Sid {
  public:
   // Create a Sid from an AppContainer capability name. The name can be
   // completely arbitrary.
-  static std::optional<Sid> FromNamedCapability(
-      const std::wstring& capability_name);
+  static Sid FromNamedCapability(const std::wstring& capability_name);
 
   // Create a Sid from a known capability enumeration value. The Sids
   // match with the list defined in Windows 8.
@@ -76,10 +75,10 @@ class BASE_EXPORT Sid {
   static Sid FromKnownSid(WellKnownSid type);
 
   // Create a Sid from a SDDL format string, such as S-1-1-0.
-  static std::optional<Sid> FromSddlString(const std::wstring& sddl_sid);
+  static absl::optional<Sid> FromSddlString(const std::wstring& sddl_sid);
 
   // Create a Sid from a PSID pointer.
-  static std::optional<Sid> FromPSID(const PSID sid);
+  static absl::optional<Sid> FromPSID(const PSID sid);
 
   // Generate a random SID value.
   static Sid GenerateRandomSid();
@@ -88,7 +87,7 @@ class BASE_EXPORT Sid {
   static Sid FromIntegrityLevel(DWORD integrity_level);
 
   // Create a vector of SIDs from a vector of SDDL format strings.
-  static std::optional<std::vector<Sid>> FromSddlStringVector(
+  static absl::optional<std::vector<Sid>> FromSddlStringVector(
       const std::vector<std::wstring>& sddl_sids);
 
   // Create a vector of SIDs from a vector of capability names.
@@ -118,7 +117,7 @@ class BASE_EXPORT Sid {
   PSID GetPSID() const;
 
   // Converts the SID to a SDDL format string.
-  std::optional<std::wstring> ToSddlString() const;
+  absl::optional<std::wstring> ToSddlString() const;
 
   // Make a clone of the current Sid object.
   Sid Clone() const;
@@ -129,7 +128,11 @@ class BASE_EXPORT Sid {
   // Is this Sid equal to another Sid?
   bool operator==(const Sid& sid) const;
 
+  // Is this Sid not equal to another Sid?
+  bool operator!=(const Sid& sid) const;
+
  private:
+  Sid() {}
   Sid(const void* sid, size_t length);
   std::vector<char> sid_;
 };

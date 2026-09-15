@@ -10,7 +10,6 @@
 
 #include "base/strings/string_util.h"
 #include "base/win/scoped_handle.h"
-#include "base/win/windows_handle_util.h"
 #include "sandbox/win/src/crosscall_client.h"
 #include "sandbox/win/src/interception.h"
 #include "sandbox/win/src/interceptors.h"
@@ -40,14 +39,7 @@ bool SignedDispatcher::SetupService(InterceptionManager* manager,
 }
 
 bool SignedDispatcher::CreateSection(IPCInfo* ipc, HANDLE file_handle) {
-  // `file_handle` is not trusted so reject non-handle values.
-  if (base::win::IsPseudoHandle(file_handle)) {
-    return false;
-  }
-  if (!file_handle) {
-    return false;
-  }
-  // Duplicate input `file_handle` from target to broker.
+  // Duplicate input handle from target to broker.
   HANDLE local_file_handle = nullptr;
   if (!::DuplicateHandle((*ipc->client_info).process, file_handle,
                          ::GetCurrentProcess(), &local_file_handle,
@@ -56,10 +48,10 @@ bool SignedDispatcher::CreateSection(IPCInfo* ipc, HANDLE file_handle) {
   }
 
   base::win::ScopedHandle local_handle(local_file_handle);
-  auto path = GetPathFromHandle(local_handle.get());
+  auto path = GetPathFromHandle(local_handle.Get());
   if (!path)
     return false;
-  std::wstring_view module_name(*path);
+  const wchar_t* module_name = path->c_str();
   CountedParameterSet<NameBased> params;
   params[NameBased::NAME] = ParamPickerMake(module_name);
 

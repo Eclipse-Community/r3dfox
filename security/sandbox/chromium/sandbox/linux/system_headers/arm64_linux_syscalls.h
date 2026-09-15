@@ -1226,10 +1226,6 @@
 #define __NR_landlock_restrict_self 446
 #endif
 
-#if !defined(__NR_memfd_secret)
-#define __NR_memfd_secret 447
-#endif
-
 #if !defined(__NR_process_mrelease)
 #define __NR_process_mrelease 448
 #endif
@@ -1284,10 +1280,6 @@
 
 #if !defined(__NR_lsm_list_modules)
 #define __NR_lsm_list_modules 461
-#endif
-
-#if !defined(__NR_mseal)
-#define __NR_mseal 462
 #endif
 
 #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_ARM64_LINUX_SYSCALLS_H_

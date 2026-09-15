@@ -6,18 +6,23 @@
 
 #include "base/check.h"
 #include "base/notreached.h"
-#include "base/types/cxx23_to_underlying.h"
 
-namespace base::internal {
+namespace base {
+namespace internal {
 
 namespace {
 
 bool QueryCancellationTraitsForNonCancellables(
     const BindStateBase*,
     BindStateBase::CancellationQueryMode mode) {
-  // Non-cancellables are never cancelled and always valid, which means the
-  // response for each mode is the same as its underlying value.
-  return to_underlying(mode);
+  switch (mode) {
+    case BindStateBase::IS_CANCELLED:
+      return false;
+    case BindStateBase::MAYBE_VALID:
+      return true;
+  }
+  NOTREACHED();
+  return false;
 }
 
 }  // namespace
@@ -27,15 +32,16 @@ void BindStateBaseRefCountTraits::Destruct(const BindStateBase* bind_state) {
 }
 
 BindStateBase::BindStateBase(InvokeFuncStorage polymorphic_invoke,
-                             DestructorPtr destructor)
+                             void (*destructor)(const BindStateBase*))
     : BindStateBase(polymorphic_invoke,
                     destructor,
                     &QueryCancellationTraitsForNonCancellables) {}
 
 BindStateBase::BindStateBase(
     InvokeFuncStorage polymorphic_invoke,
-    DestructorPtr destructor,
-    QueryCancellationTraitsPtr query_cancellation_traits)
+    void (*destructor)(const BindStateBase*),
+    bool (*query_cancellation_traits)(const BindStateBase*,
+                                      CancellationQueryMode))
     : polymorphic_invoke_(polymorphic_invoke),
       destructor_(destructor),
       query_cancellation_traits_(query_cancellation_traits) {}
@@ -63,4 +69,5 @@ bool BindStateHolder::MaybeValid() const {
   return bind_state_->MaybeValid();
 }
 
-}  // namespace base::internal
+}  // namespace internal
+}  // namespace base

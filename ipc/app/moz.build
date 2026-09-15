@@ -36,7 +36,6 @@ if CONFIG["OS_ARCH"] == "WINNT":
 
         OS_LIBS += [
             "advapi32",
-            "shlwapi",
             "user32",
             "version",
             "winmm",

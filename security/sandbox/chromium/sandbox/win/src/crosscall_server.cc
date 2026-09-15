@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "base/check.h"
-#include "base/compiler_specific.h"
 #include "base/strings/utf_string_conversions.h"
 #include "sandbox/win/src/crosscall_client.h"
 #include "sandbox/win/src/crosscall_params.h"
@@ -186,7 +185,7 @@ CrossCallParamsEx* CrossCallParamsEx::CreateFromBuffer(void* buffer_base,
     *output_size = declared_size;
     backing_mem = new char[declared_size];
     copied_params = reinterpret_cast<CrossCallParamsEx*>(backing_mem);
-    UNSAFE_TODO(memcpy(backing_mem, call_params, declared_size));
+    memcpy(backing_mem, call_params, declared_size);
 
     // Avoid compiler optimizations across this point. Any value stored in
     // memory should be stored for real, and values previously read from memory
@@ -213,10 +212,9 @@ CrossCallParamsEx* CrossCallParamsEx::CreateFromBuffer(void* buffer_base,
   // Here and below we're making use of uintptr_t to have well-defined integer
   // overflow when doing pointer arithmetic.
   auto backing_mem_ptr = reinterpret_cast<uintptr_t>(backing_mem);
-  auto last_byte =
-      reinterpret_cast<uintptr_t>(&UNSAFE_TODO(backing_mem[declared_size]));
+  auto last_byte = reinterpret_cast<uintptr_t>(&backing_mem[declared_size]);
   auto first_byte =
-      reinterpret_cast<uintptr_t>(&UNSAFE_TODO(backing_mem[min_declared_size]));
+      reinterpret_cast<uintptr_t>(&backing_mem[min_declared_size]);
 
   // Verify here that all and each parameters make sense. This is done in the
   // local copy.
@@ -249,11 +247,10 @@ void* CrossCallParamsEx::GetRawParameter(uint32_t index,
     return nullptr;
   // The size is always computed from the parameter minus the next
   // parameter, this works because the message has an extra parameter slot
-  *size = UNSAFE_TODO(param_info_[index]).size_;
-  *type = UNSAFE_TODO(param_info_[index]).type_;
+  *size = param_info_[index].size_;
+  *type = param_info_[index].type_;
 
-  return UNSAFE_TODO(param_info_[index].offset_ +
-                     reinterpret_cast<char*>(this));
+  return param_info_[index].offset_ + reinterpret_cast<char*>(this);
 }
 
 // Covers common case for 32 bit integers.
@@ -309,7 +306,7 @@ bool CrossCallParamsEx::GetParameterPtr(uint32_t index,
   ArgType type;
   void* start = GetRawParameter(index, &size, &type);
 
-  if ((size != expected_size) || (INOUTPTR_TYPE != type))
+  if ((size != expected_size) || (INOUTPTR_TYPE != type && INPTR_TYPE != type))
     return false;
 
   if (!start)

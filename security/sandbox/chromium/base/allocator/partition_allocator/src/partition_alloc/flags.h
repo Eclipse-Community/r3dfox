@@ -2,11 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/40284755): Remove this and spanify to fix the errors.
-#pragma allow_unsafe_buffers
-#endif
-
 // This header provides a type-safe way of storing OR-combinations of enum
 // values.
 //
@@ -16,8 +11,8 @@
 // other enum value and passed on to a function that takes an int or unsigned
 // int.
 
-#ifndef PARTITION_ALLOC_FLAGS_H_
-#define PARTITION_ALLOC_FLAGS_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_FLAGS_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_FLAGS_H_
 
 #include <type_traits>
 
@@ -49,6 +44,12 @@ template <typename EnumType>
 constexpr inline IfEnum<EnumType, bool> ContainsFlags(EnumType superset,
                                                       EnumType subset) {
   return (superset & subset) == subset;
+}
+
+// Removes flags `target` from `from`.
+template <typename EnumType>
+constexpr inline IfEnum<EnumType> RemoveFlags(EnumType from, EnumType target) {
+  return from & ~target;
 }
 
 // A macro to define binary arithmetic over `EnumType`.
@@ -97,4 +98,4 @@ constexpr inline IfEnum<EnumType, bool> ContainsFlags(EnumType superset,
 
 }  // namespace partition_alloc::internal
 
-#endif  // PARTITION_ALLOC_FLAGS_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_FLAGS_H_

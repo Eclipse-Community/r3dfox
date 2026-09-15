@@ -7,15 +7,12 @@
 
 #include <stddef.h>
 
-#include <compare>
-#include <concepts>
 #include <iosfwd>
 #include <type_traits>
 #include <utility>
 
 #include "base/check.h"
 #include "base/compiler_specific.h"
-#include "base/memory/raw_ptr.h"
 #include "base/memory/raw_ptr_exclusion.h"
 
 template <class T>
@@ -65,24 +62,24 @@ constexpr Tag GetRefCountPreference() {
 template <typename T, typename U, typename V>
 constexpr bool IsRefCountPreferenceOverridden(const T*,
                                               const RefCounted<U, V>*) {
-  return !std::same_as<std::decay_t<decltype(GetRefCountPreference<T>())>,
-                       std::decay_t<decltype(GetRefCountPreference<U>())>>;
+  return !std::is_same_v<std::decay_t<decltype(GetRefCountPreference<T>())>,
+                         std::decay_t<decltype(GetRefCountPreference<U>())>>;
 }
 
 template <typename T, typename U, typename V>
 constexpr bool IsRefCountPreferenceOverridden(
     const T*,
     const RefCountedThreadSafe<U, V>*) {
-  return !std::same_as<std::decay_t<decltype(GetRefCountPreference<T>())>,
-                       std::decay_t<decltype(GetRefCountPreference<U>())>>;
+  return !std::is_same_v<std::decay_t<decltype(GetRefCountPreference<T>())>,
+                         std::decay_t<decltype(GetRefCountPreference<U>())>>;
 }
 
 template <typename T, typename U>
 constexpr bool IsRefCountPreferenceOverridden(
     const T*,
     const RefCountedDeleteOnSequence<U>*) {
-  return !std::same_as<std::decay_t<decltype(GetRefCountPreference<T>())>,
-                       std::decay_t<decltype(GetRefCountPreference<U>())>>;
+  return !std::is_same_v<std::decay_t<decltype(GetRefCountPreference<T>())>,
+                         std::decay_t<decltype(GetRefCountPreference<U>())>>;
 }
 
 constexpr bool IsRefCountPreferenceOverridden(...) {
@@ -91,7 +88,7 @@ constexpr bool IsRefCountPreferenceOverridden(...) {
 
 template <typename T, typename U, typename V>
 constexpr void AssertRefCountBaseMatches(const T*, const RefCounted<U, V>*) {
-  static_assert(std::derived_from<T, U>,
+  static_assert(std::is_base_of_v<U, T>,
                 "T implements RefCounted<U>, but U is not a base of T.");
 }
 
@@ -99,7 +96,7 @@ template <typename T, typename U, typename V>
 constexpr void AssertRefCountBaseMatches(const T*,
                                          const RefCountedThreadSafe<U, V>*) {
   static_assert(
-      std::derived_from<T, U>,
+      std::is_base_of_v<U, T>,
       "T implements RefCountedThreadSafe<U>, but U is not a base of T.");
 }
 
@@ -107,7 +104,7 @@ template <typename T, typename U>
 constexpr void AssertRefCountBaseMatches(const T*,
                                          const RefCountedDeleteOnSequence<U>*) {
   static_assert(
-      std::derived_from<T, U>,
+      std::is_base_of_v<U, T>,
       "T implements RefCountedDeleteOnSequence<U>, but U is not a base of T.");
 }
 
@@ -121,7 +118,7 @@ constexpr void AssertRefCountBaseMatches(...) {}
 template <typename T>
 scoped_refptr<T> AdoptRef(T* obj) {
   using Tag = std::decay_t<decltype(subtle::GetRefCountPreference<T>())>;
-  static_assert(std::same_as<subtle::StartRefCountFromOneTag, Tag>,
+  static_assert(std::is_same_v<subtle::StartRefCountFromOneTag, Tag>,
                 "Use AdoptRef only if the reference count starts from one.");
 
   DCHECK(obj);
@@ -157,11 +154,6 @@ scoped_refptr<T> MakeRefCounted(Args&&... args) {
 template <typename T>
 scoped_refptr<T> WrapRefCounted(T* t) {
   return scoped_refptr<T>(t);
-}
-
-template <typename T, base::RawPtrTraits Traits = base::RawPtrTraits::kEmpty>
-scoped_refptr<T> WrapRefCounted(const raw_ptr<T, Traits>& t) {
-  return scoped_refptr<T>(t.get());
 }
 
 }  // namespace base
@@ -245,9 +237,8 @@ class TRIVIAL_ABI scoped_refptr {
   // should move or copy construct from an existing scoped_refptr<T> to the
   // ref-counted object.
   scoped_refptr(T* p) : ptr_(p) {
-    if (ptr_) {
+    if (ptr_)
       AddRef(ptr_);
-    }
   }
 
   // Copy constructor. This is required in addition to the copy conversion
@@ -255,8 +246,8 @@ class TRIVIAL_ABI scoped_refptr {
   scoped_refptr(const scoped_refptr& r) : scoped_refptr(r.ptr_) {}
 
   // Copy conversion constructor.
-  template <typename U>
-    requires(std::convertible_to<U*, T*>)
+  template <typename U,
+            typename = std::enable_if_t<std::is_convertible_v<U*, T*>>>
   scoped_refptr(const scoped_refptr<U>& r) : scoped_refptr(r.ptr_) {}
 
   // Move constructor. This is required in addition to the move conversion
@@ -264,8 +255,8 @@ class TRIVIAL_ABI scoped_refptr {
   scoped_refptr(scoped_refptr&& r) noexcept : ptr_(r.ptr_) { r.ptr_ = nullptr; }
 
   // Move conversion constructor.
-  template <typename U>
-    requires(std::convertible_to<U*, T*>)
+  template <typename U,
+            typename = std::enable_if_t<std::is_convertible_v<U*, T*>>>
   scoped_refptr(scoped_refptr<U>&& r) noexcept : ptr_(r.ptr_) {
     r.ptr_ = nullptr;
   }
@@ -276,9 +267,8 @@ class TRIVIAL_ABI scoped_refptr {
                   "It's unsafe to override the ref count preference."
                   " Please remove REQUIRE_ADOPTION_FOR_REFCOUNTED_TYPE"
                   " from subclasses.");
-    if (ptr_) {
+    if (ptr_)
       Release(ptr_);
-    }
   }
 
   T* get() const { return ptr_; }
@@ -319,37 +309,23 @@ class TRIVIAL_ABI scoped_refptr {
   explicit operator bool() const { return ptr_ != nullptr; }
 
   template <typename U>
-  friend bool operator==(const scoped_refptr<T>& lhs,
-                         const scoped_refptr<U>& rhs) {
-    return lhs.ptr_ == rhs.ptr_;
-  }
-
-  // This operator is an optimization to avoid implicitly constructing a
-  // scoped_refptr<U> when comparing scoped_refptr against raw pointer. If the
-  // implicit conversion is ever removed this operator can also be removed.
-  template <typename U>
-  friend bool operator==(const scoped_refptr<T>& lhs, const U* rhs) {
-    return lhs.ptr_ == rhs;
-  }
-
-  friend bool operator==(const scoped_refptr<T>& lhs, std::nullptr_t null) {
-    return !static_cast<bool>(lhs);
+  bool operator==(const scoped_refptr<U>& rhs) const {
+    return ptr_ == rhs.get();
   }
 
   template <typename U>
-  friend auto operator<=>(const scoped_refptr<T>& lhs,
-                          const scoped_refptr<U>& rhs) {
-    return lhs.ptr_ <=> rhs.ptr_;
+  bool operator!=(const scoped_refptr<U>& rhs) const {
+    return !operator==(rhs);
   }
 
-  friend auto operator<=>(const scoped_refptr<T>& lhs, std::nullptr_t null) {
-    return lhs.ptr_ <=> static_cast<T*>(nullptr);
+  template <typename U>
+  bool operator<(const scoped_refptr<U>& rhs) const {
+    return ptr_ < rhs.get();
   }
 
  protected:
-  // RAW_PTR_EXCLUSION: scoped_refptr<> has its own UaF prevention mechanism.
-  // Given how widespread it is, we it'll likely a perf regression for no
-  // additional security benefit.
+  // This field is not a raw_ptr<> because it was filtered by the rewriter for:
+  // #union, #addr-of, #global-scope
   RAW_PTR_EXCLUSION T* ptr_ = nullptr;
 
  private:
@@ -390,6 +366,46 @@ template <typename T>
 void scoped_refptr<T>::Release(T* ptr) {
   base::subtle::AssertRefCountBaseMatches(ptr, ptr);
   ptr->Release();
+}
+
+template <typename T, typename U>
+bool operator==(const scoped_refptr<T>& lhs, const U* rhs) {
+  return lhs.get() == rhs;
+}
+
+template <typename T, typename U>
+bool operator==(const T* lhs, const scoped_refptr<U>& rhs) {
+  return lhs == rhs.get();
+}
+
+template <typename T>
+bool operator==(const scoped_refptr<T>& lhs, std::nullptr_t null) {
+  return !static_cast<bool>(lhs);
+}
+
+template <typename T>
+bool operator==(std::nullptr_t null, const scoped_refptr<T>& rhs) {
+  return !static_cast<bool>(rhs);
+}
+
+template <typename T, typename U>
+bool operator!=(const scoped_refptr<T>& lhs, const U* rhs) {
+  return !operator==(lhs, rhs);
+}
+
+template <typename T, typename U>
+bool operator!=(const T* lhs, const scoped_refptr<U>& rhs) {
+  return !operator==(lhs, rhs);
+}
+
+template <typename T>
+bool operator!=(const scoped_refptr<T>& lhs, std::nullptr_t null) {
+  return !operator==(lhs, null);
+}
+
+template <typename T>
+bool operator!=(std::nullptr_t null, const scoped_refptr<T>& rhs) {
+  return !operator==(null, rhs);
 }
 
 template <typename T>

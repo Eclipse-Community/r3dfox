@@ -8,10 +8,10 @@
 #include <windows.h>
 
 #include <lmaccess.h>
+
 #include <stddef.h>
 #include <stdint.h>
 
-#include "base/compiler_specific.h"
 #include "base/memory/raw_ptr_exclusion.h"
 #include "sandbox/win/src/internal_types.h"
 #include "sandbox/win/src/ipc_tags.h"
@@ -38,6 +38,10 @@
 
 namespace sandbox {
 
+// this is the assumed channel size. This can be overridden in a given
+// IPC implementation.
+const uint32_t kIPCChannelSize = 1024;
+
 // This is the list of all imported symbols from ntdll.dll.
 SANDBOX_INTERCEPT NtExports g_nt;
 
@@ -51,10 +55,9 @@ inline uint32_t Align(uint32_t value) {
 }
 
 inline void* memcpy_wrapper(void* dest, const void* src, size_t count) {
-  if (UNSAFE_TODO(g_nt.memcpy)) {
-    return UNSAFE_TODO(g_nt.memcpy)(dest, src, count);
-  }
-  return UNSAFE_TODO(memcpy(dest, src, count));
+  if (g_nt.memcpy)
+    return g_nt.memcpy(dest, src, count);
+  return memcpy(dest, src, count);
 }
 
 }  // namespace
@@ -221,6 +224,11 @@ class ActualCallParams : public CrossCallParams {
   ActualCallParams(const ActualCallParams&) = delete;
   ActualCallParams& operator=(const ActualCallParams&) = delete;
 
+  static constexpr size_t MaxParamsSize() {
+    return sizeof(
+        ActualCallParams<NUMBER_PARAMS, kIPCChannelSize>::parameters_);
+  }
+
   // Testing-only method. Allows setting the apparent size to a wrong value.
   // returns the previous size.
   uint32_t OverrideSize(uint32_t new_size) {
@@ -250,13 +258,12 @@ class ActualCallParams : public CrossCallParams {
     }
 
     if ((size > sizeof(*this)) ||
-        (UNSAFE_TODO(param_info_[index]).offset_ > (sizeof(*this) - size))) {
+        (param_info_[index].offset_ > (sizeof(*this) - size))) {
       // It does not fit, abort copy.
       return false;
     }
 
-    char* dest =
-        UNSAFE_TODO(reinterpret_cast<char*>(this) + param_info_[index].offset_);
+    char* dest = reinterpret_cast<char*>(this) + param_info_[index].offset_;
 
     // We might be touching user memory, this has to be done from inside a try
     // except.
@@ -271,17 +278,15 @@ class ActualCallParams : public CrossCallParams {
     if (is_in_out)
       SetIsInOut(true);
 
-    UNSAFE_TODO(param_info_[index + 1]).offset_ =
-        Align(UNSAFE_TODO(param_info_[index]).offset_ + size);
-    UNSAFE_TODO(param_info_[index]).size_ = size;
-    UNSAFE_TODO(param_info_[index]).type_ = type;
+    param_info_[index + 1].offset_ = Align(param_info_[index].offset_ + size);
+    param_info_[index].size_ = size;
+    param_info_[index].type_ = type;
     return true;
   }
 
   // Returns a pointer to a parameter in the memory section.
   void* GetParamPtr(size_t index) {
-    return UNSAFE_TODO(reinterpret_cast<char*>(this) +
-                       param_info_[index].offset_);
+    return reinterpret_cast<char*>(this) + param_info_[index].offset_;
   }
 
   // Returns the total size of the buffer. Only valid once all the paramters

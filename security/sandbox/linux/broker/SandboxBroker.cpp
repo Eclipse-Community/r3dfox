@@ -27,7 +27,7 @@
 
 #include "GeckoProfiler.h"
 #include "SpecialSystemDirectory.h"
-#include "base/strings/string_util.h"
+#include "base/string_util.h"
 #include "mozilla/Assertions.h"
 #include "mozilla/Atomics.h"
 #include "mozilla/Sprintf.h"

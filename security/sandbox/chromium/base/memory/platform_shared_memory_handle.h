@@ -9,7 +9,6 @@
 
 #if BUILDFLAG(IS_APPLE)
 #include <mach/mach.h>
-
 #include "base/apple/scoped_mach_port.h"
 #elif BUILDFLAG(IS_FUCHSIA)
 #include <lib/zx/vmo.h>
@@ -18,7 +17,6 @@
 #include "base/win/windows_types.h"
 #elif BUILDFLAG(IS_POSIX)
 #include <sys/types.h>
-
 #include "base/files/scoped_file.h"
 #endif
 
@@ -34,8 +32,6 @@ struct BASE_EXPORT FDPair {
   // The read-only descriptor, valid only in kWritable mode. Replaces |fd| when
   // a region is converted to read-only.
   int readonly_fd;
-
-  friend bool operator==(const FDPair&, const FDPair&) = default;
 };
 
 struct BASE_EXPORT ScopedFDPair {

@@ -5,11 +5,10 @@
 #ifndef BASE_STRINGS_STRING_NUMBER_CONVERSIONS_WIN_H_
 #define BASE_STRINGS_STRING_NUMBER_CONVERSIONS_WIN_H_
 
-#include <cstdint>
 #include <string>
-#include <string_view>
 
 #include "base/base_export.h"
+#include "base/strings/string_piece.h"
 
 namespace base {
 
@@ -20,17 +19,15 @@ BASE_EXPORT std::wstring NumberToWString(unsigned long value);
 BASE_EXPORT std::wstring NumberToWString(long long value);
 BASE_EXPORT std::wstring NumberToWString(unsigned long long value);
 BASE_EXPORT std::wstring NumberToWString(double value);
-BASE_EXPORT std::wstring NumberToWStringWithFixedPrecision(double value,
-                                                           int digits);
 
 // The following section contains overloads of the cross-platform APIs for
-// std::wstring and std::wstring_view.
-BASE_EXPORT bool StringToInt(std::wstring_view input, int* output);
-BASE_EXPORT bool StringToUint(std::wstring_view input, unsigned* output);
-BASE_EXPORT bool StringToInt64(std::wstring_view input, int64_t* output);
-BASE_EXPORT bool StringToUint64(std::wstring_view input, uint64_t* output);
-BASE_EXPORT bool StringToSizeT(std::wstring_view input, size_t* output);
-BASE_EXPORT bool StringToDouble(std::wstring_view input, double* output);
+// std::wstring and base::WStringPiece.
+BASE_EXPORT bool StringToInt(WStringPiece input, int* output);
+BASE_EXPORT bool StringToUint(WStringPiece input, unsigned* output);
+BASE_EXPORT bool StringToInt64(WStringPiece input, int64_t* output);
+BASE_EXPORT bool StringToUint64(WStringPiece input, uint64_t* output);
+BASE_EXPORT bool StringToSizeT(WStringPiece input, size_t* output);
+BASE_EXPORT bool StringToDouble(WStringPiece input, double* output);
 
 }  // namespace base
 

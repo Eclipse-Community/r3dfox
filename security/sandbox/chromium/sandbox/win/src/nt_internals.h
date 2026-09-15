@@ -41,6 +41,9 @@ typedef NTSTATUS(WINAPI* NtOpenFileFunction)(OUT PHANDLE FileHandle,
 typedef NTSTATUS(WINAPI* NtCloseFunction)(IN HANDLE Handle);
 
 #if !defined(__MINGW32__)
+// Uses undocumented value not in FILE_INFORMATION_CLASS.
+const auto FileRenameInformation = static_cast<FILE_INFORMATION_CLASS>(10);
+
 typedef struct _FILE_RENAME_INFORMATION {
   BOOLEAN ReplaceIfExists;
   HANDLE RootDirectory;
@@ -170,6 +173,9 @@ typedef NTSTATUS(WINAPI* NtSetInformationThreadFunction)(
     IN THREADINFOCLASS ThreadInformationClass,
     IN PVOID ThreadInformation,
     IN ULONG ThreadInformationLength);
+
+// Partial definition only for values not in PROCESS_INFO_CLASS.
+const auto ProcessHandleTable = static_cast<PROCESSINFOCLASS>(58);
 
 // Partial definition only adding fields not in winternl.h, from
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa813706(v=vs.85).aspx

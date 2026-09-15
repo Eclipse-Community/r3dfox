@@ -8,29 +8,28 @@
 #include <stdint.h>
 
 #include "base/check_op.h"
-#include "base/compiler_specific.h"
 #include "sandbox/win/src/sandbox_nt_types.h"
 #include "sandbox/win/src/sandbox_nt_util.h"
 #include "sandbox/win/src/sandbox_types.h"
 
-namespace sandbox {
-
 namespace {
+const unsigned short kMaxUniStrSize = 0xfffc / sizeof(wchar_t);
 
-// Match strings case insensitively.
-// Returns `EVAL_TRUE` if `match_str` is a prefix of `source_str` or the
-// two strings are equal.
-EvalResult MatchStrings(std::wstring_view match_str,
-                        std::wstring_view source_str) {
-  std::optional<bool> result =
-      EqualUnicodeString(match_str, source_str.substr(0, match_str.size()));
-  if (!result) {
-    return EVAL_ERROR;
+bool InitStringUnicode(const wchar_t* source,
+                       size_t length,
+                       UNICODE_STRING* ustring) {
+  if (length > kMaxUniStrSize) {
+    return false;
   }
-  return *result ? EVAL_TRUE : EVAL_FALSE;
+  ustring->Buffer = const_cast<wchar_t*>(source);
+  ustring->Length = static_cast<USHORT>(length) * sizeof(wchar_t);
+  ustring->MaximumLength = source ? ustring->Length + sizeof(wchar_t) : 0;
+  return true;
 }
 
 }  // namespace
+
+namespace sandbox {
 
 // Note: The opcodes are implemented as functions (as opposed to classes derived
 // from PolicyOpcode) because you should not add more member variables to the
@@ -89,7 +88,7 @@ EvalResult OpcodeEval<OP_ALWAYS_TRUE>(PolicyOpcode* opcode,
 // Argument 0 contains the actual action to return.
 
 PolicyOpcode* OpcodeFactory::MakeOpAction(EvalResult action, uint32_t options) {
-  PolicyOpcode* opcode = MakeBase(OP_ACTION, options, 0);
+  PolicyOpcode* opcode = MakeBase(OP_ACTION, options);
   if (!opcode)
     return nullptr;
   opcode->SetArgument(0, action);
@@ -154,6 +153,44 @@ EvalResult OpcodeEval<OP_NUMBER_MATCH>(PolicyOpcode* opcode,
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// Opcode OpNumberMatchRange
+// Requires a uint32_t in selected_param.
+// Argument 0 is the stored lower bound to match.
+// Argument 1 is the stored upper bound to match.
+
+PolicyOpcode* OpcodeFactory::MakeOpNumberMatchRange(uint8_t selected_param,
+                                                    uint32_t lower_bound,
+                                                    uint32_t upper_bound,
+                                                    uint32_t options) {
+  if (lower_bound > upper_bound) {
+    return nullptr;
+  }
+  PolicyOpcode* opcode =
+      MakeBase(OP_NUMBER_MATCH_RANGE, options, selected_param);
+  if (!opcode)
+    return nullptr;
+  opcode->SetArgument(0, lower_bound);
+  opcode->SetArgument(1, upper_bound);
+  return opcode;
+}
+
+template <>
+EvalResult OpcodeEval<OP_NUMBER_MATCH_RANGE>(PolicyOpcode* opcode,
+                                             const ParameterSet* param,
+                                             MatchContext* context) {
+  uint32_t value = 0;
+  if (!param->Get(&value))
+    return EVAL_ERROR;
+
+  uint32_t lower_bound = 0;
+  uint32_t upper_bound = 0;
+  opcode->GetArgument(0, &lower_bound);
+  opcode->GetArgument(1, &upper_bound);
+  return ((lower_bound <= value) && (upper_bound >= value)) ? EVAL_TRUE
+                                                            : EVAL_FALSE;
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // Opcode OpNumberAndMatch:
 // Requires a uint32_t in selected_param.
 // Argument 0 is the stored number to match.
@@ -188,27 +225,30 @@ EvalResult OpcodeEval<OP_NUMBER_AND_MATCH>(PolicyOpcode* opcode,
 // Argument 1 is the length in chars of the stored string.
 // Argument 2 is the offset to apply on the input string. It has special values.
 // as noted in the header file.
-// Argument 3 is the string matching options (true if last token, 0 otherwise).
+// Argument 3 is the string matching options.
 
 PolicyOpcode* OpcodeFactory::MakeOpWStringMatch(uint8_t selected_param,
-                                                std::wstring_view match_str,
+                                                const wchar_t* match_str,
                                                 int start_position,
-                                                uint32_t options,
-                                                bool last_token) {
-  if (match_str.empty()) {
+                                                StringMatchOptions match_opts,
+                                                uint32_t options) {
+  if (!match_str)
     return nullptr;
-  }
+  if ('\0' == match_str[0])
+    return nullptr;
+
+  size_t length = wcslen(match_str);
 
   PolicyOpcode* opcode = MakeBase(OP_WSTRING_MATCH, options, selected_param);
   if (!opcode)
     return nullptr;
-  ptrdiff_t delta_str = AllocRelative(opcode, match_str);
+  ptrdiff_t delta_str = AllocRelative(opcode, match_str, length + 1);
   if (0 == delta_str)
     return nullptr;
   opcode->SetArgument(0, delta_str);
-  opcode->SetArgument(1, match_str.size());
+  opcode->SetArgument(1, length);
   opcode->SetArgument(2, start_position);
-  opcode->SetArgument(3, last_token ? 1 : 0);
+  opcode->SetArgument(3, match_opts);
   return opcode;
 }
 
@@ -219,83 +259,99 @@ EvalResult OpcodeEval<OP_WSTRING_MATCH>(PolicyOpcode* opcode,
   if (!context) {
     return EVAL_ERROR;
   }
-
-  std::wstring_view source_str;
-  if (!param->Get(&source_str)) {
+  const wchar_t* source_str = nullptr;
+  if (!param->Get(&source_str))
     return EVAL_ERROR;
-  }
-
-  // Assume we won't want to match when an empty string is passed.
-  if (source_str.empty()) {
+  // Assume we won't want to match when a nullptr parameter is passed to the
+  // hooked function.
+  if (!source_str)
     return EVAL_FALSE;
-  }
 
   int start_position = 0;
   size_t match_len = 0;
-  unsigned int last_token = 0;
+  unsigned int match_opts = 0;
   opcode->GetArgument(1, &match_len);
   opcode->GetArgument(2, &start_position);
-  opcode->GetArgument(3, &last_token);
+  opcode->GetArgument(3, &match_opts);
 
-  std::wstring_view match_str(opcode->GetRelativeString(0), match_len);
-
+  const wchar_t* match_str = opcode->GetRelativeString(0);
   // Advance the source string to the last successfully evaluated position
   // according to the match context.
-  source_str.remove_prefix(context->position);
-  if (source_str.empty()) {
+  source_str = &source_str[context->position];
+  size_t source_len = GetNtExports()->wcslen(source_str);
+
+  if (0 == source_len) {
     // If we reached the end of the source string there is nothing we can
     // match against.
     return EVAL_FALSE;
   }
-
-  if (match_str.size() > source_str.size()) {
+  if (match_len > source_len) {
     // There can't be a positive match when the target string is bigger than
     // the source string
     return EVAL_FALSE;
   }
 
+  BOOLEAN case_sensitive = (match_opts & CASE_INSENSITIVE) ? TRUE : FALSE;
+
   // We have three cases, depending on the value of start_pos:
   // Case 1. We skip N characters and compare once.
   // Case 2: We skip to the end and compare once.
   // Case 3: We match the first substring (if we find any).
-  EvalResult result = EVAL_FALSE;
-  size_t start_offset = 0;
   if (start_position >= 0) {
-    start_offset = static_cast<size_t>(start_position);
+    size_t start_offset = static_cast<size_t>(start_position);
     if (kSeekToEnd == start_position) {
-      start_offset = static_cast<size_t>(source_str.size() - match_str.size());
-    } else if (last_token) {
-      // A sub-case of case 3 is that the final token needs a full match.
-      if ((match_str.size() + start_offset) != source_str.size()) {
+      start_offset = static_cast<size_t>(source_len - match_len);
+    } else if (match_opts & EXACT_LENGTH) {
+      // A sub-case of case 3 is when the EXACT_LENGTH flag is on
+      // the match needs to be not just substring but full match.
+      if ((match_len + start_offset) != source_len) {
         return EVAL_FALSE;
       }
     }
 
-    // Advance start_offset characters. Warning! this does not consider
+    // Advance start_pos characters. Warning! this does not consider
     // utf16 encodings (surrogate pairs) or other Unicode 'features'.
-    source_str.remove_prefix(start_offset);
+    source_str += start_offset;
 
     // Since we skipped, lets reevaluate just the lengths again.
-    if (match_str.size() > source_str.size()) {
+    if ((match_len + start_offset) > source_len) {
       return EVAL_FALSE;
     }
 
-    result = MatchStrings(match_str, source_str);
+    UNICODE_STRING match_ustr;
+    UNICODE_STRING source_ustr;
+    if (!InitStringUnicode(match_str, match_len, &match_ustr) ||
+        !InitStringUnicode(source_str, match_len, &source_ustr))
+      return EVAL_ERROR;
+
+    if (0 == GetNtExports()->RtlCompareUnicodeString(&match_ustr, &source_ustr,
+                                                     case_sensitive)) {
+      // Match! update the match context.
+      context->position += start_offset + match_len;
+      return EVAL_TRUE;
+    } else {
+      return EVAL_FALSE;
+    }
   } else if (start_position < 0) {
+    UNICODE_STRING match_ustr;
+    UNICODE_STRING source_ustr;
+    if (!InitStringUnicode(match_str, match_len, &match_ustr) ||
+        !InitStringUnicode(source_str, match_len, &source_ustr))
+      return EVAL_ERROR;
+
     do {
-      result = MatchStrings(match_str, source_str);
-      if (result != EVAL_FALSE) {
-        break;
+      if (0 == GetNtExports()->RtlCompareUnicodeString(
+                   &match_ustr, &source_ustr, case_sensitive)) {
+        // Match! update the match context.
+        context->position +=
+            static_cast<size_t>(source_ustr.Buffer - source_str) + match_len;
+        return EVAL_TRUE;
       }
-      source_str.remove_prefix(1);
-      start_offset++;
-    } while (source_str.size() >= match_str.size());
+      ++source_ustr.Buffer;
+      --source_len;
+    } while (source_len >= match_len);
   }
-  if (result == EVAL_TRUE) {
-    // Match! update the match context.
-    context->position += start_offset + match_str.size();
-  }
-  return result;
+  return EVAL_FALSE;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -309,7 +365,7 @@ PolicyOpcode* OpcodeFactory::MakeBase(OpcodeID opcode_id, uint32_t options) {
   PolicyOpcode* opcode = new (memory_top_) PolicyOpcode();
 
   // Fill in the standard fields, that every opcode has.
-  UNSAFE_TODO(memory_top_ += sizeof(PolicyOpcode));
+  memory_top_ += sizeof(PolicyOpcode);
   opcode->opcode_id_ = opcode_id;
   opcode->SetOptions(options);
   opcode->has_param_ = 0;
@@ -328,16 +384,18 @@ PolicyOpcode* OpcodeFactory::MakeBase(OpcodeID opcode_id,
   return opcode;
 }
 
-ptrdiff_t OpcodeFactory::AllocRelative(void* start, std::wstring_view str) {
-  size_t bytes = str.size() * sizeof(wchar_t);
+ptrdiff_t OpcodeFactory::AllocRelative(void* start,
+                                       const wchar_t* str,
+                                       size_t length) {
+  size_t bytes = length * sizeof(wchar_t);
   if (memory_size() < bytes)
     return 0;
-  UNSAFE_TODO(memory_bottom_ -= bytes);
+  memory_bottom_ -= bytes;
   if (reinterpret_cast<UINT_PTR>(memory_bottom_.get()) & 1) {
     // TODO(cpu) replace this for something better.
     ::DebugBreak();
   }
-  UNSAFE_TODO(memcpy(memory_bottom_, str.data(), bytes));
+  memcpy(memory_bottom_, str, bytes);
   ptrdiff_t delta = memory_bottom_ - reinterpret_cast<char*>(start);
   return delta;
 }
@@ -362,7 +420,7 @@ EvalResult PolicyOpcode::Evaluate(const ParameterSet* call_params,
     if (parameter_ >= param_count) {
       return EVAL_ERROR;
     }
-    selected_param = &UNSAFE_TODO(call_params[parameter_]);
+    selected_param = &call_params[parameter_];
   }
   EvalResult result = EvaluateHelper(selected_param, match);
 
@@ -399,6 +457,7 @@ EvalResult PolicyOpcode::EvaluateHelper(const ParameterSet* parameters,
     OPCODE_EVAL(OP_ALWAYS_FALSE, this, parameters, match);
     OPCODE_EVAL(OP_ALWAYS_TRUE, this, parameters, match);
     OPCODE_EVAL(OP_NUMBER_MATCH, this, parameters, match);
+    OPCODE_EVAL(OP_NUMBER_MATCH_RANGE, this, parameters, match);
     OPCODE_EVAL(OP_NUMBER_AND_MATCH, this, parameters, match);
     OPCODE_EVAL(OP_WSTRING_MATCH, this, parameters, match);
     OPCODE_EVAL(OP_ACTION, this, parameters, match);

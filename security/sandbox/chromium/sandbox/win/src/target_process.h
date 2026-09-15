@@ -9,13 +9,13 @@
 #include <stdint.h>
 
 #include <memory>
-#include <string_view>
 
 #include "base/containers/span.h"
 #include "base/environment.h"
 #include "base/gtest_prod_util.h"
 #include "base/memory/free_deleter.h"
 #include "base/memory/raw_ptr.h"
+#include "base/strings/string_util.h"
 #include "base/win/access_token.h"
 #include "base/win/scoped_handle.h"
 #include "base/win/scoped_process_information.h"
@@ -51,7 +51,7 @@ class TargetProcess {
                     const wchar_t* command_line,
                     std::unique_ptr<StartupInformationHelper> startup_info,
                     base::win::ScopedProcessInformation* target_info,
-                    std::optional<base::EnvironmentMap> env_changes,
+                    base::EnvironmentMap& env_map,
                     DWORD* win_error);
 
   // Destroys the target process.
@@ -60,8 +60,8 @@ class TargetProcess {
   // Creates the IPC objects such as the BrokerDispatcher and the
   // IPC server. The IPC server uses the services of the thread_pool.
   ResultCode Init(Dispatcher* ipc_dispatcher,
-                  std::optional<base::span<const uint8_t>> policy,
-                  std::optional<base::span<const uint8_t>> delegate_data,
+                  absl::optional<base::span<const uint8_t>> policy,
+                  absl::optional<base::span<const uint8_t>> delegate_data,
                   uint32_t shared_IPC_size,
                   DWORD* win_error);
 
@@ -83,11 +83,9 @@ class TargetProcess {
   // Returns the handle to the main thread.
   HANDLE MainThread() const { return sandbox_process_info_.thread_handle(); }
 
-  // Transfers variable at `local_address` of `size` bytes from broker to
-  // `target_address` of target.
+  // Transfers variable at |address| of |size| bytes from broker to target.
   ResultCode TransferVariable(const char* name,
-                              const void* local_address,
-                              void* target_address,
+                              const void* address,
                               size_t size);
 
   // Creates a mock TargetProcess used for testing interceptions.
@@ -108,7 +106,7 @@ class TargetProcess {
   // `to_keep`.
   static std::wstring FilterEnvironment(
       const wchar_t* env,
-      const base::span<const std::wstring_view> to_keep);
+      const base::span<const base::WStringPiece> to_keep);
 
   // Details of the target process.
   base::win::ScopedProcessInformation sandbox_process_info_;

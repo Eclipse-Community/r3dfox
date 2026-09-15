@@ -156,30 +156,6 @@ sandbox::TargetServices* GetInitializedTargetServices() {
 
 void LowerSandbox() { GetInitializedTargetServices()->LowerToken(); }
 
-class BrokerServicesDelegateImpl final
-    : public sandbox::BrokerServicesDelegate {
- public:
-  void ParallelLaunchPostTaskAndReplyWithResult(
-      const base::Location& from_here,
-      base::OnceCallback<sandbox::CreateTargetResult()> task,
-      base::OnceCallback<void(sandbox::CreateTargetResult)> reply) override {
-    // We don't want to use chromium multi-threaded launching, so just run the
-    // callbacks inline.
-    auto createTargetResult = std::move(task).Run();
-    std::move(reply).Run(std::move(createTargetResult));
-  }
-
-  void BeforeTargetProcessCreateOnCreationThread(
-      const void* trace_id) override {}
-
-  void AfterTargetProcessCreateOnCreationThread(const void* trace_id,
-                                                DWORD process_id) override {}
-
-  void OnCreateThreadActionCreateFailure(DWORD last_error) override {}
-
-  void OnCreateThreadActionDuplicateFailure(DWORD last_error) override {}
-};
-
 static sandbox::BrokerServices* InitializeBrokerServices() {
   // This might disable the verifier, so we want to do it before it is used.
   InitializeHandleVerifier();
@@ -190,8 +166,7 @@ static sandbox::BrokerServices* InitializeBrokerServices() {
     return nullptr;
   }
 
-  if (brokerServices->Init(std::make_unique<BrokerServicesDelegateImpl>()) !=
-      sandbox::SBOX_ALL_OK) {
+  if (brokerServices->Init() != sandbox::SBOX_ALL_OK) {
     return nullptr;
   }
 

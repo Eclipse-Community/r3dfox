@@ -24,7 +24,8 @@ class PolicyDiagnostic final : public PolicyInfo {
 
   PolicyDiagnostic(PolicyBase*) {}
   ~PolicyDiagnostic() override = default;
-  const std::string& JsonString() const override { MOZ_CRASH(); }
+  const char* JsonString() override { MOZ_CRASH(); }
+
 };
 
 }  // namespace sandbox

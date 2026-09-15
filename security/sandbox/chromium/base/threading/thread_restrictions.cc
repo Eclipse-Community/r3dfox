@@ -4,190 +4,212 @@
 
 #include "base/threading/thread_restrictions.h"
 
-#include "base/check.h"
-#if !defined(MOZ_SANDBOX)
 #include "base/threading/hang_watcher.h"
-#include "base/trace_event/interned_args_helper.h"
-#include "base/trace_event/typed_macros.h"
-#else
-#include "base/trace_event/trace_event.h"
-#endif  // !defined(MOZ_SANDBOX)
+#include "base/trace_event/base_tracing.h"
 #include "build/build_config.h"
+
+#if DCHECK_IS_ON()
+#include "base/check_op.h"
+#include "base/no_destructor.h"
+#include "base/threading/thread_local.h"
+
+// NaCL doesn't support stack sampling and Android is slow at stack sampling and
+// this causes timeouts (crbug.com/959139).
+#if BUILDFLAG(IS_NACL) || BUILDFLAG(IS_ANDROID)
+constexpr bool kCaptureStackTraces = false;
+#else
+// Always disabled when !EXPENSIVE_DCHECKS_ARE_ON() because user-facing builds
+// typically drop log strings anyways.
+constexpr bool kCaptureStackTraces = EXPENSIVE_DCHECKS_ARE_ON();
+#endif
 
 namespace base {
 
-BooleanWithOptionalStack::BooleanWithOptionalStack(bool value) : value_(value) {
-#if CAPTURE_THREAD_RESTRICTIONS_STACK_TRACES()
-  // The most useful stack traces are captured when `value` is true. If `value`
-  // is false we are in a SyncAllow primitive and the asserts that dcheck for
-  // allowing blocking calls will pass so there is no need to capture a stack
-  // trace. See https://crbug.com/404645680.
-  if (value) {
+BooleanWithStack::BooleanWithStack(bool value) : value_(value) {
+  if (kCaptureStackTraces) {
     stack_.emplace();
   }
-#endif  // CAPTURE_THREAD_RESTRICTIONS_STACK_TRACES()
 }
 
-std::ostream& operator<<(std::ostream& out,
-                         const BooleanWithOptionalStack& bws) {
+std::ostream& operator<<(std::ostream& out, const BooleanWithStack& bws) {
   out << bws.value_;
-#if CAPTURE_THREAD_RESTRICTIONS_STACK_TRACES()
-  if (bws.stack_.has_value()) {
-    out << " set by\n" << bws.stack_.value();
-  } else {
-    out << " (value by default)";
+  if (kCaptureStackTraces) {
+    if (bws.stack_.has_value()) {
+      out << " set by\n" << bws.stack_.value();
+    } else {
+      out << " (value by default)";
+    }
   }
-#endif  // CAPTURE_THREAD_RESTRICTIONS_STACK_TRACES()
   return out;
 }
 
-// A macro that dumps in official builds (non-fatal) if the condition is false,
-// or behaves as DCHECK in DCHECK-enabled builds. Unlike DUMP_WILL_BE_CHECK,
-// there is no intent to transform those into CHECKs. Used to report potential
-// performance issues.
-//
-// TODO(crbug.com/363049758): This is temporarily a `DCHECK` to avoid getting a
-// lot of crash reports while known issues are being addressed. Change to
-// `DUMP_WILL_BE_CHECK` once known issues are addressed.
-#define DUMP_OR_DCHECK DCHECK
-
 namespace {
 
-constinit thread_local BooleanWithOptionalStack tls_blocking_disallowed;
-constinit thread_local BooleanWithOptionalStack tls_singleton_disallowed;
-constinit thread_local BooleanWithOptionalStack
-    tls_base_sync_primitives_disallowed;
-constinit thread_local BooleanWithOptionalStack
-    tls_cpu_intensive_work_disallowed;
+// TODO(crbug.com/1423437): Change these to directly-accessed, namespace-scope
+// `thread_local BooleanWithStack`s when doing so doesn't cause crashes.
+BooleanWithStack& GetBlockingDisallowedTls() {
+  static NoDestructor<ThreadLocalOwnedPointer<BooleanWithStack>> instance;
+  auto& tls = *instance;
+  if (!tls.Get()) {
+    tls.Set(std::make_unique<BooleanWithStack>());
+  }
+  return *tls;
+}
+BooleanWithStack& GetSingletonDisallowedTls() {
+  static NoDestructor<ThreadLocalOwnedPointer<BooleanWithStack>> instance;
+  auto& tls = *instance;
+  if (!tls.Get()) {
+    tls.Set(std::make_unique<BooleanWithStack>());
+  }
+  return *tls;
+}
+BooleanWithStack& GetBaseSyncPrimitivesDisallowedTls() {
+  static NoDestructor<ThreadLocalOwnedPointer<BooleanWithStack>> instance;
+  auto& tls = *instance;
+  if (!tls.Get()) {
+    tls.Set(std::make_unique<BooleanWithStack>());
+  }
+  return *tls;
+}
+BooleanWithStack& GetCPUIntensiveWorkDisallowedTls() {
+  static NoDestructor<ThreadLocalOwnedPointer<BooleanWithStack>> instance;
+  auto& tls = *instance;
+  if (!tls.Get()) {
+    tls.Set(std::make_unique<BooleanWithStack>());
+  }
+  return *tls;
+}
 
 }  // namespace
 
+namespace internal {
+
 void AssertBlockingAllowed() {
-  DUMP_OR_DCHECK(!tls_blocking_disallowed)
+  DCHECK(!GetBlockingDisallowedTls())
       << "Function marked as blocking was called from a scope that disallows "
          "blocking! If this task is running inside the ThreadPool, it needs "
          "to have MayBlock() in its TaskTraits. Otherwise, consider making "
          "this blocking work asynchronous or, as a last resort, you may use "
          "ScopedAllowBlocking (see its documentation for best practices).\n"
-      << "tls_blocking_disallowed " << tls_blocking_disallowed;
+      << "blocking_disallowed " << GetBlockingDisallowedTls();
 }
 
 void AssertBlockingDisallowedForTesting() {
-  DCHECK(tls_blocking_disallowed)
-      << "tls_blocking_disallowed " << tls_blocking_disallowed;
+  DCHECK(GetBlockingDisallowedTls())
+      << "blocking_disallowed " << GetBlockingDisallowedTls();
 }
 
+}  // namespace internal
+
 void DisallowBlocking() {
-  tls_blocking_disallowed = BooleanWithOptionalStack(true);
+  GetBlockingDisallowedTls() = BooleanWithStack(true);
 }
 
 ScopedDisallowBlocking::ScopedDisallowBlocking()
-    : resetter_(&tls_blocking_disallowed, BooleanWithOptionalStack(true)) {}
+    : resetter_(&GetBlockingDisallowedTls(), BooleanWithStack(true)) {}
 
 ScopedDisallowBlocking::~ScopedDisallowBlocking() {
-  DCHECK(tls_blocking_disallowed)
+  DCHECK(GetBlockingDisallowedTls())
       << "~ScopedDisallowBlocking() running while surprisingly already no "
          "longer disallowed.\n"
-      << "tls_blocking_disallowed " << tls_blocking_disallowed;
+      << "blocking_disallowed " << GetBlockingDisallowedTls();
 }
 
 void DisallowBaseSyncPrimitives() {
-  tls_base_sync_primitives_disallowed = BooleanWithOptionalStack(true);
+  GetBaseSyncPrimitivesDisallowedTls() = BooleanWithStack(true);
 }
 
 ScopedDisallowBaseSyncPrimitives::ScopedDisallowBaseSyncPrimitives()
-    : resetter_(&tls_base_sync_primitives_disallowed,
-                BooleanWithOptionalStack(true)) {}
+    : resetter_(&GetBaseSyncPrimitivesDisallowedTls(), BooleanWithStack(true)) {
+}
 
 ScopedDisallowBaseSyncPrimitives::~ScopedDisallowBaseSyncPrimitives() {
-  DCHECK(tls_base_sync_primitives_disallowed)
+  DCHECK(GetBaseSyncPrimitivesDisallowedTls())
       << "~ScopedDisallowBaseSyncPrimitives() running while surprisingly "
          "already no longer disallowed.\n"
-      << "tls_base_sync_primitives_disallowed "
-      << tls_base_sync_primitives_disallowed;
+      << "base_sync_primitives_disallowed "
+      << GetBaseSyncPrimitivesDisallowedTls();
 }
 
 ScopedAllowBaseSyncPrimitives::ScopedAllowBaseSyncPrimitives()
-    : resetter_(&tls_base_sync_primitives_disallowed,
-                BooleanWithOptionalStack(false)) {
-  DCHECK(!tls_blocking_disallowed)
+    : resetter_(&GetBaseSyncPrimitivesDisallowedTls(),
+                BooleanWithStack(false)) {
+  DCHECK(!GetBlockingDisallowedTls())
       << "To allow //base sync primitives in a scope where blocking is "
          "disallowed use ScopedAllowBaseSyncPrimitivesOutsideBlockingScope.\n"
-      << "tls_blocking_disallowed " << tls_blocking_disallowed;
+      << "blocking_disallowed " << GetBlockingDisallowedTls();
 }
 
 ScopedAllowBaseSyncPrimitives::~ScopedAllowBaseSyncPrimitives() {
-  DCHECK(!tls_base_sync_primitives_disallowed)
+  DCHECK(!GetBaseSyncPrimitivesDisallowedTls())
       << "~ScopedAllowBaseSyncPrimitives() running while surprisingly already "
          "no longer allowed.\n"
-      << "tls_base_sync_primitives_disallowed "
-      << tls_base_sync_primitives_disallowed;
+      << "base_sync_primitives_disallowed "
+      << GetBaseSyncPrimitivesDisallowedTls();
 }
 
 ScopedAllowBaseSyncPrimitivesForTesting::
     ScopedAllowBaseSyncPrimitivesForTesting()
-    : resetter_(&tls_base_sync_primitives_disallowed,
-                BooleanWithOptionalStack(false)) {}
+    : resetter_(&GetBaseSyncPrimitivesDisallowedTls(),
+                BooleanWithStack(false)) {}
 
 ScopedAllowBaseSyncPrimitivesForTesting::
     ~ScopedAllowBaseSyncPrimitivesForTesting() {
-  DCHECK(!tls_base_sync_primitives_disallowed)
+  DCHECK(!GetBaseSyncPrimitivesDisallowedTls())
       << "~ScopedAllowBaseSyncPrimitivesForTesting() running while "  // IN-TEST
          "surprisingly already no longer allowed.\n"
-      << "tls_base_sync_primitives_disallowed "
-      << tls_base_sync_primitives_disallowed;
+      << "base_sync_primitives_disallowed "
+      << GetBaseSyncPrimitivesDisallowedTls();
 }
 
 ScopedAllowUnresponsiveTasksForTesting::ScopedAllowUnresponsiveTasksForTesting()
-    : base_sync_resetter_(&tls_base_sync_primitives_disallowed,
-                          BooleanWithOptionalStack(false)),
-      blocking_resetter_(&tls_blocking_disallowed,
-                         BooleanWithOptionalStack(false)),
-      cpu_resetter_(&tls_cpu_intensive_work_disallowed,
-                    BooleanWithOptionalStack(false)) {}
+    : base_sync_resetter_(&GetBaseSyncPrimitivesDisallowedTls(),
+                          BooleanWithStack(false)),
+      blocking_resetter_(&GetBlockingDisallowedTls(), BooleanWithStack(false)),
+      cpu_resetter_(&GetCPUIntensiveWorkDisallowedTls(),
+                    BooleanWithStack(false)) {}
 
 ScopedAllowUnresponsiveTasksForTesting::
     ~ScopedAllowUnresponsiveTasksForTesting() {
-  DCHECK(!tls_base_sync_primitives_disallowed)
+  DCHECK(!GetBaseSyncPrimitivesDisallowedTls())
       << "~ScopedAllowUnresponsiveTasksForTesting() running while "  // IN-TEST
          "surprisingly already no longer allowed.\n"
-      << "tls_base_sync_primitives_disallowed "
-      << tls_base_sync_primitives_disallowed;
-  DCHECK(!tls_blocking_disallowed)
+      << "base_sync_primitives_disallowed "
+      << GetBaseSyncPrimitivesDisallowedTls();
+  DCHECK(!GetBlockingDisallowedTls())
       << "~ScopedAllowUnresponsiveTasksForTesting() running while "  // IN-TEST
          "surprisingly already no longer allowed.\n"
-      << "tls_blocking_disallowed " << tls_blocking_disallowed;
-  DCHECK(!tls_cpu_intensive_work_disallowed)
+      << "blocking_disallowed " << GetBlockingDisallowedTls();
+  DCHECK(!GetCPUIntensiveWorkDisallowedTls())
       << "~ScopedAllowUnresponsiveTasksForTesting() running while "  // IN-TEST
          "surprisingly already no longer allowed.\n"
-      << "tls_cpu_intensive_work_disallowed "
-      << tls_cpu_intensive_work_disallowed;
+      << "cpu_intensive_work_disallowed " << GetCPUIntensiveWorkDisallowedTls();
 }
 
 namespace internal {
 
 void AssertBaseSyncPrimitivesAllowed() {
-  DUMP_OR_DCHECK(!tls_base_sync_primitives_disallowed)
+  DCHECK(!GetBaseSyncPrimitivesDisallowedTls())
       << "Waiting on a //base sync primitive is not allowed on this thread to "
          "prevent jank and deadlock. If waiting on a //base sync primitive is "
          "unavoidable, do it within the scope of a "
          "ScopedAllowBaseSyncPrimitives. If in a test, use "
          "ScopedAllowBaseSyncPrimitivesForTesting.\n"
-      << "tls_base_sync_primitives_disallowed "
-      << tls_base_sync_primitives_disallowed
-      << "It can be useful to know that tls_blocking_disallowed is "
-      << tls_blocking_disallowed;
+      << "base_sync_primitives_disallowed "
+      << GetBaseSyncPrimitivesDisallowedTls()
+      << "It can be useful to know that blocking_disallowed is "
+      << GetBlockingDisallowedTls();
 }
 
 void ResetThreadRestrictionsForTesting() {
-  tls_blocking_disallowed = BooleanWithOptionalStack(false);
-  tls_singleton_disallowed = BooleanWithOptionalStack(false);
-  tls_base_sync_primitives_disallowed = BooleanWithOptionalStack(false);
-  tls_cpu_intensive_work_disallowed = BooleanWithOptionalStack(false);
+  GetBlockingDisallowedTls() = BooleanWithStack(false);
+  GetSingletonDisallowedTls() = BooleanWithStack(false);
+  GetBaseSyncPrimitivesDisallowedTls() = BooleanWithStack(false);
+  GetCPUIntensiveWorkDisallowedTls() = BooleanWithStack(false);
 }
 
 void AssertSingletonAllowed() {
-  DUMP_OR_DCHECK(!tls_singleton_disallowed)
+  DCHECK(!GetSingletonDisallowedTls())
       << "LazyInstance/Singleton is not allowed to be used on this thread. "
          "Most likely it's because this thread is not joinable (or the current "
          "task is running with TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN "
@@ -195,52 +217,60 @@ void AssertSingletonAllowed() {
          "shutdown, leading to a potential shutdown crash. If you need to use "
          "the object from this context, it'll have to be updated to use Leaky "
          "traits.\n"
-      << "tls_singleton_disallowed " << tls_singleton_disallowed;
+      << "singleton_disallowed " << GetSingletonDisallowedTls();
 }
 
 }  // namespace internal
 
 void DisallowSingleton() {
-  tls_singleton_disallowed = BooleanWithOptionalStack(true);
+  GetSingletonDisallowedTls() = BooleanWithStack(true);
 }
 
 ScopedDisallowSingleton::ScopedDisallowSingleton()
-    : resetter_(&tls_singleton_disallowed, BooleanWithOptionalStack(true)) {}
+    : resetter_(&GetSingletonDisallowedTls(), BooleanWithStack(true)) {}
 
 ScopedDisallowSingleton::~ScopedDisallowSingleton() {
-  DCHECK(tls_singleton_disallowed)
+  DCHECK(GetSingletonDisallowedTls())
       << "~ScopedDisallowSingleton() running while surprisingly already no "
          "longer disallowed.\n"
-      << "tls_singleton_disallowed " << tls_singleton_disallowed;
+      << "singleton_disallowed " << GetSingletonDisallowedTls();
 }
 
 void AssertLongCPUWorkAllowed() {
-  DUMP_OR_DCHECK(!tls_cpu_intensive_work_disallowed)
+  DCHECK(!GetCPUIntensiveWorkDisallowedTls())
       << "Function marked as CPU intensive was called from a scope that "
          "disallows this kind of work! Consider making this work "
          "asynchronous.\n"
-      << "tls_cpu_intensive_work_disallowed "
-      << tls_cpu_intensive_work_disallowed;
+      << "cpu_intensive_work_disallowed " << GetCPUIntensiveWorkDisallowedTls();
 }
 
 void DisallowUnresponsiveTasks() {
   DisallowBlocking();
   DisallowBaseSyncPrimitives();
-  tls_cpu_intensive_work_disallowed = BooleanWithOptionalStack(true);
+  GetCPUIntensiveWorkDisallowedTls() = BooleanWithStack(true);
 }
 
 // static
 void PermanentThreadAllowance::AllowBlocking() {
-  tls_blocking_disallowed = BooleanWithOptionalStack(false);
+  GetBlockingDisallowedTls() = BooleanWithStack(false);
 }
 
 // static
 void PermanentThreadAllowance::AllowBaseSyncPrimitives() {
-  tls_base_sync_primitives_disallowed = BooleanWithOptionalStack(false);
+  GetBaseSyncPrimitivesDisallowedTls() = BooleanWithStack(false);
 }
 
+}  // namespace base
+
+#endif  // DCHECK_IS_ON()
+
+namespace base {
+
 ScopedAllowBlocking::ScopedAllowBlocking(const Location& from_here)
-    : resetter_(&tls_blocking_disallowed, BooleanWithOptionalStack(false)) {
+#if DCHECK_IS_ON()
+    : resetter_(&GetBlockingDisallowedTls(), BooleanWithStack(false))
+#endif
+{
   TRACE_EVENT_BEGIN(
       "base", "ScopedAllowBlocking", [&](perfetto::EventContext ctx) {
         ctx.event()->set_source_location_iid(
@@ -251,17 +281,21 @@ ScopedAllowBlocking::ScopedAllowBlocking(const Location& from_here)
 ScopedAllowBlocking::~ScopedAllowBlocking() {
   TRACE_EVENT_END0("base", "ScopedAllowBlocking");
 
-  DCHECK(!tls_blocking_disallowed)
+#if DCHECK_IS_ON()
+  DCHECK(!GetBlockingDisallowedTls())
       << "~ScopedAllowBlocking() running while surprisingly already no longer "
          "allowed.\n"
-      << "tls_blocking_disallowed " << tls_blocking_disallowed;
+      << "blocking_disallowed " << GetBlockingDisallowedTls();
+#endif
 }
 
 #if !defined(MOZ_SANDBOX)
 ScopedAllowBaseSyncPrimitivesOutsideBlockingScope::
     ScopedAllowBaseSyncPrimitivesOutsideBlockingScope(const Location& from_here)
-    : resetter_(&tls_base_sync_primitives_disallowed,
-                BooleanWithOptionalStack(false)) {
+#if DCHECK_IS_ON()
+    : resetter_(&GetBaseSyncPrimitivesDisallowedTls(), BooleanWithStack(false))
+#endif
+{
   TRACE_EVENT_BEGIN(
       "base", "ScopedAllowBaseSyncPrimitivesOutsideBlockingScope",
       [&](perfetto::EventContext ctx) {
@@ -274,17 +308,19 @@ ScopedAllowBaseSyncPrimitivesOutsideBlockingScope::
   // since the wait time duration is unknown.
   base::HangWatcher::InvalidateActiveExpectations();
 }
+#endif
 
 ScopedAllowBaseSyncPrimitivesOutsideBlockingScope::
     ~ScopedAllowBaseSyncPrimitivesOutsideBlockingScope() {
   TRACE_EVENT_END0("base", "ScopedAllowBaseSyncPrimitivesOutsideBlockingScope");
 
-  DCHECK(!tls_base_sync_primitives_disallowed)
+#if DCHECK_IS_ON()
+  DCHECK(!GetBaseSyncPrimitivesDisallowedTls())
       << "~ScopedAllowBaseSyncPrimitivesOutsideBlockingScope() running while "
          "surprisingly already no longer allowed.\n"
-      << "tls_base_sync_primitives_disallowed "
-      << tls_base_sync_primitives_disallowed;
+      << "base_sync_primitives_disallowed "
+      << GetBaseSyncPrimitivesDisallowedTls();
+#endif
 }
-#endif  // !defined(MOZ_SANDBOX)
 
 }  // namespace base

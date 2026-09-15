@@ -10,7 +10,6 @@
 #define SANDBOX_WIN_SRC_INTERCEPTION_AGENT_H_
 
 #include <windows.h>
-
 #include <winternl.h>
 
 #include "base/memory/raw_ptr_exclusion.h"
@@ -80,7 +79,7 @@ class InterceptionAgent {
   ResolverThunk* GetResolver(InterceptionType type);
 
   // Shared memory containing the list of functions to intercept.
-  // RAW_PTR_EXCLUSION: Accessed too early during the process startup to support
+  // The field is accessed too early during the process startup to support
   // raw_ptr<T>.
   RAW_PTR_EXCLUSION SharedMemory* interceptions_;
 

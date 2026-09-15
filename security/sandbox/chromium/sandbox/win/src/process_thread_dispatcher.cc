@@ -53,8 +53,8 @@ bool ThreadProcessDispatcher::SetupService(InterceptionManager* manager,
     case IpcTag::NTOPENPROCESSTOKENEX:
     case IpcTag::CREATETHREAD:
       // There is no explicit policy for these services.
-      // Intercepts are set up in SetupBasicInterceptions(), not here.
       NOTREACHED();
+      return false;
 
     default:
       return false;
@@ -97,6 +97,7 @@ bool ThreadProcessDispatcher::CreateThread(IPCInfo* ipc,
   DWORD ret = ProcessPolicy::CreateThreadAction(*ipc->client_info, stack_size,
                                                 start_address, parameter,
                                                 creation_flags, &handle);
+
   ipc->return_info.win32_result = ret;
   ipc->return_info.handle = handle;
   return true;

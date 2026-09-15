@@ -7,9 +7,6 @@
 
 #include <stdint.h>
 
-#include <string_view>
-
-#include "base/compiler_specific.h"
 #include "base/memory/raw_ptr.h"
 #include "sandbox/win/src/internal_types.h"
 #include "sandbox/win/src/nt_internals.h"
@@ -58,6 +55,9 @@ namespace sandbox {
 //  have each 1) the address of the parameter 2) a numeric id that encodes the
 //  original C++ type. This allows the policy to treat any set of supported
 //  argument types uniformily and with some type safety.
+//
+//  TODO(cpu): support not fully implemented yet for unicode string and will
+//  probably add other types as well.
 class ParameterSet {
  public:
   ParameterSet() : real_type_(INVALID_TYPE), address_(nullptr) {}
@@ -80,12 +80,12 @@ class ParameterSet {
     return true;
   }
 
-  // Retrieve the stored parameter. If the type does not match the call fails.
-  bool Get(std::wstring_view* destination) const {
+  // Retrieve the stored parameter. If the type does not match wchar_t* fail.
+  bool Get(const wchar_t** destination) const {
     if (real_type_ != WCHAR_TYPE) {
       return false;
     }
-    *destination = Void2TypePointerCopy<std::wstring_view>();
+    *destination = Void2TypePointerCopy<const wchar_t*>();
     return true;
   }
 
@@ -116,13 +116,12 @@ class ParameterSet {
 // in ParameterSetEx with a template function ParamPickerMake to do the
 // parameter type deduction.
 
-// Base template class. Fails to compile to force use of implemented wrappers.
+// Base template class. Not implemented so using unsupported types should
+// fail to compile.
 template <typename T>
 class ParameterSetEx : public ParameterSet {
  public:
-  explicit ParameterSetEx(const void* address) {
-    static_assert(false, "Type not supported.");
-  }
+  explicit ParameterSetEx(const void* address);
 };
 
 template <>
@@ -140,7 +139,14 @@ class ParameterSetEx<void*> : public ParameterSet {
 };
 
 template <>
-class ParameterSetEx<std::wstring_view> : public ParameterSet {
+class ParameterSetEx<wchar_t*> : public ParameterSet {
+ public:
+  explicit ParameterSetEx(const void* address)
+      : ParameterSet(WCHAR_TYPE, address) {}
+};
+
+template <>
+class ParameterSetEx<wchar_t const*> : public ParameterSet {
  public:
   explicit ParameterSetEx(const void* address)
       : ParameterSet(WCHAR_TYPE, address) {}
@@ -151,6 +157,13 @@ class ParameterSetEx<uint32_t> : public ParameterSet {
  public:
   explicit ParameterSetEx(const void* address)
       : ParameterSet(UINT32_TYPE, address) {}
+};
+
+template <>
+class ParameterSetEx<UNICODE_STRING> : public ParameterSet {
+ public:
+  explicit ParameterSetEx(const void* address)
+      : ParameterSet(UNISTR_TYPE, address) {}
 };
 
 template <typename T>
@@ -171,9 +184,7 @@ template <typename T>
 struct CountedParameterSet {
   CountedParameterSet() : count(T::PolParamLast) {}
 
-  ParameterSet& operator[](typename T::Args n) {
-    return UNSAFE_TODO(parameters[n]);
-  }
+  ParameterSet& operator[](typename T::Args n) { return parameters[n]; }
 
   CountedParameterSetBase* GetBase() {
     return reinterpret_cast<CountedParameterSetBase*>(this);

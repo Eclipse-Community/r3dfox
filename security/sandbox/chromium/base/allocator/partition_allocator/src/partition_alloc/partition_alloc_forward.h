@@ -2,25 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/40284755): Remove this and spanify to fix the errors.
-#pragma allow_unsafe_buffers
-#endif
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_FORWARD_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_FORWARD_H_
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_FORWARD_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_FORWARD_H_
-
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/bits.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/cxx_wrapper/algorithm.h"
-#include "partition_alloc/partition_alloc_base/thread_annotations.h"
-#include "partition_alloc/partition_alloc_config.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/debugging_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/thread_annotations.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_config.h"
 
 namespace partition_alloc {
 
@@ -35,28 +29,17 @@ namespace internal {
 // malloc() and operator new(), but this would complicate things, and most of
 // our allocations are presumably coming from operator new() anyway.
 #if defined(__STDCPP_DEFAULT_NEW_ALIGNMENT__)
-constexpr inline size_t kAlignment =
+constexpr size_t kAlignment =
     std::max(alignof(max_align_t),
              static_cast<size_t>(__STDCPP_DEFAULT_NEW_ALIGNMENT__));
 #else
-constexpr inline size_t kAlignment = alignof(max_align_t);
+constexpr size_t kAlignment = alignof(max_align_t);
 #endif
-static_assert(base::bits::HasSingleBit(kAlignment),
-              "Alignment must be power of two.");
 static_assert(kAlignment <= 16,
               "PartitionAlloc doesn't support a fundamental alignment larger "
               "than 16 bytes.");
 
-constexpr inline size_t kAlignmentIndex = base::bits::CountrZero(kAlignment);
-static_assert(kAlignment == (1 << kAlignmentIndex));
-
-static constexpr size_t kBitsPerSizeT = std::numeric_limits<size_t>::digits;
-#if PA_BUILDFLAG(HAS_64_BIT_POINTERS)
-static_assert(kBitsPerSizeT == 64);
-#else
-static_assert(kBitsPerSizeT == 32);
-#endif  // PA_BUILDFLAG(HAS_64_BIT_POINTERS)
-
+struct SlotSpanMetadata;
 class PA_LOCKABLE Lock;
 
 // This type trait verifies a type can be used as a pointer offset.
@@ -66,8 +49,6 @@ class PA_LOCKABLE Lock;
 template <typename Z>
 static constexpr bool is_offset_type =
     std::is_integral_v<Z> && sizeof(Z) <= sizeof(ptrdiff_t);
-
-struct SlotSpanMetadata;
 
 }  // namespace internal
 
@@ -96,6 +77,14 @@ Lock& PartitionRootLock(PartitionRoot*);
 #define PA_MALLOC_FN __attribute__((malloc))
 #endif
 
+// Allows the compiler to assume that the return value is aligned on a
+// kAlignment boundary. This is useful for e.g. using aligned vector
+// instructions in the constructor for zeroing.
+#if PA_HAS_ATTRIBUTE(assume_aligned)
+#define PA_MALLOC_ALIGNED \
+  __attribute__((assume_aligned(::partition_alloc::internal::kAlignment)))
+#endif
+
 #if !defined(PA_MALLOC_FN)
 #define PA_MALLOC_FN
 #endif
@@ -104,4 +93,4 @@ Lock& PartitionRootLock(PartitionRoot*);
 #define PA_MALLOC_ALIGNED
 #endif
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_FORWARD_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_FORWARD_H_

@@ -1503,9 +1503,4 @@
 #define __NR_lsm_list_modules 461
 #endif
 
-#if !defined(__NR_mseal)
-#define __NR_mseal 462
-#endif
-
 #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_X86_64_LINUX_SYSCALLS_H_
-

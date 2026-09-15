@@ -20,7 +20,7 @@
 #include "SandboxChrootProto.h"
 #include "SandboxInfo.h"
 #include "SandboxLogging.h"
-#include "base/posix/eintr_wrapper.h"
+#include "base/eintr_wrapper.h"
 #include "base/strings/safe_sprintf.h"
 #include "mozilla/Array.h"
 #include "mozilla/Assertions.h"

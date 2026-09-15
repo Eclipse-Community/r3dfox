@@ -2,19 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "base/time/time.h"
+
 #include <stdint.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 
-#include <optional>
-
 #include "base/check.h"
 #include "base/notreached.h"
 #include "base/numerics/safe_math.h"
-#include "base/time/time.h"
 #include "base/time/time_override.h"
 #include "build/build_config.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 #if BUILDFLAG(IS_ANDROID) && !defined(__LP64__)
 #include <time64.h>
@@ -56,13 +56,12 @@ int64_t ClockNow(clockid_t clk_id) {
   return ConvertTimespecToMicros(ts);
 }
 
-std::optional<int64_t> MaybeClockNow(clockid_t clk_id) {
+absl::optional<int64_t> MaybeClockNow(clockid_t clk_id) {
   struct timespec ts;
   int res = clock_gettime(clk_id, &ts);
-  if (res == 0) {
+  if (res == 0)
     return ConvertTimespecToMicros(ts);
-  }
-  return std::nullopt;
+  return absl::nullopt;
 }
 
 #else  // _POSIX_MONOTONIC_CLOCK
@@ -101,16 +100,11 @@ TimeTicks TimeTicksNowIgnoringOverride() {
   return TimeTicks() + Microseconds(ClockNow(CLOCK_MONOTONIC));
 }
 
-std::optional<TimeTicks> MaybeTimeTicksNowIgnoringOverride() {
-  std::optional<int64_t> now = MaybeClockNow(CLOCK_MONOTONIC);
-  if (now.has_value()) {
+absl::optional<TimeTicks> MaybeTimeTicksNowIgnoringOverride() {
+  absl::optional<int64_t> now = MaybeClockNow(CLOCK_MONOTONIC);
+  if (now.has_value())
     return TimeTicks() + Microseconds(now.value());
-  }
-  return std::nullopt;
-}
-
-TimeTicks TimeTicksLowResolutionNowIgnoringOverride() {
-  return TimeTicks() + Microseconds(ClockNow(CLOCK_MONOTONIC_COARSE));
+  return absl::nullopt;
 }
 }  // namespace subtle
 
@@ -138,6 +132,7 @@ ThreadTicks ThreadTicksNowIgnoringOverride() {
   return ThreadTicks() + Microseconds(ClockNow(CLOCK_THREAD_CPUTIME_ID));
 #else
   NOTREACHED();
+  return ThreadTicks();
 #endif
 }
 }  // namespace subtle

@@ -36,19 +36,11 @@ namespace base {
 // making the constructor unusable elsewhere.
 template <typename T>
 class PassKey {
-  friend T;
-  PassKey() = default;
-};
+ private:
+  // Avoid =default to disallow creation by uniform initialization.
+  PassKey() {}
 
-// NonCopyablePassKey is a version of PassKey that also disallows copy/move
-// construction/assignment. This way functions called with a passkey cannot use
-// that key to invoke other passkey-protected functions.
-template <typename T>
-class NonCopyablePassKey {
   friend T;
-  NonCopyablePassKey() = default;
-  NonCopyablePassKey(const NonCopyablePassKey&) = delete;
-  NonCopyablePassKey& operator=(const NonCopyablePassKey&) = delete;
 };
 
 }  // namespace base

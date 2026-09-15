@@ -29,6 +29,7 @@ class EatResolverThunk : public ResolverThunk {
                  const char* target_name,
                  const char* interceptor_name,
                  const void* interceptor_entry_point,
+                 void* local_thunk_storage,
                  void* thunk_storage,
                  size_t storage_bytes,
                  size_t* storage_used) override;
@@ -43,7 +44,7 @@ class EatResolverThunk : public ResolverThunk {
 
  private:
   // The entry to patch.
-  // RAW_PTR_EXCLUSION: Accessed too early during the process startup to support
+  // The field is accessed too early during the process startup to support
   // raw_ptr<T>.
   RAW_PTR_EXCLUSION DWORD* eat_entry_;
 };

@@ -8,16 +8,13 @@
 #include <intrin.h>
 #include <stddef.h>
 #include <stdint.h>
-
 #include <memory>
-#include <optional>
-#include <string_view>
 
-#include "base/compiler_specific.h"
 #include "base/containers/span.h"
 #include "base/memory/raw_ptr_exclusion.h"
 #include "sandbox/win/src/nt_internals.h"
 #include "sandbox/win/src/sandbox_nt_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 // Placement new and delete to be used from ntdll interception code.
 void* __cdecl operator new(size_t size,
@@ -111,7 +108,7 @@ void* GetGlobalIPCMemory();
 void* GetGlobalPolicyMemoryForTesting();
 
 // Returns a view of the shared delegate data, or nullopt if none was provided.
-std::optional<base::span<const uint8_t>> GetGlobalDelegateData();
+absl::optional<base::span<const uint8_t>> GetGlobalDelegateData();
 
 // Returns a reference to imported NT functions.
 const NtExports* GetNtExports();
@@ -126,29 +123,24 @@ bool ValidParameter(void* buffer, size_t size, RequiredAccess intent);
 // Copies data from a user buffer to our buffer. Returns the operation status.
 NTSTATUS CopyData(void* destination, const void* source, size_t bytes);
 
-// A simple immutable wide string allocated from the sandbox's private heap,
-// built from a list of string_view parts. Intended for constructing NT object
-// path strings in interception code where standard allocators are unavailable.
-class NtHeapWString {
- public:
-  NtHeapWString() = default;
-  explicit NtHeapWString(std::initializer_list<std::wstring_view> parts);
+// Copies the name from an object attributes. |out_name| is a NUL terminated
+// string and |out_name_len| is the number of characters copied. |attributes|
+// is a copy of the attribute flags from |in_object|.
+NTSTATUS CopyNameAndAttributes(
+    const OBJECT_ATTRIBUTES* in_object,
+    std::unique_ptr<wchar_t, NtAllocDeleter>* out_name,
+    size_t* out_name_len,
+    uint32_t* attributes = nullptr);
 
-  bool is_valid() const;
-  std::wstring_view view() const;
+// Copies the name from an object attributes.
+NTSTATUS AllocAndCopyName(const OBJECT_ATTRIBUTES* in_object,
+                          std::unique_ptr<wchar_t, NtAllocDeleter>* out_name,
+                          uint32_t* attributes, HANDLE* root);
 
- private:
-  std::unique_ptr<wchar_t, NtAllocDeleter> data_;
-  size_t length_ = 0;
-};
-
-// Resolves a function name in NTDLL to a function pointer. The second parameter
-// is a pointer to the function pointer.
-void ResolveNTFunctionPtr(const char* name, void* ptr);
-
-// Determine full path name from object root and path. Returns an invalid
-// NtHeapWString on failure.
-NtHeapWString AllocAndGetFullPath(HANDLE root, const std::wstring_view& path);
+// Determine full path name from object root and path.
+NTSTATUS AllocAndGetFullPath(
+    HANDLE root, const wchar_t* path,
+    std::unique_ptr<wchar_t, NtAllocDeleter>* full_path);
 
 // Initializes our ntdll level heap
 bool InitHeap();
@@ -205,13 +197,9 @@ bool IsValidImageSection(HANDLE section,
 // Converts an ansi string to an UNICODE_STRING.
 UNICODE_STRING* AnsiToUnicode(const char* string);
 
-// Use the RtlCompareUnicodeString API to compares two strings for equality. The
-// comparison always ignores case.
-// Returns true if equal. Returns std::nullopt if either string is too large to
-// be represented as a UNICODE_STRING. This has the advantage of working inside
-// function hooks where calling the standard library could be impossible.
-std::optional<bool> EqualUnicodeString(std::wstring_view left,
-                                       std::wstring_view right);
+// Resolves a handle to an nt path. Returns true if the handle can be resolved.
+bool NtGetPathFromHandle(HANDLE handle,
+                         std::unique_ptr<wchar_t, NtAllocDeleter>* path);
 
 // Provides a simple way to temporarily change the protection of a memory page.
 class AutoProtectMemory {
@@ -232,7 +220,8 @@ class AutoProtectMemory {
 
  private:
   bool changed_;
-  // RAW_PTR_EXCLUSION: not managed by PartitionAlloc.
+  // This field is not a raw_ptr<> because it was filtered by the rewriter for:
+  // #addr-of
   RAW_PTR_EXCLUSION void* address_;
   size_t bytes_;
   ULONG old_protect_;
@@ -251,7 +240,7 @@ CLIENT_ID GetCurrentClientId();
 __forceinline void Memset(void* ptr, int value, size_t num_bytes) {
   unsigned char* byte_ptr = static_cast<unsigned char*>(ptr);
   while (num_bytes--) {
-    *UNSAFE_TODO(byte_ptr++) = static_cast<unsigned char>(value);
+    *byte_ptr++ = static_cast<unsigned char>(value);
   }
 }
 

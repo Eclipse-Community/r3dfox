@@ -9,6 +9,8 @@
 #include <linux/limits.h>
 #include <semaphore.h>
 
+#include "base/trace_event/common/trace_event_common.h"
+
 #include "ProfilerNativeStack.h"
 #include "MicroGeckoProfiler.h"
 

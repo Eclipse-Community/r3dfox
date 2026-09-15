@@ -7,7 +7,6 @@
 
 #include "SandboxProfiler.h"
 #include "SandboxInfo.h"
-#include "public/GeckoTraceEvent.h"
 
 #if defined(HAVE_REPORT_UPROFILER_CHILD)
 #error Cannot include SandboxProfilerParent.h when already included SandboxProfilerChild.h

@@ -35,6 +35,7 @@ class [[clang::lto_visibility_public]] ServiceResolverThunk
                  const char* target_name,
                  const char* interceptor_name,
                  const void* interceptor_entry_point,
+                 void* local_thunk_storage,
                  void* thunk_storage,
                  size_t storage_bytes,
                  size_t* storage_used) override;
@@ -54,15 +55,6 @@ class [[clang::lto_visibility_public]] ServiceResolverThunk
 
   // Call this to set up ntdll_base_ which will allow for local patches.
   void AllowLocalPatches();
-
-  // Verifies that the function specified by |target_name| in |target_module| is
-  // a service and copies the data from that function into |thunk_storage|. If
-  // |storage_bytes| is too small, then the method fails.
-  NTSTATUS CopyThunk(const void* target_module,
-                     const char* target_name,
-                     BYTE* thunk_storage,
-                     size_t storage_bytes,
-                     size_t* storage_used);
 
   // Checks if a target was patched correctly for a jump. This is only for use
   // in testing in 32-bit builds. Will always return true on 64-bit builds. Set

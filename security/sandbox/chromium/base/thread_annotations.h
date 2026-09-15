@@ -40,7 +40,7 @@
 #include "base/dcheck_is_on.h"
 #include "build/build_config.h"
 
-#if defined(__clang__)
+#if defined(__clang__) && __clang_major__ >= 9
 #define THREAD_ANNOTATION_ATTRIBUTE__(x) __attribute__((x))
 #else
 #define THREAD_ANNOTATION_ATTRIBUTE__(x)  // no-op

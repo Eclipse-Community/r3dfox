@@ -20,7 +20,7 @@ using base::win::StartupInformation;
 
 // Wraps base::win::StartupInformation and allows some querying of what is
 // set. This is specialized for the dance between
-// BrokerServices::SpawnTargetAsync() and TargetProcess::Create().
+// BrokerServices::SpawnTarget() and TargetProcess::Create().
 class StartupInformationHelper {
  public:
   StartupInformationHelper();
@@ -42,7 +42,7 @@ class StartupInformationHelper {
   // Create PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES and
   //        PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY
   // based on |container|. |container| should be valid.
-  void SetAppContainer(AppContainer* container);
+  void SetAppContainer(scoped_refptr<AppContainer> container);
   // Creates PROC_THREAD_ATTRIBUTE_JOB_LIST with |job_handle|.
   void AddJobToAssociate(HANDLE job_handle);
 
@@ -75,11 +75,10 @@ class StartupInformationHelper {
   DWORD CountAttributes();
 
   // Fields that are not passed into CreateProcessAsUserW().
-  // This can only be true if security_capabilities_ is also initialized.
-  bool enable_low_privilege_app_container_ = false;
+  scoped_refptr<AppContainer> app_container_;
   bool restrict_child_process_creation_ = false;
-  HANDLE stdout_handle_ = nullptr;
-  HANDLE stderr_handle_ = nullptr;
+  HANDLE stdout_handle_ = INVALID_HANDLE_VALUE;
+  HANDLE stderr_handle_ = INVALID_HANDLE_VALUE;
   bool inherit_handles_ = false;
   bool filter_environment_ = false;
   size_t mitigations_size_ = 0;

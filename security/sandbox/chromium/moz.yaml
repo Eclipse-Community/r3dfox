@@ -10,8 +10,8 @@ origin:
 
   url: https://chromium.googlesource.com/chromium/src/
 
-  release: 80712e7ba7b754fbae287ef97fc530203c707d84 (Mon Mar 02 22:10:33 2026).
-  revision: 80712e7ba7b754fbae287ef97fc530203c707d84
+  release: 6d3cc0dac5057925e096b1329680124b19f35842 (Fri Jan 12 17:18:37 2024).
+  revision: 6d3cc0dac5057925e096b1329680124b19f35842
 
   license: BSD-3-Clause
 
@@ -28,29 +28,18 @@ vendoring:
   individual-files-default-destination: "{vendor_dir}/"
   individual-files-list:
     - base/allocator/partition_allocator/src/partition_alloc/allocation_guard.h
-    - base/allocator/partition_allocator/src/partition_alloc/build_config.h
-    - base/allocator/partition_allocator/src/partition_alloc/buildflag.h
     - base/allocator/partition_allocator/src/partition_alloc/flags.h
     - base/allocator/partition_allocator/src/partition_alloc/oom.h
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/augmentations/compiler_specific.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/bits.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/check.h
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/cxx_wrapper/algorithm.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/immediate_crash.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/log_message.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/notreached.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/scoped_clear_last_error.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/cstring_builder.h
+    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h  
+    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/cxx20_is_constant_evaluated.h
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/thread_annotations.h
-    - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/types/same_as_any.h
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/win_handle_types.h
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/win_handle_types_list.inc
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_config.h
     - base/allocator/partition_allocator/src/partition_alloc/partition_alloc_forward.h
-    - base/allocator/partition_allocator/src/partition_alloc/pointers/instance_tracer.h
     - base/allocator/partition_allocator/src/partition_alloc/pointers/raw_ptr.h
     - base/allocator/partition_allocator/src/partition_alloc/pointers/raw_ptr_exclusion.h
     - base/allocator/partition_allocator/src/partition_alloc/pointers/raw_ptr_noop_impl.h
@@ -58,37 +47,45 @@ vendoring:
     - base/at_exit.cc
     - base/at_exit.h
     - base/atomic_ref_count.h
+    - base/atomicops.h
+    - base/atomicops_internals_portable.h
     - base/auto_reset.h
     - base/base_export.h
-    - base/base_paths.cc
-    - base/base_paths.h
-    - base/base_paths_win.cc
-    - base/base_paths_win.h
-    - base/base_switches.h
     - base/bit_cast.h
     - base/bits.h
     - base/check.cc
     - base/check.h
     - base/check_op.cc
     - base/check_op.h
-    - base/command_line.h
     - base/compiler_specific.h
     - base/containers/adapters.h
-    - base/containers/adapters_internal.h
     - base/containers/checked_iterators.h
     - base/containers/circular_deque.h
     - base/containers/contains.h
+    - base/containers/contiguous_iterator.h
+    - base/containers/cxx20_erase.h
+    - base/containers/cxx20_erase_deque.h
+    - base/containers/cxx20_erase_forward_list.h
+    - base/containers/cxx20_erase_internal.h
+    - base/containers/cxx20_erase_list.h
+    - base/containers/cxx20_erase_map.h
+    - base/containers/cxx20_erase_set.h
+    - base/containers/cxx20_erase_string.h
+    - base/containers/cxx20_erase_unordered_map.h
+    - base/containers/cxx20_erase_unordered_set.h
+    - base/containers/cxx20_erase_vector.h
     - base/containers/flat_map.h
     - base/containers/flat_tree.h
-    - base/containers/heap_array.h
+    - base/containers/linked_list.h
+    - base/containers/queue.h
     - base/containers/span.h
-    - base/containers/span_forward_internal.h
-    - base/containers/span_writer.h
     - base/containers/stack.h
-    - base/containers/to_vector.h
+    - base/containers/util.h
     - base/containers/vector_buffer.h
     - base/cpu.cc
     - base/cpu.h
+    - base/cxx20_is_constant_evaluated.h
+    - base/cxx20_to_address.h
     - base/dcheck_is_on.h
     - base/debug/alias.cc
     - base/debug/alias.h
@@ -96,21 +93,11 @@ vendoring:
     - base/debug/crash_logging.h
     - base/debug/dump_without_crashing.h
     - base/debug/leak_annotations.h
+    - base/debug/profiler.h
     - base/environment.cc
     - base/environment.h
-    - base/files/file.cc
-    - base/files/file.h
-    - base/files/file_enumerator.cc
-    - base/files/file_enumerator.h
-    - base/files/file_enumerator_win.cc
-    - base/files/file_path.cc
+    - base/features.h
     - base/files/file_path.h
-    - base/files/file_util.cc
-    - base/files/file_util.h
-    - base/files/file_util_win.cc
-    - base/files/file_win.cc
-    - base/files/platform_file.h
-    - base/files/scoped_file.h
     - base/format_macros.h
     - base/functional/bind.h
     - base/functional/bind_internal.h
@@ -122,6 +109,9 @@ vendoring:
     - base/functional/callback_tags.h
     - base/functional/disallow_unretained.h
     - base/functional/function_ref.h
+    - base/functional/identity.h
+    - base/functional/invoke.h
+    - base/functional/not_fn.h
     - base/functional/unretained_traits.h
     - base/hash/hash.cc
     - base/hash/hash.h
@@ -132,44 +122,41 @@ vendoring:
     - base/location.cc
     - base/location.h
     - base/logging.h
-    - base/logging/log_severity.h
-    - base/logging/logging_settings.h
     - base/macros/concat.h
-    - base/macros/if.h
-    - base/macros/is_empty.h
     - base/macros/uniquify.h
     - base/memory/free_deleter.h
-    - base/memory/page_size.h
+    - base/memory/memory_pressure_listener.h
     - base/memory/platform_shared_memory_handle.h
     - base/memory/platform_shared_memory_region.h
-    - base/memory/protected_memory.h
     - base/memory/ptr_util.h
     - base/memory/raw_ptr.h
     - base/memory/raw_ptr_asan_bound_arg_tracker.h
     - base/memory/raw_ptr_exclusion.h
     - base/memory/raw_ref.h
-    - base/memory/raw_span.h
+    - base/memory/raw_scoped_refptr_mismatch_checker.h
     - base/memory/ref_counted.cc
     - base/memory/ref_counted.h
     - base/memory/safe_ref_traits.h
     - base/memory/scoped_refptr.h
     - base/memory/shared_memory_mapper.h
     - base/memory/shared_memory_mapping.h
-    - base/memory/shared_memory_safety_checker.h
     - base/memory/singleton.h
-    - base/memory/stack_allocated.h
     - base/memory/unsafe_shared_memory_region.h
     - base/memory/weak_ptr.h
+    - base/message_loop/message_pump.h
+    - base/message_loop/message_pump_for_io.h
+    - base/message_loop/message_pump_for_ui.h
+    - base/message_loop/message_pump_libevent.h
+    - base/message_loop/message_pump_type.h
+    - base/message_loop/message_pump_win.h
+    - base/message_loop/watchable_io_message_pump_posix.h
+    - base/metrics/field_trial_params.h
     - base/no_destructor.h
-    - base/not_fatal_until.h
     - base/notreached.h
-    - base/numerics/basic_ops_impl.h
-    - base/numerics/byte_conversions.h
     - base/numerics/checked_math.h
     - base/numerics/checked_math_impl.h
     - base/numerics/clamped_math.h
     - base/numerics/clamped_math_impl.h
-    - base/numerics/integral_constant_like.h
     - base/numerics/safe_conversions.h
     - base/numerics/safe_conversions_arm_impl.h
     - base/numerics/safe_conversions_impl.h
@@ -177,8 +164,13 @@ vendoring:
     - base/numerics/safe_math_arm_impl.h
     - base/numerics/safe_math_clang_gcc_impl.h
     - base/numerics/safe_math_shared_impl.h
-    - base/path_service.cc
-    - base/path_service.h
+    - base/numerics/wrapping_math.h
+    - base/observer_list.h
+    - base/observer_list_internal.h
+    - base/observer_list_types.h
+    - base/pending_task.h
+    - base/posix/can_lower_nice_to.cc
+    - base/posix/can_lower_nice_to.h
     - base/posix/eintr_wrapper.h
     - base/posix/safe_strerror.cc
     - base/posix/safe_strerror.h
@@ -191,24 +183,22 @@ vendoring:
     - base/rand_util.cc
     - base/rand_util.h
     - base/rand_util_win.cc
+    - base/ranges/algorithm.h
+    - base/ranges/functional.h
+    - base/ranges/ranges.h
     - base/scoped_clear_last_error.h
     - base/scoped_clear_last_error_win.cc
-    - base/scoped_generic.h
     - base/sequence_checker.h
     - base/sequence_checker_impl.h
     - base/sequence_token.h
-    - base/strings/cstring_view.h
     - base/strings/safe_sprintf.cc
     - base/strings/safe_sprintf.h
-    - base/strings/span_printf.h
-    - base/strings/strcat.h
-    - base/strings/strcat_internal.h
-    - base/strings/strcat_win.cc
-    - base/strings/strcat_win.h
     - base/strings/string_number_conversions.cc
     - base/strings/string_number_conversions.h
     - base/strings/string_number_conversions_internal.h
     - base/strings/string_number_conversions_win.h
+    - base/strings/string_piece.h
+    - base/strings/string_piece_forward.h
     - base/strings/string_split.cc
     - base/strings/string_split.h
     - base/strings/string_split_internal.h
@@ -221,7 +211,6 @@ vendoring:
     - base/strings/string_util_posix.h
     - base/strings/string_util_win.cc
     - base/strings/string_util_win.h
-    - base/strings/string_view_util.h
     - base/strings/stringprintf.cc
     - base/strings/stringprintf.h
     - base/strings/to_string.h
@@ -232,12 +221,26 @@ vendoring:
     - base/strings/utf_string_conversions.cc
     - base/strings/utf_string_conversions.h
     - base/synchronization/atomic_flag.h
+    - base/synchronization/condition_variable.h
+    - base/synchronization/condition_variable_posix.cc
     - base/synchronization/lock.cc
     - base/synchronization/lock.h
     - base/synchronization/lock_impl.h
     - base/synchronization/lock_impl_posix.cc
     - base/synchronization/lock_impl_win.cc
-    - base/synchronization/lock_subtle.h
+    - base/synchronization/waitable_event.h
+    - base/synchronization/waitable_event_posix.cc
+    - base/task/current_thread.h
+    - base/task/delay_policy.h
+    - base/task/delayed_task_handle.h
+    - base/task/post_task_and_reply_with_result_internal.h
+    - base/task/sequence_manager/task_time_observer.h
+    - base/task/sequenced_task_runner.h
+    - base/task/sequenced_task_runner_helpers.h
+    - base/task/single_thread_task_runner.h
+    - base/task/task_observer.h
+    - base/task/task_runner.h
+    - base/template_util.h
     - base/third_party/cityhash/city.cc
     - base/third_party/cityhash/city.h
     - base/third_party/cityhash/COPYING
@@ -247,8 +250,10 @@ vendoring:
     - base/third_party/superfasthash/README.chromium
     - base/third_party/superfasthash/superfasthash.c
     - base/thread_annotations.h
+    - base/threading/hang_watcher.h
     - base/threading/platform_thread.cc
     - base/threading/platform_thread.h
+    - base/threading/platform_thread_internal_posix.cc
     - base/threading/platform_thread_internal_posix.h
     - base/threading/platform_thread_posix.cc
     - base/threading/platform_thread_ref.cc
@@ -256,37 +261,39 @@ vendoring:
     - base/threading/platform_thread_win.cc
     - base/threading/platform_thread_win.h
     - base/threading/scoped_thread_priority.h
+    - base/threading/simple_thread.h
     - base/threading/thread_checker.h
     - base/threading/thread_checker_impl.h
     - base/threading/thread_collision_warner.cc
     - base/threading/thread_collision_warner.h
     - base/threading/thread_id_name_manager.cc
     - base/threading/thread_id_name_manager.h
+    - base/threading/thread_local.h
+    - base/threading/thread_local_internal.h
     - base/threading/thread_local_storage.cc
     - base/threading/thread_local_storage.h
     - base/threading/thread_local_storage_posix.cc
     - base/threading/thread_local_storage_win.cc
     - base/threading/thread_restrictions.cc
     - base/threading/thread_restrictions.h
+    - base/threading/threading_features.h
+    - base/time/tick_clock.h
     - base/time/time.cc
     - base/time/time.h
     - base/time/time_now_posix.cc
     - base/time/time_override.h
     - base/time/time_win.cc
     - base/token.h
-    - base/types/cxx23_from_range.h
-    - base/types/cxx23_to_underlying.h
-    - base/types/expected.h
-    - base/types/expected_internal.h
-    - base/types/is_arc_pointer.h
-    - base/types/is_complete.h
-    - base/types/is_instantiation.h
+    - base/trace_event/base_tracing.h
+    - base/trace_event/base_tracing_forward.h
+    - base/trace_event/common/trace_event_common.h
+    - base/trace_event/memory_allocator_dump_guid.h
+    - base/trace_event/trace_event_stub.cc
+    - base/trace_event/trace_event_stub.h
+    - base/types/always_false.h
     - base/types/pass_key.h
-    - base/types/same_as_any.h
     - base/types/strong_alias.h
     - base/types/supports_ostream_operator.h
-    - base/types/supports_to_string.h
-    - base/types/to_address.h
     - base/unguessable_token.h
     - base/version.cc
     - base/version.h
@@ -295,6 +302,7 @@ vendoring:
     - base/win/access_token.cc
     - base/win/access_token.h
     - base/win/current_module.h
+    - base/win/message_window.h
     - base/win/pe_image.cc
     - base/win/pe_image.h
     - base/win/scoped_handle.cc
@@ -308,7 +316,6 @@ vendoring:
     - base/win/security_descriptor.h
     - base/win/security_util.cc
     - base/win/security_util.h
-    - base/win/shlwapi.h
     - base/win/sid.cc
     - base/win/sid.h
     - base/win/startup_information.cc
@@ -317,12 +324,7 @@ vendoring:
     - base/win/static_constants.h
     - base/win/win_handle_types.h
     - base/win/win_handle_types_list.inc
-    - base/win/win_util.cc
-    - base/win/win_util.h
-    - base/win/windows_defines.inc
-    - base/win/windows_handle_util.h
     - base/win/windows_types.h
-    - base/win/windows_undefines.inc
     - base/win/windows_version.cc
     - base/win/windows_version.h
     - build/build_config.h
@@ -389,6 +391,7 @@ vendoring:
     - sandbox/win/src/filesystem_interception.h
     - sandbox/win/src/filesystem_policy.cc
     - sandbox/win/src/filesystem_policy.h
+    - sandbox/win/src/handle_closer.cc
     - sandbox/win/src/handle_closer.h
     - sandbox/win/src/handle_closer_agent.cc
     - sandbox/win/src/handle_closer_agent.h
@@ -408,6 +411,12 @@ vendoring:
     - sandbox/win/src/ipc_tags.h
     - sandbox/win/src/job.cc
     - sandbox/win/src/job.h
+    - sandbox/win/src/named_pipe_dispatcher.cc
+    - sandbox/win/src/named_pipe_dispatcher.h
+    - sandbox/win/src/named_pipe_interception.cc
+    - sandbox/win/src/named_pipe_interception.h
+    - sandbox/win/src/named_pipe_policy.cc
+    - sandbox/win/src/named_pipe_policy.h
     - sandbox/win/src/nt_internals.h
     - sandbox/win/src/policy_broker.cc
     - sandbox/win/src/policy_broker.h
@@ -487,6 +496,11 @@ vendoring:
     - sandbox/win/src/win_utils.h
     - sandbox/win/src/window.cc
     - sandbox/win/src/window.h
+    - third_party/libevent/event-config.h
+    - third_party/libevent/event.h
+    - third_party/libevent/evutil.h
+    - third_party/libevent/LICENSE
+    - third_party/libevent/linux/event-config.h
 
   # Apply patches that are taken from upstream first as these will not be
   # needed at some point, so we want subsequent patches to work after the

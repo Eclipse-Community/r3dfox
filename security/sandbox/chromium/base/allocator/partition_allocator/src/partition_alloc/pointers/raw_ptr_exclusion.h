@@ -2,22 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// IWYU pragma: private, include "base/memory/raw_ptr_exclusion.h"
-
-#ifndef PARTITION_ALLOC_POINTERS_RAW_PTR_EXCLUSION_H_
-#define PARTITION_ALLOC_POINTERS_RAW_PTR_EXCLUSION_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_POINTERS_RAW_PTR_EXCLUSION_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_POINTERS_RAW_PTR_EXCLUSION_H_
 
 // This header will be leakily included even when
 // `!use_partition_alloc`, which is okay because it's a leaf header.
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"  // nogncheck
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"  // nogncheck
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
+#include "build/build_config.h"
 
 #if PA_HAS_ATTRIBUTE(annotate)
-#if defined(OFFICIAL_BUILD) && !PA_BUILDFLAG(FORCE_ENABLE_RAW_PTR_EXCLUSION)
+#if defined(OFFICIAL_BUILD) && !BUILDFLAG(FORCE_ENABLE_RAW_PTR_EXCLUSION)
 // The annotation changed compiler output and increased binary size so disable
 // for official builds.
-// TODO(crbug.com/40836910): Remove when issue is resolved.
+// TODO(crbug.com/1320670): Remove when issue is resolved.
 #define RAW_PTR_EXCLUSION
 #else
 // Marks a field as excluded from the `raw_ptr<T>` usage enforcement via
@@ -36,4 +34,4 @@
 #define RAW_PTR_EXCLUSION
 #endif
 
-#endif  // PARTITION_ALLOC_POINTERS_RAW_PTR_EXCLUSION_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_POINTERS_RAW_PTR_EXCLUSION_H_

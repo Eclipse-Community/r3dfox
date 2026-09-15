@@ -9,21 +9,14 @@
 #include <stdint.h>
 
 #include <algorithm>
-#include <cmath>
-#include <concepts>
 #include <string>
-#include <type_traits>
-#include <vector>
 
 #include "base/base_export.h"
 #include "base/compiler_specific.h"
-#include "base/containers/span.h"
 #include "base/gtest_prod_util.h"
-#include "base/numerics/clamped_math.h"
-#include "base/numerics/safe_conversions.h"
-#include "base/time/time.h"
 #include "build/build_config.h"
-#if !defined(MOZ_SANDBOX)
+
+#if !BUILDFLAG(IS_NACL) && !defined(MOZ_SANDBOX)
 #include "third_party/boringssl/src/include/openssl/rand.h"
 #endif
 
@@ -31,15 +24,19 @@ namespace memory_simulator {
 class MemoryHolder;
 }
 
-namespace gwp_asan::internal {
-class ExtremeLightweightDetectorQuarantineBranch;
-}
-
 namespace base {
+
+class TimeDelta;
 
 namespace internal {
 
-#if !defined(MOZ_SANDBOX)
+#if BUILDFLAG(IS_ANDROID)
+// Sets the implementation of RandBytes according to the corresponding
+// base::Feature. Thread safe: allows to switch while RandBytes() is in use.
+void ConfigureRandBytesFieldTrial();
+#endif
+
+#if !BUILDFLAG(IS_NACL) && !defined(MOZ_SANDBOX)
 void ConfigureBoringSSLBackedRandBytesFieldTrial();
 #endif
 
@@ -49,16 +46,12 @@ BASE_EXPORT double RandDoubleAvoidAllocation();
 
 }  // namespace internal
 
-namespace test {
-class InsecureRandomGenerator;
-}  // namespace test
-
 // Returns a random number in range [0, UINT64_MAX]. Thread-safe.
 BASE_EXPORT uint64_t RandUint64();
 
 // Returns a random number between min and max (inclusive). Thread-safe.
 //
-// TODO(crbug.com/40283703): Change from fully-closed to half-closed (i.e.
+// TODO(crbug.com/1488681): Change from fully-closed to half-closed (i.e.
 // exclude `max`) to parallel other APIs here.
 BASE_EXPORT int RandInt(int min, int max);
 
@@ -71,9 +64,6 @@ BASE_EXPORT double RandDouble();
 // Returns a random float in range [0, 1). Thread-safe.
 BASE_EXPORT float RandFloat();
 
-// Returns a random bool. Thread-safe.
-BASE_EXPORT bool RandBool();
-
 // Returns a random duration in [`start`, `limit`). Thread-safe.
 //
 // REQUIRES: `start` < `limit`
@@ -84,70 +74,6 @@ BASE_EXPORT TimeDelta RandTimeDelta(TimeDelta start, TimeDelta limit);
 // REQUIRES: `limit.is_positive()`
 BASE_EXPORT TimeDelta RandTimeDeltaUpTo(TimeDelta limit);
 
-// Adjusts `value` up or down by a random amount up to `percentage`%, e.g. to
-// add noise/jitter. Thread-safe.
-//
-// More precisely, implements something equivalent to the following pseudocode:
-// (1) Computes `max_adjustment = value * percentage / 100` as a double
-// (2) If `T` is integral, rounds `max_adjustment`, clamped to what is
-//     effectively a 65-bit signed value
-// (3) Computes `result` as a random value in the range of
-//     [`value - max_adjustment`, `value + max_adjustment`)
-// (4) Checks that the `result` is in the valid range of `T` and returns it
-//
-// REQUIRES: inputs are finite, `percentage` >= 0
-template <typename T>
-  requires std::floating_point<T>
-T RandomizeByPercentage(T value, double percentage) {
-  CHECK(!std::isinf(value));
-  CHECK(!std::isnan(value));
-  CHECK(!std::isinf(percentage));
-  CHECK_GE(percentage, 0);
-  return checked_cast<T>(value +
-                         value * (RandDouble() - 0.5) * 2 * percentage / 100);
-}
-template <typename T>
-  requires std::integral<T>
-T RandomizeByPercentage(T value, double percentage) {
-  CHECK(!std::isinf(percentage));
-  CHECK_GE(percentage, 0);
-  // If `T` is signed and `percentage` is sufficiently large, the maximum
-  // adjustment may not fit in a `T`. The clamped value described in pseudocode
-  // step (2) above will always fit in a `uint64_t`, so do math in `uint64_t`s.
-  const uint64_t abs_value = SafeUnsignedAbs(value);
-  // Explicitly cast to double to avoid implicit conversion warnings on stricter
-  // toolchains. The potential precision loss from converting a large uint64_t
-  // is acceptable for this percentage-based randomization.
-  const uint64_t max_abs_adjustment =
-      ClampRound<uint64_t>(static_cast<double>(abs_value) * percentage / 100.0);
-  if (!max_abs_adjustment) {
-    return value;
-  }
-  uint64_t abs_adjustment = RandGenerator(max_abs_adjustment);
-
-  CheckedNumeric<T> checked_value(value);
-  // Random sign bit for the adjustment.
-  if (RandBool()) {
-    // Subtract adjustment.
-    //
-    // Be careful to "translate" the adjustment to the other side of `value` (by
-    // doing the subtraction from `max_abs_adjustment` here) instead of
-    // "mirroring" it (as would happen if this were omitted). This avoids bias
-    // and preserves the desired half-closed interval property of the result
-    // range.
-    abs_adjustment = max_abs_adjustment - abs_adjustment;
-    checked_value -= abs_adjustment;
-  } else {
-    checked_value += abs_adjustment;
-  }
-  return checked_value.ValueOrDie();
-}
-inline TimeDelta RandomizeByPercentage(TimeDelta value, double percentage) {
-  CHECK(!value.is_inf());
-  return Microseconds(
-      RandomizeByPercentage(value.InMicroseconds(), percentage));
-}
-
 // Given input |bits|, convert with maximum precision to a double in
 // the range [0, 1). Thread-safe.
 BASE_EXPORT double BitsToOpenEndedUnitInterval(uint64_t bits);
@@ -156,24 +82,15 @@ BASE_EXPORT double BitsToOpenEndedUnitInterval(uint64_t bits);
 // [0, 1). Thread-safe.
 BASE_EXPORT float BitsToOpenEndedUnitIntervalF(uint64_t bits);
 
-// Fills `output` with cryptographically secure random data. Thread-safe.
+// Fills |output_length| bytes of |output| with random data. Thread-safe.
 //
 // Although implementations are required to use a cryptographically secure
 // random number source, code outside of base/ that relies on this should use
 // crypto::RandBytes instead to ensure the requirement is easily discoverable.
-BASE_EXPORT void RandBytes(span<uint8_t> output);
+BASE_EXPORT void RandBytes(void* output, size_t output_length);
 
-// Creates a vector of `length` bytes, fills it with random data, and returns
-// it. Thread-safe.
-//
-// Although implementations are required to use a cryptographically secure
-// random number source, code outside of base/ that relies on this should use
-// crypto::RandBytes instead to ensure the requirement is easily discoverable.
-BASE_EXPORT std::vector<uint8_t> RandBytesAsVector(size_t length);
-
-// DEPRECATED. Prefer RandBytesAsVector() above.
 // Fills a string of length |length| with random data and returns it.
-// Thread-safe.
+// |length| should be nonzero. Thread-safe.
 //
 // Note that this is a variation of |RandBytes| with a different return type.
 // The returned string is likely not ASCII/UTF-8. Use with care.
@@ -195,7 +112,7 @@ class RandomBitGenerator {
   ~RandomBitGenerator() = default;
 };
 
-#if !defined(MOZ_SANDBOX)
+#if !BUILDFLAG(IS_NACL) && !defined(MOZ_SANDBOX)
 class NonAllocatingRandomBitGenerator {
  public:
   using result_type = uint64_t;
@@ -229,9 +146,8 @@ class MetricsSubSampler;
 //
 // WARNING: This is not the generator you are looking for. This has significant
 // caveats:
-//   - It is non-cryptographic, so easy to misuse
-//   - It is neither fork() nor clone()-safe because both RNG's after the
-//     fork/clone will have the same state and produce the same number stream.
+//   - It is non-cryptographic, so easy to miuse
+//   - It is neither fork() nor clone()-safe.
 //   - Synchronization is up to the client.
 //
 // Always prefer base::Rand*() above, unless you have a use case where its
@@ -257,16 +173,15 @@ class BASE_EXPORT InsecureRandomGenerator {
   // Never use outside testing, not enough entropy.
   void ReseedForTesting(uint64_t seed);
 
-  uint32_t RandUint32() const;
-  uint64_t RandUint64() const;
+  uint32_t RandUint32();
+  uint64_t RandUint64();
   // In [0, 1).
-  double RandDouble() const;
+  double RandDouble();
 
  private:
   InsecureRandomGenerator();
-  // State. These are mutable to allow Rand* functions to be declared as const.
-  // This, in turn, enables use of `MetricsSubSampler` in const contexts.
-  mutable uint64_t a_ = 0, b_ = 0;
+  // State.
+  uint64_t a_ = 0, b_ = 0;
 
   // Before adding a new friend class, make sure that the overhead of
   // base::Rand*() is too high, using something more representative than a
@@ -278,10 +193,6 @@ class BASE_EXPORT InsecureRandomGenerator {
   friend class memory_simulator::MemoryHolder;
   // Uses the generator to sub-sample metrics.
   friend class MetricsSubSampler;
-  // test::InsecureRandomGenerator can be used for testing.
-  friend class test::InsecureRandomGenerator;
-
-  friend class gwp_asan::internal::ExtremeLightweightDetectorQuarantineBranch;
 
   FRIEND_TEST_ALL_PREFIXES(RandUtilTest,
                            InsecureRandomGeneratorProducesBothValuesOfAllBits);
@@ -290,58 +201,21 @@ class BASE_EXPORT InsecureRandomGenerator {
   FRIEND_TEST_ALL_PREFIXES(RandUtilPerfTest, InsecureRandomRandUint64);
 };
 
-// Fast class to randomly sub-sample metrics that are logged in high frequency
-// code.
-//
-// WARNING: This uses InsecureRandomGenerator so all the caveats there apply.
-// In particular if a MetricsSubSampler object exists when fork()/clone() is
-// called, calls to ShouldSample() on both sides of the fork will return the
-// same values, possibly introducing metric bias.
 class BASE_EXPORT MetricsSubSampler {
  public:
   MetricsSubSampler();
-  bool ShouldSample(double probability) const;
+  bool ShouldSample(double probability);
 
-  void Reseed();
-
-  // Make any call to ShouldSample for any instance of MetricsSubSampler
-  // return true for testing. Cannot be used in conjunction with
-  // ScopedNeverSampleForTesting.
-  class BASE_EXPORT ScopedAlwaysSampleForTesting {
+  // Disables subsampling in a scope. Useful for testing.
+  class BASE_EXPORT ScopedDisableForTesting {
    public:
-    ScopedAlwaysSampleForTesting();
-    ~ScopedAlwaysSampleForTesting();
-  };
-
-  // Make any call to ShouldSample for any instance of MetricsSubSampler
-  // return false for testing. Cannot be used in conjunction with
-  // ScopedAlwaysSampleForTesting.
-  class BASE_EXPORT ScopedNeverSampleForTesting {
-   public:
-    ScopedNeverSampleForTesting();
-    ~ScopedNeverSampleForTesting();
+    ScopedDisableForTesting();
+    ~ScopedDisableForTesting();
   };
 
  private:
   InsecureRandomGenerator generator_;
 };
-
-// Returns true with `probability` using a pseudo-random number generator (or
-// always/never returns true if a `ScopedAlwaysSampleForTesting` or
-// `ScopedNeverSampleForTesting` is in scope). Valid values for `probability`
-// are in range [0, 1].
-//
-// This function is intended for sub-sampled metric recording only. Do not use
-// it for any other purpose, especially where cryptographic randomness is
-// required.
-//
-// Uses a thread local MetricsSubSampler.
-BASE_EXPORT bool ShouldRecordSubsampledMetric(double probability);
-
-// Reseeds the MetricsSubsampler used by ShouldRecordSubsampledMetric. Used
-// after forking a zygote to avoid having multiple processes sharing initial
-// RNG state.
-BASE_EXPORT void ReseedSharedMetricsSubsampler();
 
 }  // namespace base
 

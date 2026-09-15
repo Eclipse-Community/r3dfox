@@ -5,7 +5,6 @@
 #ifndef BASE_LOCATION_H_
 #define BASE_LOCATION_H_
 
-#include <compare>
 #include <string>
 
 #include "base/base_export.h"
@@ -14,6 +13,19 @@
 #include "build/build_config.h"
 
 namespace base {
+
+#if defined(__has_builtin)
+// Clang allows detection of these builtins.
+#  define SUPPORTS_LOCATION_BUILTINS                                       \
+    (__has_builtin(__builtin_FUNCTION) && __has_builtin(__builtin_FILE) && \
+     __has_builtin(__builtin_LINE))
+#elif defined(COMPILER_GCC) && __GNUC__ >= 7
+// GCC has supported these for a long time, but they point at the function
+// declaration in the case of default arguments, rather than at the call site.
+#  define SUPPORTS_LOCATION_BUILTINS 1
+#else
+#  define SUPPORTS_LOCATION_BUILTINS 0
+#endif
 
 // Location provides basic info where of an object was constructed, or was
 // significantly brought to life.
@@ -33,23 +45,14 @@ class BASE_EXPORT Location {
 
   // Comparator for testing. The program counter should uniquely
   // identify a location.
-  friend bool operator==(const Location& lhs, const Location& rhs) {
-    return lhs.program_counter_ == rhs.program_counter_;
+  bool operator==(const Location& other) const {
+    return program_counter_ == other.program_counter_;
   }
 
-  // The program counter should uniquely identify a location. There is no
-  // guarantee that a program counter corresponds to unique function/file/line
-  // values, based on how it's constructed, and therefore equivalent locations
-  // could be distinguishable.
-  friend std::weak_ordering operator<=>(const Location& lhs,
-                                        const Location& rhs) {
-    return lhs.program_counter_ <=> rhs.program_counter_;
-  }
-
-  // The program counter should uniquely identify a location.
-  template <typename H>
-  friend H AbslHashValue(H h, const base::Location& m) {
-    return H::combine(std::move(h), m.program_counter());
+  // Comparator is necessary to use location object within an ordered container
+  // type (eg. std::map).
+  bool operator<(const Location& other) const {
+    return program_counter_ < other.program_counter_;
   }
 
   // Returns true if there is source code location info. If this is false,
@@ -81,13 +84,13 @@ class BASE_EXPORT Location {
   // Write a representation of this object into a trace.
   void WriteIntoTrace(perfetto::TracedValue context) const;
 
+#if SUPPORTS_LOCATION_BUILTINS
   static Location Current(const char* function_name = __builtin_FUNCTION(),
                           const char* file_name = __builtin_FILE(),
                           int line_number = __builtin_LINE());
-
-  static Location CurrentWithoutFunctionName(
-      const char* file_name = __builtin_FILE(),
-      int line_number = __builtin_LINE());
+#else
+  static Location Current();
+#endif
 
  private:
   // Only initializes the file name and program counter, the source information

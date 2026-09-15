@@ -9,7 +9,6 @@
 
 #include <string>
 
-#include "base/containers/contains.h"
 #include "sandbox/win/src/ipc_tags.h"
 #include "sandbox/win/src/policy_engine_opcodes.h"
 #include "sandbox/win/src/policy_params.h"
@@ -37,33 +36,24 @@ bool IsValidNtPath(const base::FilePath& name) {
 
 namespace sandbox {
 
-bool SignedPolicy::GenerateRules(base::FilePath dll_path,
+bool SignedPolicy::GenerateRules(const wchar_t* name,
                                  LowLevelPolicy* policy) {
-#if !defined(MOZ_SANDBOX)
-  // Disallow patterns to allow for future API changes.
-  if (base::Contains(dll_path.value(), L'*')) {
-    return false;
-  }
-#endif
-  if (!dll_path.IsAbsolute()) {
-    return false;
-  }
-
-  auto nt_path_name = GetNtPathFromWin32Path(dll_path.DirName().value());
+  base::FilePath file_path(name);
   base::FilePath nt_filename;
+  auto nt_path_name = GetNtPathFromWin32Path(file_path.DirName().value());
   if (nt_path_name) {
     base::FilePath nt_path(nt_path_name.value());
-    nt_filename = nt_path.Append(dll_path.BaseName());
-  } else if (IsValidNtPath(dll_path)) {
-    nt_filename = dll_path;
+    nt_filename = nt_path.Append(file_path.BaseName());
+  } else if (IsValidNtPath(file_path)) {
+    nt_filename = std::move(file_path);
   } else {
     return false;
   }
 
   // Create a rule to ASK_BROKER if name matches.
   PolicyRule signed_policy(ASK_BROKER);
-  if (!signed_policy.AddStringMatch(IF, NameBased::NAME,
-                                    nt_filename.value().c_str())) {
+  if (!signed_policy.AddStringMatch(
+          IF, NameBased::NAME, nt_filename.value().c_str(), CASE_INSENSITIVE)) {
     return false;
   }
   if (!policy->AddRule(IpcTag::NTCREATESECTION, &signed_policy)) {
@@ -88,14 +78,11 @@ NTSTATUS SignedPolicy::CreateSectionAction(
       &local_section_handle,
       SECTION_QUERY | SECTION_MAP_WRITE | SECTION_MAP_READ |
           SECTION_MAP_EXECUTE,
-      nullptr, 0, PAGE_EXECUTE, SEC_IMAGE, local_file_handle.get());
-
-  if (status != STATUS_SUCCESS || !local_section_handle) {
+      nullptr, 0, PAGE_EXECUTE, SEC_IMAGE, local_file_handle.Get());
+  if (!local_section_handle)
     return status;
-  }
 
-  // Duplicate section handle back to the target. `local_section_handle` must
-  // be a valid real handle and `client_info.process` is trusted.
+  // Duplicate section handle back to the target.
   if (!::DuplicateHandle(::GetCurrentProcess(), local_section_handle,
                          client_info.process, target_section_handle, 0, false,
                          DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) {

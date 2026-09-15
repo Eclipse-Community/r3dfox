@@ -5,9 +5,9 @@
 #ifndef BASE_MEMORY_RAW_PTR_ASAN_BOUND_ARG_TRACKER_H_
 #define BASE_MEMORY_RAW_PTR_ASAN_BOUND_ARG_TRACKER_H_
 
-#include "partition_alloc/buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
 
-#if PA_BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
+#if BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -19,7 +19,7 @@
 
 namespace base {
 namespace internal {
-template <typename, typename, typename>
+template <typename, typename>
 struct Invoker;
 
 template <typename T, typename UnretainedTrait, RawPtrTraits PtrTraits>
@@ -55,7 +55,7 @@ class BASE_EXPORT RawPtrAsanBoundArgTracker {
   static uintptr_t GetProtectedArgPtr(uintptr_t ptr);
 
  private:
-  template <typename, typename, typename>
+  template <typename, typename>
   friend struct internal::Invoker;
 
   void Add(uintptr_t pointer);
@@ -79,7 +79,7 @@ class BASE_EXPORT RawPtrAsanBoundArgTracker {
       auto inner = arg.get();
       // The argument may unwrap into a raw_ptr or a T* depending if it is
       // allowed to dangle.
-      if constexpr (IsRawPtr<decltype(inner)>) {
+      if constexpr (IsRawPtrV<decltype(inner)>) {
         Add(reinterpret_cast<uintptr_t>(inner.get()));
       } else {
         Add(reinterpret_cast<uintptr_t>(inner));
@@ -119,5 +119,5 @@ class BASE_EXPORT RawPtrAsanBoundArgTracker {
 
 }  // namespace base
 
-#endif  // PA_BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
+#endif  // BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
 #endif  // BASE_MEMORY_RAW_PTR_ASAN_BOUND_ARG_TRACKER_H_
