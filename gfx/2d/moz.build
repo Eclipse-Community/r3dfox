@@ -80,11 +80,14 @@ elif CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
         "DWriteSettings.h",
         "SourceSurfaceD3D11.h",
         "UnscaledFontDWrite.h",
+        "UnscaledFontGDI.h",
     ]
     SOURCES += [
         "DWriteSettings.cpp",
         "NativeFontResourceDWrite.cpp",
+        "NativeFontResourceGDI.cpp",
         "ScaledFontDWrite.cpp",
+        "ScaledFontWin.cpp",
         "SourceSurfaceD3D11.cpp",
     ]
     DEFINES["WIN32"] = True
