@@ -156,11 +156,6 @@ bool CompositorBridgeParentBase::OwnsExternalImageId(
   return mNamespace == static_cast<uint32_t>(wr::AsUint64(aId) >> 32);
 }
 
-bool CompositorBridgeParentBase::OwnsPipelineId(
-    const wr::PipelineId& aPipelineId) const {
-  return mNamespace == aPipelineId.mNamespace;
-}
-
 CompositorBridgeParent::LayerTreeState::LayerTreeState()
     : mApzcTreeManagerParent(nullptr),
       mApzInputBridgeParent(nullptr),

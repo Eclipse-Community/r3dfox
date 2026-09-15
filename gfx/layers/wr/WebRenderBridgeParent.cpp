@@ -1661,10 +1661,6 @@ bool WebRenderBridgeParent::ProcessWebRenderParentCommands(
       case WebRenderParentCommand::TOpAddPipelineIdForCompositable: {
         const OpAddPipelineIdForCompositable& op =
             cmd.get_OpAddPipelineIdForCompositable();
-        if (!GetCompositorBridge()->OwnsPipelineId(op.pipelineId())) {
-          MOZ_ASSERT_UNREACHABLE("Invalid PipelineId!");
-          break;
-        }
 
         AddPipelineIdForCompositable(op.pipelineId(), op.handle(), op.owner(),
                                      aTxn, txnForImageBridge);
@@ -1673,10 +1669,6 @@ bool WebRenderBridgeParent::ProcessWebRenderParentCommands(
       case WebRenderParentCommand::TOpRemovePipelineIdForCompositable: {
         const OpRemovePipelineIdForCompositable& op =
             cmd.get_OpRemovePipelineIdForCompositable();
-        if (!GetCompositorBridge()->OwnsPipelineId(op.pipelineId())) {
-          MOZ_ASSERT_UNREACHABLE("Invalid PipelineId!");
-          break;
-        }
 
         auto* pendingOps =
             mLateInit->mApi->GetPendingAsyncImagePipelineOps(aTxn);
@@ -1692,10 +1684,6 @@ bool WebRenderBridgeParent::ProcessWebRenderParentCommands(
       case WebRenderParentCommand::TOpUpdateAsyncImagePipeline: {
         const OpUpdateAsyncImagePipeline& op =
             cmd.get_OpUpdateAsyncImagePipeline();
-        if (!GetCompositorBridge()->OwnsPipelineId(op.pipelineId())) {
-          MOZ_ASSERT_UNREACHABLE("Invalid PipelineId!");
-          break;
-        }
 
         auto* pendingOps =
             mLateInit->mApi->GetPendingAsyncImagePipelineOps(aTxn);
@@ -1714,10 +1702,6 @@ bool WebRenderBridgeParent::ProcessWebRenderParentCommands(
       case WebRenderParentCommand::TOpUpdatedAsyncImagePipeline: {
         const OpUpdatedAsyncImagePipeline& op =
             cmd.get_OpUpdatedAsyncImagePipeline();
-        if (!GetCompositorBridge()->OwnsPipelineId(op.pipelineId())) {
-          MOZ_ASSERT_UNREACHABLE("Invalid PipelineId!");
-          break;
-        }
 
         aTxn.InvalidateRenderedFrame(wr::RenderReasons::ASYNC_IMAGE);
 
