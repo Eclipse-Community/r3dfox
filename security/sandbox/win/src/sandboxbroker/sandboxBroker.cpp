@@ -962,22 +962,18 @@ void AddShaderCachesToPolicy(sandboxing::SizeTrackingConfig* aConfig,
                              int32_t aSandboxLevel) {
   // The GPU process needs to write to a shader cache for performance reasons
   if (sProfileDir) {
-    // Create the shader-cache dir ourselves, so we only need to give read
-    // access to it.
-    static constexpr auto kShaderCacheDir = u"\\shader-cache"_ns;
-    static constexpr auto kShaderCacheDirAnyEntry = u"\\shader-cache\\*"_ns;
-    nsAutoString rulePath(*sProfileDir);
-    rulePath.Append(kShaderCacheDir);
-    if (!::CreateDirectoryW(rulePath.get(), nullptr) &&
-        ::GetLastError() != ERROR_ALREADY_EXISTS) {
-      LOG_W("Failed to create shader-cache");
-    }
-
-    AddCachedDirRule(aConfig, sandbox::FileSemantics::kAllowReadonly,
-                     sProfileDir, kShaderCacheDir);
+    // Currently the GPU process creates the shader-cache directory if it
+    // doesn't exist, so we have to give FILES_ALLOW_ANY access.
+    // FILES_ALLOW_DIR_ANY has been seen to fail on an existing profile although
+    // the root cause hasn't been found. FILES_ALLOW_DIR_ANY has also been
+    // removed from the sandbox code upstream.
+    // It is possible that we might be able to use FILES_ALLOW_READONLY for the
+    // dir if it is already created, bug 1966157 has been filed to track.
+    AddCachedDirRule(aConfig, sandbox::FileSemantics::kAllowAny, sProfileDir,
+                     u"\\shader-cache"_ns);
 
     AddCachedDirRule(aConfig, sandbox::FileSemantics::kAllowAny, sProfileDir,
-                     kShaderCacheDirAnyEntry);
+                     u"\\shader-cache\\*"_ns);
   }
 
   // Add GPU specific shader cache rules.
