@@ -269,15 +269,6 @@ class WebRenderBridgeParent final : public PWebRenderBridgeParent,
            mLateInit->mIdNamespace.mHandle;
   }
 
-  /**
-   * AnimationHelper::GetNextCompositorAnimationsId() encodes the child
-   * process PID in the upper 32 bits of the id, verify that this is as
-   * expected.
-   */
-  bool OwnsCompositorAnimationsId(uint64_t aId) const {
-    return (aId >> 32) == (uint64_t)OtherPid();
-  }
-
   void FlushRendering(wr::RenderReasons aReasons, bool aBlocking);
 
   /**
