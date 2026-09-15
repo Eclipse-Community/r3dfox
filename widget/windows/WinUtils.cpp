@@ -5,7 +5,6 @@
 #include "WinUtils.h"
 
 #include <knownfolders.h>
-#include <pathcch.h>
 #include <psapi.h>
 #include <winioctl.h>
 
@@ -1846,9 +1845,8 @@ bool WinUtils::RunningFromANetworkDrive() {
 /* static */
 bool WinUtils::CanonicalizePath(nsAString& aPath) {
   wchar_t tempPath[MAX_PATH + 1];
-  HRESULT hr = PathCchCanonicalize(tempPath, std::size(tempPath),
-                                   (char16ptr_t)PromiseFlatString(aPath).get());
-  if (FAILED(hr)) {
+  if (!PathCanonicalizeW(tempPath,
+                         (char16ptr_t)PromiseFlatString(aPath).get())) {
     return false;
   }
   aPath = tempPath;
