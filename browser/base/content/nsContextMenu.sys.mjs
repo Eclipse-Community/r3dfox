@@ -97,14 +97,7 @@ const ALLOWED_CHROME_IMAGE_URLS = new Set([
   "chrome://global/skin/illustrations/no-connection.svg",
 ]);
 
-const IMAGE_ONLY_PROTOCOLS = [
-  "cached-favicon:",
-  "moz-icon:",
-  "moz-newtab-wallpaper:",
-  "moz-page-thumb:",
-  "moz-remote-image:",
-  "page-icon:",
-];
+const IMAGE_ONLY_PROTOCOLS = ["moz-icon:", "page-icon:", "moz-remote-image:"];
 
 export class nsContextMenu {
   /**
