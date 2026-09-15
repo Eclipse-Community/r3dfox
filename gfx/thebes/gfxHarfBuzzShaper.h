@@ -151,7 +151,7 @@ class gfxHarfBuzzShaper : public gfxFontShaper {
   nscoord GetGlyphPositions(gfxContext* aContext, nsTArray<nsPoint>& aPositions,
                             uint32_t aAppUnitsPerDevUnit);
 
-  void InitializeVertical() MOZ_REQUIRES(mMutex);
+  void InitializeVertical();
   bool LoadHmtxTable();
 
   struct Glyf {  // we only need the bounding-box at the beginning

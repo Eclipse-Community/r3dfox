@@ -298,25 +298,18 @@ class gfxFontEntry {
     return flag == LazyFlag::Yes;
   }
 
-  inline bool HasCharacter(uint32_t ch) MOZ_EXCLUDES(mLock) {
-    if (const auto* map = GetShmemCharacterMap()) {
-      return map->test(ch);
+  inline bool HasCharacter(uint32_t ch) {
+    if (mShmemCharacterMap) {
+      return GetShmemCharacterMap()->test(ch);
     }
-    // Hold a strong ref locally, to ensure it can't be freed before we return
-    // even if mCharacterMap is cleared.
-    RefPtr<gfxCharacterMap> map = GetCharacterMapAddRefed();
-    if (map) {
+    if (mCharacterMap) {
       if (mShmemFace && TrySetShmemCharacterMap()) {
-        // Forget our temporary local copy, now we can use the shared cmap.
-        // Ignore the MOZ_GUARDED_BY of mCharacterMap as we're doing an
-        // atomic exchange.
-        MOZ_PUSH_IGNORE_THREAD_SAFETY
+        // Forget our temporary local copy, now we can use the shared cmap
         auto* oldCmap = mCharacterMap.exchange(nullptr);
-        MOZ_POP_THREAD_SAFETY
         NS_IF_RELEASE(oldCmap);
         return GetShmemCharacterMap()->test(ch);
       }
-      if (map->test(ch)) {
+      if (GetCharacterMap()->test(ch)) {
         return true;
       }
     }
@@ -576,34 +569,8 @@ class gfxFontEntry {
   mutable mozilla::RWLock mLock;
   mutable mozilla::Mutex mFeatureInfoLock;
 
-  // mCharacterMap is a strong ref, but stored as Atomic<> rather than RefPtr<>
-  // so that we can check for null/non-null without needing to take the lock.
-  // Holding a read lock is necessary only if actually dereferencing it.
-  mozilla::Atomic<gfxCharacterMap*> mCharacterMap MOZ_GUARDED_BY(mLock);
-
-  // Return mCharacterMap as a raw pointer.
-  // This is unsafe to dereference etc unless the caller is holding mLock to
-  // ensure it doesn't get released.
-  gfxCharacterMap* GetCharacterMapRaw() const MOZ_NO_THREAD_SAFETY_ANALYSIS {
-    // Just reading the atomic ptr doesn't require holding the lock.
-    return mCharacterMap;
-  }
-
-  // Return a new strong ref to mCharacterMap. This can safely be dereferenced
-  // by the caller as long as it keeps its reference alive.
-  already_AddRefed<gfxCharacterMap> GetCharacterMapAddRefed() const {
-    mozilla::AutoReadLock lock(mLock);
-    RefPtr map = static_cast<gfxCharacterMap*>(mCharacterMap);
-    return map.forget();
-  }
-
-  // Check for presence of either shmem or local charmap.
-  bool HasCharacterMap() const MOZ_NO_THREAD_SAFETY_ANALYSIS {
-    // Although mCharacterMap is MOZ_GUARDED_BY(mLock), we don't lock here
-    // as it is an atomic var, and we're not holding on to dereferencing it,
-    // just checking whether it's non-null.
-    return mShmemCharacterMap || mCharacterMap;
-  }
+  mozilla::Atomic<gfxCharacterMap*> mCharacterMap;  // strong ref
+  gfxCharacterMap* GetCharacterMap() const { return mCharacterMap; }
 
   mozilla::fontlist::Face* mShmemFace = nullptr;
   const mozilla::fontlist::Family* mShmemFamily = nullptr;
@@ -766,7 +733,7 @@ class gfxFontEntry {
       FontInfoData* aFontInfoData, uint32_t& aUVSOffset);
 
   // helper for HasCharacter(), which is what client code should call
-  virtual bool TestCharacterMap(uint32_t aCh) MOZ_EXCLUDES(mLock);
+  virtual bool TestCharacterMap(uint32_t aCh);
 
   // Try to set mShmemCharacterMap, based on the char map in mShmemFace;
   // return true if successful, false if it remains null (maybe the parent

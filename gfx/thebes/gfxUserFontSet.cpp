@@ -102,22 +102,20 @@ gfxUserFontEntry::~gfxUserFontEntry() {
 
 bool gfxUserFontEntry::Matches(const nsTArray<gfxFontFaceSrc>& aFontFaceSrcList,
                                const gfxUserFontAttributes& aAttr) {
-  if (!(mWeightRange == aAttr.mWeight && mStretchRange == aAttr.mStretch &&
-        mStyleRange == aAttr.mStyle &&
-        mFeatureSettings == aAttr.mFeatureSettings &&
-        mVariationSettings == aAttr.mVariationSettings &&
-        mLanguageOverride == aAttr.mLanguageOverride &&
-        mSrcList == aFontFaceSrcList && mFontDisplay == aAttr.mFontDisplay &&
-        mRangeFlags == aAttr.mRangeFlags &&
-        mAscentOverride == aAttr.mAscentOverride &&
-        mDescentOverride == aAttr.mDescentOverride &&
-        mLineGapOverride == aAttr.mLineGapOverride &&
-        mSizeAdjust == aAttr.mSizeAdjust)) {
-    return false;
-  }
-  RefPtr map = GetCharacterMapAddRefed();
-  return (!aAttr.mUnicodeRanges && !map) ||
-         (aAttr.mUnicodeRanges && map && map->Equals(aAttr.mUnicodeRanges));
+  return mWeightRange == aAttr.mWeight && mStretchRange == aAttr.mStretch &&
+         mStyleRange == aAttr.mStyle &&
+         mFeatureSettings == aAttr.mFeatureSettings &&
+         mVariationSettings == aAttr.mVariationSettings &&
+         mLanguageOverride == aAttr.mLanguageOverride &&
+         mSrcList == aFontFaceSrcList && mFontDisplay == aAttr.mFontDisplay &&
+         mRangeFlags == aAttr.mRangeFlags &&
+         mAscentOverride == aAttr.mAscentOverride &&
+         mDescentOverride == aAttr.mDescentOverride &&
+         mLineGapOverride == aAttr.mLineGapOverride &&
+         mSizeAdjust == aAttr.mSizeAdjust &&
+         ((!aAttr.mUnicodeRanges && !mCharacterMap) ||
+          (aAttr.mUnicodeRanges && mCharacterMap &&
+           GetCharacterMap()->Equals(aAttr.mUnicodeRanges)));
 }
 
 gfxFont* gfxUserFontEntry::CreateFontInstance(const gfxFontStyle* aFontStyle) {
