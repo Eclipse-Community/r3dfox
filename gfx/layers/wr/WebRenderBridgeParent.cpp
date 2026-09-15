@@ -1303,8 +1303,8 @@ bool WebRenderBridgeParent::SetDisplayList(
     pipelineId = gfx::GetTemporaryWebRenderPipelineId(pipelineId);
   }
 
-  aTxn.SetDisplayList(aWrEpoch, mLateInit->mIdNamespace, pipelineId, aDLDesc,
-                      dlItems, dlSpatialTreeData);
+  aTxn.SetDisplayList(aWrEpoch, pipelineId, aDLDesc, dlItems,
+                      dlSpatialTreeData);
 
   if (aRenderOffscreen) {
     aTxn.RenderOffscreen(pipelineId);
@@ -2203,7 +2203,7 @@ mozilla::ipc::IPCResult WebRenderBridgeParent::RecvClearCachedResources() {
   // Clear resources
   wr::TransactionBuilder txn(mLateInit->mApi);
   txn.SetLowPriority(true);
-  txn.ClearDisplayList(GetNextWrEpoch(), mLateInit->mIdNamespace, mPipelineId);
+  txn.ClearDisplayList(GetNextWrEpoch(), mPipelineId);
   MaybeNotifyOfLayers(txn, false);
   mLateInit->mApi->SendTransaction(txn);
 
@@ -3027,7 +3027,7 @@ void WebRenderBridgeParent::ClearResources() {
 
   wr::TransactionBuilder txn(mLateInit->mApi);
   txn.SetLowPriority(true);
-  txn.ClearDisplayList(wrEpoch, mLateInit->mIdNamespace, mPipelineId);
+  txn.ClearDisplayList(wrEpoch, mPipelineId);
 
   for (const auto& entry : mAsyncCompositables) {
     wr::PipelineId pipelineId = wr::AsPipelineId(entry.first);

@@ -2365,7 +2365,6 @@ pub extern "C" fn wr_transaction_remove_pipeline(txn: &mut Transaction, pipeline
 pub extern "C" fn wr_transaction_set_display_list(
     txn: &mut Transaction,
     epoch: WrEpoch,
-    namespace: WrIdNamespace,
     pipeline_id: WrPipelineId,
     dl_descriptor: BuiltDisplayListDescriptor,
     dl_items_data: &mut WrVecU8,
@@ -2378,7 +2377,7 @@ pub extern "C" fn wr_transaction_set_display_list(
 
     let dl = BuiltDisplayList::from_data(payload, dl_descriptor);
 
-    txn.set_display_list(epoch, namespace, (pipeline_id, dl));
+    txn.set_display_list(epoch, (pipeline_id, dl));
 }
 
 #[no_mangle]
@@ -2711,13 +2710,12 @@ pub extern "C" fn wr_api_send_transaction(dh: &mut DocumentHandle, transaction: 
 pub unsafe extern "C" fn wr_transaction_clear_display_list(
     txn: &mut Transaction,
     epoch: WrEpoch,
-    namespace: WrIdNamespace,
     pipeline_id: WrPipelineId,
 ) {
     let mut frame_builder = WebRenderFrameBuilder::new(pipeline_id);
     frame_builder.dl_builder.begin();
 
-    txn.set_display_list(epoch, namespace, frame_builder.dl_builder.end());
+    txn.set_display_list(epoch, frame_builder.dl_builder.end());
 }
 
 #[no_mangle]

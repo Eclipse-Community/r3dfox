@@ -305,17 +305,11 @@ impl Transaction {
     /// Arguments:
     ///
     /// * `epoch`: The unique Frame ID, monotonically increasing.
-    /// * `namespace`: The id namespace that owns the resources this display list
-    ///   is allowed to reference. It must be provided by the (trusted) code that
-    ///   submits the display list, never by whoever built the display list: it is
-    ///   what lets the scene builder reject references to resources belonging to
-    ///   another namespace.
     /// * `pipeline_id`: The ID of the pipeline that is supplying this display list.
     /// * `display_list`: The root Display list used in this frame.
     pub fn set_display_list(
         &mut self,
         epoch: Epoch,
-        namespace: IdNamespace,
         (pipeline_id, mut display_list): (PipelineId, BuiltDisplayList),
     ) {
         display_list.set_send_time_ns(zeitstempel::now());
@@ -324,7 +318,6 @@ impl Transaction {
                 display_list,
                 epoch,
                 pipeline_id,
-                namespace,
             }
         );
     }
@@ -845,8 +838,6 @@ pub enum SceneMsg {
         epoch: Epoch,
         ///
         pipeline_id: PipelineId,
-        /// The id namespace owning the resources this display list may reference.
-        namespace: IdNamespace,
     },
     /// Build a scene without affecting any retained state.
     ///

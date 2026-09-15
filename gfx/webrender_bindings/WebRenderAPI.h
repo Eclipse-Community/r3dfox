@@ -120,17 +120,12 @@ class TransactionBuilder final {
 
   void RemovePipeline(PipelineId aPipelineId);
 
-  // aIdNamespace is the namespace whose resources the display list is allowed
-  // to reference. It must be supplied by the compositor-side owner of the
-  // pipeline.
-  void SetDisplayList(Epoch aEpoch, wr::IdNamespace aIdNamespace,
-                      wr::WrPipelineId pipeline_id,
+  void SetDisplayList(Epoch aEpoch, wr::WrPipelineId pipeline_id,
                       wr::BuiltDisplayListDescriptor dl_descriptor,
                       wr::Vec<uint8_t>& dl_items_data,
                       wr::Vec<uint8_t>& dl_spatial_tree);
 
-  void ClearDisplayList(Epoch aEpoch, wr::IdNamespace aIdNamespace,
-                        wr::WrPipelineId aPipeline);
+  void ClearDisplayList(Epoch aEpoch, wr::WrPipelineId aPipeline);
 
   void GenerateFrame(const VsyncId& aVsyncId, bool aPresent, bool aTracked,
                      wr::RenderReasons aReasons);

@@ -110,18 +110,16 @@ void TransactionBuilder::RemovePipeline(PipelineId aPipelineId) {
 }
 
 void TransactionBuilder::SetDisplayList(
-    Epoch aEpoch, wr::IdNamespace aIdNamespace, wr::WrPipelineId pipeline_id,
+    Epoch aEpoch, wr::WrPipelineId pipeline_id,
     wr::BuiltDisplayListDescriptor dl_descriptor,
     wr::Vec<uint8_t>& dl_items_data, wr::Vec<uint8_t>& dl_spatial_tree) {
-  wr_transaction_set_display_list(mTxn, aEpoch, aIdNamespace, pipeline_id,
-                                  dl_descriptor, &dl_items_data.inner,
-                                  &dl_spatial_tree.inner);
+  wr_transaction_set_display_list(mTxn, aEpoch, pipeline_id, dl_descriptor,
+                                  &dl_items_data.inner, &dl_spatial_tree.inner);
 }
 
 void TransactionBuilder::ClearDisplayList(Epoch aEpoch,
-                                          wr::IdNamespace aIdNamespace,
                                           wr::WrPipelineId aPipelineId) {
-  wr_transaction_clear_display_list(mTxn, aEpoch, aIdNamespace, aPipelineId);
+  wr_transaction_clear_display_list(mTxn, aEpoch, aPipelineId);
 }
 
 void TransactionBuilder::GenerateFrame(const VsyncId& aVsyncId, bool aPresent,
