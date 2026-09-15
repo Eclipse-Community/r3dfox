@@ -983,7 +983,6 @@ partial namespace ChromeUtils {
   UTF8String? predictRemoteTypeForURI(UTF8String uriString,
                                       optional PredictRemoteTypeOptions options = {});
 
-  boolean isBlobURLValid(Principal principal, UTF8String uriString);
   /*
    * Validates the given service worker scope and throws an exception when invalid.
    */
