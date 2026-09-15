@@ -59,18 +59,18 @@ export class ContextMenuChild extends JSWindowActorChild {
         );
         return new Promise(resolve => {
           target.toBlob(blob => {
-            let blobURL = this.contentWindow.URL.createObjectURL(blob);
+            let blobURL = URL.createObjectURL(blob);
             resolve(blobURL);
           });
         });
       }
 
-      case "ContextMenu:Canvas:ToBlob": {
+      case "ContextMenu:Canvas:CopyImage": {
         let target = lazy.ContentDOMReference.resolve(
           message.data.targetIdentifier
         );
         return new Promise(resolve => {
-          target.toBlob(blob => resolve(blob));
+          target.toBlob(blob => resolve(blob.arrayBuffer()));
         });
       }
 
