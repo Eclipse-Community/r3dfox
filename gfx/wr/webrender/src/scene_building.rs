@@ -3506,34 +3506,23 @@ impl<'a> SceneBuilder<'a> {
                 flags,
             );
 
-            // The display-list builder has already removed the external scroll
-            // offset from both the glyph positions and the prim rect (bug 2044856,
-            // which landed after the patch being reverted here), so the prim rect
-            // origin is already the space the glyph positions are relative to and
-            // needs no further adjustment.
-            let dl_prim_origin = prim_info.rect.min.to_vector();
-
-            // Anchor the run on the first glyph's pen position. `run_origin` is the
-            // offset from the prim origin to the run pen origin -- invariant under
-            // pre-scroll because both terms are normalized the same way. Per-glyph
-            // positions are stored relative to the first glyph, also invariant.
+            // Store glyph pen positions relative to the prim rect origin. The
+            // display-list builder has already removed the external scroll
+            // offset from both the glyph positions and the prim rect, so the
+            // difference is scroll-invariant and the intern key stays stable
+            // across pre-scroll offset changes.
             //
             // TODO(gw): It'd be nice not to have to allocate here for creating
             //           the primitive key, when the common case is that the
             //           hash will match and we won't end up creating a new
             //           primitive template.
-            let first_glyph_origin = glyph_range
-                .iter()
-                .next()
-                .map(|g| g.point.to_vector())
-                .unwrap_or_else(LayoutVector2D::zero);
-            let run_origin = first_glyph_origin - dl_prim_origin;
+            let prim_origin = prim_info.rect.min.to_vector();
             let glyphs = glyph_range
                 .iter()
                 .map(|glyph| {
                     GlyphInstance {
                         index: glyph.index,
-                        point: glyph.point - first_glyph_origin,
+                        point: glyph.point - prim_origin,
                     }
                 })
                 .collect();
@@ -3548,7 +3537,6 @@ impl<'a> SceneBuilder<'a> {
             TextRun {
                 glyphs,
                 font,
-                run_origin,
                 shadow: false,
                 requested_raster_space,
             }
