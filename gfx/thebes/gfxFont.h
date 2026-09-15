@@ -1579,6 +1579,9 @@ class gfxFont {
     return mFUnitsConvFactor;
   }
 
+  // check whether this is an sfnt we can potentially use with harfbuzz
+  bool FontCanSupportHarfBuzz() const { return mFontEntry->HasCmapTable(); }
+
   // check whether this is an sfnt we can potentially use with Graphite
   bool FontCanSupportGraphite() const {
     return mFontEntry->HasGraphiteTables();

@@ -298,6 +298,15 @@ class gfxFontEntry {
     return flag == LazyFlag::Yes;
   }
 
+  inline bool HasCmapTable() {
+    if (!mCharacterMap && !mShmemCharacterMap) {
+      ReadCMAP();
+      NS_ASSERTION(mCharacterMap || mShmemCharacterMap,
+                   "failed to initialize character map");
+    }
+    return mHasCmapTable;
+  }
+
   inline bool HasCharacter(uint32_t ch) {
     if (mShmemCharacterMap) {
       return GetShmemCharacterMap()->test(ch);
@@ -675,6 +684,7 @@ class gfxFontEntry {
   bool mSkipDefaultFeatureSpaceCheck : 1;
 
   mozilla::Atomic<bool> mSVGInitialized;
+  mozilla::Atomic<bool> mHasCmapTable;
   mozilla::Atomic<bool> mGrFaceInitialized;
   mozilla::Atomic<bool> mCheckedForColorGlyph;
   mozilla::Atomic<bool> mCheckedForVariationAxes;

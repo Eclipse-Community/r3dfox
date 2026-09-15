@@ -576,9 +576,11 @@ nsresult gfxFontconfigFontEntry::ReadCMAP(FontInfoData* aFontInfoData) {
     } else {
       charmap = pfl->FindCharMap(charmap);
     }
+    mHasCmapTable = true;
   } else {
     // if error occurred, initialize to null cmap
     charmap = new gfxCharacterMap(0);
+    mHasCmapTable = false;
   }
   if (setCharMap) {
     if (mCharacterMap.compareExchange(nullptr, charmap.get())) {

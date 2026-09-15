@@ -349,9 +349,11 @@ nsresult CTFontEntry::ReadCMAP(FontInfoData* aFontInfoData) {
     } else {
       charmap = pfl->FindCharMap(charmap);
     }
+    mHasCmapTable = true;
   } else {
     // if error occurred, initialize to null cmap
     charmap = new gfxCharacterMap(0);
+    mHasCmapTable = false;
   }
   if (setCharMap) {
     // Temporarily retain charmap, until the shared version is
