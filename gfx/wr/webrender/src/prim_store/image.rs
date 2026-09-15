@@ -28,7 +28,7 @@ use crate::render_task_cache::{
     RenderTaskCacheKey, RenderTaskCacheKeyKind, RenderTaskParent
 };
 use crate::resource_cache::{ImageRequest, ImageProperties, ResourceCache};
-use crate::visibility::compute_surface_visible_rect;
+use crate::visibility::compute_conservative_visible_rect;
 use crate::spatial_tree::SpatialNodeIndex;
 use crate::{image_tiling, quad};
 
@@ -229,7 +229,6 @@ impl ImageData {
         prim_spatial_node_index: SpatialNodeIndex,
         frame_state: &mut FrameBuildingState,
         frame_context: &FrameBuildingContext,
-        pic_context: &PictureContext,
         prim_rect: LayoutRect,
         scratch: &mut PrimitiveScratchBuffer,
     ) -> storage::Index<ImageScratch> {
@@ -406,11 +405,11 @@ impl ImageData {
                 // thing.
                 let active_rect = visible_rect;
 
-                let visible_rect = compute_surface_visible_rect(
-                    &frame_state.surfaces[pic_context.surface_index.0],
+                let visible_rect = compute_conservative_visible_rect(
                     &scratch.frame.draws[prim_instance_index.0 as usize].clip_chain,
+                    frame_state.current_dirty_region().combined,
+                    frame_state.current_dirty_region().visibility_spatial_node,
                     prim_spatial_node_index,
-                    &tight_clip_rect,
                     frame_context.spatial_tree,
                 );
 
@@ -636,18 +635,22 @@ pub fn prepare_image_quads(
             // with the terminology we use during culling since it's not really the same
             // thing.
             let active_rect = image_properties.visible_rect;
-            let visible_rect = compute_surface_visible_rect(
-                &frame_state.surfaces[pic_context.surface_index.0],
-                clip_chain,
+            let visible_rect = compute_conservative_visible_rect(
+                &scratch.frame.draws[prim_instance_index.0 as usize].clip_chain,
+                frame_state.current_dirty_region().combined,
+                frame_state.current_dirty_region().visibility_spatial_node,
                 quad_transform.prim_spatial_node_index(),
-                &tight_clip_rect,
                 frame_context.spatial_tree,
             );
 
             let effective_stretch_size = image_data.stretch_size.resolve(prim_rect);
             let stride = effective_stretch_size + image_data.tile_spacing;
 
-            let repetitions = image_tiling::repetitions(prim_rect, &visible_rect, stride);
+            let repetitions = image_tiling::repetitions(
+                prim_rect,
+                &visible_rect,
+                stride,
+            );
 
             let base_edge_flags = edge_flags_for_tile_spacing(&image_data.tile_spacing);
 

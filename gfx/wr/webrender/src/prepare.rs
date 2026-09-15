@@ -1138,7 +1138,6 @@ fn prepare_interned_prim_for_render(
                 prim_spatial_node_index,
                 frame_state,
                 frame_context,
-                pic_context,
                 prim_info.snapped_local_rect,
                 scratch,
             );
