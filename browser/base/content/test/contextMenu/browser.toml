@@ -42,9 +42,6 @@ skip-if = [
   "os == 'win'", # Bug 1719856
 ]
 
-["browser_contextmenu_blocked_image_protocols.js"]
-support-files = ["file_blocked_image_protocols.html"]
-
 ["browser_contextmenu_bookmark_link_text.js"]
 skip-if = [
   "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # Bug 2019466
