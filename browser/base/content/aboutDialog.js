@@ -43,47 +43,27 @@ function init() {
     }
   }
 
-  // Include the build ID and display warning if this is an "a#" (nightly or aurora) build
-  let versionIdMap = new Map([
-    ["base", "aboutDialog-version"],
-    ["base-nightly", "aboutDialog-version-nightly"],
-    ["base-arch", "aboutdialog-version-arch"],
-    ["base-arch-nightly", "aboutdialog-version-arch-nightly"],
-  ]);
-  let versionIdKey = "base";
-  let versionAttributes = {
-    version: AppConstants.MOZ_APP_VERSION_DISPLAY,
-  };
-
-  let arch = Services.sysinfo.get("arch");
-  if (["x86", "x86-64"].includes(arch)) {
-    versionAttributes.bits = Services.appinfo.is64Bit ? 64 : 32;
-  } else {
-    versionIdKey += "-arch";
-    versionAttributes.arch = arch;
-  }
-
-  let version = Services.appinfo.version;
-  if (/a\d+$/.test(version)) {
-    versionIdKey += "-nightly";
-    let buildID = Services.appinfo.appBuildID;
-    let year = buildID.slice(0, 4);
-    let month = buildID.slice(4, 6);
-    let day = buildID.slice(6, 8);
-    versionAttributes.isodate = `${year}-${month}-${day}`;
-
-    document.getElementById("experimental").hidden = false;
-    document.getElementById("communityDesc").hidden = true;
-  }
-
-  // Use Fluent arguments for append version and the architecture of the build
   let versionField = document.getElementById("version");
+  let buildID = Services.appinfo.appBuildID;
+  let year = buildID.slice(0, 4);
+  let syear = buildID.slice(2, 4);
+  let month = buildID.slice(4, 6);
+  let day = buildID.slice(6, 8);
+  let hour = buildID.slice(8, 10);
+  let minute = buildID.slice(10, 12);
+  let second = buildID.slice(12, 14);
+  versionField.textContent = `v`;
+  versionField.textContent += AppConstants.MOZ_APP_VERSION_DISPLAY;
 
-  document.l10n.setAttributes(
-    versionField,
-    versionIdMap.get(versionIdKey),
-    versionAttributes
-  );
+    // Append "(32-bit)" or "(64-bit)" build architecture to the version number:
+    let bundle = Services.strings.createBundle("chrome://browser/locale/browser.properties");
+    let archResource = Services.appinfo.is64Bit
+                       ? "aboutDialog.architecture.sixtyFourBit"
+                       : "aboutDialog.architecture.thirtyTwoBit";
+    let arch = bundle.GetStringFromName(archResource);
+    versionField.textContent += ` (${arch})`;
+
+  versionField.textContent += `  Compiled on ${year}/${month}/${day} at ${hour}:${minute}:${second}`;
 
   // Show a release notes link if we have a URL.
   let relNotesLink = document.getElementById("releasenotes");
