@@ -97,8 +97,6 @@ const ALLOWED_CHROME_IMAGE_URLS = new Set([
   "chrome://global/skin/illustrations/no-connection.svg",
 ]);
 
-const IMAGE_ONLY_PROTOCOLS = ["moz-icon:", "page-icon:", "moz-remote-image:"];
-
 export class nsContextMenu {
   /**
    * A promise to retrieve the translations language pair
@@ -689,12 +687,6 @@ export class nsContextMenu {
       this.onImage && !this.onCompletedImage
     );
 
-    // Some protocols only return images in an image context and can no longer
-    // be loaded otherwise.
-    const mediaURL = URL.parse(this.mediaURL);
-    const isImageOnlyProtocol =
-      mediaURL && IMAGE_ONLY_PROTOCOLS.includes(mediaURL.protocol);
-
     // View image depends on having an image that's not standalone
     // (or is in a frame), or a canvas. If this isn't an image, check
     // if there is a background image.
@@ -714,16 +706,10 @@ export class nsContextMenu {
       !this.onAudio &&
       !this.onLink &&
       !this.onTextInput;
-    this.showItem(
-      "context-viewimage",
-      (showViewImage || showBGImage) && !isImageOnlyProtocol
-    );
+    this.showItem("context-viewimage", showViewImage || showBGImage);
 
     // Save image depends on having loaded its content.
-    this.showItem(
-      "context-saveimage",
-      (this.onLoadedImage && !isImageOnlyProtocol) || this.onCanvas
-    );
+    this.showItem("context-saveimage", this.onLoadedImage || this.onCanvas);
 
     if (Services.policies.status === Services.policies.ACTIVE) {
       // When file pickers are disallowed by enterprise policy,
