@@ -51,7 +51,7 @@ MozNewTabWallpaperProtocolHandler::MozNewTabWallpaperProtocolHandler()
     : SubstitutingProtocolHandler(NEWTAB_WALLPAPER_SCHEME) {}
 
 RefPtr<RemoteStreamPromise> MozNewTabWallpaperProtocolHandler::NewStream(
-    nsIURI* aChildURI, nsILoadInfo* aLoadInfo, bool* aTerminateSender) {
+    nsIURI* aChildURI, bool* aTerminateSender) {
   MOZ_ASSERT(!IsNeckoChild());
   MOZ_ASSERT(NS_IsMainThread());
 
@@ -73,11 +73,6 @@ RefPtr<RemoteStreamPromise> MozNewTabWallpaperProtocolHandler::NewStream(
   nsAutoCString host;
   if (NS_FAILED(aChildURI->GetAsciiHost(host)) || host.IsEmpty()) {
     return RemoteStreamPromise::CreateAndReject(NS_ERROR_UNEXPECTED, __func__);
-  }
-
-  if (!nsContentUtils::IsImageType(aLoadInfo->GetExternalContentPolicyType())) {
-    return RemoteStreamPromise::CreateAndReject(NS_ERROR_CONTENT_BLOCKED,
-                                                __func__);
   }
 
   *aTerminateSender = false;
@@ -137,10 +132,6 @@ bool MozNewTabWallpaperProtocolHandler::ResolveSpecialCases(
 
 nsresult MozNewTabWallpaperProtocolHandler::SubstituteChannel(
     nsIURI* aURI, nsILoadInfo* aLoadInfo, nsIChannel** aRetVal) {
-  if (!nsContentUtils::IsImageType(aLoadInfo->GetExternalContentPolicyType())) {
-    return NS_ERROR_CONTENT_BLOCKED;
-  }
-
   // Check if URI resolves to a file URI.
   nsAutoCString resolvedSpec;
   MOZ_TRY(ResolveURI(aURI, resolvedSpec));
