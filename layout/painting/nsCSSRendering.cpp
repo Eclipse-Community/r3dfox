@@ -26,6 +26,7 @@
 #include "mozilla/ProfilerLabels.h"
 #include "mozilla/SVGImageContext.h"
 #include "mozilla/ScrollContainerFrame.h"
+#include "mozilla/StaticPrefs_layout.h"
 #include "mozilla/StaticPtr.h"
 #include "mozilla/css/ImageLoader.h"
 #include "mozilla/dom/DocumentInlines.h"
@@ -4045,7 +4046,20 @@ void nsCSSRendering::PaintDecorationLine(
   NS_ASSERTION(aParams.style != StyleTextDecorationStyle::None,
                "aStyle is none");
 
-  Rect rect = ToRect(GetTextDecorationRectInternal(aParams.pt, aParams));
+  mozilla::layout::TextDrawTarget* textDrawer = nullptr;
+  if (aDrawTarget.GetBackendType() == BackendType::WEBRENDER_TEXT) {
+    textDrawer = static_cast<mozilla::layout::TextDrawTarget*>(&aDrawTarget);
+  }
+
+  // Under layout.disable-pixel-alignment, the WebRender text path device-snaps
+  // the decoration at frame time, so leave the geometry unsnapped here. Without
+  // that path (software / non-WebRender-text drawing such as drawSnapshot)
+  // there is no later snap, so pre-snap the geometry as usual (bug 2004666).
+  const bool snapToPixels =
+      !StaticPrefs::layout_disable_pixel_alignment() || !textDrawer;
+
+  Rect rect =
+      ToRect(GetTextDecorationRectInternal(aParams.pt, aParams, snapToPixels));
   if (rect.IsEmpty() || !rect.Intersects(aParams.dirtyRect)) {
     return;
   }
@@ -4456,7 +4470,9 @@ Rect nsCSSRendering::DecorationLineToPath(
 
   Rect path;  // To benefit from RVO, we return this from all return points
 
-  Rect rect = ToRect(GetTextDecorationRectInternal(aParams.pt, aParams));
+  Rect rect =
+      ToRect(GetTextDecorationRectInternal(aParams.pt, aParams,
+                                           /* aSnapToDevicePixels */ true));
   if (rect.IsEmpty() || !rect.Intersects(aParams.dirtyRect)) {
     return path;
   }
@@ -4494,7 +4510,8 @@ nsRect nsCSSRendering::GetTextDecorationRect(
   NS_ASSERTION(aParams.style != StyleTextDecorationStyle::None,
                "aStyle is none");
 
-  gfxRect rect = GetTextDecorationRectInternal(Point(0, 0), aParams);
+  gfxRect rect = GetTextDecorationRectInternal(Point(0, 0), aParams,
+                                               /* aSnapToDevicePixels */ true);
   // The rect values are already rounded to nearest device pixels.
   nsRect r;
   r.x = aPresContext->GfxUnitsToAppUnits(rect.X());
@@ -4505,7 +4522,8 @@ nsRect nsCSSRendering::GetTextDecorationRect(
 }
 
 gfxRect nsCSSRendering::GetTextDecorationRectInternal(
-    const Point& aPt, const DecorationRectParams& aParams) {
+    const Point& aPt, const DecorationRectParams& aParams,
+    bool aSnapToDevicePixels) {
   NS_ASSERTION(aParams.style <= StyleTextDecorationStyle::Wavy,
                "Invalid aStyle value");
 
@@ -4522,8 +4540,20 @@ gfxRect nsCSSRendering::GetTextDecorationRectInternal(
   // they will actually become top and bottom of the rendered line.
   // Similarly, aLineSize.width and .height are actually length and thickness
   // of the line, which runs horizontally or vertically according to aVertical.
-  const gfxFloat left = floor(iCoord + 0.5),
-                 right = floor(iCoord + aParams.lineSize.width + 0.5);
+  // With pixel alignment disabled, don't pre-snap the decoration's inline
+  // position when it will be device-snapped downstream by WebRender's
+  // frame-time pass (`aSnapToDevicePixels == false`): leaving it fractional
+  // lets that pass snap it against the live (post-sticky/scroll-normalization)
+  // transform. Pre-snapping here bakes in an integer local position that maps
+  // to a different world position as the spatial tree flips between paints, so
+  // the frame-time snap rounds it inconsistently and the line jitters
+  // (bug 2004666). When there is no such pass (software / non-WebRender-text
+  // drawing, e.g. drawSnapshot), the caller asks us to pre-snap as before.
+  const bool snapToPixels = aSnapToDevicePixels;
+  const gfxFloat left = snapToPixels ? floor(iCoord + 0.5) : iCoord,
+                 right = snapToPixels
+                             ? floor(iCoord + aParams.lineSize.width + 0.5)
+                             : iCoord + aParams.lineSize.width;
 
   // We compute |r| as if for a horizontal text run, and then swap vertical
   // and horizontal coordinates at the end if vertical was requested.
@@ -4591,7 +4621,8 @@ gfxRect nsCSSRendering::GetTextDecorationRectInternal(
     }
   }
 
-  gfxFloat baseline = floor(bCoord + aParams.ascent + 0.5);
+  gfxFloat baseline = snapToPixels ? floor(bCoord + aParams.ascent + 0.5)
+                                   : bCoord + aParams.ascent;
 
   // Calculate adjusted offset based on writing-mode/orientation and thickness
   // of decoration line. The input value aParams.offset is the nominal position
