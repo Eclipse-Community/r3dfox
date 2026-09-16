@@ -38,11 +38,13 @@
 #include "js/CharacterEncoding.h"
 #include "js/ContextOptions.h"        // JS::ContextOptions
 #include "js/ErrorInterceptor.h"      // JSErrorInterceptor
+#include "js/friend/DumpFunctions.h"  // for stack trace utilities
 #include "js/friend/ErrorMessages.h"  // js::GetErrorMessage, JSMSG_*
 #include "js/friend/MicroTask.h"
 #include "js/friend/StackLimits.h"  // js::ReportOverRecursed
 #include "js/MemoryCallbacks.h"
 #include "js/Prefs.h"
+#include "js/Printer.h"               // for FixedBufferPrinter
 #include "js/Printf.h"
 #include "js/PropertyAndElement.h"  // JS_GetProperty
 #include "js/Stack.h"  // JS::NativeStackSize, JS::NativeStackLimit, JS::NativeStackLimitMin
@@ -52,8 +54,6 @@
 #include "util/NativeStack.h"
 #include "util/Text.h"
 #include "util/WindowsWrapper.h"
-#include "js/friend/DumpFunctions.h"  // for stack trace utilities
-#include "js/Printer.h"               // for FixedBufferPrinter
 #include "vm/BytecodeUtil.h"          // JSDVG_IGNORE_STACK
 #include "vm/ErrorObject.h"
 #include "vm/ErrorReporting.h"
@@ -517,7 +517,7 @@ static void PrintSingleError(FILE* file, JS::ConstUTF8CharsZ toStringResult,
 
   /* embedded newlines -- argh! */
   const char* ctmp;
-  while ((ctmp = strchr(message, '\n')) != nullptr) {
+  while ((ctmp = strchr(message, '\n')) != 0) {
     ctmp++;
     if (prefix) {
       fputs(prefix.get(), file);
