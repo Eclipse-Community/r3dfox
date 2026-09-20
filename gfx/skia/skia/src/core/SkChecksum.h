@@ -73,12 +73,14 @@ namespace SkChecksum {
 // It should be both reasonably fast and high quality.
 struct SkGoodHash {
     template <typename K>
-    std::enable_if_t<sizeof(K) == 4, uint32_t> operator()(const K& k) const {
+    std::enable_if_t<std::has_unique_object_representations<K>::value && sizeof(K) == 4, uint32_t>
+    operator()(const K& k) const {
         return SkChecksum::Mix(*(const uint32_t*)&k);
     }
 
     template <typename K>
-    std::enable_if_t<sizeof(K) != 4, uint32_t> operator()(const K& k) const {
+    std::enable_if_t<std::has_unique_object_representations<K>::value && sizeof(K) != 4, uint32_t>
+    operator()(const K& k) const {
         return SkChecksum::Hash32(&k, sizeof(K));
     }
 
