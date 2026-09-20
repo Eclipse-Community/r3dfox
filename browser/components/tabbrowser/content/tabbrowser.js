@@ -275,6 +275,12 @@
       );
       XPCOMUtils.defineLazyPreferenceGetter(
         this,
+        "_autoUnloadDomains",
+        "browser.tabs.autoUnloadDomains",
+        ""
+      );
+      XPCOMUtils.defineLazyPreferenceGetter(
+        this,
         "_notificationEnableDelay",
         "security.notification_enable_delay",
         500
@@ -1673,6 +1679,70 @@
       document.title = this.getWindowTitleForBrowser(this.selectedBrowser);
     }
 
+    /**
+     * Returns whether a tab should be automatically unloaded after switching
+     * away from it. Domains are configured with the string preference
+     * browser.tabs.autoUnloadDomains, separated by commas and/or whitespace.
+     * A listed domain also matches its subdomains.
+     *
+     * @param {MozTabbrowserTab} tab
+     * @returns {boolean}
+     */
+    _shouldAutoUnloadTab(tab) {
+      if (
+        !tab ||
+        !tab.linkedPanel ||
+        tab.closing ||
+        tab.pinned ||
+        tab.splitview ||
+        tab.hasAttribute("soundplaying")
+      ) {
+        return false;
+      }
+
+      let uri = tab.linkedBrowser?.currentURI;
+      if (!uri || (uri.scheme != "http" && uri.scheme != "https")) {
+        return false;
+      }
+
+      let host;
+      try {
+        host = uri.host.toLowerCase().replace(/\.$/, "");
+      } catch (e) {
+        return false;
+      }
+
+      let domains = this._autoUnloadDomains
+        .split(/[,\s]+/)
+        .map(domain => domain.trim().toLowerCase().replace(/\.$/, ""))
+        .filter(Boolean);
+
+      return domains.some(
+        domain => host == domain || host.endsWith(`.${domain}`)
+      );
+    }
+
+    /**
+     * Flushes the latest session state and then discards an eligible tab.
+     * Eligibility is checked again after the asynchronous flush in case the
+     * tab was reselected, started playing media, or otherwise changed state.
+     *
+     * @param {MozTabbrowserTab} tab
+     */
+    async _maybeAutoUnloadTab(tab) {
+      if (!this._shouldAutoUnloadTab(tab)) {
+        return;
+      }
+
+      await this.prepareDiscardBrowser(tab);
+
+      if (tab.selected || !this._shouldAutoUnloadTab(tab)) {
+        return;
+      }
+
+      this.discardBrowser(tab, true);
+    }
+
     updateCurrentBrowser(aForceUpdate) {
       let newBrowser = this.getBrowserAtIndex(this.tabContainer.selectedIndex);
       if (this.selectedBrowser == newBrowser && !aForceUpdate) {
@@ -1925,6 +1995,10 @@
 
       if (!aForceUpdate) {
         Glean.browserTabswitch.update.stopAndAccumulate(timerId);
+      }
+
+      if (!aForceUpdate && !this.#previewMode && oldTab != newTab) {
+        void this._maybeAutoUnloadTab(oldTab);
       }
     }
 
