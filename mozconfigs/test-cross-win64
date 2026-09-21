@@ -3,6 +3,7 @@
 # x64 build
 ac_add_options --target=x86_64-pc-mingw32
 ac_add_options --with-toolchain-prefix=x86_64-pc-mingw32
+ac_add_options --disable-accessibility
 ac_add_options --disable-bootstrap
 ac_add_options --disable-cargo-incremental
 
