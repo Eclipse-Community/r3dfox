@@ -24,7 +24,6 @@ Preferences.addAll([
   { id: "security.csp.enable", type: "bool",  inverted: true },
   { id: "security.port.blocking.enabled", type: "bool",  inverted: true },
   { id: "network.stricttransportsecurity.enabled", type: "bool",  inverted: true },
-  { id: "accessibility.force_disabled", type: "int" },
   { id: "content.cors.disable", type: "bool" },
   { id: "content.cors.bypass_preflight_request", type: "bool" },
   { id: "security.same_origin_policy.enabled", type: "bool",  inverted: true },
