@@ -9,10 +9,7 @@ var gR3dfoxPane = {
 };
 
 Preferences.addAll([
-  { id: "widget.non-native-theme.enabled", type: "bool",  inverted: true },
-  { id: "widget.native-controls.scrollbar-style", type: "int" },
-  { id: "widget.non-native-theme.scrollbar.style", type: "int" },
-  { id: "widget.native-controls.override-win-version", type: "int" },
+  { id: "widget.override-win-version", type: "int" },
   { id: "security.sandbox.content.level", type: "int" },
   { id: "r3dfox.colors", type: "int" },
   { id: "r3dfox.customizations.enabled", type: "bool" },
@@ -38,8 +35,8 @@ Preferences.addAll([
   { id: "screenshots.browser.component.enabled", type: "bool" },
   { id: "cookiebanners.service.mode", type: "int" },
   { id: "cookiebanners.service.mode.privateBrowsing", type: "int" },
-  { id: "widget.native-controls.override-aero-caption-buttons-mask-height", type: "int" },
-  { id: "widget.native-controls.override-aero-caption-buttons-mask-width", type: "int" },
+  { id: "widget.override-aero-caption-buttons-mask-height", type: "int" },
+  { id: "widget.override-aero-caption-buttons-mask-width", type: "int" },
   { id: "browser.display.windows.non_native_menus", type: "int" },
   { id: "dom.webaudio.enabled", type: "bool",  inverted: true },
   { id: "browser.tabs.dropToPin.enabled", type: "bool",  inverted: true },
