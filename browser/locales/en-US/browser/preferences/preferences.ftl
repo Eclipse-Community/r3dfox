@@ -289,10 +289,6 @@ r3dfox-unload-poll = Browser memory usage poll interval
 
 r3dfox-unload-poll-desc = How frequently the browser checks for the current amount of free RAM. Lower amounts means the browser checks more frequently, making it respond quicker if something starts rapidly consuming RAM, but this will also result in greater power usage since it checks more often. Unlikely to be noticeable on desktop, but it may worth considering a higher value when on battery power.
 
-r3dfox-accessibility = Accessibility services
-
-r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
-
 r3dfox-caption-width = Custom caption button Aero fog mask width
 
 r3dfox-caption-desc = For themes that use custom sized caption buttons that differ from the stock OS. Browser restart is required for changes to take effect.
