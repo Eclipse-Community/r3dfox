@@ -205,10 +205,6 @@ r3dfox-switch-to-tab-desc = This should reverse the behavior of switching to an 
 
 r3dfox-advanced-header = Advanced configurations
 
-r3dfox-accessibility = Accessibility services
-
-r3dfox-accessibility-desc = Recommended to disable if you do not need them for enhanced security and performance.
-
 r3dfox-cookiebanners = Cookie banner handling mode in normal browsing
 
 r3dfox-cookiebanners-desc = Recommended to leave enabled for a less annoying browsing experience. Currently this will set cookies even when set to block all cookies.
