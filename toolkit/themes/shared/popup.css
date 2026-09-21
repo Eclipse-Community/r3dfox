@@ -13,9 +13,7 @@ panel {
   color-scheme: light dark;
 
   min-width: 1px;
-@media (-moz-windows-non-native-menus) {
   --panel-background: Menu;
-}
   --panel-color: MenuText;
   --panel-padding-block: 4px;
 @media (-moz-windows-non-native-menus) {
