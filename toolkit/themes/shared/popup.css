@@ -13,12 +13,16 @@ panel {
   color-scheme: light dark;
 
   min-width: 1px;
+@media (-moz-windows-non-native-menus) {
   --panel-background: Menu;
+}
   --panel-color: MenuText;
   --panel-padding-block: 4px;
+@media (-moz-windows-non-native-menus) {
   --panel-padding: var(--panel-padding-block) 0;
   --panel-border-radius: 4px;
   --panel-border-color: ThreeDShadow;
+}
   --panel-width: initial;
 
   --panel-shadow-margin: 0px;
@@ -101,7 +105,9 @@ menupopup {
       background-color: Menu;
       --panel-padding: unset;
       --panel-background: transparent;
-      --panel-border-color: transparent;
+      @media (-moz-windows-classic) {
+        --panel-border-color: ThreeDShadow;
+      }
       --panel-shadow-margin: 0px;
     }
 
