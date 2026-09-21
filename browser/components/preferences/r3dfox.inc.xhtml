@@ -22,13 +22,6 @@
   <label><html:h2 data-l10n-id="r3dfox-visual-header"/></label>
 
   <hbox align="center">
-    <checkbox id="r3dfoxUseNativeStyles"
-              data-l10n-id="r3dfox-native-checkbox"
-              preference="widget.non-native-theme.enabled"/>
-  </hbox>
-  <description class="indent tip-caption" data-l10n-id="r3dfox-native-checkbox-desc"/>
-
-  <hbox align="center">
     <label id="r3dfoxNativeMenulist" data-l10n-id="r3dfox-native-menulist" control="r3dfoxNativeMenulistType"/>
     <menulist id="r3dfoxNativeMenulistType" preference="browser.display.windows.non_native_menus">
       <menupopup>
@@ -40,38 +33,12 @@
   </hbox>
 
   <hbox align="center">
-    <label id="r3dfoxNativeScroll" data-l10n-id="r3dfox-native-scroll" control="r3dfoxNativeScrollType"/>
-    <menulist id="r3dfoxNativeScrollType" preference="widget.native-controls.scrollbar-style">
-      <menupopup>
-        <menuitem label="Native scrollbars always" value="0"/>
-        <menuitem label="Custom scrollbars always" value="1"/>
-        <menuitem label="Native scrollbars unless the website has a dark color scheme (Default)" value="2"/>
-      </menupopup>
-    </menulist>
-  </hbox>
-
-  <hbox align="center">
-    <label id="r3dfoxFakeScroll" data-l10n-id="r3dfox-fake-scroll-type" control="r3dfoxFakeScrollType"/>
-    <menulist id="r3dfoxFakeScrollType" preference="widget.non-native-theme.scrollbar.style">
-      <menupopup>
-        <menuitem label="Default platform scrollbar style (Default)" value="0"/>
-        <menuitem label="macOS scrollbar (small)" value="1"/>
-        <menuitem label="GTK scrollbar (smaller)" value="2"/>
-        <menuitem label="Android scrollbar (smallest)" value="3"/>
-        <menuitem label="Windows 10 scrollbar (normal)" value="4"/>
-        <menuitem label="Windows 11 scrollbar (smaller)" value="5"/>
-      </menupopup>
-    </menulist>
-  </hbox>
-
-  <hbox align="center">
     <label id="r3dfoxWinTheme" data-l10n-id="r3dfox-win-theme-type" control="r3dfoxWinThemeType"/>
-    <menulist id="r3dfoxWinThemeType" preference="widget.native-controls.override-win-version">
+    <menulist id="r3dfoxWinThemeType" preference="widget.override-win-version">
       <menupopup>
         <menuitem label="Current OS version (Default)" value="0"/>
         <menuitem label="Windows XP" value="5"/>
-        <menuitem label="Windows Vista" value="6"/>
-        <menuitem label="Windows 7" value="7"/>
+        <menuitem label="Windows Vista/7" value="7"/>
         <menuitem label="Windows 8" value="8"/>
         <menuitem label="Windows 10 (Modern)" value="10"/>
       </menupopup>
@@ -341,13 +308,13 @@
 
   <hbox align="center">
     <label id="r3dfoxCaptionWidth" data-l10n-id="r3dfox-caption-width" control="r3dfoxCaptionWidthType"/>
-    <html:input id="r3dfoxCaptionWidthType" type="number" class="option" data-type="int" preference="widget.native-controls.override-aero-caption-buttons-mask-width"/>
+    <html:input id="r3dfoxCaptionWidthType" type="number" class="option" data-type="int" preference="widget.override-aero-caption-buttons-mask-width"/>
   </hbox>
   <description id="r3dfoxCaptionWidthDescription" class="tip-caption" data-l10n-id="r3dfox-caption-desc"/>
 
   <hbox align="center">
     <label id="r3dfoxCaptionHeight" data-l10n-id="r3dfox-caption-height" control="r3dfoxCaptionWidthType"/>
-    <html:input id="r3dfoxCaptionHeightType" type="number" class="option" data-type="int" preference="widget.native-controls.override-aero-caption-buttons-mask-height"/>
+    <html:input id="r3dfoxCaptionHeightType" type="number" class="option" data-type="int" preference="widget.override-aero-caption-buttons-mask-height"/>
   </hbox>
   <description id="r3dfoxCaptionHeighteDescription" class="tip-caption" data-l10n-id="r3dfox-caption-desc"/>
 
