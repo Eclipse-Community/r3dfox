@@ -160,6 +160,7 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
         return aScheme != ColorScheme::Dark || mDarkHighlightText;
       case ColorID::IMESelectedRawTextForeground:
       case ColorID::IMESelectedConvertedTextForeground:
+      case ColorID::MozDragtargetzone:
         return true;
       default:
         return false;
@@ -223,9 +224,6 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::MozButtonhoverface:
     case ColorID::MozButtonactiveface:
     case ColorID::MozButtondisabledface:
-    case ColorID::MozColheader:
-    case ColorID::MozColheaderhover:
-    case ColorID::MozColheaderactive:
       idx = COLOR_BTNFACE;
       break;
     case ColorID::Buttonhighlight:
@@ -371,12 +369,27 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::Accentcolortext:
       aColor = mColorAccentText;
       return NS_OK;
+    case ColorID::MozWinMediatext:
+      if (mColorMediaText) {
+        aColor = *mColorMediaText;
+        return NS_OK;
+      }
+      // if we've gotten here just return -moz-dialogtext instead
+      idx = COLOR_WINDOWTEXT;
+      break;
+    case ColorID::MozWinCommunicationstext:
+      if (mColorCommunicationsText) {
+        aColor = *mColorCommunicationsText;
+        return NS_OK;
+      }
+      // if we've gotten here just return -moz-dialogtext instead
+      idx = COLOR_WINDOWTEXT;
+      break;
     case ColorID::MozHeaderbartext:
     case ColorID::MozHeaderbarinactivetext:
     case ColorID::MozDialogtext:
     case ColorID::MozColheadertext:
     case ColorID::MozColheaderhovertext:
-    case ColorID::MozColheaderactivetext:
       idx = COLOR_WINDOWTEXT;
       break;
     case ColorID::MozButtondefault:
@@ -758,8 +771,8 @@ LookAndFeelFont nsLookAndFeel::GetLookAndFeelFont(LookAndFeel::FontID anID) {
   }
 
   NONCLIENTMETRICSW ncm;
-  ncm.cbSize = sizeof(NONCLIENTMETRICSW) - sizeof(ncm.iPaddedBorderWidth);
-  if (!::SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, ncm.cbSize,
+  ncm.cbSize = sizeof(NONCLIENTMETRICSW);
+  if (!::SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm),
                                (PVOID)&ncm, 0)) {
     return result;
   }
@@ -846,19 +859,6 @@ auto nsLookAndFeel::ComputeTitlebarColors() -> TitlebarColors {
                            GetColorForSysColorIndex(COLOR_INACTIVECAPTIONTEXT),
                            GetColorForSysColorIndex(COLOR_INACTIVEBORDER)};
 
-  if (IsVistaOrLater() && !nsUXThemeData::IsHighContrastOn()) {
-    // Use our non-native colors.
-    result.mActiveLight = {
-        GetStandinForNativeColor(ColorID::Activecaption, ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Captiontext, ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Activeborder, ColorScheme::Light)};
-    result.mInactiveLight = {
-        GetStandinForNativeColor(ColorID::Inactivecaption, ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Inactivecaptiontext,
-                                 ColorScheme::Light),
-        GetStandinForNativeColor(ColorID::Inactiveborder, ColorScheme::Light)};
-  }
-
   // Foreground and background taken from Windows Mica material theme colors.
   result.mActiveDark = {NS_RGB(0x2e, 0x2e, 0x2e), NS_RGB(0xff, 0xff, 0xff),
                         NS_RGB(57, 57, 57)};
@@ -939,6 +939,10 @@ void nsLookAndFeel::EnsureInit() {
   if (nsUXThemeData::IsAppThemed()) {
     mColorMenuHoverText =
         ::GetColorFromTheme(eUXMenu, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR);
+    mColorMediaText = ::GetColorFromTheme(eUXMediaToolbar, TP_BUTTON, TS_NORMAL,
+                                          TMT_TEXTCOLOR);
+    mColorCommunicationsText = ::GetColorFromTheme(
+        eUXCommunicationsToolbar, TP_BUTTON, TS_NORMAL, TMT_TEXTCOLOR);
   }
 
   // Fill out the sys color table.

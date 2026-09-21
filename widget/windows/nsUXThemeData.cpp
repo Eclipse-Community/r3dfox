@@ -103,8 +103,24 @@ const wchar_t* nsUXThemeData::GetClassName(nsUXThemeClass cls) {
       return L"Button";
     case eUXEdit:
       return L"Edit";
+    case eUXTooltip:
+      return L"Tooltip";
+    case eUXRebar:
+      return L"Rebar";
+    case eUXMediaRebar:
+      return L"Media::Rebar";
+    case eUXCommunicationsRebar:
+      return L"Communications::Rebar";
+    case eUXBrowserTabBarRebar:
+      return L"BrowserTabBar::Rebar";
+    case eUXScrollbar:
+      return L"Scrollbar";
     case eUXToolbar:
       return L"Toolbar";
+    case eUXMediaToolbar:
+      return L"Media::Toolbar";
+    case eUXCommunicationsToolbar:
+      return L"Communications::Toolbar";
     case eUXProgress:
       return L"Progress";
     case eUXTab:
@@ -113,8 +129,12 @@ const wchar_t* nsUXThemeData::GetClassName(nsUXThemeClass cls) {
       return L"Trackbar";
     case eUXSpin:
       return L"Spin";
+    case eUXStatus:
+      return L"Status";
     case eUXCombobox:
       return L"Combobox";
+    case eUXHeader:
+      return L"Header";
     case eUXListview:
       return L"Listview";
     case eUXMenu:
@@ -236,14 +256,14 @@ void nsUXThemeData::UpdateTitlebarInfo(HWND aWnd) {
   wc.hCursor = nullptr;
   wc.hbrBackground = nullptr;
   wc.lpszMenuName = nullptr;
-  wc.lpszClassName = L"MozillaTempWindowClass";
+  wc.lpszClassName = kClassNameTemp;
   ::RegisterClassW(&wc);
 
   // Create a transparent descendant of the window passed in. This
   // keeps the window from showing up on the desktop or the taskbar.
   // Note the parent (browser) window is usually still hidden, we
   // don't want to display it, so we can't query it directly.
-  HWND hWnd = CreateWindowExW(WS_EX_LAYERED, L"MozillaTempWindowClass", L"",
+  HWND hWnd = CreateWindowExW(WS_EX_LAYERED, kClassNameTemp, L"",
                               WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, aWnd, nullptr,
                               nsToolkit::mDllInstance, nullptr);
   NS_ASSERTION(hWnd, "UpdateTitlebarInfo window creation failed.");

@@ -14,13 +14,9 @@
      (Win 7 in classic / basic theme), or else dragging and focus become
      broken. So instead just show the normal titlebar in that case, and override
      the window color as transparent when the compositor is available. */
-  @media (-moz-windows-compositor: 0) {
+  @media not (-moz-windows-compositor) {
     :root[tabsintitlebar][lwtheme]:not([inDOMFullscreen]) #titlebar {
       visibility: visible;
-    }
-
-    :root[tabsintitlebar][lwtheme] #titlebar:-moz-window-inactive {
-      opacity: 1;
     }
 
     /* Prevent accent color overriding the window background for
@@ -39,11 +35,19 @@
   @media (-moz-platform: windows-win7) {
     @media (-moz-windows-default-theme) {
       #TabsToolbar {
-      @media -moz-pref("r3dfox.aero.fog", 2) {
-        background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 40%, transparent);
-      }
-        color: black;
-        --toolbarbutton-icon-fill: currentColor;
+        isolation: isolate;
+        position: relative;
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          height: 100%;
+          width: 100%;
+          @media -moz-pref("r3dfox.aero.fog", 2) {
+            background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 40%, transparent);
+          }
+          z-index: -1;
+        }
       }
     }
   }
@@ -56,6 +60,20 @@
       }
       :root[tabsintitlebar]:not([sizemode=fullscreen]) #TabsToolbar:-moz-window-inactive {
         background-image: linear-gradient(transparent, InactiveCaption);
+      }
+    }
+  }
+
+  @media (-moz-platform: windows-win8),
+         (-moz-windows-default-theme),
+         (-moz-windows-glass)  {
+      @media not (-moz-windows-classic) {
+      #TabsToolbar {
+        color: black;
+        --toolbarbutton-icon-fill: currentColor;
+      }
+    #toolbar-menubar {
+      color: black;
       }
     }
   }
@@ -73,8 +91,7 @@
     }
   }
 
-  @media (-moz-platform: windows-xp),
-         (-moz-platform: windows-win7),
+  @media (-moz-platform: windows-win7),
          (-moz-platform: windows-win8) {
     @media (-moz-windows-compositor) {
       :root {
@@ -91,15 +108,14 @@
     /* Use proper menu text styling in Win7 classic mode. On Windows 8, we use
        these colors so tabs and menus are legible against the window accent color.
        These colors are copied from browser.css. */
-    @media (-moz-windows-compositor: 0),
-           (-moz-windows-default-theme: 0),
+    @media not (-moz-windows-compositor),
+           not (-moz-windows-default-theme),
            (-moz-platform: windows-win8) {
-      :root[tabsintitlebar][lwtheme] {
+      :root[tabsintitlebar] {
         color: CaptionText;
-        --toolbarbutton-icon-fill: currentColor !important;
       }
 
-      :root[tabsintitlebar][lwtheme]:-moz-window-inactive {
+      :root[tabsintitlebar]:-moz-window-inactive {
         color: InactiveCaptionText;
       }
     }
@@ -110,7 +126,7 @@
    * over the native border with our custom borders. These are !important to avoid
    * specificity-wars with the selectors that add these borders. */
   @media (-moz-windows-classic),
-         (-moz-windows-compositor: 0) and (-moz-windows-default-theme) {
+         not (-moz-windows-compositor) and (-moz-windows-default-theme) {
     #navigator-toolbox {
       background-image: none !important;
     }

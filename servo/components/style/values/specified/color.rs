@@ -240,6 +240,8 @@ pub enum SystemColor {
     Canvas,
     MozDialog,
     MozDialogtext,
+    /// Used to highlight valid regions to drop something onto.
+    MozDragtargetzone,
     /// Used for selected but not focused cell backgrounds.
     #[parse(aliases = "-moz-html-cellhighlight")]
     MozCellhighlight,
@@ -322,6 +324,11 @@ pub enum SystemColor {
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozAutofillBackground,
 
+    /// Media rebar text.
+    MozWinMediatext,
+    /// Communications rebar text.
+    MozWinCommunicationstext,
+
     /// Hyperlink color extracted from the system, not affected by the browser.anchor_color user
     /// pref.
     ///
@@ -343,17 +350,9 @@ pub enum SystemColor {
 
     /// Color of tree column headers
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
-    MozColheader,
-    #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozColheadertext,
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
-    MozColheaderhover,
-    #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozColheaderhovertext,
-    #[parse(condition = "ParserContext::chrome_rules_enabled")]
-    MozColheaderactive,
-    #[parse(condition = "ParserContext::chrome_rules_enabled")]
-    MozColheaderactivetext,
 
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     TextSelectDisabledBackground,

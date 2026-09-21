@@ -1489,6 +1489,11 @@ pub enum Appearance {
     /// Menu Bar background
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Menubar,
+    /// <menu> and <menuitem> appearances
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Menuitem,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Checkmenuitem,
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Radiomenuitem,
     /// For text on non-iconic menuitems only
@@ -1497,11 +1502,6 @@ pub enum Appearance {
     /// The text part of a dropdown list, to left of button.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MenulistText,
-    /// <menu> and <menuitem> appearances
-    #[parse(condition = "ParserContext::chrome_rules_enabled")]
-    Menuitem,
-    #[parse(condition = "ParserContext::chrome_rules_enabled")]
-    Checkmenuitem,
     /// Menu Popup background.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Menupopup,
@@ -1549,6 +1549,13 @@ pub enum Appearance {
     Range,
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     RangeThumb,
+    /// The resizer background area in a status bar for the resizer widget in
+    /// the corner of a window.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Resizerpanel,
+    /// The resizer itself.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Resizer,
     /// The scrollbar slider
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     ScrollbarHorizontal,
@@ -1599,6 +1606,9 @@ pub enum Appearance {
     /// A status bar in a main application window.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Statusbar,
+    /// A single pane of a status bar.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Statusbarpanel,
     /// A single tab in a tab widget.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Tab,
@@ -1613,15 +1623,56 @@ pub enum Appearance {
     TabScrollArrowBack,
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     TabScrollArrowForward,
+    /// A toolbar in an application window.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Toolbar,
     /// A single toolbar button (with no associated dropdown).
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Toolbarbutton,
     /// The dropdown portion of a toolbar button
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     ToolbarbuttonDropdown,
+    /// The gripper for a toolbar.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Toolbargripper,
+    /// The toolbox that contains the toolbars.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Toolbox,
     /// A tooltip.
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     Tooltip,
+    /// A listbox or tree widget header
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treeheader,
+    /// An individual header cell
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treeheadercell,
+    /// The sort arrow for a header.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treeheadersortarrow,
+    /// A tree item.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treeitem,
+    /// A tree widget branch line
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treeline,
+    /// A tree widget twisty.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treetwisty,
+    /// Open tree widget twisty.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treetwistyopen,
+    /// A tree widget.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Treeview,
+
+    /// Vista Rebars.
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    MozWinCommunicationsToolbox,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    MozWinMediaToolbox,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    MozWinBrowsertabbarToolbox,
     #[parse(condition = "ParserContext::chrome_rules_enabled")]
     MozWinBorderlessGlass,
     /// -moz-apperance style used in setting proper glass margins.

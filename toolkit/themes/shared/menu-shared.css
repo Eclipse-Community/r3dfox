@@ -8,6 +8,7 @@
   --menu-icon-opacity: 1;
   --menu-arrow-width: 1em;
 
+@media (-moz-windows-non-native-menus) {
   @media (-moz-platform: windows) {
     --menu-arrow-width: max(1em, 16px);
 
@@ -15,6 +16,7 @@
       --menu-icon-opacity: 0.7;
     }
   }
+}
 }
 
 /* Accel text */
@@ -75,20 +77,13 @@
 menu,
 menuitem,
 menucaption {
+  appearance: auto;
+  -moz-default-appearance: menuitem;
   border-radius: calc(var(--panel-border-radius) / 2);
   align-items: center;
   flex-shrink: 0;
   list-style-image: none;
   max-width: 42em;
-
-  @media (-moz-platform: windows) {
-    appearance: auto;
-    -moz-default-appearance: menuitem;
-
-    @media (-moz-windows-non-native-menus) {
-      appearance: none;
-    }
-  }
 
   @media (-moz-platform: linux) {
     padding: 4px 6px;
@@ -99,15 +94,29 @@ menucaption {
   }
 }
 
+@media (-moz-windows-non-native-menus) {
+  /* For Windows 10, prevent using native OS drawing of certain menu elements,
+     especially background colors and shadows. */
+  menu, menuitem, menucaption {
+    appearance: none;
+  }
+
+  /* Menu item text also needs native drawing disabled. */
+  menu > .menu-text,
+  menuitem > .menu-text,
+  menu > .menu-iconic-text,
+  menuitem > .menu-iconic-text {
+    appearance: none;
+    margin-inline-start: 0 !important; /* need !important to override the other !important below... */
+    padding-inline-end: 0;
+  }
+}
+
 menu,
 menuitem {
   &:where([disabled="true"]) {
     color: var(--panel-disabled-color);
     text-shadow: none;
-    @media (-moz-windows-classic) {
-      color: ThreeDShadow;
-      text-shadow: 1px 1px ThreeDHighlight;
-    }
   }
 
   &:where([_moz-menuactive]:not([disabled="true"])) {
@@ -116,9 +125,16 @@ menuitem {
   }
 
   &:where([_moz-menuactive="true"][disabled="true"]) {
-    @media not (-moz-platform: windows) or (-moz-windows-non-native-menus) {
-      background-color: -moz-menuhoverdisabled;
-    }
+    background-color: -moz-menuhoverdisabled;
+  }
+}
+
+@media (-moz-windows-classic) {
+  menu[disabled="true"],
+  menubar > menu[disabled="true"][_moz-menuactive="true"],
+  menuitem[disabled="true"] {
+    color: ThreeDShadow;
+    text-shadow: 1px 1px ThreeDHighlight;
   }
 }
 
@@ -127,8 +143,26 @@ menucaption {
   font-weight: bold;
 }
 
+/* Don't leave space for icons on Win10. */
+@media (-moz-windows-non-native-menus) {
+  .menu-text {
+    padding-inline-start: 0 !important;
+  }
+}
+
 /* ..... menu arrow box ..... */
 
+.menu-right {
+  appearance: auto;
+  -moz-default-appearance: menuarrow;
+  margin-inline-end: -2px;
+  list-style-image: none;
+  width: 1.28em;
+  padding-top: 1px;
+}
+
+/* Override the native menu arrow with a custom one for Win10. */
+@media (-moz-windows-non-native-menus) {
 .menu-right {
   list-style-image: url("chrome://global/skin/icons/arrow-right.svg");
   -moz-context-properties: fill, fill-opacity;
@@ -155,6 +189,7 @@ menucaption {
   @media (-moz-platform: windows) {
     margin-inline-end: 1em;
   }
+}
 }
 
 @media (-moz-platform: macos) {
