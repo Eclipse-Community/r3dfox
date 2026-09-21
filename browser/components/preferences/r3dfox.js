@@ -10,7 +10,6 @@ var gR3dfoxPane = {
 
 Preferences.addAll([
   { id: "widget.override-win-version", type: "int" },
-  { id: "security.sandbox.content.level", type: "int" },
   { id: "r3dfox.colors", type: "int" },
   { id: "r3dfox.customizations.enabled", type: "bool" },
   { id: "r3dfox.drag-space.enabled", type: "bool" },
@@ -22,7 +21,6 @@ Preferences.addAll([
   { id: "browser.urlbar.oneOffsInstant", type: "bool" },
   { id: "browser.menu.viewImage", type: "bool" },
   { id: "browser.menu.navigationIcons", type: "bool",  inverted: true },
-  { id: "browser.e10s.disabled", type: "bool" },
   { id: "security.csp.enable", type: "bool",  inverted: true },
   { id: "security.port.blocking.enabled", type: "bool",  inverted: true },
   { id: "network.stricttransportsecurity.enabled", type: "bool",  inverted: true },
@@ -31,7 +29,6 @@ Preferences.addAll([
   { id: "content.cors.bypass_preflight_request", type: "bool" },
   { id: "security.same_origin_policy.enabled", type: "bool",  inverted: true },
   { id: "browser.urlbar.secondaryActions.switchToTab", type: "bool" },
-  { id: "gfx.dwrite.enabled", type: "bool",  inverted: true },
   { id: "screenshots.browser.component.enabled", type: "bool" },
   { id: "widget.override-aero-caption-buttons-mask-height", type: "int" },
   { id: "widget.override-aero-caption-buttons-mask-width", type: "int" },

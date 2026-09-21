@@ -22,17 +22,6 @@
   <label><html:h2 data-l10n-id="r3dfox-visual-header"/></label>
 
   <hbox align="center">
-    <label id="r3dfoxNativeMenulist" data-l10n-id="r3dfox-native-menulist" control="r3dfoxNativeMenulistType"/>
-    <menulist id="r3dfoxNativeMenulistType" preference="browser.display.windows.non_native_menus">
-      <menupopup>
-        <menuitem label="Native menulists always" value="0"/>
-        <menuitem label="Custom menulists always" value="1"/>
-        <menuitem label="Native menulists unless Windows 10 (Modern) theme is used (Default)" value="2"/>
-      </menupopup>
-    </menulist>
-  </hbox>
-
-  <hbox align="center">
     <label id="r3dfoxWinTheme" data-l10n-id="r3dfox-win-theme-type" control="r3dfoxWinThemeType"/>
     <menulist id="r3dfoxWinThemeType" preference="widget.override-win-version">
       <menupopup>
@@ -41,6 +30,17 @@
         <menuitem label="Windows Vista/7" value="7"/>
         <menuitem label="Windows 8" value="8"/>
         <menuitem label="Windows 10 (Modern)" value="10"/>
+      </menupopup>
+    </menulist>
+  </hbox>
+
+  <hbox align="center">
+    <label id="r3dfoxNativeMenulist" data-l10n-id="r3dfox-native-menulist" control="r3dfoxNativeMenulistType"/>
+    <menulist id="r3dfoxNativeMenulistType" preference="browser.display.windows.non_native_menus">
+      <menupopup>
+        <menuitem label="Native menulists always" value="0"/>
+        <menuitem label="Custom menulists always" value="1"/>
+        <menuitem label="Native menulists unless Windows 10 (Modern) theme is used (Default)" value="2"/>
       </menupopup>
     </menulist>
   </hbox>
@@ -295,18 +295,6 @@
   <description id="r3dfoxAccessibilityDescription" class="tip-caption" data-l10n-id="r3dfox-accessibility-desc"/>
 
   <hbox align="center">
-    <label id="r3dfoxSandboxLevel" data-l10n-id="r3dfox-sandbox-level" control="r3dfoxSandboxLevelType"/>
-    <menulist id="r3dfoxSandboxLevelType" preference="security.sandbox.content.level">
-      <menupopup>
-        <menuitem label="Increased (20)" value="20"/>
-        <menuitem label="Default (9)" value="9"/>
-        <menuitem label="Lower (7)" value="7"/>
-      </menupopup>
-    </menulist>
-  </hbox>
-  <description id="r3dfoxSandboxLevelDescription" class="tip-caption" data-l10n-id="r3dfox-sandbox-level-desc"/>
-
-  <hbox align="center">
     <label id="r3dfoxCaptionWidth" data-l10n-id="r3dfox-caption-width" control="r3dfoxCaptionWidthType"/>
     <html:input id="r3dfoxCaptionWidthType" type="number" class="option" data-type="int" preference="widget.override-aero-caption-buttons-mask-width"/>
   </hbox>
@@ -366,19 +354,5 @@
               preference="security.port.blocking.enabled"/>
   </hbox>
   <description class="indent tip-caption" data-l10n-id="r3dfox-port-blocking-desc"/>
-
-  <hbox align="center">
-    <checkbox id="r3dfoxe10s"
-              data-l10n-id="r3dfox-e10s"
-              preference="browser.e10s.disabled"/>
-  </hbox>
-  <description class="indent tip-caption" data-l10n-id="r3dfox-e10s-desc"/>
-
-  <hbox align="center">
-    <checkbox id="r3dfoxdwrite"
-              data-l10n-id="r3dfox-dwrite"
-              preference="gfx.dwrite.enabled"/>
-  </hbox>
-  <description class="indent tip-caption" data-l10n-id="r3dfox-dwrite-desc"/>
 </groupbox>
 </html:template>
