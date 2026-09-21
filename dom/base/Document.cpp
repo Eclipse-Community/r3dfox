@@ -18924,8 +18924,7 @@ void Document::AddPendingFrameStaticClone(nsFrameLoaderOwner* aElement,
 }
 
 bool Document::ShouldAvoidNativeTheme() const {
-  return StaticPrefs::widget_non_native_theme_enabled() &&
-         (!IsInChromeDocShell() || XRE_IsContentProcess());
+  return !IsInChromeDocShell() || XRE_IsContentProcess();
 }
 
 bool Document::UseRegularPrincipal() const {

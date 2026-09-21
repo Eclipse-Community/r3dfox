@@ -559,10 +559,6 @@ fn eval_moz_print_preview(context: &Context) -> bool {
     is_print_preview
 }
 
-fn eval_moz_non_native_content_theme(context: &Context) -> bool {
-    unsafe { bindings::Gecko_MediaFeatures_ShouldAvoidNativeTheme(context.device().document()) }
-}
-
 fn eval_moz_is_resource_document(context: &Context) -> bool {
     unsafe { bindings::Gecko_MediaFeatures_IsResourceDocument(context.device().document()) }
 }
@@ -650,10 +646,6 @@ fn eval_scripting(context: &Context, query_value: Option<Scripting>) -> bool {
     }
 }
 
-fn eval_moz_native_controls(_context: &Context) -> bool {
-    true
-}
-
 fn eval_moz_windows_non_native_menus(context: &Context) -> bool {
     unsafe { bindings::Gecko_MediaFeatures_WindowsNonNativeMenus(context.device().document()) }
 }
@@ -709,7 +701,7 @@ macro_rules! lnf_int_feature {
 /// to support new types in these entries and (2) ensuring that either
 /// nsPresContext::MediaFeatureValuesChanged is called when the value that
 /// would be returned by the evaluator function could change.
-pub static MEDIA_FEATURES: [QueryFeatureDescription; 66] = [
+pub static MEDIA_FEATURES: [QueryFeatureDescription; 64] = [
     feature!(
         atom!("width"),
         AllowsRanges::Yes,
@@ -974,12 +966,6 @@ pub static MEDIA_FEATURES: [QueryFeatureDescription; 66] = [
         FeatureFlags::CHROME_AND_UA_ONLY,
     ),
     feature!(
-        atom!("-moz-non-native-content-theme"),
-        AllowsRanges::No,
-        Evaluator::BoolInteger(eval_moz_non_native_content_theme),
-        FeatureFlags::CHROME_AND_UA_ONLY,
-    ),
-    feature!(
         atom!("-moz-windows-non-native-menus"),
         AllowsRanges::No,
         Evaluator::BoolInteger(eval_moz_windows_non_native_menus),
@@ -989,13 +975,6 @@ pub static MEDIA_FEATURES: [QueryFeatureDescription; 66] = [
         atom!("-moz-overlay-scrollbars"),
         AllowsRanges::No,
         Evaluator::BoolInteger(eval_moz_overlay_scrollbars),
-        FeatureFlags::CHROME_AND_UA_ONLY,
-    ),
-    // Custom feature for native controls patch for userstyles to detect it:
-    feature!(
-        atom!("-moz-native-controls"),
-        AllowsRanges::No,
-        Evaluator::BoolInteger(eval_moz_native_controls),
         FeatureFlags::CHROME_AND_UA_ONLY,
     ),
     lnf_int_feature!(

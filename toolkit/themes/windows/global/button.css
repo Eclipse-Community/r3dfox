@@ -41,6 +41,10 @@ button {
   &:where([disabled="true"]) {
     color: GrayText;
     background-color: ButtonFace;
+    @media (-moz-windows-classic) {
+      color: ThreeDShadow;
+      text-shadow: 1px 1px ThreeDHighlight;
+    }
   }
 
   &.plain {
@@ -52,13 +56,6 @@ button {
 .button-text {
   margin: 0;
   text-align: center;
-}
-
-@media (-moz-windows-classic) {
-  button:where([disabled="true"]) {
-    color: ThreeDShadow;
-    text-shadow: 1px 1px ThreeDHighlight;
-  }
 }
 
 /* ::::: menu buttons ::::: */

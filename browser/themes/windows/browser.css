@@ -6,8 +6,6 @@
 @import url("chrome://browser/skin/contextmenu.css");
 @import url("chrome://browser/skin/browser-custom-colors.css");
 
-@namespace html url("http://www.w3.org/1999/xhtml");
-
 :root {
   @media -moz-pref("r3dfox.translucent.navbar") {
     @media (-moz-toolbar-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
@@ -40,6 +38,21 @@
 #menubar-items {
   flex-direction: column; /* for flex hack */
   justify-content: normal; /* align the menubar to the top also in customize mode */
+}
+
+#main-menubar > menu {
+  appearance: none;
+  color: inherit;
+
+  &[_moz-menuactive] {
+    background-color: light-dark(hsla(0,0%,0%,.12), hsla(0,0%,100%,.22));
+    color: inherit;
+
+    @media not (-moz-windows-default-theme) {
+      background-color: -moz-menuhover;
+      color: -moz-menuhovertext;
+    }
+  }
 }
 
 @media (-moz-windows-accent-color-in-titlebar) {
@@ -76,10 +89,7 @@
     /* On Windows 10, when temporarily showing the menu bar, make it at least as
      * tall as the tab bar such that the window controls don't appear to move up. */
     :root[tabsintitlebar] #toolbar-menubar[autohide="true"] {
-      height: calc(var(--tab-min-height) - var(--tabs-navbar-shadow-size));
-    }
-    :root[tabsintitlebar][sizemode="normal"] #toolbar-menubar[autohide="true"] {
-      height: calc(var(--tab-min-height) - var(--tabs-navbar-shadow-size));
+      height: var(--tab-min-height);
     }
   }
 }
@@ -91,34 +101,31 @@
     padding-top: 4px;
   }
 }
+
 /* Add a fog for background tabs to be visible on Windows 7 glass window background */
 @media (-moz-platform: windows-win7) {
   @media (-moz-windows-default-theme) {
-    &:not([lwtheme]) #TabsToolbar {
-      isolation: isolate;
-      position: relative;
-      &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        height: 100%;
-        width: 100%;
-        @media -moz-pref("r3dfox.aero.fog", 2) {
-          background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 40%, transparent);
-        }
-        z-index: -1;
-      }
+    :root:not([lwtheme]) #TabsToolbar {
+    @media -moz-pref("r3dfox.aero.fog", 2) {
+      background-image: radial-gradient(ellipse at bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.5) 40%, transparent);
+    }
     }
   }
 }
 
-@media not (-moz-windows-compositor),
-       not (-moz-windows-default-theme) {
+@media (-moz-windows-compositor: 0),
+       (-moz-windows-default-theme: 0),
+       (-moz-platform: windows-win8) {
   /* Please keep the menu text colors in this media block in sync with
-   * light-dark-overrides.css, minus the :not([lwtheme]) condition - see Bug 1165718.
+   * light-dark-overrides.css, minus the :not(:-moz-lwtheme) condition - see Bug 1165718.
    */
   :root[tabsintitlebar]:not([lwtheme]) {
+    --toolbox-non-lwt-bgcolor: ActiveCaption;
+    --toolbox-non-lwt-textcolor: CaptionText;
+    --toolbox-non-lwt-bgcolor-inactive: InactiveCaption;
+    --toolbox-non-lwt-textcolor-inactive: InactiveCaptionText;
     color: CaptionText;
+      --toolbarbutton-icon-fill: currentColor;
   }
 
   :root[tabsintitlebar]:not([lwtheme]):-moz-window-inactive {
@@ -134,34 +141,29 @@
    * the tabs.
    */
   @media -moz-pref("r3dfox.aero.fog", 2) {
-  :root[tabsintitlebar]:not([sizemode=fullscreen]) #TabsToolbar:not([lwtheme]) {
+  :root[tabsintitlebar]:not([lwtheme], [sizemode=fullscreen]) #TabsToolbar {
     background-image: linear-gradient(transparent, ActiveCaption);
     background-size: auto 200%;
   }
 
-  :root[tabsintitlebar]:not([sizemode=fullscreen]) #TabsToolbar:not([lwtheme]):-moz-window-inactive {
+  :root[tabsintitlebar]:not([lwtheme], [sizemode=fullscreen]) #TabsToolbar:-moz-window-inactive {
     background-image: linear-gradient(transparent, InactiveCaption);
   }
   }
 
   /* Add a window top border for webextension themes */
-  :root[tabsintitlebar][sizemode="normal"] #navigator-toolbox[lwtheme] {
+  :root[tabsintitlebar][lwtheme][sizemode="normal"] #navigator-toolbox {
     background-image: linear-gradient(to bottom,
           ThreeDLightShadow 0, ThreeDLightShadow 1px,
           ThreeDHighlight 1px, ThreeDHighlight 2px,
           ActiveBorder 2px, ActiveBorder 4px, transparent 4px);
   }
 
-  :root[tabsintitlebar] :is(#TabsToolbar, #toolbar-menubar) toolbarbutton:not([lwtheme]) {
+  :root[tabsintitlebar]:not([lwtheme]) :is(#TabsToolbar, #toolbar-menubar) toolbarbutton {
     color: inherit;
   }
 }
 
-@media not (-moz-windows-compositor) {
-  #nav-bar[tabs-hidden="true"] {
-    box-shadow: none;
-  }
-}
 /* Titlebar */
 
 @media not (-moz-platform: windows-win10) {
@@ -176,7 +178,7 @@
   }
 }
 
-@media not (-moz-windows-compositor) {
+@media (-moz-windows-compositor: 0) {
   /**
    * Anytime we're not using the compositor on Windows, the -moz-window-titlebar
    * and -moz-window-titlebar-maximized values for -moz-appearance override
@@ -184,11 +186,11 @@
    * it's children visible in order to hide the background but keep the margin and
    * padding that comes from those -moz-window-titlebar rules.
    */
-  :root:not([inFullscreen]) #titlebar[lwtheme] {
+  :root[lwtheme]:not([inFullscreen]) #titlebar {
     visibility: hidden;
   }
-  :root:not([inFullscreen], [chromehidden~="menubar"]) #toolbar-menubar[lwtheme],
-  :root:not([inFullscreen], [chromehidden~="toolbar"]) #TabsToolbar[lwtheme] {
+  :root[lwtheme]:not([inFullscreen], [chromehidden~="menubar"]) #toolbar-menubar,
+  :root[lwtheme]:not([inFullscreen], [chromehidden~="toolbar"]) #TabsToolbar {
     visibility: visible;
   }
 }
@@ -218,8 +220,8 @@
 .titlebar-buttonbox-container {
   align-items: stretch;
 }
-
-@media (-moz-platform: windows-win7),
+@media (-moz-platform: windows-xp),
+       (-moz-platform: windows-win7),
        (-moz-platform: windows-win8) {
   /* Preserve window control buttons position at the top of the button box. */
   .titlebar-buttonbox-container {
@@ -227,17 +229,22 @@
   }
 }
 
-/* add extra margin for unmaximized windows
-   on Win XP Luna themes to look consistent */
+/* Add extra margin for unmaximized windows on Win XP Luna themes. */
 @media not (-moz-windows-classic) {
-  @media (-moz-platform: windows-winxp) {
-    :root[tabsintitlebar]:not([sizemode="maximized"]) .titlebar-buttonbox-container {
+  @media (-moz-platform: windows-xp) {
+    :root[tabsintitlebar]:not([sizemode="maximized"])
+      .titlebar-buttonbox-container {
       margin-top: 4px;
     }
   }
 }
 
 /* Window control buttons */
+
+.titlebar-button:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-inset);
+}
 
 .titlebar-min {
   appearance: auto;
@@ -259,7 +266,7 @@
   -moz-default-appearance: -moz-window-button-close;
 }
 
-@media not (-moz-windows-classic) {
+@media (-moz-windows-classic: 0) {
   .titlebar-min {
     margin-inline-end: 2px;
   }
@@ -325,7 +332,7 @@
   }
 }
 
-@media not (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme: 0) {
   :root {
     /* Windows HCM conventions use these colors for chiclets. We can't use them on
        other platforms because AccentColor can be shown atop SelectedItem,
@@ -346,7 +353,7 @@
 
 /* Address bar results view */
 
-@media not (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme: 0) {
   :root:not([lwtheme]) {
     --urlbar-popup-action-color: LinkText;
   }
@@ -365,8 +372,8 @@
   padding: 0;
 }
 
-@media not (-moz-windows-default-theme) {
-  /* For high contrast themes. XXX is this needed anymore? */
+@media (-moz-windows-default-theme: 0) {
+  /* For high contrast themes. */
   #tabbrowser-tabpanels,
   :root[privatebrowsingmode=temporary] #tabbrowser-tabpanels {
     background-color: -moz-default-background-color;
@@ -419,16 +426,8 @@ menupopup[touchmode] :is(menu, menuitem, menucaption) {
   padding-block: calc((3.5em - 32px) / 2);
 }
 
-@media not (-moz-windows-non-native-menus) {
-  #context-navigation {
-    background-color: menu;
-  }
-}
-
-@media (-moz-windows-non-native-menus) {
 /* Other menu separators don't extend all the way to the menu edges, but the
    one below the navigation buttons in the content context menu should. */
 #context-sep-navigation {
   padding-inline: 0;
-}
 }

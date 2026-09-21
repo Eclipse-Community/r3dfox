@@ -58,14 +58,10 @@ body {
   --browser-stack-z-index-dialog-stack: 2;
   --browser-stack-z-index-rdm-toolbar: 3;
 
-@media not (-moz-platform: windows-win7) {
-  @media not (-moz-platform: windows-win8) {
   --toolbox-non-lwt-bgcolor: -moz-headerbar;
   --toolbox-non-lwt-textcolor: -moz-headerbartext;
   --toolbox-non-lwt-bgcolor-inactive: -moz-headerbarinactive;
   --toolbox-non-lwt-textcolor-inactive: -moz-headerbarinactivetext;
-  }
-}
 
   --toolbarbutton-border-radius: 4px;
 
@@ -127,16 +123,12 @@ body {
     --inactive-titlebar-opacity: .75;
   }
 
-@media not (-moz-platform: windows-win7) {
-  @media not (-moz-platform: windows-win8) {
   &:where([tabsintitlebar]) {
     --toolbox-non-lwt-bgcolor: ActiveCaption;
     --toolbox-non-lwt-textcolor: CaptionText;
     --toolbox-non-lwt-bgcolor-inactive: InactiveCaption;
     --toolbox-non-lwt-textcolor-inactive: InactiveCaptionText;
   }
-  }
-}
 
   &[lwtheme] {
     color: var(--lwt-text-color);
@@ -191,16 +183,18 @@ body {
   /* Toolbar / content area border */
   border-bottom: 0.01px solid var(--chrome-content-separator-color);
 
-  background-color: var(--toolbox-non-lwt-bgcolor);
-  color: var(--toolbox-non-lwt-textcolor);
+  :root:not([lwtheme]) & {
+    background-color: var(--toolbox-non-lwt-bgcolor);
+    color: var(--toolbox-non-lwt-textcolor);
+
+    &:-moz-window-inactive {
+      background-color: var(--toolbox-non-lwt-bgcolor-inactive);
+      color: var(--toolbox-non-lwt-textcolor-inactive);
+    }
+  }
 
   will-change: background-color;
   transition: background-color var(--inactive-window-transition);
-
-  &:-moz-window-inactive {
-    background-color: var(--toolbox-non-lwt-bgcolor-inactive);
-    color: var(--toolbox-non-lwt-textcolor-inactive);
-  }
 
   &[fullscreenShouldAnimate] {
     transition: 0.8s margin-top ease-out;
@@ -210,33 +204,58 @@ body {
     border-bottom-style: none;
   }
 
-/* TODO bug 1695280: Remove these media selectors and merge the rule below
-   with the ruleset above. We must set background properties on :root and not
-   #navigator-toolbox on Windows 7/8 due to a WebRender bug that hides the
-   minimize/maximize/close buttons. */
-@media not (-moz-platform: windows-win7) {
-  @media not (-moz-platform: windows-win8) {
   :root[lwtheme] & {
     background-image: var(--lwt-additional-images);
     background-repeat: var(--lwt-background-tiling);
     background-position: var(--lwt-background-alignment);
-    background-color: var(--lwt-accent-color);
     color: inherit;
 
-    &:-moz-window-inactive {
-      background-color: var(--lwt-accent-color-inactive, var(--lwt-accent-color));
-    }
-  }
+    /* TODO bug 1695280: Remove these media selectors and merge these
+       declarations into the ruleset above. We must set background properties on
+       :root and not #navigator-toolbox on Windows 7/8 due to a WebRender bug that
+       hides the minimize/maximize/close buttons. */
+  @media not (-moz-platform: windows-xp) {
+    @media not (-moz-platform: windows-win7) {
+      @media not (-moz-platform: windows-win8) {
+        background-color: var(--lwt-accent-color);
 
-  /* When a theme defines both theme_frame and additional_backgrounds, show
-     the latter atop the former. */
-  :root[lwtheme-image] & {
-    background-image: var(--lwt-header-image), var(--lwt-additional-images);
-    background-repeat: no-repeat, var(--lwt-background-tiling);
-    background-position: right top, var(--lwt-background-alignment);
+        &:-moz-window-inactive {
+          background-color: var(--lwt-accent-color-inactive, var(--lwt-accent-color));
+        }
+
+        /* When a theme defines both theme_frame and additional_backgrounds, show
+           the latter atop the former. */
+        :root[lwtheme-image] & {
+          background-image: var(--lwt-header-image), var(--lwt-additional-images);
+          background-repeat: no-repeat, var(--lwt-background-tiling);
+          background-position: right top, var(--lwt-background-alignment);
+        }
+      }
+    }
   }
   }
 }
+
+/* TODO bug 1695280: Remove this block. */
+@media (-moz-platform: windows-xp),
+       (-moz-platform: windows-win7),
+       (-moz-platform: windows-win8) {
+  :root[lwtheme] {
+    background-color: var(--lwt-accent-color);
+    background-image: var(--lwt-additional-images);
+    background-repeat: var(--lwt-background-tiling);
+    background-position: var(--lwt-background-alignment);
+  }
+
+  :root[lwtheme-image] {
+    background-image: var(--lwt-header-image, linear-gradient(transparent, transparent)),  var(--lwt-additional-images) !important;
+    background-repeat: no-repeat, var(--lwt-background-tiling);
+    background-position: right top, var(--lwt-background-alignment) !important;
+  }
+
+  :root[lwtheme]:-moz-window-inactive {
+    background-color: var(--lwt-accent-color-inactive, var(--lwt-accent-color));
+  }
 }
 
 .browser-toolbar {

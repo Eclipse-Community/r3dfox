@@ -38,13 +38,13 @@ menubar > menu:-moz-window-inactive {
   padding: 1px 0;
 }
 
-.menu-iconic-left {
-  width: 1.45em;
-}
-
 .menu-accel,
 .menu-iconic-accel {
   margin-inline: 0.74em 1.35em;
+}
+
+.menu-iconic-left {
+  width: 1.45em;
 }
 
 .menu-iconic-icon {
@@ -61,6 +61,54 @@ menubar > menu:-moz-window-inactive {
 
 menuitem:is([type="checkbox"], [type="radio"]):not([checked="true"]) > .menu-iconic-left > .menu-iconic-icon {
   display: none;
+}
+
+/* ..... menu arrow box ..... */
+
+.menu-right {
+  appearance: auto;
+  -moz-default-appearance: menuarrow;
+  margin-inline-end: -2px;
+  list-style-image: none;
+  width: 1.28em;
+  padding-top: 1px;
+}
+
+/* Override the native menu arrow with a custom one for non-native menus. */
+@media (-moz-windows-non-native-menus) {
+  menu > .menu-text,
+  menuitem > .menu-text,
+  menu > .menu-iconic-text,
+  menuitem > .menu-iconic-text {
+    appearance: none;
+    margin-inline-start: 0 !important;
+    padding-inline-end: 0;
+  }
+
+  .menu-text {
+    padding-inline-start: 0 !important;
+  }
+
+  .menu-right {
+    appearance: none;
+    width: unset;
+    list-style-image: url("chrome://global/skin/icons/arrow-right.svg");
+    -moz-context-properties: fill, fill-opacity;
+    fill: currentColor;
+    fill-opacity: var(--menu-icon-opacity);
+    margin-inline-end: 1em;
+    padding-top: 0;
+  }
+
+  .menu-right > image {
+    /* Do not make this smaller than the size of the svg, but upscale for
+     * people with large fonts. */
+    width: max(1em, 16px);
+  }
+
+  .menu-right:-moz-locale-dir(rtl) {
+    list-style-image: url("chrome://global/skin/icons/arrow-left.svg");
+  }
 }
 
 /* ::::: menu/menuitems in menubar ::::: */
@@ -97,12 +145,12 @@ menubar > menu[_moz-menuactive="true"]:not([disabled="true"]) {
 
 
 @media (-moz-windows-default-theme) {
-  menubar > menu[lwtheme] {
+  :root[lwtheme] menubar > menu {
     appearance: auto;
     -moz-default-appearance: menuitem;
   }
 
-  menubar > menu[lwtheme][_moz-menuactive="true"]:not([disabled="true"]) {
+  :root[lwtheme] menubar > menu[_moz-menuactive="true"]:not([disabled="true"]) {
     color: inherit !important;
     text-shadow: inherit;
   }
@@ -127,7 +175,6 @@ menulist > menupopup > menu {
     padding-inline-end: 1em;
   }
 }
-
 
 @media not (-moz-windows-non-native-menus) {
   menulist > menupopup > menuitem,

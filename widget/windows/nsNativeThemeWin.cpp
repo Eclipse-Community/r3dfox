@@ -19,10 +19,10 @@
 #include "mozilla/RelativeLuminanceUtils.h"
 #include "mozilla/StaticPrefs_layout.h"
 #include "mozilla/StaticPrefs_widget.h"
-#include "mozilla/dom/HTMLSelectElement.h"
 #include "mozilla/WindowsVersion.h"
 #include "mozilla/dom/XULButtonElement.h"
 #include "nsColor.h"
+#include "nsComboboxControlFrame.h"
 #include "nsDeviceContext.h"
 #include "nsGkAtoms.h"
 #include "nsIContent.h"
@@ -40,7 +40,6 @@
 #include "nsWindow.h"
 #include "prinrval.h"
 #include "WinUtils.h"
-#include "ScrollbarDrawingWin.h"
 
 using mozilla::IsVistaOrLater;
 using namespace mozilla;
@@ -70,31 +69,9 @@ nsNativeThemeWin::~nsNativeThemeWin() { nsUXThemeData::Invalidate(); }
 auto nsNativeThemeWin::IsWidgetNonNative(nsIFrame* aFrame,
                                          StyleAppearance aAppearance)
     -> NonNative {
-  if (IsWidgetScrollbarPart(aAppearance)) {
-    if (StaticPrefs::widget_native_controls_scrollbar_style() == 0) {
-      return NonNative::No;
-    } else if (StaticPrefs::widget_native_controls_scrollbar_style() ==
-               1) {
-      return NonNative::Always;
-    } else /* >= 2, < 0 */
-    {
-      // Photon behaviour: native on light, non-native on dark or custom styles:
-      if (GetCustomScrollbarStyle(aFrame) == nullptr) {
-        return NonNative::No;
-      } else {
-        return NonNative::Always;
-      }
-    }
-  }
-
-  if (aAppearance == StyleAppearance::Tooltip &&
-      StaticPrefs::widget_native_controls_tooltip_style() == 0) {
-    return NonNative::No;
-  }
-
-  if (aAppearance == StyleAppearance::FocusOutline &&
-      StaticPrefs::widget_native_controls_tooltip_style() == 0) {
-    return NonNative::No;
+  if (IsWidgetScrollbarPart(aAppearance) ||
+      aAppearance == StyleAppearance::FocusOutline) {
+    return NonNative::Always;
   }
 
   // We only know how to draw light widgets, so we defer to the non-native
@@ -674,7 +651,7 @@ DrawChunkProgressMeter(HTHEME aTheme, HDC aHdc, int aPart,
  */
 void nsNativeThemeWin::DrawThemedProgressMeter(
     nsIFrame* aFrame, StyleAppearance aAppearance, HANDLE aTheme, HDC aHdc,
-    int aPart, int aState, RECT* aWidgetRect, RECT* aClipRect, gfxFloat aAppUnits) {
+    int aPart, int aState, RECT* aWidgetRect, RECT* aClipRect) {
   if (!aFrame || !aTheme || !aHdc) return;
 
   NS_ASSERTION(aWidgetRect, "bad rect pointer");
@@ -702,6 +679,7 @@ void nsNativeThemeWin::DrawThemedProgressMeter(
   bool indeterminate = elementState.HasState(ElementState::INDETERMINATE);
   bool animate = indeterminate;
 
+  gfxFloat appUnits = aFrame->PresContext()->AppUnitsPerDevPixel();
   if (IsVistaOrLater()) {
     // Vista and up progress meter is fill style, rendered here. We render
     // the pulse overlay in the follow up section below.
@@ -713,21 +691,22 @@ void nsNativeThemeWin::DrawThemedProgressMeter(
   } else if (!indeterminate) {
     // XP progress meters are 'chunk' style.
     DrawChunkProgressMeter(aTheme, aHdc, aPart, aState, aFrame,
-                           &adjWidgetRect, &adjClipRect, aAppUnits,
+                           &adjWidgetRect, &adjClipRect, appUnits,
                            indeterminate, vertical, IsFrameRTL(aFrame));
   }
 
   if (animate) {
     // Indeterminate rendering
     int32_t overlayPart = GetProgressOverlayStyle(vertical);
-    RECT overlayRect = CalculateProgressOverlayRect(
-        aFrame, &adjWidgetRect, vertical, indeterminate, false);
+    RECT overlayRect =
+      CalculateProgressOverlayRect(aFrame, &adjWidgetRect, vertical,
+                                   indeterminate, false);
     if (IsVistaOrLater()) {
       DrawThemeBackground(aTheme, aHdc, overlayPart, aState, &overlayRect,
                           &adjClipRect);
     } else {
       DrawChunkProgressMeter(aTheme, aHdc, overlayPart, aState, aFrame,
-                             &overlayRect, &adjClipRect, aAppUnits,
+                             &overlayRect, &adjClipRect, appUnits,
                              indeterminate, vertical, IsFrameRTL(aFrame));
     }
 
@@ -842,14 +821,6 @@ nsresult nsNativeThemeWin::GetCachedMinimumWidgetSize(
 
 mozilla::Maybe<nsUXThemeClass> nsNativeThemeWin::GetThemeClass(
     StyleAppearance aAppearance) {
-  if (!IsVistaOrLater()) {
-    // On XP or earlier, render dropdowns as textfields;
-    // doing it the right way works fine with the MS themes,
-    // but breaks on a lot of custom themes (presumably because MS
-    // apps do the textfield border business as well).
-    if (aAppearance == StyleAppearance::Menulist)
-      aAppearance = StyleAppearance::MenulistText;
-  }
   switch (aAppearance) {
     case StyleAppearance::Button:
     case StyleAppearance::Radio:
@@ -860,21 +831,7 @@ mozilla::Maybe<nsUXThemeClass> nsNativeThemeWin::GetThemeClass(
     case StyleAppearance::PasswordInput:
     case StyleAppearance::Textfield:
     case StyleAppearance::Textarea:
-    case StyleAppearance::FocusOutline:
       return Some(eUXEdit);
-    case StyleAppearance::Tooltip:
-      // XP/2K3 should force a classic treatment of tooltips
-      return !IsVistaOrLater() ?
-        Nothing() : Some(eUXTooltip);
-    case StyleAppearance::Toolbox:
-      return Some(eUXRebar);
-    case StyleAppearance::MozWinMediaToolbox:
-      return Some(eUXMediaRebar);
-    case StyleAppearance::MozWinCommunicationsToolbox:
-      return Some(eUXCommunicationsRebar);
-    case StyleAppearance::MozWinBrowsertabbarToolbox:
-      return Some(eUXBrowserTabBarRebar);
-    case StyleAppearance::Toolbar:
     case StyleAppearance::Toolbarbutton:
     case StyleAppearance::Separator:
       return Some(eUXToolbar);
@@ -885,38 +842,17 @@ mozilla::Maybe<nsUXThemeClass> nsNativeThemeWin::GetThemeClass(
     case StyleAppearance::Tabpanel:
     case StyleAppearance::Tabpanels:
       return Some(eUXTab);
-    case StyleAppearance::ScrollbarVertical:
-    case StyleAppearance::ScrollbarHorizontal:
-    case StyleAppearance::ScrollbarbuttonUp:
-    case StyleAppearance::ScrollbarbuttonDown:
-    case StyleAppearance::ScrollbarbuttonLeft:
-    case StyleAppearance::ScrollbarbuttonRight:
-    case StyleAppearance::ScrollbarthumbVertical:
-    case StyleAppearance::ScrollbarthumbHorizontal:
-    case StyleAppearance::Scrollcorner:
-      return Some(eUXScrollbar);
     case StyleAppearance::Range:
     case StyleAppearance::RangeThumb:
       return Some(eUXTrackbar);
     case StyleAppearance::SpinnerUpbutton:
     case StyleAppearance::SpinnerDownbutton:
       return Some(eUXSpin);
-    case StyleAppearance::Statusbar:
-    case StyleAppearance::Statusbarpanel:
-    case StyleAppearance::Resizerpanel:
-    case StyleAppearance::Resizer:
-      return Some(eUXStatus);
     case StyleAppearance::Menulist:
     case StyleAppearance::MenulistButton:
     case StyleAppearance::MozMenulistArrowButton:
       return Some(eUXCombobox);
-    case StyleAppearance::Treeheadercell:
-    case StyleAppearance::Treeheadersortarrow:
-      return Some(eUXHeader);
     case StyleAppearance::Listbox:
-    case StyleAppearance::Treeview:
-    case StyleAppearance::Treetwistyopen:
-    case StyleAppearance::Treeitem:
       return Some(eUXListview);
     case StyleAppearance::Menubar:
     case StyleAppearance::Menupopup:
@@ -947,6 +883,15 @@ mozilla::Maybe<nsUXThemeClass> nsNativeThemeWin::GetThemeClass(
 
 HANDLE
 nsNativeThemeWin::GetTheme(StyleAppearance aAppearance) {
+  if (!IsVistaOrLater()) {
+    if (aAppearance == StyleAppearance::Menulist) {
+      aAppearance = StyleAppearance::Textfield;
+    }
+    if (aAppearance == StyleAppearance::Tooltip) {
+      return nullptr;
+    }
+  }
+
   mozilla::Maybe<nsUXThemeClass> themeClass = GetThemeClass(aAppearance);
   if (themeClass.isNothing()) {
     return nullptr;
@@ -1001,9 +946,8 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
                                                 StyleAppearance aAppearance,
                                                 int32_t& aPart,
                                                 int32_t& aState) {
-  if (!IsVistaOrLater()) {
-    if (aAppearance == StyleAppearance::Menulist)
-      aAppearance = StyleAppearance::MenulistText;
+  if (!IsVistaOrLater() && aAppearance == StyleAppearance::Menulist) {
+    aAppearance = StyleAppearance::Textfield;
   }
 
   switch (aAppearance) {
@@ -1074,7 +1018,20 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
     case StyleAppearance::Textarea: {
       ElementState elementState = GetContentState(aFrame, aAppearance);
 
-      if (IsVistaOrLater()) {
+      if (!IsVistaOrLater()) {
+        aPart = TFP_TEXTFIELD;
+
+        if (!aFrame)
+          aState = TS_NORMAL;
+        else if (elementState.HasState(ElementState::DISABLED))
+          aState = TS_DISABLED;
+        else if (IsReadOnly(aFrame))
+          aState = TFS_READONLY;
+        else
+          aState = StandardGetState(aFrame, aAppearance, true);
+        return NS_OK;
+      }
+
       /* Note: the NOSCROLL type has a rounded corner in each corner.  The more
        * specific HSCROLL, VSCROLL, HVSCROLL types have side and/or top/bottom
        * edges rendered as straight horizontal lines with sharp corners to
@@ -1098,35 +1055,7 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       } else {
         aState = TFS_EDITBORDER_NORMAL;
       }
-      } else {
-        aPart = TFP_TEXTFIELD;
-   
-        if (!aFrame)
-          aState = TS_NORMAL;
-        else if (elementState.HasState(ElementState::DISABLED))
-          aState = TS_DISABLED;
-        else if (IsReadOnly(aFrame))
-          aState = TFS_READONLY;
-        else
-          aState = StandardGetState(aFrame, aAppearance, true);
-      }
 
-      return NS_OK;
-    }
-    case StyleAppearance::FocusOutline: {
-      if (IsVistaOrLater()) {
-        // XXX the EDITBORDER values don't respect DTBG_OMITCONTENT
-        aPart = TFP_TEXTFIELD; //TFP_EDITBORDER_NOSCROLL;
-        aState = TS_FOCUSED; //TFS_EDITBORDER_FOCUSED;
-      } else {
-        aPart = TFP_TEXTFIELD;
-        aState = TS_FOCUSED;
-      }
-      return NS_OK;
-    }
-    case StyleAppearance::Tooltip: {
-      aPart = TTP_STANDARD;
-      aState = TS_NORMAL;
       return NS_OK;
     }
     case StyleAppearance::ProgressBar: {
@@ -1186,64 +1115,17 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       aState = TS_NORMAL;
       return NS_OK;
     }
-    case StyleAppearance::ScrollbarbuttonUp:
-    case StyleAppearance::ScrollbarbuttonDown:
-    case StyleAppearance::ScrollbarbuttonLeft:
-    case StyleAppearance::ScrollbarbuttonRight: {
-      aPart = SP_BUTTON;
-      aState = (int(aAppearance) - int(StyleAppearance::ScrollbarbuttonUp)) * 4;
-      ElementState eventState = GetContentState(aFrame, aAppearance);
-      if (!aFrame)
-        aState += TS_NORMAL;
-      else if (eventState.HasState(ElementState::DISABLED))
-        aState += TS_DISABLED;
-      else {
-        nsIFrame* parent = aFrame->GetParent();
-        ElementState parentState = GetContentState(
-            parent, parent->StyleDisplay()->EffectiveAppearance());
-        if (eventState.HasAllStates(ElementState::HOVER | ElementState::ACTIVE))
-          aState += TS_ACTIVE;
-        else if (eventState.HasState(ElementState::HOVER))
-          aState += TS_HOVER;
-        else if (IsVistaOrLater() &&
-                 parentState.HasState(ElementState::HOVER))
-          aState =
-              (int(aAppearance) - int(StyleAppearance::ScrollbarbuttonUp)) +
-              SP_BUTTON_IMPLICIT_HOVER_BASE;
-        else
-          aState += TS_NORMAL;
-      }
-      return NS_OK;
-    }
-    case StyleAppearance::ScrollbarHorizontal:
-    case StyleAppearance::ScrollbarVertical: {
-      aPart = (aAppearance == StyleAppearance::ScrollbarHorizontal)
-                  ? SP_TRACKSTARTHOR
-                  : SP_TRACKSTARTVERT;
-      aState = TS_NORMAL;
-      return NS_OK;
-    }
-    case StyleAppearance::ScrollbarthumbHorizontal:
-    case StyleAppearance::ScrollbarthumbVertical: {
-      aPart = (aAppearance == StyleAppearance::ScrollbarthumbHorizontal)
-                  ? SP_THUMBHOR
-                  : SP_THUMBVERT;
-      ElementState eventState = GetContentState(aFrame, aAppearance);
-      if (!aFrame)
+    case StyleAppearance::SpinnerUpbutton:
+    case StyleAppearance::SpinnerDownbutton: {
+      aPart = (aAppearance == StyleAppearance::SpinnerUpbutton) ? SPNP_UP
+                                                                : SPNP_DOWN;
+      ElementState elementState = GetContentState(aFrame, aAppearance);
+      if (!aFrame) {
         aState = TS_NORMAL;
-      else if (eventState.HasState(ElementState::DISABLED))
+      } else if (elementState.HasState(ElementState::DISABLED)) {
         aState = TS_DISABLED;
-      else {
-        if (eventState.HasState(
-                ElementState::ACTIVE))  // Hover is not also a requirement for
-                                        // the thumb, since the drag is not
-                                        // canceled when you move outside the
-                                        // thumb.
-          aState = TS_ACTIVE;
-        else if (eventState.HasState(ElementState::HOVER))
-          aState = TS_HOVER;
-        else
-          aState = TS_NORMAL;
+      } else {
+        aState = StandardGetState(aFrame, aAppearance, false);
       }
       return NS_OK;
     }
@@ -1284,78 +1166,6 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       }
       return NS_OK;
     }
-    case StyleAppearance::Scrollcorner: {
-      aState = 0;
-      aPart = RP_BACKGROUND;
-      return NS_OK;
-    }
-    case StyleAppearance::SpinnerUpbutton:
-    case StyleAppearance::SpinnerDownbutton: {
-      aPart = (aAppearance == StyleAppearance::SpinnerUpbutton) ? SPNP_UP
-                                                                : SPNP_DOWN;
-      ElementState elementState = GetContentState(aFrame, aAppearance);
-      if (!aFrame) {
-        aState = TS_NORMAL;
-      } else if (elementState.HasState(ElementState::DISABLED)) {
-        aState = TS_DISABLED;
-      } else {
-        aState = StandardGetState(aFrame, aAppearance, false);
-      }
-      return NS_OK;
-    }
-    case StyleAppearance::Toolbox:
-    case StyleAppearance::MozWinMediaToolbox:
-    case StyleAppearance::MozWinCommunicationsToolbox:
-    case StyleAppearance::MozWinBrowsertabbarToolbox:
-    case StyleAppearance::Statusbar: {
-      aState = 0;
-      if (IsVistaOrLater()) {
-        // On vista, they have a part
-        aPart = RP_BACKGROUND;
-      } else {
-        // Otherwise, they don't.  (But I bet
-        // RP_BACKGROUND would work here, too);
-        aPart = 0;
-      }
-      return NS_OK;
-    }
-    case StyleAppearance::Toolbar: {
-      // Use -1 to indicate we don't wish to have the theme background drawn
-      // for this item. We will pass any nessessary information via aState,
-      // and will render the item using separate code.
-      aPart = -1;
-      aState = 0;
-      if (aFrame) {
-        nsIContent* content = aFrame->GetContent();
-        nsIContent* parent = content->GetParent();
-        // XXXzeniko hiding the first toolbar will result in an unwanted margin
-        if (parent && parent->GetFirstChild() == content) {
-          aState = 1;
-        }
-      }
-      return NS_OK;
-    }
-    case StyleAppearance::Statusbarpanel:
-    case StyleAppearance::Resizerpanel:
-    case StyleAppearance::Resizer: {
-      switch (aAppearance) {
-        case StyleAppearance::Statusbarpanel:
-          aPart = 1;
-          break;
-        case StyleAppearance::Resizerpanel:
-          aPart = 2;
-          break;
-        case StyleAppearance::Resizer:
-          aPart = 3;
-          break;
-        default:
-          MOZ_ASSERT_UNREACHABLE("Oops, we're missing a case");
-          aPart = 1;  // just something valid
-      }
-      aState = TS_NORMAL;
-      return NS_OK;
-    }
-    case StyleAppearance::Treeview:
     case StyleAppearance::Listbox: {
       aPart = TREEVIEW_BODY;
       aState = TS_NORMAL;
@@ -1389,23 +1199,6 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
         aState = TS_ACTIVE;  // The selected tab is always "pressed".
       } else
         aState = StandardGetState(aFrame, aAppearance, true);
-
-      return NS_OK;
-    }
-    case StyleAppearance::Treeheadersortarrow: {
-      // XXX Probably will never work due to a bug in the Luna theme.
-      aPart = 4;
-      aState = 1;
-      return NS_OK;
-    }
-    case StyleAppearance::Treeheadercell: {
-      aPart = 1;
-      if (!aFrame) {
-        aState = TS_NORMAL;
-        return NS_OK;
-      }
-
-      aState = StandardGetState(aFrame, aAppearance, true);
 
       return NS_OK;
     }
@@ -1452,8 +1245,7 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
       aFrame = parentFrame;
 
       ElementState elementState = GetContentState(aFrame, aAppearance);
-      aPart = IsVistaOrLater() ?
-        CBP_DROPMARKER_VISTA : CBP_DROPMARKER;
+      aPart = IsVistaOrLater() ? CBP_DROPMARKER_VISTA : CBP_DROPMARKER;
 
       // For HTML controls with author styling, we should fall
       // back to the old dropmarker style to avoid clashes with
@@ -1468,29 +1260,33 @@ nsresult nsNativeThemeWin::GetThemePartAndState(nsIFrame* aFrame,
         return NS_OK;
       }
 
-
-      nsIContent* content = aFrame->GetContent();
-      if (dom::HTMLSelectElement* sel = dom::HTMLSelectElement::FromNode(content)) {
-        isOpen = sel->OpenInParentProcess();
-        if (isOpen && IsVistaOrLater()) {
-          /* Hover is propagated, but we need to know whether we're hovering
-           * just the combobox frame, not the dropdown frame. But, we can't get
-           * that information, since hover is on the content node, and they
-           * share the same content node.  So, instead, we cheat -- if the
-           * dropdown is open, we always show the hover state.  This looks fine
-           * in practice.
+      if (IsVistaOrLater()) {
+        if (nsComboboxControlFrame* ccf = do_QueryFrame(aFrame)) {
+          isOpen = ccf->IsDroppedDown();
+          if (isOpen) {
+            /* Hover is propagated, but we need to know whether we're hovering
+             * just the combobox frame, not the dropdown frame. But, we can't get
+             * that information, since hover is on the content node, and they
+             * share the same content node.  So, instead, we cheat -- if the
+             * dropdown is open, we always show the hover state.  This looks fine
+             * in practice.
+             */
+            aState = TS_HOVER;
+            return NS_OK;
+          }
+        } else {
+          /* On Vista, the dropdown indicator on a menulist button in chrome is
+           * not given a hover effect. When the frame isn't HTML content, force
+           * the dropdown state to normal. (Bug 430434)
            */
-          aState = TS_HOVER;
+          isOpen = IsOpenButton(aFrame);
+          aState = TS_NORMAL;
           return NS_OK;
         }
+      } else if (nsComboboxControlFrame* ccf = do_QueryFrame(aFrame)) {
+        isOpen = ccf->IsDroppedDown();
       } else {
-        /* The dropdown indicator on a menulist button in chrome is not given a
-         * hover effect. When the frame isn't isn't HTML content, we cheat and
-         * force the dropdown state to be normal. (Bug 430434)
-         */
         isOpen = IsOpenButton(aFrame);
-        aState = TS_NORMAL;
-        return NS_OK;
       }
 
       aState = TS_NORMAL;
@@ -1952,8 +1748,7 @@ RENDER_AGAIN:
                         IsFrameRTL(aFrame));
   }
   // The following widgets need to be RTL-aware
-  else if (aAppearance == StyleAppearance::Resizer ||
-           aAppearance == StyleAppearance::MozMenulistArrowButton) {
+  else if (aAppearance == StyleAppearance::MozMenulistArrowButton) {
     DrawThemeBGRTLAware(theme, hdc, part, state, &widgetRect, &clipRect,
                         IsFrameRTL(aFrame));
   } else if (aAppearance == StyleAppearance::NumberInput ||
@@ -1979,19 +1774,7 @@ RENDER_AGAIN:
     SetPixel(hdc, widgetRect.left, widgetRect.bottom - 1, color);
   } else if (aAppearance == StyleAppearance::Progresschunk) {
     DrawThemedProgressMeter(aFrame, aAppearance, theme, hdc, part, state,
-                            &widgetRect, &clipRect, p2a);
-  } else if (aAppearance == StyleAppearance::FocusOutline) {
-    // Inflate 'widgetRect' with the focus outline size.
-    LayoutDeviceIntMargin border = GetWidgetBorder(
-        aFrame->PresContext()->DeviceContext(), aFrame, aAppearance);
-    widgetRect.left -= border.left;
-    widgetRect.right += border.right;
-    widgetRect.top -= border.top;
-    widgetRect.bottom += border.bottom;
-
-    DTBGOPTS opts = {sizeof(DTBGOPTS), DTBG_OMITCONTENT | DTBG_CLIPRECT,
-                     clipRect};
-    DrawThemeBackgroundEx(theme, hdc, part, state, &widgetRect, &opts);
+                            &widgetRect, &clipRect);
   }
   // If part is negative, the element wishes us to not render a themed
   // background, instead opting to be drawn specially below.
@@ -2020,36 +1803,6 @@ RENDER_AGAIN:
       if (hPen) {
         ::DeleteObject(hPen);
       }
-    }
-  } else if (aAppearance == StyleAppearance::Toolbar && state == 0) {
-    // Draw toolbar separator lines above all toolbars except the first one.
-    // The lines are part of the Rebar theme, which is loaded for
-    // StyleAppearance::Toolbox.
-    theme = GetTheme(StyleAppearance::Toolbox);
-    if (!theme) return NS_ERROR_FAILURE;
-
-    widgetRect.bottom = widgetRect.top + TB_SEPARATOR_HEIGHT;
-    DrawThemeEdge(theme, hdc, RP_BAND, 0, &widgetRect, EDGE_ETCHED, BF_TOP,
-                  nullptr);
-  } else if (aAppearance == StyleAppearance::ScrollbarthumbHorizontal ||
-             aAppearance == StyleAppearance::ScrollbarthumbVertical) {
-    // Draw the decorative gripper for the scrollbar thumb button, if it fits
-
-    SIZE gripSize;
-    MARGINS thumbMgns;
-    int gripPart = (aAppearance == StyleAppearance::ScrollbarthumbHorizontal)
-                       ? SP_GRIPPERHOR
-                       : SP_GRIPPERVERT;
-
-    if (GetThemePartSize(theme, hdc, gripPart, state, nullptr, TS_TRUE,
-                         &gripSize) == S_OK &&
-        GetThemeMargins(theme, hdc, part, state, TMT_CONTENTMARGINS, nullptr,
-                        &thumbMgns) == S_OK &&
-        gripSize.cx + thumbMgns.cxLeftWidth + thumbMgns.cxRightWidth <=
-            widgetRect.right - widgetRect.left &&
-        gripSize.cy + thumbMgns.cyTopHeight + thumbMgns.cyBottomHeight <=
-            widgetRect.bottom - widgetRect.top) {
-      DrawThemeBackground(theme, hdc, gripPart, state, &widgetRect, &clipRect);
     }
   }
 
@@ -2100,26 +1853,14 @@ LayoutDeviceIntMargin nsNativeThemeWin::GetWidgetBorder(
   if (!themeClass.isNothing()) {
     theme = nsUXThemeData::GetTheme(themeClass.value());
   }
-  // Classic scrollbar thumbs require classic borders. The theme procedure will
-  // break horizontal scrollbar thumbs otherwise.
-  if (aAppearance == StyleAppearance::ScrollbarthumbVertical ||
-      aAppearance == StyleAppearance::ScrollbarthumbHorizontal || !theme) {
+  if (!theme) {
     result = ClassicGetWidgetBorder(aContext, aFrame, aAppearance);
     ScaleForFrameDPI(&result, aFrame);
     return result;
   }
 
   if (!WidgetIsContainer(aAppearance) ||
-      aAppearance == StyleAppearance::Toolbox ||
-      aAppearance == StyleAppearance::MozWinMediaToolbox ||
-      aAppearance == StyleAppearance::MozWinCommunicationsToolbox ||
-      aAppearance == StyleAppearance::MozWinBrowsertabbarToolbox ||
-      aAppearance == StyleAppearance::Statusbar ||
-      aAppearance == StyleAppearance::Resizer ||
       aAppearance == StyleAppearance::Tabpanel ||
-      aAppearance == StyleAppearance::ScrollbarHorizontal ||
-      aAppearance == StyleAppearance::ScrollbarVertical ||
-      aAppearance == StyleAppearance::Scrollcorner ||
       aAppearance == StyleAppearance::Menuitem ||
       aAppearance == StyleAppearance::Checkmenuitem ||
       aAppearance == StyleAppearance::Radiomenuitem ||
@@ -2135,12 +1876,6 @@ LayoutDeviceIntMargin nsNativeThemeWin::GetWidgetBorder(
   int32_t part, state;
   nsresult rv = GetThemePartAndState(aFrame, aAppearance, part, state);
   if (NS_FAILED(rv)) return result;
-
-  if (aAppearance == StyleAppearance::Toolbar) {
-    // make space for the separator line above all toolbars but the first
-    if (state == 0) result.top = TB_SEPARATOR_HEIGHT;
-    return result;
-  }
 
   result = GetCachedWidgetBorder(theme, themeClass.value(), aAppearance, part,
                                  state);
@@ -2262,13 +1997,13 @@ bool nsNativeThemeWin::GetWidgetPadding(nsDeviceContext* aContext,
     return ok;
   }
 
+  if (IsVistaOrLater()) {
   /* textfields need extra pixels on all sides, otherwise they wrap their
    * content too tightly.  The actual border is drawn 1px inside the specified
    * rectangle, so Gecko will end up making the contents look too small.
    * Instead, we add 2px padding for the contents and fix this. (Used to be 1px
    * added, see bug 430212)
    */
-  if (IsVistaOrLater()) {
   if (aAppearance == StyleAppearance::NumberInput ||
       aAppearance == StyleAppearance::PasswordInput ||
       aAppearance == StyleAppearance::Textfield ||
@@ -2360,11 +2095,11 @@ bool nsNativeThemeWin::GetWidgetOverflow(nsDeviceContext* aContext,
    * StyleAppearance::MozMenulistArrowButton too.
    */
 #if 0
-  /* We explicitly draw dropdown buttons in HTML content 1px bigger up, right,
-   * and bottom so that they overlap the dropdown's border like they're
-   * supposed to.
-   */
   if (IsVistaOrLater()) {
+    /* We explicitly draw dropdown buttons in HTML content 1px bigger
+     * up, right, and bottom so that they overlap the dropdown's border
+     * like they're supposed to.
+     */
     if (aAppearance == StyleAppearance::MenulistButton &&
         IsHTMLContent(aFrame) &&
         !IsWidgetStyled(aFrame->GetParent()->PresContext(),
@@ -2379,18 +2114,6 @@ bool nsNativeThemeWin::GetWidgetOverflow(nsDeviceContext* aContext,
     }
   }
 #endif
-
-  if (aAppearance == StyleAppearance::FocusOutline) {
-    LayoutDeviceIntMargin border =
-        GetWidgetBorder(aContext, aFrame, aAppearance);
-    int32_t p2a = aContext->AppUnitsPerDevPixel();
-    nsMargin m(NSIntPixelsToAppUnits(border.top, p2a),
-               NSIntPixelsToAppUnits(border.right, p2a),
-               NSIntPixelsToAppUnits(border.bottom, p2a),
-               NSIntPixelsToAppUnits(border.left, p2a));
-    aOverflowRect->Inflate(m);
-    return true;
-  }
 
   return false;
 }
@@ -2423,17 +2146,10 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
     case StyleAppearance::NumberInput:
     case StyleAppearance::PasswordInput:
     case StyleAppearance::Textfield:
-    case StyleAppearance::Toolbox:
-    case StyleAppearance::MozWinMediaToolbox:
-    case StyleAppearance::MozWinCommunicationsToolbox:
-    case StyleAppearance::MozWinBrowsertabbarToolbox:
-    case StyleAppearance::Toolbar:
-    case StyleAppearance::Statusbar:
     case StyleAppearance::Progresschunk:
     case StyleAppearance::Tabpanels:
     case StyleAppearance::Tabpanel:
     case StyleAppearance::Listbox:
-    case StyleAppearance::Treeview:
     case StyleAppearance::Menuitemtext:
     case StyleAppearance::MozWinBorderlessGlass:
       return {};  // Don't worry about it.
@@ -2450,14 +2166,6 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
   //  Windows appears to always use metrics when drawing standard scrollbars)
   THEMESIZE sizeReq = TS_TRUE;  // Best-fit size
   switch (aAppearance) {
-    case StyleAppearance::ScrollbarthumbHorizontal:
-    case StyleAppearance::ScrollbarthumbVertical:
-    case StyleAppearance::ScrollbarbuttonUp:
-    case StyleAppearance::ScrollbarbuttonDown:
-    case StyleAppearance::ScrollbarbuttonLeft:
-    case StyleAppearance::ScrollbarbuttonRight:
-    case StyleAppearance::ScrollbarHorizontal:
-    case StyleAppearance::ScrollbarVertical:
     case StyleAppearance::MozMenulistArrowButton: {
       auto result = ClassicGetMinimumWidgetSize(aFrame, aAppearance);
       ScaleForFrameDPI(&result, aFrame);
@@ -2493,39 +2201,16 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
       sizeReq = TS_MIN;
       break;
 
-    case StyleAppearance::Resizer:
-      break;
-
     case StyleAppearance::RangeThumb: {
-      // On Vista, GetThemePartAndState returns odd values for
-      // scale thumbs, so use a hardcoded size instead.
-      if (IsVistaOrLater()) {
-        LayoutDeviceIntSize result(12, 20);
-        if (!IsRangeHorizontal(aFrame)) {
-          std::swap(result.width, result.height);
-        }
-        ScaleForFrameDPI(&result, aFrame);
-        return result;
+      if (!IsVistaOrLater()) {
+        break;
       }
-      break;
-    }
-
-    case StyleAppearance::Scrollcorner: {
-      if (nsLookAndFeel::GetInt(nsLookAndFeel::IntID::UseOverlayScrollbars) !=
-          0) {
-        LayoutDeviceIntSize result(::GetSystemMetrics(SM_CXHSCROLL),
-                                   ::GetSystemMetrics(SM_CYVSCROLL));
-        ScaleForFrameDPI(&result, aFrame);
-        return result;
+      LayoutDeviceIntSize result(12, 20);
+      if (!IsRangeHorizontal(aFrame)) {
+        std::swap(result.width, result.height);
       }
-      break;
-    }
-
-    case StyleAppearance::SpinnerUpbutton:
-    case StyleAppearance::SpinnerDownbutton: {
-        LayoutDeviceIntSize result(16, 9);
-        ScaleForFrameDPI(&result, aFrame);
-        return result;
+      ScaleForFrameDPI(&result, aFrame);
+      return result;
     }
 
     case StyleAppearance::Separator: {
@@ -2552,42 +2237,35 @@ LayoutDeviceIntSize nsNativeThemeWin::GetMinimumWidgetSize(
       // window w/buttons when it's visible. nsWindow takes care of this and
       // stores that info in nsUXThemeData.
       SIZE sz = nsUXThemeData::GetCommandButtonMetrics(CMDBUTTONIDX_RESTORE);
-      // For XP, subtract 4 from system metrics dimensions.
+      LayoutDeviceIntSize result(sz.cx, sz.cy);
       if (!IsVistaOrLater()) {
-        LayoutDeviceIntSize result(sz.cx - 4, sz.cy - 4);
-        AddPaddingRect(&result, CAPTIONBUTTON_RESTORE);
-        return result;
-      } else {
-        LayoutDeviceIntSize result(sz.cx, sz.cy);
-        AddPaddingRect(&result, CAPTIONBUTTON_RESTORE);
-        return result;
+        result.width -= 4;
+        result.height -= 4;
       }
+      AddPaddingRect(&result, CAPTIONBUTTON_RESTORE);
+      return result;
     }
 
     case StyleAppearance::MozWindowButtonMinimize: {
       SIZE sz = nsUXThemeData::GetCommandButtonMetrics(CMDBUTTONIDX_MINIMIZE);
+      LayoutDeviceIntSize result(sz.cx, sz.cy);
       if (!IsVistaOrLater()) {
-        LayoutDeviceIntSize result(sz.cx - 4, sz.cy - 4);
-        AddPaddingRect(&result, CAPTIONBUTTON_MINIMIZE);
-        return result;
-      } else {
-        LayoutDeviceIntSize result(sz.cx, sz.cy);
-        AddPaddingRect(&result, CAPTIONBUTTON_MINIMIZE);
-        return result;
+        result.width -= 4;
+        result.height -= 4;
       }
+      AddPaddingRect(&result, CAPTIONBUTTON_MINIMIZE);
+      return result;
     }
 
     case StyleAppearance::MozWindowButtonClose: {
       SIZE sz = nsUXThemeData::GetCommandButtonMetrics(CMDBUTTONIDX_CLOSE);
+      LayoutDeviceIntSize result(sz.cx, sz.cy);
       if (!IsVistaOrLater()) {
-        LayoutDeviceIntSize result(sz.cx - 4, sz.cy - 4);
-        AddPaddingRect(&result, CAPTIONBUTTON_CLOSE);
-        return result;
-      } else {
-        LayoutDeviceIntSize result(sz.cx, sz.cy);
-        AddPaddingRect(&result, CAPTIONBUTTON_CLOSE);
-        return result;
+        result.width -= 4;
+        result.height -= 4;
       }
+      AddPaddingRect(&result, CAPTIONBUTTON_CLOSE);
+      return result;
     }
 
     case StyleAppearance::MozWindowTitlebar:
@@ -2639,16 +2317,7 @@ nsNativeThemeWin::WidgetStateChanged(nsIFrame* aFrame,
                                      nsAtom* aAttribute, bool* aShouldRepaint,
                                      const nsAttrValue* aOldValue) {
   // Some widget types just never change state.
-  if (aAppearance == StyleAppearance::Toolbox ||
-      aAppearance == StyleAppearance::MozWinMediaToolbox ||
-      aAppearance == StyleAppearance::MozWinCommunicationsToolbox ||
-      aAppearance == StyleAppearance::MozWinBrowsertabbarToolbox ||
-      aAppearance == StyleAppearance::Toolbar ||
-      aAppearance == StyleAppearance::Statusbar ||
-      aAppearance == StyleAppearance::Statusbarpanel ||
-      aAppearance == StyleAppearance::Resizerpanel ||
-      aAppearance == StyleAppearance::Progresschunk ||
-      aAppearance == StyleAppearance::Tooltip ||
+  if (aAppearance == StyleAppearance::Progresschunk ||
       aAppearance == StyleAppearance::ProgressBar ||
       aAppearance == StyleAppearance::Tabpanels ||
       aAppearance == StyleAppearance::Tabpanel ||
@@ -2668,21 +2337,22 @@ nsNativeThemeWin::WidgetStateChanged(nsIFrame* aFrame,
     return NS_OK;
   }
 
+  // On Vista, the scrollbar buttons need to change state when the track has/doesn't have hover
+  if (!IsVistaOrLater() &&
+      (aAppearance == StyleAppearance::ScrollbarVertical ||
+       aAppearance == StyleAppearance::ScrollbarHorizontal)) {
+    *aShouldRepaint = false;
+    return NS_OK;
+  }
+
   // We need to repaint the dropdown arrow in vista HTML combobox controls when
   // the control is closed to get rid of the hover effect.
-  if ((aAppearance == StyleAppearance::Menulist ||
+  if (IsVistaOrLater() &&
+      (aAppearance == StyleAppearance::Menulist ||
        aAppearance == StyleAppearance::MenulistButton ||
        aAppearance == StyleAppearance::MozMenulistArrowButton) &&
       nsNativeTheme::IsHTMLContent(aFrame)) {
     *aShouldRepaint = true;
-    return NS_OK;
-  }
-
-  // On Vista, the scrollbar buttons need to change state when the track has/doesn't have hover
-  if (!IsVistaOrLater() &&
-      (aAppearance == StyleAppearance::ScrollbarVertical ||
-      aAppearance == StyleAppearance::ScrollbarHorizontal)) {
-    *aShouldRepaint = false;
     return NS_OK;
   }
 
@@ -2722,10 +2392,6 @@ bool nsNativeThemeWin::ThemeSupportsWidget(nsPresContext* aPresContext,
   // XXXdwh We can go even further and call the API to ask if support exists for
   // specific widgets.
 
-  if (aAppearance == StyleAppearance::FocusOutline) {
-    return true;
-  }
-
   if (IsWidgetNonNative(aFrame, aAppearance) == NonNative::Always) {
     return Theme::ThemeSupportsWidget(aPresContext, aFrame, aAppearance);
   }
@@ -2737,8 +2403,6 @@ bool nsNativeThemeWin::ThemeSupportsWidget(nsPresContext* aPresContext,
     theme = GetTheme(StyleAppearance::Radio);
   else
     theme = GetTheme(aAppearance);
-
-  if (theme && aAppearance == StyleAppearance::Resizer) return true;
 
   if (theme || ClassicThemeSupportsWidget(aFrame, aAppearance))
     // turn off theming for some HTML widgets styled by the page
@@ -2809,14 +2473,6 @@ nsITheme::Transparency nsNativeThemeWin::GetWidgetTransparency(
   }
 
   switch (aAppearance) {
-    case StyleAppearance::Resizer: {
-      // The classic native resizer has an opaque grey background which doesn't
-      // match the usually white background of the scrollable container, so
-      // only support the native resizer if not in a scrollframe.
-      nsIFrame* parentFrame = aFrame->GetParent();
-      return (!parentFrame || !parentFrame->IsScrollContainerFrame()) ? eTransparent
-                                                             : eOpaque;
-    }
     case StyleAppearance::MozWinBorderlessGlass:
     case StyleAppearance::ProgressBar:
     case StyleAppearance::Progresschunk:
@@ -2830,8 +2486,7 @@ nsITheme::Transparency nsNativeThemeWin::GetWidgetTransparency(
   // For the classic theme we don't really have a way of knowing
   if (!theme) {
     // menu backgrounds which can't be themed are opaque
-    if (aAppearance == StyleAppearance::Tooltip ||
-        aAppearance == StyleAppearance::Menupopup) {
+    if (aAppearance == StyleAppearance::Menupopup) {
       return eOpaque;
     }
     return eUnknownTransparency;
@@ -2858,13 +2513,6 @@ nsITheme::Transparency nsNativeThemeWin::GetWidgetTransparency(
 bool nsNativeThemeWin::ClassicThemeSupportsWidget(nsIFrame* aFrame,
                                                   StyleAppearance aAppearance) {
   switch (aAppearance) {
-    case StyleAppearance::Resizer: {
-      // The classic native resizer has an opaque grey background which doesn't
-      // match the usually white background of the scrollable container, so
-      // only support the native resizer if not in a scrollframe.
-      nsIFrame* parentFrame = aFrame->GetParent();
-      return !parentFrame || !parentFrame->IsScrollContainerFrame();
-    }
     case StyleAppearance::Menubar:
     case StyleAppearance::Menupopup:
       // Classic non-flat menus are handled almost entirely through CSS.
@@ -2877,29 +2525,15 @@ bool nsNativeThemeWin::ClassicThemeSupportsWidget(nsIFrame* aFrame,
     case StyleAppearance::Textarea:
     case StyleAppearance::Checkbox:
     case StyleAppearance::Radio:
-    case StyleAppearance::Range:
-    case StyleAppearance::RangeThumb:
-    case StyleAppearance::Groupbox:
-    case StyleAppearance::ScrollbarbuttonUp:
-    case StyleAppearance::ScrollbarbuttonDown:
-    case StyleAppearance::ScrollbarbuttonLeft:
-    case StyleAppearance::ScrollbarbuttonRight:
-    case StyleAppearance::ScrollbarthumbVertical:
-    case StyleAppearance::ScrollbarthumbHorizontal:
-    case StyleAppearance::ScrollbarVertical:
-    case StyleAppearance::ScrollbarHorizontal:
-    case StyleAppearance::Scrollcorner:
-    case StyleAppearance::Menulist:
-    case StyleAppearance::MenulistButton:
     case StyleAppearance::MozMenulistArrowButton:
     case StyleAppearance::SpinnerUpbutton:
     case StyleAppearance::SpinnerDownbutton:
+    case StyleAppearance::Range:
+    case StyleAppearance::RangeThumb:
+    case StyleAppearance::Groupbox:
+    case StyleAppearance::Menulist:
+    case StyleAppearance::MenulistButton:
     case StyleAppearance::Listbox:
-    case StyleAppearance::Treeview:
-    case StyleAppearance::Tooltip:
-    case StyleAppearance::Statusbar:
-    case StyleAppearance::Statusbarpanel:
-    case StyleAppearance::Resizerpanel:
     case StyleAppearance::ProgressBar:
     case StyleAppearance::Progresschunk:
     case StyleAppearance::Tab:
@@ -2935,12 +2569,7 @@ LayoutDeviceIntMargin nsNativeThemeWin::ClassicGetWidgetBorder(
     case StyleAppearance::Button:
       result.top = result.left = result.bottom = result.right = 2;
       break;
-    case StyleAppearance::Statusbar:
-      result.bottom = result.left = result.right = 0;
-      result.top = 2;
-      break;
     case StyleAppearance::Listbox:
-    case StyleAppearance::Treeview:
     case StyleAppearance::Menulist:
     case StyleAppearance::MenulistButton:
     case StyleAppearance::Tab:
@@ -2948,19 +2577,7 @@ LayoutDeviceIntMargin nsNativeThemeWin::ClassicGetWidgetBorder(
     case StyleAppearance::PasswordInput:
     case StyleAppearance::Textfield:
     case StyleAppearance::Textarea:
-    case StyleAppearance::FocusOutline:
       result.top = result.left = result.bottom = result.right = 2;
-      break;
-    case StyleAppearance::Statusbarpanel:
-    case StyleAppearance::Resizerpanel: {
-      result.top = 1;
-      result.left = 1;
-      result.bottom = 1;
-      result.right = aFrame->GetNextSibling() ? 3 : 1;
-      break;
-    }
-    case StyleAppearance::Tooltip:
-      result.top = result.left = result.bottom = result.right = 1;
       break;
     case StyleAppearance::ProgressBar:
       result.top = result.left = result.bottom = result.right = 1;
@@ -3036,22 +2653,6 @@ LayoutDeviceIntSize nsNativeThemeWin::ClassicGetMinimumWidgetSize(
       result.width = ::GetSystemMetrics(SM_CXVSCROLL);
       result.height = 8;  // No good metrics available for this
       break;
-    case StyleAppearance::ScrollbarbuttonUp:
-    case StyleAppearance::ScrollbarbuttonDown:
-      result.width = ::GetSystemMetrics(SM_CXVSCROLL);
-      result.height = ::GetSystemMetrics(SM_CYVSCROLL);
-      break;
-    case StyleAppearance::ScrollbarbuttonLeft:
-    case StyleAppearance::ScrollbarbuttonRight:
-      result.width = ::GetSystemMetrics(SM_CYHSCROLL);
-      result.height = ::GetSystemMetrics(SM_CYHSCROLL);
-      break;
-    case StyleAppearance::ScrollbarVertical:
-    case StyleAppearance::ScrollbarHorizontal:
-      // Sizing code needed after removal of XUL layout (around ESR 115)
-      result.width = ::GetSystemMetrics(SM_CYHSCROLL);
-      result.height = ::GetSystemMetrics(SM_CYHSCROLL);
-      break;
     case StyleAppearance::RangeThumb: {
       if (IsRangeHorizontal(aFrame)) {
         result.width = 12;
@@ -3062,35 +2663,6 @@ LayoutDeviceIntSize nsNativeThemeWin::ClassicGetMinimumWidgetSize(
       }
       break;
     }
-    case StyleAppearance::ScrollbarthumbVertical:
-      result.width = ::GetSystemMetrics(SM_CXVSCROLL);
-      result.height = ::GetSystemMetrics(SM_CYVTHUMB);
-      // Without theming, divide the thumb size by two in order to look more
-      // native
-      if (!GetTheme(aAppearance)) {
-        result.height >>= 1;
-      }
-      // If scrollbar-width is thin, divide the thickness by two to make
-      // it look more compact.
-      if (ScrollbarDrawing::IsScrollbarWidthThin(aFrame)) {
-        result.width >>= 1;
-      }
-      break;
-    case StyleAppearance::ScrollbarthumbHorizontal:
-      result.width = ::GetSystemMetrics(SM_CXHTHUMB);
-      result.height = ::GetSystemMetrics(SM_CYHSCROLL);
-      // Without theming, divide the thumb size by two in order to look more
-      // native
-      if (TRUE || !GetTheme(aAppearance)) {
-        result.width >>= 1;
-      }
-      // If scrollbar-width is thin, divide the thickness by two to make
-      // it look more compact.
-      if (ScrollbarDrawing::IsScrollbarWidthThin(aFrame)) {
-        result.height >>= 1;
-      }
-
-      break;
     case StyleAppearance::MozMenulistArrowButton:
       result.width = ::GetSystemMetrics(SM_CXVSCROLL);
       break;
@@ -3099,29 +2671,17 @@ LayoutDeviceIntSize nsNativeThemeWin::ClassicGetMinimumWidgetSize(
     case StyleAppearance::Button:
     case StyleAppearance::Groupbox:
     case StyleAppearance::Listbox:
-    case StyleAppearance::Treeview:
     case StyleAppearance::NumberInput:
     case StyleAppearance::PasswordInput:
-    case StyleAppearance::FocusOutline:
     case StyleAppearance::Textfield:
     case StyleAppearance::Textarea:
     case StyleAppearance::Progresschunk:
     case StyleAppearance::ProgressBar:
-    case StyleAppearance::Tooltip:
     case StyleAppearance::Tab:
     case StyleAppearance::Tabpanel:
     case StyleAppearance::Tabpanels:
       // no minimum widget size
       break;
-    case StyleAppearance::Resizer: {
-      NONCLIENTMETRICS nc;
-      nc.cbSize = sizeof(nc);
-      if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(nc), &nc, 0))
-        result.width = result.height = abs(nc.lfStatusFont.lfHeight) + 4;
-      else
-        result.width = result.height = 15;
-      break;
-    }
     case StyleAppearance::Menuseparator: {
       result.width = 0;
       result.height = 10;
@@ -3291,7 +2851,6 @@ nsresult nsNativeThemeWin::ClassicGetThemePartAndState(
       return NS_OK;
     }
     case StyleAppearance::Listbox:
-    case StyleAppearance::Treeview:
     case StyleAppearance::NumberInput:
     case StyleAppearance::PasswordInput:
     case StyleAppearance::Textfield:
@@ -3300,16 +2859,7 @@ nsresult nsNativeThemeWin::ClassicGetThemePartAndState(
     case StyleAppearance::MenulistButton:
     case StyleAppearance::Range:
     case StyleAppearance::RangeThumb:
-    case StyleAppearance::Statusbar:
-    case StyleAppearance::Statusbarpanel:
-    case StyleAppearance::Resizerpanel:
-    case StyleAppearance::ScrollbarthumbVertical:
-    case StyleAppearance::ScrollbarthumbHorizontal:
-    case StyleAppearance::ScrollbarVertical:
-    case StyleAppearance::ScrollbarHorizontal:
-    case StyleAppearance::Scrollcorner:
     case StyleAppearance::Progresschunk:
-    case StyleAppearance::Tooltip:
     case StyleAppearance::ProgressBar:
     case StyleAppearance::Tab:
     case StyleAppearance::Tabpanel:
@@ -3336,9 +2886,8 @@ nsresult nsNativeThemeWin::ClassicGetThemePartAndState(
       }
 
       bool isOpen = false;
-      nsIContent* content = aFrame->GetContent();
-      if (dom::HTMLSelectElement* sel = dom::HTMLSelectElement::FromNode(content)) {
-        isOpen = sel->OpenInParentProcess();
+      if (nsComboboxControlFrame* ccf = do_QueryFrame(aFrame)) {
+        isOpen = ccf->IsDroppedDown();
       } else {
         isOpen = IsOpenButton(aFrame);
       }
@@ -3352,39 +2901,6 @@ nsresult nsNativeThemeWin::ClassicGetThemePartAndState(
       // Dropdown button active state doesn't need :hover.
       if (elementState.HasState(ElementState::ACTIVE))
         aState |= DFCS_PUSHED | DFCS_FLAT;
-
-      return NS_OK;
-    }
-    case StyleAppearance::ScrollbarbuttonUp:
-    case StyleAppearance::ScrollbarbuttonDown:
-    case StyleAppearance::ScrollbarbuttonLeft:
-    case StyleAppearance::ScrollbarbuttonRight: {
-      ElementState contentState = GetContentState(aFrame, aAppearance);
-
-      aPart = DFC_SCROLL;
-      switch (aAppearance) {
-        case StyleAppearance::ScrollbarbuttonUp:
-          aState = DFCS_SCROLLUP;
-          break;
-        case StyleAppearance::ScrollbarbuttonDown:
-          aState = DFCS_SCROLLDOWN;
-          break;
-        case StyleAppearance::ScrollbarbuttonLeft:
-          aState = DFCS_SCROLLLEFT;
-          break;
-        case StyleAppearance::ScrollbarbuttonRight:
-          aState = DFCS_SCROLLRIGHT;
-          break;
-        default:
-          break;
-      }
-
-      if (contentState.HasState(ElementState::DISABLED)) {
-        aState |= DFCS_INACTIVE;
-      } else if (contentState.HasAllStates(ElementState::HOVER |
-                                           ElementState::ACTIVE)) {
-        aState |= DFCS_PUSHED | DFCS_FLAT;
-      }
 
       return NS_OK;
     }
@@ -3414,11 +2930,6 @@ nsresult nsNativeThemeWin::ClassicGetThemePartAndState(
 
       return NS_OK;
     }
-    case StyleAppearance::Resizer:
-      aPart = DFC_SCROLL;
-      aState =
-          (IsFrameRTL(aFrame) ? DFCS_SCROLLSIZEGRIPRIGHT : DFCS_SCROLLSIZEGRIP);
-      return NS_OK;
     case StyleAppearance::Menuseparator:
       aPart = 0;
       aState = 0;
@@ -3671,14 +3182,9 @@ RENDER_AGAIN:
     // Draw controls supported by DrawFrameControl
     case StyleAppearance::Checkbox:
     case StyleAppearance::Radio:
-    case StyleAppearance::ScrollbarbuttonUp:
-    case StyleAppearance::ScrollbarbuttonDown:
-    case StyleAppearance::ScrollbarbuttonLeft:
-    case StyleAppearance::ScrollbarbuttonRight:
     case StyleAppearance::SpinnerUpbutton:
     case StyleAppearance::SpinnerDownbutton:
-    case StyleAppearance::MozMenulistArrowButton:
-    case StyleAppearance::Resizer: {
+    case StyleAppearance::MozMenulistArrowButton: {
       int32_t oldTA;
       // setup DC to make DrawFrameControl draw correctly
       oldTA = ::SetTextAlign(hdc, TA_TOP | TA_LEFT | TA_NOUPDATECP);
@@ -3709,22 +3215,6 @@ RENDER_AGAIN:
 
       break;
     }
-    case StyleAppearance::Treeview: {
-      // Draw inset edge
-      ::DrawEdge(hdc, &widgetRect, EDGE_SUNKEN, BF_RECT | BF_ADJUST);
-
-      // Fill in window color background
-      ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_WINDOW + 1));
-
-      break;
-    }
-      // Draw ToolTip background
-    case StyleAppearance::Tooltip:
-      ::FrameRect(hdc, &widgetRect, ::GetSysColorBrush(COLOR_WINDOWFRAME));
-      InflateRect(&widgetRect, -1, -1);
-      ::FillRect(hdc, &widgetRect, ::GetSysColorBrush(COLOR_INFOBK));
-
-      break;
     case StyleAppearance::Groupbox:
       ::DrawEdge(hdc, &widgetRect, EDGE_ETCHED, BF_RECT | BF_ADJUST);
       ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_BTNFACE + 1));
@@ -3735,25 +3225,8 @@ RENDER_AGAIN:
       ::DrawEdge(hdc, &widgetRect, BDR_SUNKENOUTER, BF_RECT | BF_MIDDLE);
       InflateRect(&widgetRect, -1, -1);
       [[fallthrough]];
-    case StyleAppearance::Tabpanel:
-    case StyleAppearance::Statusbar:
-    case StyleAppearance::Resizerpanel: {
+    case StyleAppearance::Tabpanel: {
       ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_BTNFACE + 1));
-      break;
-    }
-    // Draw scrollbar thumb
-    case StyleAppearance::ScrollbarthumbVertical:
-    case StyleAppearance::ScrollbarthumbHorizontal:
-      ::DrawEdge(hdc, &widgetRect, EDGE_RAISED, BF_RECT | BF_MIDDLE);
-
-      break;
-      // Draw 3D inset statusbar panel
-    case StyleAppearance::Statusbarpanel: {
-      if (aFrame->GetNextSibling())
-        widgetRect.right -= 2;  // space between sibling status panels
-
-      ::DrawEdge(hdc, &widgetRect, BDR_SUNKENOUTER, BF_RECT | BF_MIDDLE);
-
       break;
     }
     case StyleAppearance::RangeThumb: {
@@ -3791,37 +3264,6 @@ RENDER_AGAIN:
       ::DrawEdge(hdc, &widgetRect, EDGE_SUNKEN, BF_RECT | BF_ADJUST);
       ::FillRect(hdc, &widgetRect, (HBRUSH)GetStockObject(GRAY_BRUSH));
 
-      break;
-    }
-      // Draw scrollbar track background
-    case StyleAppearance::ScrollbarVertical:
-    case StyleAppearance::ScrollbarHorizontal: {
-      // Windows fills in the scrollbar track differently
-      // depending on whether these are equal
-      DWORD color3D, colorScrollbar, colorWindow;
-
-      color3D = ::GetSysColor(COLOR_3DFACE);
-      colorWindow = ::GetSysColor(COLOR_WINDOW);
-      colorScrollbar = ::GetSysColor(COLOR_SCROLLBAR);
-
-      if ((color3D != colorScrollbar) && (colorWindow != colorScrollbar))
-        // Use solid brush
-        ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_SCROLLBAR + 1));
-      else {
-        DrawCheckedRect(hdc, widgetRect, COLOR_3DHILIGHT, COLOR_3DFACE,
-                        (HBRUSH)COLOR_SCROLLBAR + 1);
-      }
-      // XXX should invert the part of the track being clicked here
-      // but the track is never :active
-
-      break;
-    }
-    case StyleAppearance::Scrollcorner: {
-      ::FillRect(hdc, &widgetRect, (HBRUSH)(COLOR_SCROLLBAR + 1));
-
-      // Are Mozilla fucking retarded? They added this in 2018
-      // (https://github.com/mozilla/gecko-dev/blob/7038d5f94456dcb558f7c7f6fe66d913070001c5/widget/windows/nsNativeThemeWin.cpp#L3793-L3795)
-      // and never fixed this fallthrough.
       break;
     }
     case StyleAppearance::Progresschunk: {
@@ -4032,7 +3474,6 @@ uint32_t nsNativeThemeWin::GetWidgetNativeDrawingFlags(
     case StyleAppearance::Button:
     case StyleAppearance::NumberInput:
     case StyleAppearance::PasswordInput:
-    case StyleAppearance::FocusOutline:
     case StyleAppearance::Textfield:
     case StyleAppearance::Textarea:
     case StyleAppearance::Menulist:

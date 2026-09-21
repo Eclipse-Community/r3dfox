@@ -13,16 +13,12 @@ panel {
   color-scheme: light dark;
 
   min-width: 1px;
-@media (-moz-windows-non-native-menus) {
   --panel-background: Menu;
-}
   --panel-color: MenuText;
   --panel-padding-block: 4px;
-@media (-moz-windows-non-native-menus) {
   --panel-padding: var(--panel-padding-block) 0;
   --panel-border-radius: 4px;
   --panel-border-color: ThreeDShadow;
-}
   --panel-width: initial;
 
   --panel-shadow-margin: 0px;
@@ -93,39 +89,61 @@ menupopup {
   /* Also apply the padding in the inline axis for menus */
   --panel-padding: var(--panel-padding-block);
 
-@media (-moz-windows-non-native-menus) {
   @media (-moz-platform: windows) {
-    > menu,
-    > menuitem {
-      padding-block: 0.5em;
-      padding-inline-start: 1em;
+    @media not (-moz-windows-non-native-menus) {
+      appearance: auto;
+      -moz-default-appearance: menupopup;
+
+      /* Native menus are always light */
+      color-scheme: light !important;
+
+      /* We set the background-color / border here so that it doesn't interfere with native styling. */
+      background-color: Menu;
+      --panel-padding: unset;
+      --panel-background: transparent;
+      --panel-border-color: transparent;
+      --panel-shadow-margin: 0px;
+    }
+
+    @media (-moz-windows-non-native-menus) {
+      appearance: none;
+
+      /* Prevent any background or border around the outside of the shadow. */
+      background-color: transparent;
+      border: none;
+
+      --panel-border-radius: 4px;
+      --panel-padding: 4px 0;
+      --panel-border-color: ThreeDShadow;
+      --panel-background: Menu;
     }
   }
-}
+
+  @media (-moz-platform: windows) {
+    @media (-moz-windows-non-native-menus) {
+      > menu,
+      > menuitem {
+        padding-block: 0.5em;
+        padding-inline-start: 1em;
+      }
+
+      > menu > menupopup {
+        margin-top: -10px;
+        margin-inline-start: -10px;
+      }
+    }
+
+    @media not (-moz-windows-non-native-menus) {
+      > menu > menupopup {
+        margin-top: -3px;
+        margin-inline-start: -3px;
+      }
+    }
+  }
 
   > menu > menupopup {
     /* Vertically align nested menupopups: the shadow plus the top padding plus top border */
     margin-top: calc(-1 * (var(--panel-shadow-margin) + var(--panel-padding-block) + 1px));
-  }
-}
-
-@media not (-moz-windows-non-native-menus) {
-  menupopup {
-    appearance: auto;
-    -moz-default-appearance: menupopup;
-    --panel-padding: unset;
-
-    /* Native menus are always light */
-    color-scheme: light !important;
-
-    /* We set the background-color / border here so that it doesn't interfere with native styling. */
-    background-color: Menu;
-    --panel-background: transparent;
-    @media (-moz-windows-classic) {
-      --panel-border-color: ThreeDShadow;
-    }
-    --nested-margin: -3px;
-    --panel-shadow-margin: 0px;
   }
 }
 
@@ -135,6 +153,12 @@ menulist > menupopup {
 
   @media (-moz-platform: windows) {
     font: inherit;
+
+    @media not (-moz-windows-non-native-menus) {
+      color: FieldText;
+      --panel-background: Field;
+      --panel-border-color: ThreeDShadow;
+    }
   }
 
   @media (-moz-platform: macos) {
@@ -220,23 +244,5 @@ panel[type="arrow"] {
 
   &[animating] {
     pointer-events: none;
-  }
-}
-
-@media (-moz-platform: windows) {
-  menulist > menupopup {
-    appearance: none;
-    background-color: transparent;
-    border: none;
-  }
-}
-
-@media not (-moz-windows-non-native-menus) {
-  /* For Win10, the popup itself needs to have a transparent background because
-     otherwise the background color would appear behind the drop shadow. */
-  menulist > menupopup {
-    color: FieldText;
-    --panel-background: Field;
-    --panel-border-color: ThreeDShadow;
   }
 }

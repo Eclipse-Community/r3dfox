@@ -259,7 +259,6 @@ static const char sColorPrefs[][41] = {
     "ui.-moz-default-background-color",
     "ui.-moz-dialog",
     "ui.-moz-dialogtext",
-    "ui.-moz-dragtargetzone",
     "ui.-moz-cellhighlight",
     "ui.-moz_cellhighlighttext",
     "ui.selecteditem",
@@ -288,15 +287,17 @@ static const char sColorPrefs[][41] = {
     "ui.accentcolor",
     "ui.accentcolortext",
     "ui.-moz-autofill-background",
-    "ui.-moz-win-mediatext",
-    "ui.-moz-win-communicationstext",
     "ui.-moz-nativehyperlinktext",
     "ui.-moz-nativevisitedhyperlinktext",
     "ui.-moz-hyperlinktext",
     "ui.-moz-activehyperlinktext",
     "ui.-moz-visitedhyperlinktext",
+    "ui.-moz-colheader",
     "ui.-moz-colheadertext",
+    "ui.-moz-colheaderhover",
     "ui.-moz-colheaderhovertext",
+    "ui.-moz-colheaderactive",
+    "ui.-moz-colheaderactivetext",
     "ui.textSelectDisabledBackground",
     "ui.textSelectAttentionBackground",
     "ui.textSelectAttentionForeground",
@@ -709,7 +710,6 @@ nscolor nsXPLookAndFeel::GetStandinForNativeColor(ColorID aID,
       COLOR(MozDialogtext, 0x00, 0x00, 0x00)
       COLOR(MozColheadertext, 0x00, 0x00, 0x00)
       COLOR(MozColheaderhovertext, 0x00, 0x00, 0x00)
-      COLOR(MozDragtargetzone, 0xFF, 0xFF, 0xFF)
       COLOR(MozCellhighlight, 0xF0, 0xF0, 0xF0)
       COLOR(MozCellhighlighttext, 0x00, 0x00, 0x00)
       COLOR(Selecteditem, 0x33, 0x99, 0xFF)
@@ -727,8 +727,6 @@ nscolor nsXPLookAndFeel::GetStandinForNativeColor(ColorID aID,
       COLOR(MozMacFocusring, 0x60, 0x9D, 0xD7)
       COLOR(MozMacDisabledtoolbartext, 0x3F, 0x3F, 0x3F)
       // Seems to be the default color (hardcoded because of bug 1065998)
-      COLOR(MozWinMediatext, 0xFF, 0xFF, 0xFF)
-      COLOR(MozWinCommunicationstext, 0xFF, 0xFF, 0xFF)
       COLOR(MozNativehyperlinktext, 0x00, 0x66, 0xCC)
       COLOR(MozNativevisitedhyperlinktext, 0x55, 0x1A, 0x8B)
       COLOR(MozAutofillBackground, 0xff, 0xfc, 0xc8)
@@ -792,7 +790,9 @@ Maybe<nscolor> nsXPLookAndFeel::GenericDarkColor(ColorID aID) {
     case ColorID::MozButtonactivetext:
     case ColorID::MozHeaderbartext:
     case ColorID::MozHeaderbarinactivetext:
-                                        // Inactivecaptiontext Graytext?
+    case ColorID::MozColheadertext:
+    case ColorID::MozColheaderhovertext:
+    case ColorID::MozColheaderactivetext:
       color = kWindowText;
       break;
     case ColorID::Buttonshadow:
@@ -818,6 +818,7 @@ Maybe<nscolor> nsXPLookAndFeel::GenericDarkColor(ColorID aID) {
     case ColorID::Field:
     case ColorID::Buttonface:  // --in-content-button-background
     case ColorID::Buttonhighlight:
+    case ColorID::MozColheader:
     case ColorID::Threedface:
     case ColorID::MozCombobox:
     case ColorID::MozCellhighlighttext:
@@ -833,9 +834,11 @@ Maybe<nscolor> nsXPLookAndFeel::GenericDarkColor(ColorID aID) {
       color = NS_ComposeColors(kWindowBackground, NS_RGBA(43, 42, 51, 102));
       break;
     case ColorID::MozButtonhoverface:  // --in-content-button-background-hover
+    case ColorID::MozColheaderhover:
       color = NS_RGB(82, 82, 94);
       break;
     case ColorID::MozButtonactiveface:  // --in-content-button-background-active
+    case ColorID::MozColheaderactive:
       color = NS_RGB(91, 91, 102);
       break;
     case ColorID::Highlight:
@@ -1245,8 +1248,7 @@ void LookAndFeel::DoHandleGlobalThemeChange() {
   //
   // We can use the *DoNotUseDirectly functions directly here, because we want
   // to notify all possible themes in a given process (but just once).
-  if (XRE_IsParentProcess() ||
-      !StaticPrefs::widget_non_native_theme_enabled()) {
+  if (XRE_IsParentProcess()) {
     if (nsCOMPtr<nsITheme> theme = do_GetNativeThemeDoNotUseDirectly()) {
       theme->ThemeChanged();
     }
