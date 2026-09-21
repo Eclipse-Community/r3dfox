@@ -19,7 +19,7 @@ WIN32_REDIST_DIR="${VCINSTALLDIR}/redist/x86/Microsoft.VC141.CRT"
 WIN_UCRT_REDIST_DIR="${WINDOWSSDKDIR}/Redist/ucrt/DLLs/r64"
 
 # manually specify windows_rs because cargo refuses to download it
-MOZ_WINDOWS_RS_DIR="C:/windows-0.52.0"
+MOZ_WINDOWS_RS_DIR="C:/DEV/windows-rs-0.52.0"
 
 # Media settings
 ac_add_options --disable-eme
