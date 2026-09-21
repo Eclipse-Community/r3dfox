@@ -11,8 +11,8 @@ ac_add_options --disable-cargo-incremental
 #ac_add_options --with-app-basename=r3dfox
 # For ESR enable the below and disable the above
 ac_add_options --with-branding=browser/branding/esr
-ac_add_options --with-app-name=r3dfox_esr
-ac_add_options --with-app-basename="r3dfox ESR"
+ac_add_options --with-app-name=r3dfox_XP
+ac_add_options --with-app-basename="r3dfox XP"
 # For potential nightly experimentation enable the below and disable the above.
 #ac_add_options --with-branding=browser/branding/nightly
 #ac_add_options --with-app-name=plasmafox

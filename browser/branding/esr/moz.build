@@ -14,6 +14,6 @@ FirefoxBranding()
 
 if CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
     FINAL_TARGET_FILES[".."] += [
-        "r3dfox_esr.VisualElementsManifest.xml",
+        "r3dfox_xp.VisualElementsManifest.xml",
     ]
 
