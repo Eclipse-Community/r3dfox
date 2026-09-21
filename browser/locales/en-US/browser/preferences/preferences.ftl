@@ -190,16 +190,7 @@ r3dfox-title = r3dfox specific options
 
 r3dfox-visual-header = Visual configurations
 
-r3dfox-native-checkbox =
-    .label = Use native styles
-
-r3dfox-native-checkbox-desc = This controls whether the scrollbar, checkboxes, and other elements use their native system counterparts or their non-native browser themed style.
-
 r3dfox-native-menulist = Menulist type
-
-r3dfox-native-scroll = Scrollbar type
-
-r3dfox-fake-scroll-type = Non-native scrollbar theme
 
 r3dfox-win-theme-type = Windows version theme override (requires restart)
 
@@ -308,10 +299,6 @@ r3dfox-caption-desc = For themes that use custom sized caption buttons that diff
 
 r3dfox-caption-height = Custom caption button Aero fog mask height
 
-r3dfox-sandbox-level = Security Sandbox Content Level
-
-r3dfox-sandbox-level-desc = On Windows 10, native UI elements render using classic or unthemed styles with a sandbox level of 8 or above. Setting this to 7 (or lower) fixes the issue. Not recommended unless you know what you are doing.
-
 r3dfox-webaudio =
     .label = Disable Web Audio API
 
@@ -326,11 +313,6 @@ r3dfox-port-blocking =
     .label = Disable Website Port Blocking
 
 r3dfox-port-blocking-desc = Supposedly for "security", to disallow accessing websites on specified blocked ports but it makes no sense. What can a website on a blocked port do that can't just be done on 80/443? https://fetch.spec.whatwg.org/#port-blocking
-
-r3dfox-dwrite =
-    .label = Use Skia GDI font rendering (BETA)
-
-r3dfox-dwrite-desc = Disable DirectWrite font rendering. Not recommended unless you know what you are doing. Currently buggy. https://github.com/Eclipse-Community/r3dfox/issues/19
 
 r3dfox-hsts =
     .label = Disable HTTP Strict Transport Security (HSTS)
@@ -351,11 +333,6 @@ r3dfox-same-origin =
     .label = Disable Same-Origin Policy (SOP)
 
 r3dfox-same-origin-desc = SOP is a security feature, improperly designed websites may require disabling SOP. Not recommended unless you know what you are doing.
-
-r3dfox-e10s =
-    .label = Disable content multiprocess (e10s) (BETA)
-
-r3dfox-e10s-desc = Disables e10s/electrolysis content multiprocess. There are still multiple processes from other browser components with this enabled. Not recommended unless you know what you are doing.
 
 ## General Section - Startup
 
