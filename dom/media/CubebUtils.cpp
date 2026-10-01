@@ -182,29 +182,6 @@ static void ShutdownAudioIPCServer() {
 #endif  // MOZ_CUBEB_REMOTING
 
 
-#ifdef XP_WIN
-
-// Cubeb's AudioIPC client forwards stream_name to the real cubeb server. Use a
-// private marker to carry the opt-in rate-sync request across that boundary;
-// the Windows WASAPI backend consumes the marker before opening the endpoint.
-constexpr char kVoicemeeterRateSyncStreamPrefix[] =
-    "__MOZ_VM_RATE_SYNC__:";
-
-bool IsVoicemeeterPreferredRate(uint32_t aRate) {
-  switch (aRate) {
-    case 44100:
-    case 48000:
-    case 88200:
-    case 96000:
-    case 176400:
-    case 192000:
-      return true;
-    default:
-      return false;
-  }
-}
-
-#endif  // XP_WIN
 }  // namespace
 
 static const uint32_t CUBEB_NORMAL_LATENCY_MS = 100;
@@ -405,7 +382,6 @@ int CubebStreamInit(cubeb* context, cubeb_stream** stream,
 
 #ifdef XP_WIN
   cubeb_stream_params exclusive_output_params;
-  nsAutoCString voicemeeter_stream_name;
   if (output_stream_params && StaticPrefs::media_cubeb_wasapi_exclusive()) {
     // Apply the global exclusive preference only at the normal Firefox cubeb
     // stream-init boundary. Do not put it in GetDefaultStreamPrefs(): that
@@ -423,22 +399,6 @@ int CubebStreamInit(cubeb* context, cubeb_stream** stream,
     exclusive_output_params.prefs = static_cast<cubeb_stream_prefs>(
         exclusive_output_params.prefs &
         ~CUBEB_STREAM_PREF_DISABLE_DEVICE_SWITCHING);
-
-    // Do not load the Voicemeeter Remote DLL from this AudioIPC client side.
-    // Instead tag the stream name so the real WASAPI backend (in the cubeb
-    // server/parent side) performs the rate switch immediately before opening
-    // the endpoint. stream_name is copied synchronously by cubeb_stream_init.
-    if (StaticPrefs::media_cubeb_voicemeeter_rate_sync() &&
-        IsVoicemeeterPreferredRate(exclusive_output_params.rate)) {
-      voicemeeter_stream_name.Assign(kVoicemeeterRateSyncStreamPrefix);
-      if (stream_name) {
-        voicemeeter_stream_name.Append(stream_name);
-      }
-      stream_name = voicemeeter_stream_name.get();
-      MOZ_LOG(gCubebLog, LogLevel::Debug,
-              ("Voicemeeter rate sync delegated to WASAPI server at %u Hz",
-               exclusive_output_params.rate));
-    }
   }
 #endif
 
