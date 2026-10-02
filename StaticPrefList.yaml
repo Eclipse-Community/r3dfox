@@ -12055,6 +12055,14 @@
   value: 0
 #endif // XP_WIN
 
+# Whether WASAPI output streams should use exclusive mode.
+#if defined(XP_WIN)
+- name: media.cubeb.wasapi-exclusive
+  type: bool
+  mirror: always
+  value: false
+#endif // XP_WIN
+
 # Whether to make the start of cubeb stream slower, and by how many
 # milliseconds.
 - name: media.cubeb.slow_stream_init_ms
