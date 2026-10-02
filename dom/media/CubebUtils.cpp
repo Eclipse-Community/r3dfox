@@ -68,6 +68,9 @@
 #define PREF_CUBEB_FORCE_MOCK_CONTEXT "media.cubeb.force_mock_context"
 #define PREF_CUBEB_OUTPUT_VOICE_ROUTING "media.cubeb.output_voice_routing"
 #define PREF_CUBEB_SANDBOX "media.cubeb.sandbox"
+#ifdef XP_WIN
+#  define PREF_CUBEB_WASAPI_EXCLUSIVE "media.cubeb.wasapi-exclusive"
+#endif
 #define PREF_AUDIOIPC_STACK_SIZE "media.audioipc.stack_size"
 #define PREF_AUDIOIPC_SHM_AREA_SIZE "media.audioipc.shm_area_size"
 
@@ -111,6 +114,9 @@ Atomic<uint32_t> sCubebForcedSampleRate{0};
 bool sCubebPlaybackLatencyPrefSet = false;
 bool sCubebMTGLatencyPrefSet = false;
 bool sAudioStreamInitEverSucceeded = false;
+#ifdef XP_WIN
+Atomic<bool> sCubebWasapiExclusive{false};
+#endif
 bool sCubebForceNullContext = false;
 bool sRouteOutputAsVoice = false;
 #ifdef MOZ_CUBEB_REMOTING
@@ -304,6 +310,14 @@ void PrefChanged(const char* aPref, void* aClosure) {
                 PREF_CUBEB_FORCE_NULL_CONTEXT,
                 sCubebForceNullContext ? "true" : "false");
   }
+#ifdef XP_WIN
+  else if (strcmp(aPref, PREF_CUBEB_WASAPI_EXCLUSIVE) == 0) {
+    sCubebWasapiExclusive = Preferences::GetBool(aPref, false);
+    MOZ_LOG_FMT(gCubebLog, LogLevel::Verbose, "{}: {}",
+                PREF_CUBEB_WASAPI_EXCLUSIVE,
+                sCubebWasapiExclusive ? "true" : "false");
+  }
+#endif
 #ifdef ENABLE_MOCK_CUBEB
   else if (strcmp(aPref, PREF_CUBEB_FORCE_MOCK_CONTEXT) == 0) {
     if (Preferences::GetBool(aPref, false)) {
@@ -820,6 +834,9 @@ static const char* gInitCallbackPrefs[] = {
     PREF_CUBEB_SANDBOX,
     PREF_AUDIOIPC_STACK_SIZE,
     PREF_AUDIOIPC_SHM_AREA_SIZE,
+#ifdef XP_WIN
+    PREF_CUBEB_WASAPI_EXCLUSIVE,
+#endif
     nullptr,
 };
 
@@ -937,6 +954,30 @@ void GetCurrentBackend(nsAString& aBackend) {
   aBackend.AssignLiteral("unknown");
 }
 
+void GetAudioEngineDiagnostics(nsAString& aDiagnostics) {
+  nsAutoString backend;
+  GetCurrentBackend(backend);
+
+  aDiagnostics.AssignLiteral("backend=");
+  aDiagnostics.Append(backend);
+
+#ifdef XP_WIN
+  if (sCubebWasapiExclusive) {
+    aDiagnostics.AppendLiteral("\nwasapi_exclusive=true");
+  } else {
+    aDiagnostics.AppendLiteral("\nwasapi_exclusive=false");
+  }
+#endif
+
+#ifdef MOZ_CUBEB_REMOTING
+  if (SandboxEnabled()) {
+    aDiagnostics.AppendLiteral("\naudioipc_sandbox=true");
+  } else {
+    aDiagnostics.AppendLiteral("\naudioipc_sandbox=false");
+  }
+#endif
+}
+
 char* GetForcedOutputDevice() {
   StaticMutexAutoLock lock(sMutex);
   return sCubebOutputDeviceName;
@@ -947,6 +988,15 @@ cubeb_stream_prefs GetDefaultStreamPrefs(cubeb_device_type aType) {
 #ifdef XP_WIN
   if (StaticPrefs::media_cubeb_wasapi_raw() & static_cast<uint32_t>(aType)) {
     prefs |= CUBEB_STREAM_PREF_RAW;
+  }
+
+  // Select WASAPI exclusive mode in Gecko rather than in the backend. This
+  // keeps the policy preference on the application side and lets the stream
+  // preference travel through AudioIPC to the real server-side WASAPI context.
+  if (sCubebWasapiExclusive &&
+      (static_cast<uint32_t>(aType) &
+       static_cast<uint32_t>(CUBEB_DEVICE_TYPE_OUTPUT))) {
+    prefs |= CUBEB_STREAM_PREF_EXCLUSIVE;
   }
 #endif
   return prefs;
