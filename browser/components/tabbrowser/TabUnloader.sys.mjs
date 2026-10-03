@@ -64,6 +64,125 @@ function getTabSpec(tab) {
   return tab?.linkedBrowser?.currentURI?.spec;
 }
 
+// Comma-separated list of domains whose tabs should be discarded when the
+// user switches away from them. Create this String pref in about:config, e.g.:
+//   browser.tabs.unloadDomainsOnSwitch = youtube.com,reddit.com
+// A listed domain also matches its subdomains.
+const kUnloadDomainsOnSwitchPref = "browser.tabs.unloadDomainsOnSwitch";
+
+// Keep at most one listener per browser window, and prevent overlapping
+// discards of the same tab if the user switches rapidly.
+const gUnloadDomainsOnSwitchWindows = new WeakSet();
+const gUnloadDomainsOnSwitchInFlight = new WeakSet();
+
+function getUnloadDomainsOnSwitch() {
+  return Services.prefs
+    .getStringPref(kUnloadDomainsOnSwitchPref, "")
+    .split(",")
+    .map(domain =>
+      domain.trim().toLowerCase().replace(/^\.+/, "").replace(/\.+$/, "")
+    )
+    .filter(Boolean);
+}
+
+function shouldUnloadTabOnSwitch(tab) {
+  if (
+    !tab ||
+    tab.selected ||
+    tab.closing ||
+    tab.isDestroyed ||
+    isRecoveryTab(tab)
+  ) {
+    return false;
+  }
+
+  const browser = tab.linkedBrowser;
+  if (!browser?.isConnected) {
+    return false;
+  }
+
+  try {
+    const uri = browser.currentURI;
+    if (!uri || (!uri.schemeIs("http") && !uri.schemeIs("https"))) {
+      return false;
+    }
+
+    const host = uri.host.toLowerCase().replace(/\.$/, "");
+
+    return getUnloadDomainsOnSwitch().some(
+      domain => host === domain || host.endsWith(`.${domain}`)
+    );
+  } catch (ex) {
+    return false;
+  }
+}
+
+async function unloadTabOnSwitch(tab, gBrowser) {
+  if (
+    !gBrowser ||
+    !shouldUnloadTabOnSwitch(tab) ||
+    gUnloadDomainsOnSwitchInFlight.has(tab)
+  ) {
+    return;
+  }
+
+  gUnloadDomainsOnSwitchInFlight.add(tab);
+
+  try {
+    // Save the current SessionStore state before turning the tab into a lazy
+    // discarded tab. This is the same prepare step used by the normal unloader.
+    if (typeof gBrowser.prepareDiscardBrowser == "function") {
+      await gBrowser.prepareDiscardBrowser(tab);
+    }
+
+    // prepareDiscardBrowser() is asynchronous. If the user switched back to
+    // this tab while it was running, do not discard the now-selected tab.
+    if (!shouldUnloadTabOnSwitch(tab)) {
+      return;
+    }
+
+    if (gBrowser.discardBrowser(tab)) {
+      tab.updateLastUnloadedByTabUnloader?.();
+    }
+  } catch (ex) {
+    Cu.reportError(ex);
+  } finally {
+    gUnloadDomainsOnSwitchInFlight.delete(tab);
+  }
+}
+
+function installUnloadDomainsOnSwitchForWindow(win) {
+  const gBrowser = win?.gBrowser;
+  if (!gBrowser || gUnloadDomainsOnSwitchWindows.has(win)) {
+    return;
+  }
+
+  gUnloadDomainsOnSwitchWindows.add(win);
+
+  let previousTab = gBrowser.selectedTab;
+
+  const onTabSelect = () => {
+    const oldTab = previousTab;
+    previousTab = gBrowser.selectedTab;
+
+    if (!oldTab || oldTab === previousTab || TabUnloader._isUnloading) {
+      return;
+    }
+
+    // Only the tab that was just left is considered. Existing background tabs
+    // are never scanned or discarded by this feature.
+    unloadTabOnSwitch(oldTab, gBrowser);
+  };
+
+  const cleanup = () => {
+    gBrowser.tabContainer.removeEventListener("TabSelect", onTabSelect);
+    gUnloadDomainsOnSwitchWindows.delete(win);
+  };
+
+  gBrowser.tabContainer.addEventListener("TabSelect", onTabSelect);
+  win.addEventListener("unload", cleanup, { once: true });
+}
+
 function isForegroundWindow(win) {
   return win === Services.wm.getMostRecentWindow("navigator:browser");
 }
@@ -310,6 +429,20 @@ export var TabUnloader = {
       Ci.nsIAvailableMemoryWatcherBase
     );
     watcher.registerTabUnloader(this);
+
+    // TabUnloader is a singleton, so install a listener for browser windows
+    // that already exist and observe future browser windows as they finish
+    // delayed startup.
+    for (const win of Services.wm.getEnumerator("navigator:browser")) {
+      installUnloadDomainsOnSwitchForWindow(win);
+    }
+    Services.obs.addObserver(this, "browser-delayed-startup-finished");
+  },
+
+  observe(subject, topic) {
+    if (topic === "browser-delayed-startup-finished") {
+      installUnloadDomainsOnSwitchForWindow(subject);
+    }
   },
 
   isDiscardable(tabInfo) {
