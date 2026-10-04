@@ -255,9 +255,11 @@ typedef enum {
                                        settings should persist across restarts
                                        of the stream and/or application. This is
                                        obsolete and ignored by all backends. */
-  CUBEB_STREAM_PREF_JACK_NO_AUTO_CONNECT = 0x20 /**< Don't automatically try to
-                                                   connect ports.  Only affects
-                                                   the jack backend. */
+  CUBEB_STREAM_PREF_JACK_NO_AUTO_CONNECT = 0x20, /**< Don't automatically try to
+                                                    connect ports.  Only affects
+                                                    the jack backend. */
+  CUBEB_STREAM_PREF_EXCLUSIVE =
+      0x40 /**< Windows only. Request WASAPI exclusive-mode output. */
 } cubeb_stream_prefs;
 
 /**

@@ -12053,6 +12053,14 @@
   type: RelaxedAtomicUint32
   mirror: always
   value: 0
+
+#ifdef XP_WIN
+
+- name: media.cubeb.wasapi-exclusive
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
 #endif // XP_WIN
 
 # Whether to make the start of cubeb stream slower, and by how many
