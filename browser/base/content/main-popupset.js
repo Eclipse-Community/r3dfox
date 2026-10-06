@@ -149,6 +149,41 @@ document.addEventListener(
         case "context_unloadTab":
           TabContextMenu.explicitUnloadTabs();
           break;
+        case "context_unloadTabsToTheStart": {
+          const tabs = gBrowser
+            ._getTabsToTheStartFrom(TabContextMenu.contextTab)
+            .filter(
+              tab => tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser
+            );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
+        case "context_unloadTabsToTheEnd": {
+          const tabs = gBrowser
+            ._getTabsToTheEndFrom(TabContextMenu.contextTab)
+            .filter(
+              tab => tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser
+            );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
+        case "context_unloadOtherTabs": {
+          const contextTab = TabContextMenu.contextTab;
+          const tabs = [
+            ...gBrowser._getTabsToTheStartFrom(contextTab),
+            ...gBrowser._getTabsToTheEndFrom(contextTab),
+          ].filter(
+            tab => tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser
+          );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
         case "context_fullscreenAutohide":
           FullScreen.setAutohide();
           break;
@@ -601,6 +636,34 @@ document.addEventListener(
       .addEventListener("popupshowing", event => {
         if (event.target.id == "tabContextMenu") {
           TabContextMenu.updateContextMenu(event.target);
+          const unloadOptions = document.getElementById(
+            "context_unloadTabOptions"
+          );
+          const unloadTabsToTheStart = document.getElementById(
+            "context_unloadTabsToTheStart"
+          );
+          const unloadTabsToTheEnd = document.getElementById(
+            "context_unloadTabsToTheEnd"
+          );
+          const unloadOtherTabs = document.getElementById(
+            "context_unloadOtherTabs"
+          );
+
+          const isUnloadable = tab =>
+            tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser;
+          const tabsToTheStart = gBrowser
+            ._getTabsToTheStartFrom(TabContextMenu.contextTab)
+            .filter(isUnloadable);
+          const tabsToTheEnd = gBrowser
+            ._getTabsToTheEndFrom(TabContextMenu.contextTab)
+            .filter(isUnloadable);
+
+          unloadTabsToTheStart.disabled = !tabsToTheStart.length;
+          unloadTabsToTheEnd.disabled = !tabsToTheEnd.length;
+          unloadOtherTabs.disabled =
+            !tabsToTheStart.length && !tabsToTheEnd.length;
+          unloadOptions.disabled = unloadOtherTabs.disabled;
+          unloadOptions.hidden = !gBrowser._unloadTabInContextMenu;
         }
       });
 
