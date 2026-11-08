@@ -59,6 +59,9 @@
 #include "nsPIWindowRoot.h"
 #include "nsPresContextInlines.h"
 #include "nsXULElement.h"
+#ifdef XP_WIN
+#  include "mozilla/WindowsVersion.h"
+#endif
 
 using namespace mozilla;
 using namespace mozilla::dom;
@@ -933,6 +936,11 @@ void nsXULPopupManager::ShowPopupAtScreen(Element* aPopup, int32_t aXPos,
 }
 
 void ToggleTouchMode(const PendingPopup& aPopup) {
+#ifdef XP_WIN
+  if (!IsWin10OrLater()) {
+    return;
+  }
+#endif
   aPopup.mPopup->SetBoolAttr(
       nsGkAtoms::touchmode,
       aPopup.MouseInputSource() == MouseEvent_Binding::MOZ_SOURCE_TOUCH);
