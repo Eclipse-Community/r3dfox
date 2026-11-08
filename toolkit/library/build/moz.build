@@ -12,6 +12,12 @@ USE_LIBS += ["gkrust"]
 
 Libxul("xul-real")
 
+if (
+    CONFIG["OS_ARCH"] == "WINNT"
+    and CONFIG["TARGET_CPU"] == "x86"
+):
+    LDFLAGS += ["-BASE:0x12000000"]
+
 if CONFIG["COMPILE_ENVIRONMENT"]:
     if CONFIG["MOZ_WIDGET_TOOLKIT"] in ("cocoa", "uikit"):
         full_libname = SHARED_LIBRARY_NAME

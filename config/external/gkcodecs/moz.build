@@ -12,5 +12,12 @@
 GeckoSharedLibrary("gkcodecs")
 SHARED_LIBRARY_NAME = "gkcodecs"
 SYMBOLS_FILE = "gkcodecs.symbols"
+
+if (
+    CONFIG["OS_ARCH"] == "WINNT"
+    and CONFIG["TARGET_CPU"] == "x86"
+):
+    LDFLAGS += ["-BASE:0x59000000"]
+
 if CONFIG["MOZ_SYSTEM_LIBVPX"]:
     DEFINES["MOZ_SYSTEM_LIBVPX"] = True
