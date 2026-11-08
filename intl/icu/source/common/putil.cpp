@@ -98,6 +98,35 @@
 #   include <windows.h>
 #   include "unicode/uloc.h"
 #   include "wintz.h"
+static BOOL LookupLocaleStringFromLCID(LCID lcid, LPWSTR pszISOCode, DWORD cchISOCode)
+{
+    WCHAR   szCountry[MAX_PATH];
+    BOOL    fRet = FALSE;
+
+    if (GetLocaleInfoW(lcid, LOCALE_SISO639LANGNAME,
+                      pszISOCode, cchISOCode) == FALSE)
+    {
+        goto done;
+    }
+
+    szCountry[0] = L'-';
+    fRet = TRUE;
+
+    if (GetLocaleInfoW(lcid, LOCALE_SISO3166CTRYNAME,
+                      szCountry + 1, sizeof(szCountry)/sizeof(szCountry[0]) - 1) == FALSE)
+    {
+        goto done;
+    }
+    else
+    {
+        wcscat(pszISOCode, szCountry);
+    }
+
+done:
+    return fRet;
+}
+
+
 #elif U_PLATFORM == U_PF_OS400
 #   include <float.h>
 #   include <qusec.h>       /* error code structure */
@@ -1805,7 +1834,32 @@ The leftmost codepage (.xxx) wins.
 
     // No cached value, need to determine the current value
     static WCHAR windowsLocale[LOCALE_NAME_MAX_LENGTH] = {};
-    int length = GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, windowsLocale, LOCALE_NAME_MAX_LENGTH);
+// GetUserDefaultLocaleName is not available on WIN XP.  So we'll
+// load it on-the-fly.
+const wchar_t kKernel32DllName[] = L"kernel32.dll";
+typedef decltype(GetUserDefaultLocaleName)* GetUserDefaultLocaleNameFunction;
+
+    static GetUserDefaultLocaleNameFunction GetUserDefaultLocaleName_func =
+        nullptr;
+    if (!GetUserDefaultLocaleName_func) {
+      HMODULE kernel32_dll = ::GetModuleHandleW(kKernel32DllName);
+      GetUserDefaultLocaleName_func =
+          reinterpret_cast<GetUserDefaultLocaleNameFunction>(
+              GetProcAddress(kernel32_dll, "GetUserDefaultLocaleName"));
+    }
+    int length;
+    if (GetUserDefaultLocaleName_func != nullptr) {
+      length = GetUserDefaultLocaleName_func(windowsLocale, UPRV_LENGTHOF(windowsLocale));
+    } else {
+      LANGID langid = 0;
+      LCID lcid = 0;
+
+      langid = GetUserDefaultLCID();
+      lcid = MAKELCID(langid, SORT_DEFAULT);
+      // don't check for error return because the previous code didn't
+      LookupLocaleStringFromLCID(lcid, windowsLocale, UPRV_LENGTHOF(windowsLocale));
+      length = lstrlenW(windowsLocale);
+    }
 
     // Now we should have a Windows locale name that needs converted to the POSIX style.
     if (length > 0) // If length is 0, then the GetLocaleInfoEx failed.
@@ -2154,7 +2208,7 @@ int_getDefaultCodepage()
     // have folks use Unicode than a "system" code page, however this is the same
     // codepage as the system default locale codepage.  (FWIW, the system locale is
     // ONLY used for codepage, it should never be used for anything else)
-    GetLocaleInfoEx(LOCALE_NAME_SYSTEM_DEFAULT, LOCALE_IDEFAULTANSICODEPAGE | LOCALE_RETURN_NUMBER,
+    GetLocaleInfoW(LOCALE_SYSTEM_DEFAULT, LOCALE_IDEFAULTANSICODEPAGE | LOCALE_RETURN_NUMBER,
         (LPWSTR)&codepageNumber, sizeof(codepageNumber) / sizeof(WCHAR));
 #else
     // Win32 apps can call GetACP
