@@ -463,7 +463,7 @@ already_AddRefed<GLContext> GLContextProviderWGL::CreateForCompositorWidget(
 }
 
 /*static*/
-already_AddRefed<GLContext> GLContextProviderWGL::CreateHeadless(
+already_AddRefed<GLContext> CreatePbufferOffscreenContext(
     const GLContextCreateDesc& desc, nsACString* const out_failureId) {
   auto& wgl = sWGLLib;
   if (!wgl.EnsureInitialized()) return nullptr;
@@ -533,6 +533,88 @@ already_AddRefed<GLContext> GLContextProviderWGL::CreateHeadless(
   if (!gl->Init()) return nullptr;
 
   return RefPtr<GLContext>(gl.get()).forget();
+}
+
+static already_AddRefed<GLContext>
+CreateWindowOffscreenContext(const GLContextCreateDesc& desc, nsACString* const out_failureId)
+{
+  auto& wgl = sWGLLib;
+    HWND win = CreateDummyWindow();
+    if (!win) {
+        return nullptr;
+    }
+
+  const auto dc = GetDC(win);
+  if (!dc) return nullptr;
+  auto cleanupDc = MakeScopeExit([&]() { (void)ReleaseDC(win, dc); });
+
+  // --
+
+  {
+    PIXELFORMATDESCRIPTOR pfd{};
+    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+    pfd.nVersion = 1;
+    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
+    // pfd.iPixelType = PFD_TYPE_RGBA;
+    // pfd.cColorBits = 24;
+    // pfd.cRedBits = 8;
+    // pfd.cGreenBits = 8;
+    // pfd.cBlueBits = 8;
+    // pfd.cAlphaBits = 8;
+    pfd.iLayerType = PFD_MAIN_PLANE;
+
+    const auto pixelFormat = ChoosePixelFormat(dc, &pfd);
+    // MOZ_ASSERT(pixelFormat);
+    if (!pixelFormat) return nullptr;
+    const bool setPixelFormatOk = SetPixelFormat(dc, pixelFormat, nullptr);
+    // MOZ_ASSERT(setPixelFormatOk);
+    if (!setPixelFormatOk) return nullptr;
+  }
+
+  const auto context = wgl.CreateContextWithFallback(dc, true);
+  if (!context) return nullptr;
+
+  const auto fullDesc = GLContextDesc{desc, true};
+  const RefPtr<GLContextWGL> gl =
+      new GLContextWGL(fullDesc, dc, context, win);
+  cleanupDc.release();
+  if (!gl->Init()) return nullptr;
+
+  return RefPtr<GLContext>(gl.get()).forget();
+}
+
+/*static*/ already_AddRefed<GLContext>
+GLContextProviderWGL::CreateHeadless(const GLContextCreateDesc& desc,
+                                     nsACString* const out_failureId)
+{
+    if (!sWGLLib.EnsureInitialized()) {
+        return nullptr;
+    }
+
+    RefPtr<GLContext> glContext;
+
+    // Always try to create a pbuffer context first, because we
+    // want the context isolation.
+//  if (sWGLLib.mSymbols.fCreatePbuffer &&
+//      sWGLLib.mSymbols.fChoosePixelFormat)
+//  {
+        IntSize dummySize = IntSize(16, 16);
+        glContext = CreatePbufferOffscreenContext(desc, out_failureId);
+//  }
+
+    // If it failed, then create a window context and use a FBO.
+    if (!glContext) {
+        glContext = CreateWindowOffscreenContext(desc, out_failureId);
+    }
+
+//  if (!glContext ||
+//      !glContext->Init())
+//  {
+//      return nullptr;
+//  }
+
+    RefPtr<GLContext> retGL = glContext;
+    return retGL.forget();
 }
 
 /*static*/
