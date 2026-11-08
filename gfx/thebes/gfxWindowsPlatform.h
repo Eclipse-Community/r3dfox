@@ -198,6 +198,7 @@ class gfxWindowsPlatform final : public gfxPlatform {
   void InitializeDevices();
   void InitializeD3D11();
   bool InitDWriteSupport();
+  void InitGPUProcessSupport();
 
   void InitializeConfig();
   void InitializeD3D9Config();

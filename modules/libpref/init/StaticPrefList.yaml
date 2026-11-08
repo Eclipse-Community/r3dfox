@@ -7431,6 +7431,11 @@
   value: true # Match naive behavior, but hopefully we can stop soon!
   mirror: always
 
+- name: gfx.compositor.clearstate
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
 # Enable reporting video-dynamic-range: high media capability when document is
 # on an HDR-enabled desktop, this tells websites to serve HDR video and allows
 # video overlaysk to use HDR transfer functions.  In future this will also
