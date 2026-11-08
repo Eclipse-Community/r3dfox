@@ -101,6 +101,10 @@ def is_skiplisted(dep):
     # size (around 10MB).
     if dep.startswith("icu"):
         return True
+    # Same thing with d3dcompiler_47.dll, but to a lesser extent,
+    # and we were going to dynamically load it anyway.
+    if dep.startswith("d3dcompiler_47"):
+        return True
     # dxcompiler.dll is also large and we dynamically load it.
     if dep.startswith(("dxcompiler", " dxil")):
         return True
