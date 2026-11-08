@@ -827,13 +827,15 @@ Section "-InstallEndCleanup"
       ; value was before we changed it. To do so, we read it here and store it
       ; in our own registry key.
       StrCpy $0 ""
-      AppAssocReg::QueryCurrentDefault "http" "protocol" "effective"
-      Pop $1
-      ; If the method hasn't failed, $1 will contain the progid. Check:
-      ${If} "$1" != "method failed"
-      ${AndIf} "$1" != "method not available"
-        ; Read the actual command from the progid
-        ReadRegStr $0 HKCR "$1\shell\open\command" ""
+      ${If} ${AtLeastWinVista}
+        AppAssocReg::QueryCurrentDefault "http" "protocol" "effective"
+        Pop $1
+        ; If the method hasn't failed, $1 will contain the progid. Check:
+        ${If} "$1" != "method failed"
+        ${AndIf} "$1" != "method not available"
+          ; Read the actual command from the progid
+          ReadRegStr $0 HKCR "$1\shell\open\command" ""
+        ${EndIf}
       ${EndIf}
       ; If using the App Association Registry didn't happen or failed, fall back
       ; to the effective http default:
