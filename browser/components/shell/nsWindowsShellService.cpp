@@ -1246,6 +1246,9 @@ nsWindowsShellService::GetLaunchOnLoginShortcuts(
     nsTArray<nsString>& aShortcutPaths) {
   aShortcutPaths.Clear();
 
+  nsString startupFolder;
+  HRESULT hr;
+  if (IsVistaOrLater()) {
   // Get AppData\\Roaming folder using a known folder ID
   RefPtr<IKnownFolderManager> fManager;
   RefPtr<IKnownFolder> roamingAppData;
@@ -1267,9 +1270,15 @@ nsWindowsShellService::GetLaunchOnLoginShortcuts(
   // Append startup folder to AppData\\Roaming
   roamingAppDataNS.Assign(roamingAppDataW);
   CoTaskMemFree(roamingAppDataW);
-  nsString startupFolder =
+  startupFolder =
       roamingAppDataNS +
       u"\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"_ns;
+  } else {
+    wchar_t szPath[MAX_PATH];
+
+    SHGetSpecialFolderPath(NULL, szPath, CSIDL_STARTUP, TRUE);
+  startupFolder.Assign(szPath);
+  }
   nsString startupFolderWildcard = startupFolder + u"\\*.lnk"_ns;
 
   // Get known path for binary file for later comparison with shortcuts.
