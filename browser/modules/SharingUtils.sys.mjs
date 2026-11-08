@@ -308,8 +308,9 @@ class SharingUtilsCls {
       menuPopup.appendChild(moreItem);
     }
 
-    // Windows: native share dialog
-    if (AppConstants.platform == "win") {
+    // Native Windows "share URL" support is only available on Windows 10.
+    // Windows 10's internal NT version number was initially 6.4
+    if (AppConstants.isPlatformAndVersionAtLeast("win", "6.4")) {
       menuPopup.appendChild(document.createXULElement("menuseparator"));
       let winShareItem = document.createXULElement("menuitem");
       winShareItem.classList.add("share-windows-item");
