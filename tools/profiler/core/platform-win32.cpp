@@ -233,7 +233,13 @@ static void DiscardSuspendedThreadRunningTimes(
   RunningTimes& previousRunningTimes =
       profiledThreadData->PreviousThreadRunningTimesRef();
 
-  if (ULONG64 cycles; QueryThreadCycleTime(profiledThread, &cycles) != 0) {
+// Returns a pointer to the QueryThreadCycleTime() function from Windows.
+// Can't statically link to it because it is not available on XP.
+using QueryThreadCycleTimePtr = decltype(::QueryThreadCycleTime)*;
+  static const QueryThreadCycleTimePtr query_thread_cycle_time_fn =
+      reinterpret_cast<QueryThreadCycleTimePtr>(::GetProcAddress(
+          ::GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime"));
+  if (ULONG64 cycles; query_thread_cycle_time_fn && query_thread_cycle_time_fn(profiledThread, &cycles) != 0) {
     previousRunningTimes.ResetThreadCPUDelta(cycles);
   } else {
     previousRunningTimes.ClearThreadCPUDelta();
