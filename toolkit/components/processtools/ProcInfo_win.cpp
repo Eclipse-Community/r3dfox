@@ -115,13 +115,17 @@ ProcInfoPromise::ResolveOrRejectValue GetProcInfoSync(
     }
 
     uint64_t cpuCycleTime;
-    if (!QueryProcessCycleTime(handle.get(), &cpuCycleTime)) {
+typedef BOOL (WINAPI *Func_QueryProcessCycleTime)(HANDLE Process, PULONG64 CycleTime);
+    HMODULE kern = ::GetModuleHandleW(L"kernel32.dll");
+    Func_QueryProcessCycleTime my_QueryProcessCycleTime = (Func_QueryProcessCycleTime)
+        ::GetProcAddress(kern, "QueryProcessCycleTime");
+    if (my_QueryProcessCycleTime && !my_QueryProcessCycleTime(handle.get(), &cpuCycleTime)) {
       // Ignore process, it may have died.
       continue;
     }
 
     uint64_t cpuTime;
-    if (frequencyInMHz) {
+    if (my_QueryProcessCycleTime && frequencyInMHz) {
       cpuTime = cpuCycleTime * PR_USEC_PER_NSEC / frequencyInMHz;
     } else {
       FILETIME createTime, exitTime, kernelTime, userTime;
@@ -247,7 +251,13 @@ ProcInfoPromise::ResolveOrRejectValue GetProcInfoSync(
 
         // Attempt to get thread times.
         // If we fail, continue without this piece of information.
-        if (QueryThreadCycleTime(hThread.get(), &threadInfo->cpuCycleCount) &&
+// Returns a pointer to the QueryThreadCycleTime() function from Windows.
+// Can't statically link to it because it is not available on XP.
+using QueryThreadCycleTimePtr = decltype(::QueryThreadCycleTime)*;
+  static const QueryThreadCycleTimePtr query_thread_cycle_time_fn =
+      reinterpret_cast<QueryThreadCycleTimePtr>(::GetProcAddress(
+          ::GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime"));
+          if (query_thread_cycle_time_fn && query_thread_cycle_time_fn(hThread.get(), &threadInfo->cpuCycleCount) &&
             frequencyInMHz) {
           threadInfo->cpuTime =
               threadInfo->cpuCycleCount * PR_USEC_PER_NSEC / frequencyInMHz;
