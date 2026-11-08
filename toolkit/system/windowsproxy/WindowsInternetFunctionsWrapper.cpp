@@ -151,8 +151,20 @@ nsresult WindowsInternetFunctionsWrapper::ReadAllOptionsLocked(
     MutexAutoUnlock unlock(mMutex);
     if (!InternetQueryOptionW(nullptr, INTERNET_OPTION_PER_CONNECTION_OPTION,
                               &list, &size)) {
+    if (GetLastError() != ERROR_INVALID_PARAMETER) {
       LOG(("ReadAllOptionsLocked: InternetQueryOptionW failed"));
       return NS_ERROR_FAILURE;
+    }
+    options[0].dwOption = INTERNET_PER_CONN_FLAGS;
+    size = sizeof(INTERNET_PER_CONN_OPTION_LISTW);
+    MOZ_SEH_TRY {
+      if (!InternetQueryOptionW(nullptr, INTERNET_OPTION_PER_CONNECTION_OPTION,
+                                &list, &size)) {
+        return NS_ERROR_FAILURE;
+      }
+    } MOZ_SEH_EXCEPT(EXCEPTION_EXECUTE_HANDLER) {
+      return NS_ERROR_FAILURE;
+    }
     }
   }
 
