@@ -260,6 +260,10 @@ bool nsWindow::OnPaint() {
       regionToClear.SubOut(mClearedRegion);
     }
     mClearedRegion = std::move(translucentRegion);
+    region.OrWith(regionToClear);
+    if (!gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+      return;
+    }
     auto black = reinterpret_cast<HBRUSH>(::GetStockObject(BLACK_BRUSH));
     // We could use RegionToHRGN, but at least for simple regions (and
     // possibly for complex ones too?) FillRect is faster; see bug 1946365
@@ -276,7 +280,6 @@ bool nsWindow::OnPaint() {
         ::FillRect(hDC, &rect, black);
       }
     }
-    region.OrWith(regionToClear);
   };
 
   // This is a bit subtle: For fallback windows, we paint directly into the DC,
@@ -318,7 +321,8 @@ bool nsWindow::OnPaint() {
     mBasicLayersSurface->RedrawTransparentWindow();
   }
 
-  if (!isFallback && !gfxEnv::MOZ_DISABLE_FORCE_PRESENT()) {
+  if (!isFallback && !gfxEnv::MOZ_DISABLE_FORCE_PRESENT() &&
+      gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
     NS_DispatchToMainThread(NewRunnableMethod("nsWindow::ForcePresent", this,
                                               &nsWindow::ForcePresent));
   }
