@@ -511,7 +511,18 @@ class FileUniqueId final {
   void GetId(const nsAutoHandle& aFile) {
     FILE_ID_INFO fileIdInfo = {};
     if (IsWin8OrLater()) {
-      if (::GetFileInformationByHandleEx(aFile.get(), FileIdInfo, &fileIdInfo,
+typedef BOOL (WINAPI *pfnGetFileInformationByHandleEx)(
+        HANDLE                    hFile,
+        FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+        LPVOID                    lpFileInformation,
+        DWORD                     dwBufferSize
+);
+static pfnGetFileInformationByHandleEx pGetFileInformationByHandleEx = NULL;
+
+    pGetFileInformationByHandleEx = (pfnGetFileInformationByHandleEx)
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"),
+                "GetFileInformationByHandleEx");
+      if (pGetFileInformationByHandleEx && pGetFileInformationByHandleEx(aFile.get(), FileIdInfo, &fileIdInfo,
                                          sizeof(fileIdInfo))) {
         mId = fileIdInfo;
         return;
