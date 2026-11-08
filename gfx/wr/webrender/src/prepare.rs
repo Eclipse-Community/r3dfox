@@ -811,6 +811,14 @@ fn prepare_interned_prim_for_render(
             scratch.frame.draws[prim_instance_index.0 as usize].kind_scratch =
                 KindScratchHandle::TextRun(text_run_handle);
         }
+        PrimitiveKind::Clear { data_handle, .. } => {
+            profile_scope!("Clear");
+            let prim_data = &mut data_stores.prim[*data_handle];
+
+            // Update the template this instane references, which may refresh the GPU
+            // cache with any shared template data.
+            prim_data.update(frame_state, frame_context.scene_properties);
+        }
         PrimitiveKind::NormalBorder { data_handle } => {
             profile_scope!("NormalBorder");
             let prim_data = &mut data_stores.normal_border[*data_handle];
@@ -1037,7 +1045,10 @@ fn prepare_interned_prim_for_render(
                     &mut scratch.frame.segments,
                     &mut scratch.frame.segment_instances,
                     |request| {
-                        request.push_one(frame_context.scene_properties.resolve_color(&prim_data.kind.color).premultiplied());
+                        prim_data.kind.write_prim_gpu_blocks(
+                            request,
+                            frame_context.scene_properties,
+                        );
                     }
                 );
             } else {
@@ -1789,6 +1800,7 @@ fn update_clip_task_for_brush(
         }
         PrimitiveKind::Picture { .. } |
         PrimitiveKind::TextRun { .. } |
+        PrimitiveKind::Clear { .. } |
         PrimitiveKind::LineDecoration { .. } |
         PrimitiveKind::BackdropCapture { .. } |
         PrimitiveKind::BackdropRender { .. } => {
@@ -2178,6 +2190,7 @@ fn build_segments_if_needed(
         PrimitiveKind::TextRun { .. } |
         PrimitiveKind::NormalBorder { .. } |
         PrimitiveKind::ImageBorder { .. } |
+        PrimitiveKind::Clear { .. } |
         PrimitiveKind::LinearGradient { .. } |
         PrimitiveKind::RadialGradient { .. } |
         PrimitiveKind::ConicGradient { .. } |

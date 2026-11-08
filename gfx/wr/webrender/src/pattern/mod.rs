@@ -132,6 +132,18 @@ impl Pattern {
         }
     }
 
+    pub fn clear() -> Self {
+        // Opaque black with operator dest out
+        Pattern {
+            kind: PatternKind::ColorOrTexture,
+            shader_input: PatternShaderInput::default(),
+            texture_input: PatternTextureInput::default(),
+            base_color: ColorF::BLACK,
+            is_opaque: false,
+            blend_mode: BlendMode::PremultipliedDestOut,
+        }
+    }
+
     pub fn texture(src_task: RenderTaskId, is_opaque: bool) -> Self {
         Pattern {
             kind: PatternKind::ColorOrTexture,

@@ -1494,7 +1494,7 @@ impl<'a> SceneBuilder<'a> {
                     clip_node_id,
                     &layout,
                     Vec::new(),
-                    RectanglePrim {
+                    RectanglePrim::Rectangle {
                         color: info.color.into(),
                     },
                 );
@@ -1539,6 +1539,20 @@ impl<'a> SceneBuilder<'a> {
                     clip_node_id,
                     info.tag,
                     anim_id,
+                );
+            }
+            DisplayItem::ClearRectangle(ref info) => {
+                profile_scope!("clear");
+
+                let (layout, _, spatial_node_index, clip_node_id) = self.process_common_properties_with_bounds(
+                    &info.common,
+                    info.bounds,
+                );
+
+                self.add_clear_rectangle(
+                    spatial_node_index,
+                    clip_node_id,
+                    &layout,
                 );
             }
             DisplayItem::Line(ref info) => {
@@ -1662,7 +1676,7 @@ impl<'a> SceneBuilder<'a> {
                                 .. layout
                             },
                             Vec::new(),
-                            RectanglePrim { color: PropertyBinding::Value(color) },
+                            RectanglePrim::Rectangle { color: PropertyBinding::Value(color) },
                         );
                     }
                 );
@@ -3200,6 +3214,27 @@ impl<'a> SceneBuilder<'a> {
                 pending_primitive.prim,
             );
         }
+    }
+
+    pub fn add_clear_rectangle(
+        &mut self,
+        spatial_node_index: SpatialNodeIndex,
+        clip_node_id: ClipNodeId,
+        info: &LayoutPrimitiveInfo,
+    ) {
+        // Clear prims must be in their own picture cache slice to
+        // be composited correctly.
+        self.add_tile_cache_barrier_if_needed(SliceFlags::empty());
+
+        self.add_primitive(
+            spatial_node_index,
+            clip_node_id,
+            info,
+            Vec::new(),
+            RectanglePrim::Clear,
+        );
+
+        self.add_tile_cache_barrier_if_needed(SliceFlags::empty());
     }
 
     pub fn add_line(

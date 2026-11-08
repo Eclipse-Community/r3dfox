@@ -243,7 +243,7 @@ impl<'a> SceneBuilder<'a> {
                 clip_node_id,
                 &LayoutPrimitiveInfo::with_clip_rect(final_prim_rect, prim_info.clip_rect),
                 clips,
-                RectanglePrim {
+                RectanglePrim::Rectangle {
                     color: PropertyBinding::Value(color.into()),
                 },
             );

@@ -771,6 +771,11 @@ pub enum PrimitiveKind {
         /// Handle to the common interned data for this primitive.
         data_handle: ConicGradientDataHandle,
     },
+    /// Clear out a rect, used for special effects.
+    Clear {
+        /// Handle to the common interned data for this primitive.
+        data_handle: RectangleDataHandle,
+    },
     /// Render a portion of a specified backdrop.
     BackdropCapture {
         data_handle: BackdropCaptureDataHandle,
@@ -838,6 +843,7 @@ impl PrimitiveInstance {
 
     pub fn uid(&self) -> intern::ItemUid {
         match &self.kind {
+            PrimitiveKind::Clear { data_handle, .. } |
             PrimitiveKind::Rectangle { data_handle, .. } => {
                 data_handle.uid()
             }
