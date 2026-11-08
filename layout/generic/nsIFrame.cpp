@@ -8396,6 +8396,9 @@ void nsIFrame::ClearInvalidationStateBits() {
   if (HasAnyStateBits(NS_FRAME_DESCENDANT_NEEDS_PAINT)) {
     for (const auto& childList : CrossDocChildLists()) {
       for (nsIFrame* child : childList.mList) {
+        if (nsLayoutUtils::IsPopup(child)) {
+          continue;
+        }
         child->ClearInvalidationStateBits();
       }
     }
