@@ -635,6 +635,11 @@ class nsWindow final : public nsIWidget {
   DWORD WindowExStyle();
 
   /**
+   * XP and Vista theming support for windows with rounded edges
+   */
+  void ClearThemeRegion();
+
+  /**
    * Popup hooks
    */
   static void ScheduleHookTimer(HWND aWnd, UINT aMsgId);
