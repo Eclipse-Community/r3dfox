@@ -93,6 +93,7 @@ class UXThemeHandle final {
 
 class nsLookAndFeel final : public nsXPLookAndFeel {
 
+  static HMODULE sThemeDLL;
   // We initialize sCommandButtonBoxMetrics separately as a performance
   // optimization to avoid fetching dummy values for sCommandButtonMetrics
   // when we don't need those.
@@ -104,6 +105,8 @@ class nsLookAndFeel final : public nsXPLookAndFeel {
   static void EnsureCommandButtonMetrics();
   static void EnsureCommandButtonBoxMetrics();
  public:
+  static const wchar_t kThemeLibraryName[];
+  static HMODULE GetThemeDLL();
   static bool sTitlebarInfoPopulatedAero;
   static bool sTitlebarInfoPopulatedThemed;
   nsLookAndFeel();
