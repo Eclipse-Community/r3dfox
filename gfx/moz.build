@@ -20,6 +20,7 @@ DIRS += [
     "graphite2/src",
     "harfbuzz/src",
     "ots/src",
+    "swiftshader",
     "thebes",
     "ipc",
     "vr",

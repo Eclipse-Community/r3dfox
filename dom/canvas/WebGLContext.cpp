@@ -351,6 +351,8 @@ bool WebGLContext::CreateAndInitGL(
   bool tryANGLE = false;
 
 #ifdef XP_WIN
+  const bool trySwiftShader = StaticPrefs::webgl_force_swiftshader();
+
   tryNativeGL = false;
   tryANGLE = true;
 
@@ -393,6 +395,13 @@ bool WebGLContext::CreateAndInitGL(
   };
 
   const auto newGL = [&]() -> RefPtr<gl::GLContext> {
+#ifdef XP_WIN
+    if (trySwiftShader) {
+      return fnCreate(&gl::GLContextProviderEGL::CreateHeadless,
+                      "trySwiftShader");
+    }
+#endif
+
     if (tryNativeGL) {
       if (useEGL)
         return fnCreate(&gl::GLContextProviderEGL::CreateHeadless, "useEGL");
