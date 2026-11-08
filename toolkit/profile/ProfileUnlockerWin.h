@@ -38,6 +38,8 @@ class ProfileUnlockerWin final : public nsIProfileUnlocker {
   typedef DWORD(WINAPI* RMGETLIST)(DWORD, UINT*, UINT*, RM_PROCESS_INFO[],
                                    LPDWORD);
   typedef DWORD(WINAPI* RMENDSESSION)(DWORD);
+  typedef BOOL(WINAPI* QUERYFULLPROCESSIMAGENAME)(HANDLE, DWORD, LPWSTR,
+                                                  PDWORD);
 
  private:
   nsModuleHandle mRestartMgrModule;
@@ -45,6 +47,7 @@ class ProfileUnlockerWin final : public nsIProfileUnlocker {
   RMREGISTERRESOURCES mRmRegisterResources;
   RMGETLIST mRmGetList;
   RMENDSESSION mRmEndSession;
+  QUERYFULLPROCESSIMAGENAME mQueryFullProcessImageName;
 
   nsString mFileName;
 };
