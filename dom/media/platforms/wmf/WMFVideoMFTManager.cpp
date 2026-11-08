@@ -118,6 +118,26 @@ const GUID& WMFVideoMFTManager::GetMediaSubtypeGUID() {
   };
 }
 
+/* static */
+DXVA2Manager* WMFVideoMFTManager::CreateVP9DXVA(
+    layers::KnowsCompositor* aCompositor, nsACString& aFailureReason,
+    const GUID& aGUID) {
+  if (!IsVistaOrLater()) {
+    aFailureReason.AssignLiteral("VP9 DXVA2 requires Windows Vista or later");
+    return nullptr;
+  }
+  if (!gfx::gfxVars::CanUseHardwareVideoDecoding()) {
+    aFailureReason.AssignLiteral(
+        "Hardware video decoding disabled or blocklisted");
+    return nullptr;
+  }
+  if (!aCompositor || !aCompositor->SupportsD3D11()) {
+    aFailureReason.AssignLiteral("Unsupported layers backend for VP9 DXVA2");
+    return nullptr;
+  }
+  return DXVA2Manager::CreateD3D9DXVA(aCompositor, aFailureReason, &aGUID);
+}
+
 bool WMFVideoMFTManager::InitializeDXVA() {
   // If we use DXVA but aren't running with a D3D layer manager then the
   // readback of decoded video frames from GPU to CPU memory grinds painting

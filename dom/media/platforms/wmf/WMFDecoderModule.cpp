@@ -8,6 +8,9 @@
 
 #include "AOMDecoder.h"
 #include "DriverCrashGuard.h"
+#include "DXVA2Manager.h"
+#include "DXVAVP9Manager.h"
+#include "WMFVP9MFTManager.h"
 #include "GfxDriverInfo.h"
 #include "MFTDecoder.h"
 #include "MP4Decoder.h"
@@ -281,8 +284,12 @@ bool WMFDecoderModule::CanCreateMFTDecoder(const WMFStreamType& aType) {
   // Check prefs here rather than CreateMFTDecoder so that prefs aren't baked
   // into sSupportedTypes
   switch (aType) {
-    case WMFStreamType::VP8:
     case WMFStreamType::VP9:
+      if (!StaticPrefs::media_wmf_vp9_mft_enabled()) {
+        return false;
+      }
+      [[fallthrough]];
+    case WMFStreamType::VP8:
       if (!StaticPrefs::media_wmf_vp9_enabled()) {
         return false;
       }
@@ -324,6 +331,96 @@ bool WMFDecoderModule::CanCreateMFTDecoder(const WMFStreamType& aType) {
   }
   StaticMutexAutoLock lock(sMutex);
   return sSupportedTypes.contains(aType);
+}
+
+// The direct decoder accepts only profile 0 (8-bit 4:2:0). An absent vpcC
+// leaves the profile unknown until the first sample; the parser checks it then.
+static bool IsVP9DXVA2ConfigSupported(const VideoInfo& aInfo) {
+  if (aInfo.HasAlpha() || aInfo.mColorDepth != gfx::ColorDepth::COLOR_8) {
+    return false;
+  }
+  // MIME-only queries have no dimensions. Use a representative size for their
+  // hardware probe, but reject known unsupported dimensions immediately.
+  if ((aInfo.mImage.width > 0 && aInfo.mImage.width < 16) ||
+      (aInfo.mImage.height > 0 && aInfo.mImage.height < 16) ||
+      aInfo.mImage.width > 8192 || aInfo.mImage.height > 8192) {
+    return false;
+  }
+  if (aInfo.mExtraData && !aInfo.mExtraData->IsEmpty()) {
+    const auto& extraData = *aInfo.mExtraData;
+    // ReadVPCCBox expects a version-1 record with no initialization data.
+    if (extraData.Length() < 12 || extraData[0] != 1 ||
+        ((extraData[6] >> 1) & 7) > 1 || extraData[10] || extraData[11]) {
+      return false;
+    }
+    VPXDecoder::VPXStreamInfo info;
+    VPXDecoder::ReadVPCCBox(info, aInfo.mExtraData);
+    return info.mProfile == 0 && info.mBitDepth == 8 && info.mSubSampling_x &&
+           info.mSubSampling_y;
+  }
+  return true;
+}
+
+static bool ProbeVP9DXVA2(layers::KnowsCompositor* aKnowsCompositor,
+                         const VideoInfo* aInfo = nullptr) {
+  if (!StaticPrefs::media_wmf_enabled() ||
+      !StaticPrefs::media_wmf_vp9_enabled() ||
+      !StaticPrefs::media_wmf_vp9_dxva2_enabled() || !IsVistaOrLater() ||
+      !gfx::gfxVars::GetCanUseHardwareVideoDecodingOrDefault() ||
+      (aInfo && !IsVP9DXVA2ConfigSupported(*aInfo)) ||
+      !wmf::MediaFoundationInitializer::HasInitialized()) {
+    return false;
+  }
+
+  nsAutoCString failureReason;
+  const GUID& guid = DXVAVP9Manager::GetVP9DecoderGUID();
+  // Remote decoder capability enumeration has no KnowsCompositor yet. Probe
+  // the device directly in that case; no images or textures are allocated.
+  UniquePtr<DXVA2Manager> manager(
+      aKnowsCompositor
+          ? WMFVideoMFTManager::CreateVP9DXVA(aKnowsCompositor, failureReason,
+                                            guid)
+          : DXVA2Manager::CreateD3D9DXVA(nullptr, failureReason, &guid));
+  if (!manager) {
+    return false;
+  }
+
+  const gfx::IntSize size =
+      aInfo && aInfo->mImage.width > 0 && aInfo->mImage.height > 0
+          ? aInfo->mImage
+          : gfx::IntSize(1280, 720);
+  DXVAVP9Manager decoder;
+  return decoder.Init(manager->GetDXVADeviceManager(), size.width, size.height,
+                      failureReason);
+}
+
+/* static */
+bool WMFDecoderModule::HasVP9MFT() {
+  if (!StaticPrefs::media_wmf_enabled() ||
+      !StaticPrefs::media_wmf_vp9_enabled() ||
+      !StaticPrefs::media_wmf_vp9_mft_enabled() || !IsVistaOrLater() ||
+      !gfx::gfxVars::GetCanUseHardwareVideoDecodingOrDefault() ||
+      !wmf::MediaFoundationInitializer::HasInitialized()) {
+    return false;
+  }
+  // Keep the guard on the calling thread: it is active on the main thread,
+  // while IMFTransform must be created and released on an MTA thread.
+  gfx::WMFVPXVideoCrashGuard guard;
+  if (guard.Crashed()) {
+    return false;
+  }
+  bool supported = false;
+  mscom::EnsureMTA([&]() {
+    RefPtr<MFTDecoder> decoder = new MFTDecoder();
+    supported = SUCCEEDED(decoder->Create(CLSID_CMSVPXDecMFT));
+  });
+  return supported;
+}
+
+/* static */
+bool WMFDecoderModule::HasVP9DXVA2(
+    layers::KnowsCompositor* aKnowsCompositor) {
+  return aKnowsCompositor && ProbeVP9DXVA2(aKnowsCompositor);
 }
 
 bool WMFDecoderModule::SupportsColorDepth(
@@ -369,7 +466,28 @@ media::DecodeSupportSet WMFDecoderModule::Supports(
     return media::DecodeSupportSet{};
   }
 
-  if (CanCreateMFTDecoder(type)) {
+  // Keep the MFT availability cache separate from direct DXVA2 support. A
+  // system without the VP9 MFT can still have a usable profile-0 DXVA2 decoder.
+  const bool hasMFT = CanCreateMFTDecoder(type);
+  if (type == WMFStreamType::VP9) {
+    if (!sDXVAEnabled || (!XRE_IsGPUProcess() && !XRE_IsRDDProcess()) ||
+        !StaticPrefs::media_wmf_vp9_enabled() ||
+        !gfx::gfxVars::GetCanUseHardwareVideoDecodingOrDefault() ||
+        aParams.mOptions.contains(
+            CreateDecoderParams::Option::HardwareDecoderNotAllowed) ||
+        (aParams.mKnowsCompositor &&
+         (!aParams.mKnowsCompositor->SupportsD3D11() ||
+          (XRE_IsGPUProcess() &&
+           !IsRemoteAcceleratedCompositor(aParams.mKnowsCompositor))))) {
+      return media::DecodeSupportSet{};
+    }
+    if (hasMFT || ProbeVP9DXVA2(aParams.mKnowsCompositor, videoInfo)) {
+      return media::DecodeSupport::HardwareDecode;
+    }
+    return media::DecodeSupportSet{};
+  }
+
+  if (hasMFT) {
     if (StreamTypeIsVideo(type)) {
       return sDXVAEnabled ? media::DecodeSupport::HardwareDecode
                           : media::DecodeSupport::SoftwareDecode;
@@ -389,6 +507,69 @@ nsresult WMFDecoderModule::Startup() {
                                                            : NS_ERROR_FAILURE;
 }
 
+already_AddRefed<MediaDataDecoder> WMFDecoderModule::CreateVP9Decoder(
+    const CreateDecoderParams& aParams) {
+  const VideoInfo& config = aParams.VideoConfig();
+  // CanCreateMFTDecoder also ensures that sDXVAEnabled is initialized. Disabling
+  // the MFT preference must not suppress initialization of the direct path.
+  const bool mftAllowed = CanCreateMFTDecoder(WMFStreamType::VP9);
+  if (!sDXVAEnabled || (!XRE_IsGPUProcess() && !XRE_IsRDDProcess()) ||
+      !StaticPrefs::media_wmf_vp9_enabled() ||
+      !gfx::gfxVars::GetCanUseHardwareVideoDecodingOrDefault() ||
+      config.HasAlpha() ||
+      aParams.mOptions.contains(
+          CreateDecoderParams::Option::HardwareDecoderNotAllowed) ||
+      aParams.mOptions.contains(CreateDecoderParams::Option::LowLatency)) {
+    return nullptr;
+  }
+
+  const bool dxva2Allowed = StaticPrefs::media_wmf_vp9_dxva2_enabled() &&
+                            IsVistaOrLater() &&
+                            IsVP9DXVA2ConfigSupported(config);
+  const bool dxva2First = dxva2Allowed &&
+                          (!mftAllowed ||
+                           StaticPrefs::media_wmf_vp9_dxva2_preferred());
+  MediaResult lastError(NS_ERROR_DOM_MEDIA_FATAL_ERR,
+                        RESULT_DETAIL("No enabled VP9 hardware decoder"));
+  auto initialize = [&](auto aManager) -> already_AddRefed<MediaDataDecoder> {
+    MediaResult result = aManager->Init();
+    if (NS_FAILED(result)) {
+      WmfDecoderModuleMarkerAndLog(
+          "WMFVP9DecoderCreation Failure", "%s failed: %s",
+          aManager->GetDescriptionName().get(), result.Description().get());
+      lastError = result;
+      // Release hardware resources before trying the other decoder path.
+      aManager->Shutdown();
+      return nullptr;
+    }
+    WmfDecoderModuleMarkerAndLog("WMFVP9DecoderCreation Success", "%s",
+                                 aManager->GetDescriptionName().get());
+    RefPtr<MediaDataDecoder> decoder =
+        new WMFMediaDataDecoder(aManager.release());
+    return decoder.forget();
+  };
+
+  for (bool useDXVA2 : {dxva2First, !dxva2First}) {
+    RefPtr<MediaDataDecoder> decoder;
+    if (useDXVA2 && dxva2Allowed) {
+      decoder = initialize(MakeUnique<WMFVP9MFTManager>(
+          config, aParams.mKnowsCompositor, aParams.mImageContainer));
+    } else if (!useDXVA2 && mftAllowed) {
+      decoder = initialize(MakeUnique<WMFVideoMFTManager>(
+          config, aParams.mKnowsCompositor, aParams.mImageContainer,
+          aParams.mRate.mValue, aParams.mOptions, sDXVAEnabled,
+          aParams.mTrackingId));
+    }
+    if (decoder) {
+      return decoder.forget();
+    }
+  }
+  if (aParams.mError) {
+    *aParams.mError = lastError;
+  }
+  return nullptr;
+}
+
 already_AddRefed<MediaDataDecoder> WMFDecoderModule::CreateVideoDecoder(
     const CreateDecoderParams& aParams) {
   // In GPU process, only support decoding if an accelerated compositor is
@@ -396,6 +577,10 @@ already_AddRefed<MediaDataDecoder> WMFDecoderModule::CreateVideoDecoder(
   if (XRE_IsGPUProcess() &&
       !IsRemoteAcceleratedCompositor(aParams.mKnowsCompositor)) {
     return nullptr;
+  }
+
+  if (VPXDecoder::IsVP9(aParams.VideoConfig().mMimeType)) {
+    return CreateVP9Decoder(aParams);
   }
 
   UniquePtr<WMFVideoMFTManager> manager(new WMFVideoMFTManager(

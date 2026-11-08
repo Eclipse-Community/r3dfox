@@ -12800,6 +12800,21 @@
     value: true
     mirror: always
 
+-   name: media.wmf.vp9.dxva2.enabled
+    type: RelaxedAtomicBool
+    value: true
+    mirror: always
+
+-   name: media.wmf.vp9.mft.enabled
+    type: RelaxedAtomicBool
+    value: true
+    mirror: always
+
+-   name: media.wmf.vp9.dxva2.preferred
+    type: RelaxedAtomicBool
+    value: false
+    mirror: always
+
 -   name: media.wmf.av1.enabled
     type: RelaxedAtomicBool
     value: true
