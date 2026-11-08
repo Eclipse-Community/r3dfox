@@ -200,7 +200,7 @@ AutoSuppressStackWalking::~AutoSuppressStackWalking() {
 
 bool IsStackWalkingSafe() {
   // Use strategy (1), if initialized.
-  if (sStackWalkLocksInitialized) {
+  if (0) {
     bool isSafe = false;
     if (::TryAcquireSRWLockShared(sStackWalkLocks[0])) {
       if (::TryAcquireSRWLockShared(sStackWalkLocks[1])) {
