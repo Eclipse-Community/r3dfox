@@ -423,7 +423,9 @@ RefPtr<IDXGISwapChain1> RenderCompositorANGLE::CreateSwapChainForDComp(
 
 bool RenderCompositorANGLE::ShouldUseAlpha() const {
   return mWidget->AsWindows()->TransparencyModeIs(
-      widget::TransparencyMode::Transparent);
+             widget::TransparencyMode::Transparent) ||
+         mWidget->AsWindows()->TransparencyModeIs(
+             widget::TransparencyMode::BorderlessGlass);
 }
 
 bool RenderCompositorANGLE::BeginFrame() {

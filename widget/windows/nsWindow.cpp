@@ -418,6 +418,11 @@ static NS_DEFINE_CID(kCClipboardCID, NS_CLIPBOARD_CID);
 // General purpose user32.dll hook object
 MOZ_RUNINIT static WindowsDllInterceptor sUser32Intercept;
 
+// 2 pixel offset for TransparencyMode::BorderlessGlass which equals the size of
+// the default window border Windows paints. Glass will be extended inward
+// this distance to remove the border.
+static const int32_t kGlassMarginAdjustment = 2;
+
 // When the client area is extended out into the default window frame area,
 // this is the minimum amount of space along the edge of resizable windows
 // we will always display a resize cursor in, regardless of the underlying
@@ -1531,7 +1536,10 @@ DWORD nsWindow::WindowStyle() {
       break;
 
     case WindowType::Popup:
-      style = WS_OVERLAPPED | WS_POPUP | WS_CLIPCHILDREN;
+      style = WS_POPUP | WS_CLIPCHILDREN;
+      if (!HasGlass()) {
+        style |= WS_OVERLAPPED;
+      }
       break;
 
     default:
@@ -2006,8 +2014,9 @@ bool nsWindow::IsVisible() const { return mIsVisible; }
 // operations.
 // XXX this is apparently still needed in Windows 7 and later
 void nsWindow::ClearThemeRegion() {
-  if (mWindowType == WindowType::Popup &&
-      (mPopupType == PopupType::Tooltip || mPopupType == PopupType::Panel)) {
+  if (!HasGlass() &&
+      (mWindowType == WindowType::Popup &&
+       (mPopupType == PopupType::Tooltip || mPopupType == PopupType::Panel))) {
     SetWindowRgn(mWnd, nullptr, false);
   }
 }
@@ -3290,6 +3299,42 @@ void nsWindow::UpdateWindowDraggingRegion(
   mDraggableRegion = aRegion;
 }
 
+void nsWindow::UpdateGlass() {
+  MARGINS margins = mGlassMargins;
+
+  // DWMNCRP_USEWINDOWSTYLE - The non-client rendering area is
+  //                          rendered based on the window style.
+  // DWMNCRP_ENABLED        - The non-client area rendering is
+  //                          enabled; the window style is ignored.
+  DWMNCRENDERINGPOLICY policy = DWMNCRP_USEWINDOWSTYLE;
+  switch (mTransparencyMode) {
+    case TransparencyMode::BorderlessGlass:
+      // Only adjust if there is some opaque rectangle
+      if (margins.cxLeftWidth >= 0) {
+        margins.cxLeftWidth += kGlassMarginAdjustment;
+        margins.cyTopHeight += kGlassMarginAdjustment;
+        margins.cxRightWidth += kGlassMarginAdjustment;
+        margins.cyBottomHeight += kGlassMarginAdjustment;
+      }
+      policy = DWMNCRP_ENABLED;
+      break;
+    default:
+      break;
+  }
+
+  MOZ_LOG(gWindowsLog, LogLevel::Info,
+          ("glass margins: left:%d top:%d right:%d bottom:%d\n",
+           margins.cxLeftWidth, margins.cyTopHeight, margins.cxRightWidth,
+           margins.cyBottomHeight));
+
+  // Extends the window frame behind the client area
+  if (gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+    DwmExtendFrameIntoClientArea(mWnd, &margins);
+    DwmSetWindowAttribute(mWnd, DWMWA_NCRENDERING_POLICY, &policy,
+                          sizeof policy);
+  }
+}
+
 /**************************************************************
  *
  * SECTION: nsIWidget::HideWindowChrome
@@ -4180,6 +4225,47 @@ nsresult nsWindow::OnDefaultButtonLoaded(
   return NS_OK;
 }
 
+void nsWindow::UpdateThemeGeometries(
+    const nsTArray<ThemeGeometry>& aThemeGeometries) {
+  RefPtr<WebRenderLayerManager> layerManager =
+      GetWindowRenderer() ? GetWindowRenderer()->AsWebRender() : nullptr;
+  if (!layerManager) {
+    return;
+  }
+
+  if (!HasGlass() ||
+      !gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+    return;
+  }
+
+  mWindowButtonsRect = Nothing();
+
+  if (!IsWin10OrLater()) {
+    for (size_t i = 0; i < aThemeGeometries.Length(); i++) {
+      if (aThemeGeometries[i].mType ==
+          nsNativeThemeWin::eThemeGeometryTypeWindowButtons) {
+        LayoutDeviceIntRect bounds = aThemeGeometries[i].mRect;
+        // Extend the bounds by one pixel to the right, because that's how much
+        // the actual window button shape extends past the client area of the
+        // window (and overlaps the right window frame).
+        bounds.SetWidth(bounds.Width() + 1);
+        if (!mWindowButtonsRect) {
+          mWindowButtonsRect = Some(bounds);
+        }
+      }
+    }
+  }
+}
+
+void nsWindow::AddWindowOverlayWebRenderCommands(
+    layers::WebRenderBridgeChild* aWrBridge, wr::DisplayListBuilder& aBuilder,
+    wr::IpcResourceUpdateQueue& aResources) {
+  if (mWindowButtonsRect) {
+    wr::LayoutRect rect = wr::ToLayoutRect(*mWindowButtonsRect);
+    aBuilder.PushClearRect(rect);
+  }
+}
+
 uint32_t nsWindow::GetMaxTouchPoints() const {
   return WinUtils::GetMaxTouchPoints();
 }
@@ -5006,6 +5092,10 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
   // Glass hit testing w/custom transparent margins
   LRESULT dwmHitResult;
   if (mCustomNonClient &&
+      gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled() &&
+      /* We don't do this for win10 glass with a custom titlebar,
+       * in order to avoid the caption buttons breaking. */
+      !(IsWin10OrLater() && HasGlass()) &&
       DwmDefWindowProc(mWnd, msg, wParam, lParam, &dwmHitResult)) {
     *aRetValue = dwmHitResult;
     return true;
@@ -5910,7 +6000,7 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
         mDraggingWindowWithMouse = true;
       }
 
-      if (IsWindowButton(int32_t(wParam)) && mCustomNonClient) {
+      if (IsWindowButton(int32_t(wParam)) && mCustomNonClient && !mWindowButtonsRect) {
         DispatchMouseEvent(eMouseDown, wParamFromGlobalMouseState(),
                            lParamToClient(lParam), false, MouseButton::ePrimary,
                            MOUSE_INPUT_SOURCE(), nullptr, IsNonclient::Yes);
@@ -6162,6 +6252,7 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
       // TODO: Why is NotifyThemeChanged needed, what does it affect? And can we
       // make it more granular by tweaking the ChangeKind we pass?
       NotifyThemeChanged(widget::ThemeChangeKind::StyleAndLayout);
+      UpdateGlass();
       Invalidate(true, true, true);
       break;
 
@@ -7617,16 +7708,58 @@ void nsWindow::SetTransparencyMode(TransparencyMode aMode) {
   }
   MOZ_ASSERT(GetTopLevelWindow(true) == this);
 
+  if (HasGlass()) memset(&mGlassMargins, 0, sizeof mGlassMargins);
   mTransparencyMode = aMode;
+  UpdateGlass();
 
   UpdateOpaqueRegionInternal();
 
   if (mCompositorWidgetDelegate) {
     mCompositorWidgetDelegate->UpdateTransparency(aMode);
   }
+
+  // Clear window by transparent black when compositor window is used in GPU
+  // process and non-client area rendering by DWM is enabled.
+  // It is for showing non-client area rendering. See nsWindow::UpdateGlass().
+  if (HasGlass() && GetWindowRenderer()->AsKnowsCompositor() &&
+      GetWindowRenderer()->AsKnowsCompositor()->GetUseCompositorWnd()) {
+    HDC hdc;
+    RECT rect;
+    hdc = ::GetWindowDC(mWnd);
+    ::GetWindowRect(mWnd, &rect);
+    ::MapWindowPoints(nullptr, mWnd, (LPPOINT)&rect, 2);
+    ::FillRect(hdc, &rect,
+               reinterpret_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
+    ReleaseDC(mWnd, hdc);
+  }
 }
 
 void nsWindow::UpdateOpaqueRegion(const LayoutDeviceIntRegion& aRegion) {
+  if (HasGlass()) {
+    if (GetParent()) return;
+
+    // If there is no opaque region or hidechrome=true, set margins
+    // to support a full sheet of glass. Comments in MSDN indicate
+    // all values must be set to -1 to get a full sheet of glass.
+    MARGINS margins = {-1, -1, -1, -1};
+    if (!aRegion.IsEmpty()) {
+      LayoutDeviceIntRect clientBounds = GetClientBounds();
+      // Find the largest rectangle and use that to calculate the inset.
+      LayoutDeviceIntRect largest = aRegion.GetLargestRectangle();
+      margins.cxLeftWidth = largest.X();
+      margins.cxRightWidth = clientBounds.Width() - largest.XMost();
+      margins.cyBottomHeight = clientBounds.Height() - largest.YMost();
+      margins.cyTopHeight = largest.Y();
+    }
+
+    // Only update glass area if there are changes
+    if (memcmp(&mGlassMargins, &margins, sizeof mGlassMargins)) {
+      mGlassMargins = margins;
+      UpdateGlass();
+    }
+    return;
+  }
+
   if (aRegion == mOpaqueRegion || IsPopup()) {
     // Popups don't track opaque region changes since our opaque region
     // tracking is, let's say, suboptimal (see bug 1933952).
@@ -7666,6 +7799,10 @@ void nsWindow::MaybeInvalidateTranslucentRegion() {
 }
 
 void nsWindow::UpdateOpaqueRegionInternal() {
+  // Glass margins are managed by UpdateGlass().
+  if (HasGlass()) {
+    return;
+  }
   MARGINS margins{0};
   if (mTransparencyMode == TransparencyMode::Transparent) {
     // If there is no opaque region, set margins to support a full sheet of

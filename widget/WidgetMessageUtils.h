@@ -60,7 +60,7 @@ struct ParamTraits<mozilla::widget::TransparencyMode>
     : ContiguousEnumSerializerInclusive<
           mozilla::widget::TransparencyMode,
           mozilla::widget::TransparencyMode::Opaque,
-          mozilla::widget::TransparencyMode::Transparent> {};
+          mozilla::widget::TransparencyMode::BorderlessGlass> {};
 
 template <>
 struct ParamTraits<nsIWidget::NativePointerLockMode>
