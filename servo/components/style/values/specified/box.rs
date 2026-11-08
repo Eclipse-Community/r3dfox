@@ -1720,6 +1720,11 @@ pub enum Appearance {
     Textfield,
     /// The dropdown button(s) that open up a dropdown list.
     MenulistButton,
+    /// <menu> and <menuitem> appearances
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Menuitem,
+    #[parse(condition = "ParserContext::chrome_rules_enabled")]
+    Checkmenuitem,
     /// https://drafts.csswg.org/css-forms/#appearance
     #[parse(condition = "appearance_base_enabled")]
     Base,
