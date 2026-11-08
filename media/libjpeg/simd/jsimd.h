@@ -23,7 +23,7 @@
 #define JSIMD_NEON     0x10
 #define JSIMD_DSPR2    0x20
 #define JSIMD_ALTIVEC  0x40
-#define JSIMD_AVX2     0x80
+#define JSIMD_AVX2     0x00
 #define JSIMD_MMI      0x100
 
 /* SIMD Ext: retrieve SIMD/CPU information */
