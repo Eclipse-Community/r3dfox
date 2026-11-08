@@ -2,147 +2,252 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-@media (-moz-windows-default-theme) {
-  @media (-moz-windows-accent-color-in-titlebar) {
-    :root[sizemode=normal][customtitlebar] #navigator-toolbox {
-      border-top: .5px solid ActiveBorder;
+:root {
+  --glass-active-border-color: rgb(37, 44, 51);
+  --glass-inactive-border-color: rgb(102, 102, 102);
+  --glass-shadow-color: hsla(240,5%,5%,0.3);
+}
+
+@media (-moz-platform: windows-win7),
+       (-moz-platform: windows-win8) {
+  @media (-moz-windows-classic: 0) {
+    :root[sizemode="normal"] #toolbar-menubar:not([autohide="true"]) > #menubar-items,
+    :root[sizemode="normal"] #toolbar-menubar[autohide="true"][inactive] + #TabsToolbar > .toolbar-items {
+      margin-top: 1px;
+    }
+    /**
+     * Except for Windows 8, Windows 7 Aero and Windows 7 Aero Basic, the
+     * -moz-window-button-box appearance on the .titlebar-buttonbox adds an
+     * unwanted margin at the top of the button box.
+     *
+     * For Windows 8 and Windows Aero (which both use the compositor):
+     *   We want the -moz-window-button-box applied in the restored case,
+     *   and -moz-window-button-box-maximized in the maximized case.
+     *
+     * For Windows Aero Basic:
+     *   The margin is also unwanted in the maximized case, but we want
+     *   it in the restored window case.
+     */
+    :root[sizemode="normal"] .titlebar-buttonbox {
+      appearance: auto;
+      -moz-default-appearance: -moz-window-button-box;
+    }
+
+    @media (-moz-windows-compositor) {
+      :root[sizemode="maximized"] .titlebar-buttonbox {
+        appearance: auto;
+        -moz-default-appearance: -moz-window-button-box-maximized;
+      }
+    }
+  }
+}
+
+@media (-moz-windows-compositor) {
+  @media not (-moz-platform: windows-win7) {
+    @media not (-moz-platform: windows-win8) {
+      @media (-moz-windows-default-theme) {
+        @media (-moz-windows-accent-color-in-titlebar) {
+          :root[sizemode=normal][customtitlebar] #navigator-toolbox {
+            border-top: .5px solid ActiveBorder;
+          }
+        }
+
+        :root[sizemode=normal][customtitlebar] #navigator-toolbox:-moz-window-inactive {
+          border-top-color: InactiveBorder;
+        }
+
+        :root[customtitlebar] .tab-label:-moz-window-inactive {
+          /* Calculated to match the opacity change of Windows Explorer
+             titlebar text change for inactive windows. */
+          opacity: .6;
+        }
+
+        :root[customtitlebar] .tab-secondary-label:-moz-window-inactive {
+          opacity: .6;
+        }
+      }
+
+      /* See bug 1715990 about why we do this ourselves on HCM */
+      @media (prefers-contrast) {
+        :root[customtitlebar]:not([lwtheme]) {
+          background-color: ActiveCaption;
+          color: CaptionText;
+        }
+
+        :root[customtitlebar]:not([lwtheme]):-moz-window-inactive {
+          background-color: InactiveCaption;
+          color: InactiveCaptionText;
+        }
+      }
+
+      .titlebar-buttonbox,
+      .titlebar-button {
+        appearance: none !important;
+      }
+
+      .titlebar-button {
+        border: none;
+        margin: 0 !important;
+        padding: 8px 18px;
+
+        /* Segoe Fluent Icons is the preferred font for Windows 11, and
+         * Segoe MDL2 Assets is there for windows 10. Luckily, the relevant glyphs
+         * are the same, so we can just fall back.
+         * See: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font */
+        font:
+          round(10px, env(hairline)) / 1 "Segoe Fluent Icons",
+          "Segoe MDL2 Assets"; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
+      }
+
+      .titlebar-button > .toolbarbutton-icon {
+        display: none;
+      }
+
+      .titlebar-button::before {
+        display: inline-block;
+        content: inherit;
+      }
+
+      .titlebar-min {
+        content: "\e921"; /* ChromeMinimize */
+      }
+
+      .titlebar-max {
+        content: "\e922"; /* ChromeMaximize */
+      }
+
+      .titlebar-restore {
+        content: "\e923"; /* ChromeRestore */
+      }
+
+      .titlebar-restore:-moz-locale-dir(rtl)::before {
+        transform: scaleX(-1);
+      }
+
+      .titlebar-close {
+        content: "\e8bb"; /* ChromeClose */
+      }
+
+      @media (-moz-windows-default-theme) {
+        #main-menubar > menu[_moz-menuactive="true"] {
+          color: inherit;
+        }
+
+        #main-menubar > menu[_moz-menuactive="true"],
+        .titlebar-button:hover {
+          background-color: hsla(0,0%,0%,.12);
+        }
+        .titlebar-button:hover:active {
+          background-color: hsla(0,0%,0%,.22);
+        }
+
+        #toolbar-menubar[brighttext] > #menubar-items > #main-menubar > menu[_moz-menuactive="true"],
+        toolbar[brighttext] .titlebar-button:not(.titlebar-close):hover {
+          background-color: hsla(0,0%,100%,.22);
+        }
+        toolbar[brighttext] .titlebar-button:not(.titlebar-close):hover:active {
+          background-color: hsla(0,0%,100%,.32);
+        }
+
+        .titlebar-close:hover {
+          color: white;
+          background-color: hsl(355,86%,49%);
+        }
+        .titlebar-close:hover:active {
+          background-color: hsl(355,82%,69%);
+        }
+
+        .titlebar-button:not(:hover):-moz-window-inactive::before {
+          opacity: 0.5;
+        }
+      }
+
+      @media (-moz-windows-default-theme: 0) {
+        .titlebar-button {
+          background-color: -moz-field;
+          color: ButtonText;
+        }
+        .titlebar-button:hover {
+          background-color: SelectedItem;
+          color: SelectedItemText;
+        }
+
+        .titlebar-min {
+          content: "\ef2d"; /* ChromeMinimizeContrast */
+        }
+
+        .titlebar-max {
+          content: "\ef2e"; /* ChromeMaximizeContrast */
+        }
+
+        .titlebar-restore {
+          content: "\ef2f"; /* ChromeRestoreContrast */
+        }
+
+        .titlebar-close {
+          content: "\ef2c"; /* ChromeCloseContrast */
+        }
+      }
     }
   }
 
-  :root[sizemode=normal][customtitlebar]:-moz-window-inactive #navigator-toolbox {
-    border-top-color: InactiveBorder;
+  @media (-moz-platform: windows-win7),
+         (-moz-platform: windows-win8) {
+    :root {
+      background-color: transparent;
+      appearance: auto;
+      -moz-default-appearance: -moz-win-borderless-glass;
+    }
+
+    :root[sizemode="maximized"] .titlebar-buttonbox {
+      margin-inline-end: 3px;
+    }
+
+    /* These should be hidden w/ glass enabled. Windows draws its own buttons. */
+    .titlebar-button {
+      display: none;
+    }
+
+    /* The borders on the glass frame are ours, and inside #browser, and on
+     * win7 we want to make sure they are "glassy", so we can't use #browser
+     * as the exclude-glass container. We use #appcontent instead. */
+    #appcontent {
+      appearance: auto;
+      -moz-default-appearance: -moz-win-exclude-glass;
+    }
+
+    :root:not([lwtheme]) body,
+    :root:not([lwtheme]) body:-moz-window-inactive,
+    :root:not([lwtheme]) #navigator-toolbox,
+    :root:not([lwtheme]) #navigator-toolbox:-moz-window-inactive {
+      background-color: transparent;
+    }
+
+    @media -moz-pref("sidebar.verticalTabs") {
+      #browser {
+        background-color: var(--toolbox-background-color);
+        color: var(--toolbox-text-color);
+
+        &:-moz-window-inactive {
+          background-color: var(--toolbox-background-color-inactive);
+          color: var(--toolbox-text-color-inactive);
+        }
+      }
+
+      #PersonalToolbar {
+        background-color: var(--toolbar-background-color);
+        color: var(--toolbar-text-color);
+      }
+    }
   }
 
-  :root[customtitlebar] .tab-label:-moz-window-inactive {
-    /* Calculated to match the opacity change of Windows Explorer
-       titlebar text change for inactive windows. */
-    opacity: .6;
-  }
-
-  :root[customtitlebar] .tab-secondary-label:-moz-window-inactive {
-    opacity: .6;
-  }
-}
-
-/* See bug 1715990 about why we do this ourselves on HCM */
-@media (prefers-contrast) {
-  :root[customtitlebar]:not([lwtheme]) {
-    background-color: ActiveCaption;
-    color: CaptionText;
-  }
-
-  :root[customtitlebar]:not([lwtheme]):-moz-window-inactive {
-    background-color: InactiveCaption;
-    color: InactiveCaptionText;
-  }
-}
-
-.titlebar-buttonbox,
-.titlebar-button {
-  appearance: none !important;
-}
-
-.titlebar-button {
-  border: none;
-  margin: 0 !important;
-  padding: 8px 18px;
-
-  /* Segoe Fluent Icons is the preferred font for Windows 11, and
-   * Segoe MDL2 Assets is there for windows 10. Luckily, the relevant glyphs
-   * are the same, so we can just fall back.
-   * See: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font */
-  font:
-    round(10px, env(hairline)) / 1 "Segoe Fluent Icons",
-    "Segoe MDL2 Assets"; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
-}
-
-.titlebar-button > .toolbarbutton-icon {
-  display: none;
-}
-
-.titlebar-button::before {
-  display: inline-block;
-  content: inherit;
-}
-
-.titlebar-min {
-  content: "\e921"; /* ChromeMinimize */
-}
-
-.titlebar-max {
-  content: "\e922"; /* ChromeMaximize */
-}
-
-.titlebar-restore {
-  content: "\e923"; /* ChromeRestore */
-}
-
-.titlebar-restore:-moz-locale-dir(rtl)::before {
-  transform: scaleX(-1);
-}
-
-.titlebar-close {
-  content: "\e8bb"; /* ChromeClose */
-}
-
-@media (-moz-windows-default-theme) {
-  #main-menubar > menu[_moz-menuactive="true"] {
-    color: inherit;
-  }
-
-  #main-menubar > menu[_moz-menuactive="true"],
-  .titlebar-button:hover {
-    background-color: hsla(0,0%,0%,.12);
-  }
-  .titlebar-button:hover:active {
-    background-color: hsla(0,0%,0%,.22);
-  }
-
-  #toolbar-menubar[brighttext] > #menubar-items > #main-menubar > menu[_moz-menuactive="true"],
-  toolbar[brighttext] .titlebar-button:not(.titlebar-close):hover {
-    background-color: hsla(0,0%,100%,.22);
-  }
-  toolbar[brighttext] .titlebar-button:not(.titlebar-close):hover:active {
-    background-color: hsla(0,0%,100%,.32);
-  }
-
-  .titlebar-close:hover {
-    color: white;
-    background-color: hsl(355,86%,49%);
-  }
-  .titlebar-close:hover:active {
-    background-color: hsl(355,82%,69%);
-  }
-
-  .titlebar-button:not(:hover):-moz-window-inactive::before {
-    opacity: 0.5;
-  }
-}
-
-@media (-moz-windows-default-theme: 0) {
-  .titlebar-button {
-    background-color: -moz-field;
-    color: ButtonText;
-  }
-  .titlebar-button:hover {
-    background-color: SelectedItem;
-    color: SelectedItemText;
-  }
-
-  .titlebar-min {
-    content: "\ef2d"; /* ChromeMinimizeContrast */
-  }
-
-  .titlebar-max {
-    content: "\ef2e"; /* ChromeMaximizeContrast */
-  }
-
-  .titlebar-restore {
-    content: "\ef2f"; /* ChromeRestoreContrast */
-  }
-
-  .titlebar-close {
-    content: "\ef2c"; /* ChromeCloseContrast */
+  @media (-moz-platform: windows-win8) {
+    /* Artificially draw window borders that are covered by lwtheme, see bug 591930.
+     * Borders for win7 are below, win10 only needs something like this when
+     * drawing in the titlebar (-moz-windows-accent-color-in-titlebar). */
+    #main-window[lwtheme][sizemode="normal"] #navigator-toolbox {
+      border-top: 1px solid var(--glass-shadow-color);
+    }
   }
 
   :root[darkwindowframe="true"]:not(:-moz-window-inactive, [lwtheme]) {
@@ -151,5 +256,67 @@
 
   :root:not([lwtheme]) #appcontent {
     background-color: -moz-dialog;
+  }
+}
+
+@media (-moz-windows-glass) {
+  :root:not([lwtheme]) #toolbar-menubar {
+    text-shadow: 0 0 .5em white, 0 0 .5em white, 0 1px 0 rgba(255,255,255,.4);
+  }
+
+  :root:not([lwtheme]) #main-menubar:not(:-moz-window-inactive) {
+    background-color: rgba(255,255,255,.5);
+    color: black;
+    border-radius: 4px;
+  }
+
+  /* Artificially draw window borders that are covered by lwtheme, see bug 591930.
+   * We use a different border for win8, and this win10+ only needs this if
+   * drawing in the titlebar (-moz-windows-accent-color-in-titlebar). */
+  #main-window[lwtheme][sizemode="normal"] #navigator-toolbox {
+    border-top: 1px solid var(--glass-active-border-color);
+    padding-top: 1px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset;
+  }
+
+  #main-window[lwtheme][sizemode="normal"] #navigator-toolbox:-moz-window-inactive {
+    border-top-color: var(--glass-inactive-border-color);
+  }
+}
+
+/* Aero Basic */
+@media (-moz-windows-compositor: 0) {
+  @media -moz-pref("sidebar.verticalTabs") {
+    #PersonalToolbar {
+      background-color: var(--toolbar-background-color);
+      color: var(--toolbar-text-color);
+    }
+  }
+
+  @media (-moz-windows-default-theme) {
+    :root {
+      background-color: rgb(185,209,234);
+    }
+    :root:-moz-window-inactive {
+      background-color: rgb(215,228,242);
+    }
+
+    /* Render a window top border for lwthemes: */
+    #main-window[customtitlebar][lwtheme][sizemode="normal"] #navigator-toolbox {
+      background-image: linear-gradient(to bottom,
+            var(--glass-active-border-color) 0, var(--glass-active-border-color) 1px,
+            rgba(255,255,255,.6) 1px, rgba(255,255,255,.6) 2px, transparent 2px);
+    }
+
+    #main-window[customtitlebar][lwtheme][sizemode="normal"] #navigator-toolbox:-moz-window-inactive {
+      background-image: linear-gradient(to bottom,
+            var(--glass-inactive-border-color) 0, var(--glass-inactive-border-color) 1px,
+            rgba(255,255,255,.6) 1px, rgba(255,255,255,.6) 2px, transparent 2px);
+    }
+  }
+
+  :root:not([lwtheme]) #print-preview-toolbar {
+    appearance: auto;
+    -moz-default-appearance: -moz-win-browsertabbar-toolbox;
   }
 }

@@ -39,6 +39,10 @@ button {
     color: GrayText;
     border-color: -moz-buttondisabledborder;
     background-color: -moz-buttondisabledface;
+    @media (-moz-windows-classic) {
+      color: ThreeDShadow;
+      text-shadow: 1px 1px ThreeDHighlight;
+    }
   }
 
   &.plain {

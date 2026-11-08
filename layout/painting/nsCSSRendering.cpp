@@ -22,6 +22,7 @@
 #include "gfxUtils.h"
 #include "imgIContainer.h"
 #include "mozilla/ComputedStyle.h"
+#include "mozilla/LookAndFeel.h"
 #include "mozilla/PresShell.h"
 #include "mozilla/ProfilerLabels.h"
 #include "mozilla/SVGImageContext.h"
@@ -1852,13 +1853,20 @@ bool nsCSSRendering::CanBuildWebRenderDisplayItemsForStyleImageLayer(
   MOZ_ASSERT(aFrame && aLayer >= 0 &&
              (uint32_t)aLayer < aBackgroundStyle->mImage.mLayers.Length());
 
+  bool isThemed = aFrame->IsThemed();
+#ifdef XP_WIN
+  const auto appearance = aFrame->StyleDisplay()->EffectiveAppearance();
+  if ((appearance == StyleAppearance::MozWindowTitlebar ||
+       appearance == StyleAppearance::MozWindowTitlebarMaximized) &&
+      LookAndFeel::GetInt(LookAndFeel::IntID::DWMCompositor)) {
+    // DWM supplies the glass; allow CSS backgrounds such as titlebar fog.
+    isThemed = false;
+  }
+#endif
+
   // We cannot draw native themed backgrounds
-  StyleAppearance appearance = aFrame->StyleDisplay()->EffectiveAppearance();
-  if (appearance != StyleAppearance::None) {
-    nsITheme* theme = aPresCtx.Theme();
-    if (theme->ThemeSupportsWidget(&aPresCtx, aFrame, appearance)) {
-      return false;
-    }
+  if (isThemed) {
+    return false;
   }
 
   // We only support painting gradients and image for a single style image
@@ -2451,23 +2459,29 @@ ImgDrawResult nsCSSRendering::PaintStyleImageLayerWithSC(
   MOZ_ASSERT(aParams.layer != -1 ||
              aParams.compositionOp == CompositionOp::OP_OVER);
 
-  // Check to see if we have an appearance defined.  If so, we let the theme
-  // renderer draw the background and bail out.
-  // XXXzw this ignores aParams.bgClipRect.
   StyleAppearance appearance =
       aParams.frame->StyleDisplay()->EffectiveAppearance();
-  if (appearance != StyleAppearance::None) {
+  bool isThemed = aParams.frame->IsThemed();
+#ifdef XP_WIN
+  if ((appearance == StyleAppearance::MozWindowTitlebar ||
+       appearance == StyleAppearance::MozWindowTitlebarMaximized) &&
+      LookAndFeel::GetInt(LookAndFeel::IntID::DWMCompositor)) {
+    // Keep the fallback path consistent with WebRender for titlebar fog.
+    isThemed = false;
+  }
+#endif
+
+  // Let the theme renderer draw native backgrounds and bail out.
+  // XXXzw this ignores aParams.bgClipRect.
+  if (isThemed) {
     nsITheme* theme = aParams.presCtx.Theme();
-    if (theme->ThemeSupportsWidget(&aParams.presCtx, aParams.frame,
-                                   appearance)) {
-      nsRect drawing(aParams.borderArea);
-      theme->GetWidgetOverflow(aParams.presCtx.DeviceContext(), aParams.frame,
-                               appearance, &drawing);
-      drawing.IntersectRect(drawing, aParams.dirtyRect);
-      theme->DrawWidgetBackground(&aRenderingCtx, aParams.frame, appearance,
-                                  aParams.borderArea, drawing);
-      return ImgDrawResult::SUCCESS;
-    }
+    nsRect drawing(aParams.borderArea);
+    theme->GetWidgetOverflow(aParams.presCtx.DeviceContext(), aParams.frame,
+                             appearance, &drawing);
+    drawing.IntersectRect(drawing, aParams.dirtyRect);
+    theme->DrawWidgetBackground(&aRenderingCtx, aParams.frame, appearance,
+                                aParams.borderArea, drawing);
+    return ImgDrawResult::SUCCESS;
   }
 
   // For canvas frames (in the CSS sense) we draw the background color using
