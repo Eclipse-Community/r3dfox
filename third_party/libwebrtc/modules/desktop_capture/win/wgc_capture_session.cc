@@ -689,7 +689,7 @@ HRESULT WgcCaptureSession::ProcessFrame() {
   // 1, 1.5, 2.5, etc.
   DEVICE_SCALE_FACTOR device_scale_factor = DEVICE_SCALE_FACTOR_INVALID;
   HRESULT scale_factor_hr =
-      GetScaleFactorForMonitor(monitor_.value(), &device_scale_factor);
+      GetScaleFactorForMonitorA(monitor_.value(), &device_scale_factor);
   RTC_LOG_IF(LS_ERROR, FAILED(scale_factor_hr))
       << "Failed to get scale factor for monitor: " << scale_factor_hr;
   if (device_scale_factor != DEVICE_SCALE_FACTOR_INVALID) {
@@ -827,7 +827,7 @@ HRESULT WgcCaptureSession::ProcessTexture(ComPtr<ID3D11Texture2D> texture,
   if (monitor_.has_value()) {
     DEVICE_SCALE_FACTOR device_scale_factor = DEVICE_SCALE_FACTOR_INVALID;
     HRESULT hr =
-        GetScaleFactorForMonitor(monitor_.value(), &device_scale_factor);
+        GetScaleFactorForMonitorA(monitor_.value(), &device_scale_factor);
     if (SUCCEEDED(hr) && device_scale_factor != DEVICE_SCALE_FACTOR_INVALID) {
       texture_frame->set_device_scale_factor(
           static_cast<float>(device_scale_factor) / 100.0f);
