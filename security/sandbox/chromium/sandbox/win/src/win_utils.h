@@ -84,6 +84,11 @@ bool ContainsNulCharacter(std::wstring_view str);
 // pre-loaded to support the infrastructure underlying crypto::RandBytes.
 void WarmupRandomnessInfrastructure();
 
+// Fallback function for GetCurrentProcessHandles. Should only be needed on
+// Windows 7 which doesn't support the API to query all process handles. This
+// uses a brute force method to get the process handles.
+absl::optional<ProcessHandleMap> GetCurrentProcessHandlesWin7();
+
 }  // namespace sandbox
 
 #endif  // SANDBOX_WIN_SRC_WIN_UTILS_H_
