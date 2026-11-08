@@ -14,6 +14,22 @@ toolbarbutton {
     outline: auto;
   }
 
+  @media (-moz-windows-default-theme) {
+    :root[lwtheme-image] & {
+      text-shadow: none;
+    }
+
+    :root[lwtheme-image] &:not([disabled]) {
+      text-shadow: inherit;
+    }
+  }
+
+  @media (-moz-windows-default-theme: 0) {
+    :root[lwtheme-image] &:not([disabled]) {
+      text-shadow: inherit;
+    }
+  }
+
   @media not (-moz-platform: macos) {
     &:where(:hover) {
       color: -moz-buttonhovertext;

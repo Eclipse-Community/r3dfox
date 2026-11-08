@@ -19,7 +19,7 @@
     background-color: light-dark(var(--color-black-alpha-10), var(--color-white-alpha-20));
     color: inherit;
 
-    @media (prefers-contrast) {
+    @media not (-moz-windows-default-theme) {
       background-color: -moz-menuhover;
       color: -moz-menuhovertext;
     }
@@ -137,7 +137,7 @@
     }
   }
 
-  @media not (prefers-contrast) {
+  @media (-moz-windows-default-theme) {
     &:hover {
       background-color: var(--toolbarbutton-background-color-hover);
 
@@ -156,7 +156,7 @@
     }
   }
 
-  @media (prefers-contrast) {
+  @media not (-moz-windows-default-theme) {
     background-color: Field;
     color: ButtonText; /* FIXME: shouldn't it be FieldText? */
 
@@ -173,7 +173,7 @@
    * DealWithWindowsAppearanceHacks */
   -moz-default-appearance: -moz-window-button-minimize;
   content: "\e921"; /* ChromeMinimize */
-  @media (prefers-contrast) {
+  @media not (-moz-windows-default-theme) {
     content: "\ef2d"; /* ChromeMinimizeContrast */
   }
 }
@@ -181,7 +181,7 @@
 .titlebar-max {
   -moz-default-appearance: -moz-window-button-maximize;
   content: "\e922"; /* ChromeMaximize */
-  @media (prefers-contrast) {
+  @media not (-moz-windows-default-theme) {
     content: "\ef2e"; /* ChromeMaximizeContrast */
   }
 }
@@ -189,7 +189,7 @@
 .titlebar-restore {
   -moz-default-appearance: -moz-window-button-restore;
   content: "\e923"; /* ChromeRestore */
-  @media (prefers-contrast) {
+  @media not (-moz-windows-default-theme) {
     content: "\ef2f"; /* ChromeRestoreContrast */
   }
 }
@@ -197,7 +197,7 @@
 .titlebar-close {
   -moz-default-appearance: -moz-window-button-close;
   content: "\e8bb"; /* ChromeClose */
-  @media (prefers-contrast) {
+  @media not (-moz-windows-default-theme) {
     content: "\ef2c"; /* ChromeCloseContrast */
   }
 }
@@ -229,7 +229,7 @@
   font-size: 1.15em;
 }
 
-@media (prefers-contrast) {
+@media not (-moz-windows-default-theme) {
   :root {
     /* Windows HCM conventions use these colors for chiclets. We can't use them on
        other platforms because AccentColor can be shown atop SelectedItem,
@@ -250,6 +250,14 @@
 
 /* Autocomplete */
 
+/* Address bar results view */
+
+@media not (-moz-windows-default-theme) {
+  :root:not([lwtheme]) {
+    --urlbar-popup-action-color: LinkText;
+  }
+}
+
 #PopupAutoComplete > richlistbox > richlistitem[originaltype~="datalist-first"] {
   border-top: 1px solid ThreeDShadow;
 }
@@ -261,8 +269,8 @@
   padding: 0;
 }
 
-@media (prefers-contrast) {
-  /* For high contrast themes. XXX is this needed anymore? */
+@media not (-moz-windows-default-theme) {
+  /* For high contrast themes. */
   #tabbrowser-tabpanels,
   :root[privatebrowsingmode="temporary"] #tabbrowser-tabpanels {
     background-color: -moz-default-background-color;

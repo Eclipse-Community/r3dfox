@@ -142,7 +142,7 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
   BOOL is_enabled;
 
   auto UseNonNativeMenuColors = [&]() -> bool {
-    return !mHighContrastOn || aScheme == ColorScheme::Dark;
+    return LookAndFeel::GetInt(LookAndFeel::IntID::WindowsDefaultTheme) || aScheme == ColorScheme::Dark;
   };
 
   auto IsHighlightColor = [&] {
@@ -585,6 +585,9 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
       break;
     case IntID::TreeScrollLinesMax:
       aResult = 3;
+      break;
+    case IntID::WindowsDefaultTheme:
+      aResult = IsDefaultWindowTheme();
       break;
     case IntID::WindowsAccentColorInTitlebar:
       aResult = mTitlebarColors.mUseAccent;
@@ -1030,6 +1033,7 @@ void nsLookAndFeel::EnsureInit() {
     return ::SystemParametersInfo(SPI_GETHIGHCONTRAST, 0, &hc, 0) &&
            hc.dwFlags & HCF_HIGHCONTRASTON;
   }();
+  mIsDefaultWindowsTheme = !mHighContrastOn;
 
   const bool neededMicaWorkaround = NeedsMicaWorkaround();
 
