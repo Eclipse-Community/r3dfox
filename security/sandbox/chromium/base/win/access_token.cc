@@ -23,6 +23,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/win/access_control_list.h"
 #include "base/win/win_util.h"
+#include "base/win/windows_version.h"
 
 namespace base::win {
 
@@ -481,6 +482,8 @@ DWORD AccessToken::IntegrityLevel() const {
 }
 
 bool AccessToken::SetIntegrityLevel(DWORD integrity_level) {
+  if (base::win::GetVersion() < base::win::Version::VISTA)
+    return true;
   std::optional<base::win::Sid> sid = Sid::FromIntegrityLevel(integrity_level);
   if (!sid) {
     ::SetLastError(ERROR_INVALID_SID);

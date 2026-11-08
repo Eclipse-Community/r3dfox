@@ -129,7 +129,8 @@ std::optional<base::win::AccessToken> CreateRestrictedToken(
         // current logon sid in the token to achieve this. You should also set
         // the process to be low integrity level so it can't access object
         // created by other processes.
-        restricted_token.AddRestrictingSidLogonSession();
+        if (base::win::GetVersion() >= base::win::Version::VISTA)
+          restricted_token.AddRestrictingSidLogonSession();
       } else {
         restricted_token.AddUserSidForDenyOnly();
       }
@@ -198,6 +199,8 @@ std::optional<base::win::AccessToken> CreateRestrictedToken(
 }
 
 DWORD HardenTokenIntegrityLevelPolicy(const base::win::AccessToken& token) {
+  if (base::win::GetVersion() < base::win::Version::WIN7)
+    return ERROR_SUCCESS;
   std::optional<base::win::SecurityDescriptor> sd =
       base::win::SecurityDescriptor::FromHandle(
           token.get(), base::win::SecurityObjectType::kKernel,

@@ -152,7 +152,8 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags starting_flags,
 
   base::win::Version version = base::win::GetVersion();
 
-  if (flags & MITIGATION_DLL_SEARCH_ORDER) {
+  if (version >= base::win::Version::VISTA &&
+      (flags & MITIGATION_DLL_SEARCH_ORDER)) {
     HMODULE module = ::GetModuleHandleA("kernel32.dll");
     SetDefaultDllDirectoriesFunction set_default_dll_directories =
         reinterpret_cast<SetDefaultDllDirectoriesFunction>(
@@ -169,7 +170,8 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags starting_flags,
   }
 
   // Set the heap to terminate on corruption
-  if (flags & MITIGATION_HEAP_TERMINATE) {
+  if (version >= base::win::Version::VISTA &&
+      (flags & MITIGATION_HEAP_TERMINATE)) {
     if (!::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption,
                               nullptr, 0)) {
       return false;
@@ -178,8 +180,9 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags starting_flags,
     applied_flags |= MITIGATION_HEAP_TERMINATE;
   }
 
-  if (flags & MITIGATION_HARDEN_TOKEN_IL_POLICY) {
-    std::optional<base::win::AccessToken> token =
+  if (version >= base::win::Version::WIN7 &&
+      (flags & MITIGATION_HARDEN_TOKEN_IL_POLICY)) {
+    absl::optional<base::win::AccessToken> token =
         base::win::AccessToken::FromCurrentProcess(/*impersonation=*/false,
                                                    READ_CONTROL | WRITE_OWNER);
     if (!token) {
@@ -195,6 +198,8 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags starting_flags,
 #if !defined(_WIN64)  // DEP is always enabled on 64-bit.
   if (flags & MITIGATION_DEP) {
     DWORD dep_flags = PROCESS_DEP_ENABLE;
+    // DEP support is quirky on XP, so don't force a failure in that case.
+    const bool return_on_fail = version >= base::win::Version::VISTA;
 
     if (combined_flags & MITIGATION_DEP_NO_ATL_THUNK)
       dep_flags |= PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION;
@@ -203,11 +208,36 @@ bool ApplyProcessMitigationsToCurrentProcess(MitigationFlags starting_flags,
         reinterpret_cast<SetProcessDEPPolicyFunction>(
             ::GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetProcessDEPPolicy"));
     if (set_process_dep_policy) {
-      if (!set_process_dep_policy(dep_flags)) {
+      if (!set_process_dep_policy(dep_flags) && return_on_fail) {
         return false;
       }
     } else {
-      return false;
+      // We're on XP sp2, so use the less standard approach.
+      // For reference: http://www.uninformed.org/?v=2&a=4
+      static const int MEM_EXECUTE_OPTION_DISABLE = 2;
+      static const int MEM_EXECUTE_OPTION_ATL7_THUNK_EMULATION = 4;
+      static const int MEM_EXECUTE_OPTION_PERMANENT = 8;
+
+      typedef NTSTATUS(WINAPI* NtSetInformationProcessFunction)(
+          HANDLE ProcessHandle,
+          IN PROCESSINFOCLASS ProcessInformationClass,
+          IN PVOID ProcessInformation,
+          IN ULONG ProcessInformationLength);
+
+      NtSetInformationProcessFunction set_information_process = NULL;
+      ResolveNTFunctionPtr("NtSetInformationProcess",
+                           &set_information_process);
+      if (!set_information_process)
+        return false;
+      ULONG dep = MEM_EXECUTE_OPTION_DISABLE | MEM_EXECUTE_OPTION_PERMANENT;
+      if (!(dep_flags & PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION))
+        dep |= MEM_EXECUTE_OPTION_ATL7_THUNK_EMULATION;
+      if (!SUCCEEDED(set_information_process(GetCurrentProcess(),
+                                             ProcessExecuteFlags,
+                                             &dep, sizeof(dep))) &&
+          ERROR_ACCESS_DENIED != ::GetLastError() && return_on_fail) {
+        return false;
+      }
     }
 
     applied_flags |=
@@ -471,6 +501,10 @@ void ConvertProcessMitigationsToPolicy(MitigationFlags flags,
 #error This platform is not supported.
 #endif
 
+  // Nothing for Win XP or Vista.
+  if (version <= base::win::Version::VISTA)
+    return;
+
 // DEP and SEHOP are not valid for 64-bit Windows
 #if !defined(_WIN64)
   if (flags & MITIGATION_DEP) {
@@ -684,6 +718,19 @@ void ConvertProcessMitigationsToComponentFilter(MitigationFlags flags,
 
 MitigationFlags FilterPostStartupProcessMitigations(MitigationFlags flags) {
   base::win::Version version = base::win::GetVersion();
+
+  // Windows XP SP2+.
+  if (version < base::win::Version::VISTA) {
+    return flags & (MITIGATION_DEP |
+                    MITIGATION_DEP_NO_ATL_THUNK);
+  }
+
+  // Windows Vista
+  if (version < base::win::Version::WIN7) {
+    return flags & (MITIGATION_BOTTOM_UP_ASLR |
+                    MITIGATION_DLL_SEARCH_ORDER |
+                    MITIGATION_HEAP_TERMINATE);
+  }
 
   // Windows 7.
   if (version < base::win::Version::WIN8) {

@@ -85,26 +85,31 @@ bool WarmupWindowsLocales() {
   // warmup all of these functions, but let's not assume that.
   ::GetUserDefaultLangID();
   ::GetUserDefaultLCID();
-  static GetUserDefaultLocaleNameFunction GetUserDefaultLocaleName_func =
-      nullptr;
-  if (!GetUserDefaultLocaleName_func) {
-    HMODULE kernel32_dll = ::GetModuleHandle(kKernel32DllName);
-    if (!kernel32_dll) {
-      return false;
-    }
-    GetUserDefaultLocaleName_func =
-        reinterpret_cast<GetUserDefaultLocaleNameFunction>(
-            GetProcAddress(kernel32_dll, "GetUserDefaultLocaleName"));
+  if (base::win::GetVersion() >= base::win::Version::VISTA) {
+    static GetUserDefaultLocaleNameFunction GetUserDefaultLocaleName_func =
+        nullptr;
     if (!GetUserDefaultLocaleName_func) {
-      return false;
+      HMODULE kernel32_dll = ::GetModuleHandle(kKernel32DllName);
+      if (!kernel32_dll) {
+        return false;
+      }
+      GetUserDefaultLocaleName_func =
+          reinterpret_cast<GetUserDefaultLocaleNameFunction>(
+              GetProcAddress(kernel32_dll, "GetUserDefaultLocaleName"));
+      if (!GetUserDefaultLocaleName_func) {
+        return false;
+      }
     }
+    wchar_t localeName[LOCALE_NAME_MAX_LENGTH] = {0};
+    return (0 != GetUserDefaultLocaleName_func(
+                     localeName, LOCALE_NAME_MAX_LENGTH * sizeof(wchar_t)));
   }
-  wchar_t localeName[LOCALE_NAME_MAX_LENGTH] = {};
-  return (0 != GetUserDefaultLocaleName_func(
-                   localeName, LOCALE_NAME_MAX_LENGTH * sizeof(wchar_t)));
+  return true;
 }
 
 bool SetProcessIntegrityLevel(IntegrityLevel integrity_level) {
+  if (base::win::GetVersion() < base::win::Version::VISTA)
+    return true;
   std::optional<DWORD> rid = GetIntegrityLevelRid(integrity_level);
   if (!rid) {
     // No mandatory level specified, we don't change it.
@@ -121,6 +126,8 @@ bool SetProcessIntegrityLevel(IntegrityLevel integrity_level) {
 }
 
 void SetProcessAclIntegrityLevel(IntegrityLevel integrity_level) {
+  if (base::win::GetVersion() < base::win::Version::VISTA)
+    return;
   std::optional<DWORD> rid = GetIntegrityLevelRid(integrity_level);
   if (!rid) {
     // No mandatory level specified, we don't change it.
