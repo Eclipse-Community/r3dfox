@@ -519,12 +519,9 @@ static HRESULT GetUpdateDirectory(const wchar_t* installPath,
     return hrv;
   }
 
-  PWSTR baseDirParentPath;
-  hrv = SHGetKnownFolderPath(FOLDERID_ProgramData, KF_FLAG_CREATE, nullptr,
-                             &baseDirParentPath);
-  // Free baseDirParentPath when it goes out of scope.
-  mozilla::UniquePtr<wchar_t, CoTaskMemFreeDeleter> baseDirParentPathUnique(
-      baseDirParentPath);
+  WCHAR baseDirParentPath[MAX_PATH];
+  hrv = SHGetFolderPathW(nullptr, CSIDL_COMMON_APPDATA | CSIDL_FLAG_CREATE,
+                         nullptr, SHGFP_TYPE_CURRENT, baseDirParentPath);
   if (FAILED(hrv)) {
     return hrv;
   }
