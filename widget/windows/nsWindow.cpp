@@ -1682,8 +1682,15 @@ void nsWindow::Show(bool aState) {
 #endif  // defined(ACCESSIBILITY)
   }
 
-  MOZ_ASSERT_IF(mWindowType == WindowType::Popup,
-                ChooseWindowClass(mWindowType) == kClassNameDropShadow);
+  if (mWindowType == WindowType::Popup) {
+    MOZ_ASSERT(ChooseWindowClass(mWindowType) == kClassNameDropShadow);
+    // WS_EX_COMPOSITED conflicts with the WS_EX_LAYERED style and causes
+    // some popup menus to become invisible.
+    LONG_PTR exStyle = ::GetWindowLongPtrW(mWnd, GWL_EXSTYLE);
+    if (exStyle & WS_EX_LAYERED) {
+      ::SetWindowLongPtrW(mWnd, GWL_EXSTYLE, exStyle & ~WS_EX_COMPOSITED);
+    }
+  }
 
   bool syncInvalidate = false;
 
@@ -1840,6 +1847,13 @@ void nsWindow::Show(bool aState) {
         }
       }
     } else {
+      // Clear contents to avoid ghosting of old content if we display
+      // this window again.
+      if (wasVisible && mTransparencyMode == TransparencyMode::Transparent) {
+        if (mCompositorWidgetDelegate) {
+          mCompositorWidgetDelegate->ClearTransparentWindow();
+        }
+      }
       if (mWindowType != WindowType::Dialog) {
         ::ShowWindow(mWnd, SW_HIDE);
       } else {
@@ -7209,6 +7223,17 @@ void nsWindow::SetTransparencyMode(TransparencyMode aMode) {
   }
 
   MOZ_ASSERT(WinUtils::GetTopLevelHWND(mWnd, true) == mWnd);
+  if (IsPopup() || !gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+    // This can probably go away if we make transparent popups report true in
+    // WidgetTypeSupportsAcceleration(). See there for context.
+    LONG_PTR exStyle = ::GetWindowLongPtr(mWnd, GWL_EXSTYLE);
+    if (aMode == TransparencyMode::Transparent) {
+      exStyle |= WS_EX_LAYERED;
+    } else {
+      exStyle &= ~WS_EX_LAYERED;
+    }
+    ::SetWindowLongPtrW(mWnd, GWL_EXSTYLE, exStyle);
+  }
   MOZ_ASSERT(GetTopLevelWindow(true) == this);
 
   mTransparencyMode = aMode;
@@ -8012,7 +8037,47 @@ void nsWindow::PickerClosed() {
   }
 }
 
-bool nsWindow::WidgetTypeSupportsAcceleration() { return true; }
+bool nsWindow::WidgetTypeSupportsAcceleration() {
+  // We don't currently support using an accelerated layer manager with
+  // transparent windows so don't even try. I'm also not sure if we even
+  // want to support this case. See bug 593471.
+  //
+  // Windows' support for transparent accelerated surfaces isn't great.
+  // Some possible approaches:
+  //  - Readback the data and update it using
+  //  UpdateLayeredWindow/UpdateLayeredWindowIndirect
+  //    This is what WPF does. See
+  //    CD3DDeviceLevel1::PresentWithGDI/CD3DSwapChainWithSwDC in WpfGfx. The
+  //    rationale for not using IDirect3DSurface9::GetDC is explained here:
+  //    https://web.archive.org/web/20160521191104/https://blogs.msdn.microsoft.com/dwayneneed/2008/09/08/transparent-windows-in-wpf/
+  //  - Use D3D11_RESOURCE_MISC_GDI_COMPATIBLE, IDXGISurface1::GetDC(),
+  //    and UpdateLayeredWindowIndirect.
+  //    This is suggested here:
+  //    https://docs.microsoft.com/en-us/archive/msdn-magazine/2009/december/windows-with-c-layered-windows-with-direct2d
+  //    but might have the same problem that IDirect3DSurface9::GetDC has.
+  //  - Creating the window with the WS_EX_NOREDIRECTIONBITMAP flag and use
+  //  DirectComposition.
+  //    Not supported on Win7.
+  //  - Using DwmExtendFrameIntoClientArea with negative margins and something
+  //  to turn off the glass effect.
+  //    This doesn't work when the DWM is not running (Win7)
+  //
+  // Also see bug 1150376, D3D11 composition can cause issues on some devices
+  // on Windows 7 where presentation fails randomly for windows with drop
+  // shadows.
+  if (mTransparencyMode == TransparencyMode::Transparent &&
+      !gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+    return false;
+  }
+  if (IsPopup()) {
+    // This transparency+popup checks go back to bug 1150376 and bug 943204,
+    // but removing it causes reproducible timeouts on automation, see bug
+    // 1891063 comment 11.
+    return mTransparencyMode != TransparencyMode::Transparent &&
+           !DeviceManagerDx::Get()->IsWARP();
+  }
+  return true;
+}
 
 bool nsWindow::DispatchTouchEventFromWMPointer(
     UINT msg, LPARAM aLParam, const WinPointerInfo& aPointerInfo,

@@ -177,6 +177,20 @@ bool nsWindow::OnPaint() {
   }
   mLastPaintBounds = mBounds;
 
+  // For layered translucent popups all drawing should go to memory DC and no
+  // WM_PAINT messages are normally generated. To support asynchronous painting
+  // we force generation of WM_PAINT messages by invalidating window areas with
+  // RedrawWindow, InvalidateRect or InvalidateRgn function calls.
+  const bool usingMemoryDC =
+      isFallback && isTransparent &&
+      (::GetWindowLongPtrW(mWnd, GWL_EXSTYLE) & WS_EX_LAYERED);
+  const LayoutDeviceIntRect winRect = [&] {
+    RECT r;
+    ::GetWindowRect(mWnd, &r);
+    ::MapWindowPoints(nullptr, mWnd, (LPPOINT)&r, 2);
+    return WinUtils::ToIntRect(r);
+  }();
+
   RefPtr<nsWindow> strongThis(this);
   // BeginPaint/EndPaint must be called to make Windows think that invalid
   // area is painted. Otherwise it will continue sending the same message
@@ -186,15 +200,32 @@ bool nsWindow::OnPaint() {
   // [1]:
   // https://learn.microsoft.com/en-us/windows/win32/gdi/the-wm-paint-message
   HDC hDC = ::BeginPaint(mWnd, &ps);
-  auto endPaint = MakeScopeExit([&] {
+  if (usingMemoryDC) {
     ::EndPaint(mWnd, &ps);
+    // We're guaranteed to have a widget proxy since we called
+    // GetLayerManager().
+    hDC = mBasicLayersSurface->GetTransparentDC();
+  }
+  auto endPaint = MakeScopeExit([&] {
+    if (!usingMemoryDC) {
+      ::EndPaint(mWnd, &ps);
+    }
     mLastPaintEndTime = TimeStamp::Now();
   });
 
   Maybe<FallbackPaintContext> fallback;
   if (isFallback) {
-    uint32_t flags = isTransparent ? gfxWindowsSurface::FLAG_IS_TRANSPARENT : 0;
-    auto targetSurface = MakeRefPtr<gfxWindowsSurface>(hDC, flags);
+    RefPtr<gfxASurface> targetSurface;
+    if (usingMemoryDC) {
+      // This mutex needs to be held when EnsureTransparentSurface is
+      // called.
+      MutexAutoLock lock(mBasicLayersSurface->GetTransparentSurfaceLock());
+      targetSurface = mBasicLayersSurface->EnsureTransparentSurface();
+    }
+    if (!targetSurface) {
+      uint32_t flags = isTransparent ? gfxWindowsSurface::FLAG_IS_TRANSPARENT : 0;
+      targetSurface = new gfxWindowsSurface(hDC, flags);
+    }
     RECT paintRect;
     ::GetClientRect(mWnd, &paintRect);
     RefPtr<DrawTarget> dt = gfxPlatform::CreateDrawTargetForSurface(
@@ -205,18 +236,22 @@ bool nsWindow::OnPaint() {
       return false;
     }
 
+    if (usingMemoryDC) {
+      dt->ClearRect(Rect(dt->GetRect()));
+    }
     fallback.emplace(this, std::move(targetSurface), std::move(dt));
   }
 
-  LayoutDeviceIntRegion region = GetRegionToPaint(ps, hDC);
-  if (!mClearedRegion.IsEmpty()) {
+  LayoutDeviceIntRegion region = usingMemoryDC ? LayoutDeviceIntRegion{winRect}
+                                             : GetRegionToPaint(ps, hDC);
+  if (!usingMemoryDC && !mClearedRegion.IsEmpty()) {
     // Don't consider regions that Windows has told us to repaint as clear, even
     // if we've cleared them before.
     mClearedRegion.SubOut(region);
   }
 
   auto ComputeAndClearTranslucentRegion = [&]() {
-    if (!isTransparent) {
+    if (!isTransparent || usingMemoryDC) {
       return;
     }
     const LayoutDeviceIntRegion translucentRegion = GetTranslucentRegion();
@@ -274,6 +309,14 @@ bool nsWindow::OnPaint() {
   debug_DumpPaintEvent(stdout, this, region.ToUnknownRegion(), "noname",
                        (int32_t)mWnd);
 #endif  // WIDGET_DEBUG_OUTPUT
+
+  if (usingMemoryDC) {
+    // Data from offscreen drawing surface was copied to memory bitmap of
+    // transparent bitmap. Now it can be read from memory bitmap to apply
+    // alpha channel and after that displayed on the screen.
+    fallback.reset();
+    mBasicLayersSurface->RedrawTransparentWindow();
+  }
 
   if (!isFallback && !gfxEnv::MOZ_DISABLE_FORCE_PRESENT()) {
     NS_DispatchToMainThread(NewRunnableMethod("nsWindow::ForcePresent", this,
