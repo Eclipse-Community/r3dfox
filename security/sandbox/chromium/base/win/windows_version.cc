@@ -31,6 +31,10 @@
 #error Windows 10.0.26100.0 SDK or higher required.
 #endif
 
+namespace {
+typedef BOOL(WINAPI* GetProductInfoPtr)(DWORD, DWORD, DWORD, DWORD, PDWORD);
+}  // namespace
+
 namespace base {
 namespace win {
 
@@ -96,8 +100,14 @@ OSInfo** OSInfo::GetInstanceStorage() {
 #pragma clang diagnostic pop
 
     DWORD os_type = 0;
-    ::GetProductInfo(version_info.dwMajorVersion, version_info.dwMinorVersion,
-                     0, 0, &os_type);
+    if (version_info.dwMajorVersion == 6 || version_info.dwMajorVersion == 10) {
+      // Only present on Vista+.
+      GetProductInfoPtr get_product_info =
+          reinterpret_cast<GetProductInfoPtr>(::GetProcAddress(
+              ::GetModuleHandleW(L"kernel32.dll"), "GetProductInfo"));
+      get_product_info(version_info.dwMajorVersion, version_info.dwMinorVersion,
+                       0, 0, &os_type);
+    }
 
     return new OSInfo(version_info, GetSystemInfoStorage(), os_type);
   }();
@@ -518,8 +528,13 @@ OSInfo::WowNativeMachine OSInfo::GetWowNativeMachineArchitecture(
 }
 
 void OSInfo::InitializeWowStatusValuesFromLegacyApi(HANDLE process_handle) {
+  typedef BOOL(WINAPI * IsWow64ProcessFunc)(HANDLE, PBOOL);
+  IsWow64ProcessFunc is_wow64_process = reinterpret_cast<IsWow64ProcessFunc>(
+      GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "IsWow64Process"));
+  if (!is_wow64_process)
+    return;
   BOOL is_wow64 = FALSE;
-  if (!::IsWow64Process(process_handle, &is_wow64)) {
+  if (!(*is_wow64_process)(process_handle, &is_wow64)) {
     return;
   }
   if (is_wow64) {
