@@ -101,6 +101,7 @@
 #include "jsapi.h"
 #include "js/Initialization.h"
 #include "XPCSelfHostedShmem.h"
+#include "mozilla/WindowsVersion.h"
 
 #include "gfxPlatform.h"
 
