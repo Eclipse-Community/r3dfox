@@ -246,7 +246,7 @@ nsGNOMEShellService::IsDefaultForScheme(const nsACString& aScheme,
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::SetDefaultBrowser(bool aForAllUsers) {
+nsGNOMEShellService::SetDefaultBrowser(bool aClaimAllTypes, bool aForAllUsers) {
 #ifdef DEBUG
   if (aForAllUsers)
     NS_WARNING(
@@ -292,16 +292,20 @@ nsGNOMEShellService::SetDefaultBrowser(bool aForAllUsers) {
 
     // set handler for the protocols
     for (auto appProtocol : appProtocols) {
-      appInfo->SetAsDefaultForURIScheme(nsDependentCString(appProtocol.name));
+      if (appProtocol.essential || aClaimAllTypes) {
+        appInfo->SetAsDefaultForURIScheme(nsDependentCString(appProtocol.name));
+      }
     }
 
     // set handler for .html and xhtml files and MIME types:
-    // Add mime types for html, xhtml extension and set app to just created
-    // appinfo.
-    for (auto appType : appTypes) {
-      appInfo->SetAsDefaultForMimeType(nsDependentCString(appType.mimeType));
-      appInfo->SetAsDefaultForFileExtensions(
-          nsDependentCString(appType.extensions));
+    if (aClaimAllTypes) {
+      // Add mime types for html, xhtml extension and set app to just created
+      // appinfo.
+      for (auto appType : appTypes) {
+        appInfo->SetAsDefaultForMimeType(nsDependentCString(appType.mimeType));
+        appInfo->SetAsDefaultForFileExtensions(
+            nsDependentCString(appType.extensions));
+      }
     }
   }
 
