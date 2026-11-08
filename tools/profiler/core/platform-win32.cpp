@@ -168,7 +168,11 @@ static RunningTimes GetProcessRunningTimesDiff(
   RunningTimes newRunningTimes;
   {
     AUTO_PROFILER_STATS(GetProcessRunningTimes_QueryProcessCycleTime);
-    if (ULONG64 cycles; QueryProcessCycleTime(processHandle, &cycles) != 0) {
+typedef BOOL (WINAPI *Func_QueryProcessCycleTime)(HANDLE Process, PULONG64 CycleTime);
+    HMODULE kern = ::GetModuleHandleW(L"kernel32.dll");
+    Func_QueryProcessCycleTime my_QueryProcessCycleTime = (Func_QueryProcessCycleTime)
+        ::GetProcAddress(kern, "QueryProcessCycleTime");
+    if (ULONG64 cycles; my_QueryProcessCycleTime && my_QueryProcessCycleTime(processHandle, &cycles) != 0) {
       newRunningTimes.SetThreadCPUDelta(cycles);
     }
     newRunningTimes.SetPostMeasurementTimeStamp(TimeStamp::Now());
