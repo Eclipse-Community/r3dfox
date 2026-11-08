@@ -440,12 +440,25 @@ nsresult GetMsixProgId(const wchar_t* assoc, UniquePtr<wchar_t[]>& aProgId) {
   // HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages\[Package Full Name]\App\Capabilities\[FileAssociations | URLAssociations]\[File | URL]
   // clang-format on
 
+typedef LONG(WINAPI *GetCurrentPackageFullName_t)(UINT32 *packageFullNameLength, PWSTR packageFullName);
+
+static GetCurrentPackageFullName_t WIN_GetCurrentPackageFullName;
+
+    if (!WIN_GetCurrentPackageFullName) {
+        HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+        WIN_GetCurrentPackageFullName = (GetCurrentPackageFullName_t)GetProcAddress(kernel32, "GetCurrentPackageFullName");
+    }
+
+    if (!WIN_GetCurrentPackageFullName) {
+        return NS_OK;
+    }
+
   UINT32 pfnLen = 0;
-  LONG rv = GetCurrentPackageFullName(&pfnLen, nullptr);
+  LONG rv = WIN_GetCurrentPackageFullName(&pfnLen, nullptr);
   NS_ENSURE_TRUE(rv != APPMODEL_ERROR_NO_PACKAGE, NS_ERROR_FAILURE);
 
   auto pfn = mozilla::MakeUnique<wchar_t[]>(pfnLen);
-  rv = GetCurrentPackageFullName(&pfnLen, pfn.get());
+  rv = WIN_GetCurrentPackageFullName(&pfnLen, pfn.get());
   NS_ENSURE_TRUE(rv == ERROR_SUCCESS, NS_ERROR_FAILURE);
 
   const wchar_t* assocSuffix;
