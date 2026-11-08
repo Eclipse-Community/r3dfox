@@ -5,6 +5,8 @@
 #include <vector>
 
 #include <windows.h>
+#define PSAPI_VERSION 1
+#include <psapi.h>
 #include <sddl.h>
 
 #include "utils_win.h"
@@ -138,14 +140,14 @@ DWORD CreatePipe(
 }
 
 bool GetProcessPath(unsigned long pid, std::string* binary_path) {
-  HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+  HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
   if (hProc == nullptr) {
     return false;
   }
   
   char path[MAX_PATH];
   DWORD size = sizeof(path);
-  DWORD length = QueryFullProcessImageNameA(hProc, /*flags=*/0, path, &size);
+  DWORD length = GetModuleFileNameExA(hProc, /*flags=*/0, path, size);
   CloseHandle(hProc);
   if (length == 0) {
     return false;
