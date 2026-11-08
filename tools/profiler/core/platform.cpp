@@ -7747,6 +7747,28 @@ void profiler_record_wakeup_count(const nsACString& aProcessType) {
 #endif
 }
 
+static DWORD rtThreadGetCurrentProcessorNumber(void)
+{
+    static bool           fInitialized = false;
+    static DWORD (WINAPI *pfnGetCurrentProcessorNumber)(void) = NULL;
+    if (!fInitialized)
+    {
+        HMODULE hmodKernel32 = GetModuleHandleW(L"kernel32.dll");
+        if (hmodKernel32)
+            pfnGetCurrentProcessorNumber = (DWORD (WINAPI*)(void))GetProcAddress(hmodKernel32, "GetCurrentProcessorNumber");
+        fInitialized = true;
+    }
+    if (pfnGetCurrentProcessorNumber)
+        return pfnGetCurrentProcessorNumber();
+    DWORD_PTR xBX;
+    __asm
+    {
+        mov     eax, 1
+        cpuid
+        mov     [xBX], ebx
+    }
+    return (DWORD)(xBX);
+}
 void profiler_mark_thread_awake() {
   ++gWakeCount;
   if (!profiler_thread_is_being_profiled_for_markers()) {
@@ -7756,7 +7778,7 @@ void profiler_mark_thread_awake() {
 #if !defined(GP_PLAT_unknown) && !defined(GP_PLAT_arm64_darwin)
   int64_t cpuId = 0;
 #  if defined(GP_OS_windows)
-  cpuId = GetCurrentProcessorNumber();
+  cpuId = rtThreadGetCurrentProcessorNumber();
 #  elif defined(GP_OS_darwin)
 #    ifdef GP_PLAT_amd64_darwin
   unsigned int eax, ebx, ecx, edx;
