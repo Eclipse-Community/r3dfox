@@ -364,6 +364,10 @@ menuitem[highlightable] > .menu-text {
     margin-inline-end: 0.5em;
   }
   @media (-moz-platform: windows) {
+    :is(.menu-iconic, .menuitem-iconic) > & {
+      appearance: auto;
+      -moz-default-appearance: menuimage;
+    }
     margin-top: var(--space-xxsmall);
     margin-inline-end: var(--space-small);
   }
