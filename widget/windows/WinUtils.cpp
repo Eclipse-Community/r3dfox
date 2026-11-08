@@ -2026,7 +2026,43 @@ void WinUtils::EnableWindowOcclusion(const bool aEnable) {
 
 bool WinUtils::GetTimezoneName(wchar_t* aBuffer) {
   DYNAMIC_TIME_ZONE_INFORMATION tzInfo;
-  DWORD tzid = GetDynamicTimeZoneInformation(&tzInfo);
+/*********************************************************************************************************************************
+*   Structures and Typedefs                                                                                                      *
+*********************************************************************************************************************************/
+typedef DWORD (WINAPI *PFNGETDYNAMICTIMEZONEINFORMATION)(PDYNAMIC_TIME_ZONE_INFORMATION);
+
+
+/*********************************************************************************************************************************
+*   Global Variables                                                                                                             *
+*********************************************************************************************************************************/
+/** Pointer to the GetDynamicTimeZoneInformation API if present. */
+static PFNGETDYNAMICTIMEZONEINFORMATION g_pfnGetDynamicTimeZoneInformation = NULL;
+/** Flipped after we've tried to resolve g_pfnGetDynamicTimeZoneInformation.  */
+static bool volatile                    g_fResolvedApi = false;
+
+
+    /*
+     * Resolve API.
+     */
+    PFNGETDYNAMICTIMEZONEINFORMATION pfnApi;
+    if (g_fResolvedApi)
+        pfnApi = g_pfnGetDynamicTimeZoneInformation;
+    else
+    {
+        pfnApi = (PFNGETDYNAMICTIMEZONEINFORMATION)GetProcAddress(GetModuleHandleW(L"kernel32"), "GetDynamicTimeZoneInformation");
+        g_pfnGetDynamicTimeZoneInformation = pfnApi;
+        g_fResolvedApi = true;
+    }
+
+  DWORD tzid;
+    if (pfnApi)
+    {
+        tzid = pfnApi(&tzInfo);
+    }
+    else
+    {
+        return false;
+    }
 
   if (tzid == TIME_ZONE_ID_INVALID) {
     return false;
