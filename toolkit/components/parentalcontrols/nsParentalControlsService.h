@@ -10,6 +10,11 @@
 #include "nsIURI.h"
 
 #if defined(XP_WIN)
+// wpcevents.h requires this be elevated
+#if (WINVER < 0x0600)
+# undef WINVER
+# define WINVER 0x0600
+#endif
 #  include <wpcapi.h>
 #  include <wpcevent.h>
 #endif
