@@ -204,6 +204,8 @@
 
 #include <d3d11.h>
 
+#include "InkCollector.h"
+
 // ERROR from wingdi.h (below) gets undefined by some code.
 // #define ERROR               0
 // #define RGN_ERROR ERROR
@@ -350,7 +352,8 @@ static void RegisterWindowClass(const wchar_t* aClassName, UINT aExtraStyle,
 // Global event hook for window cloaking. Never deregistered.
 //  - `Nothing` if not yet set.
 //  - `Some(nullptr)` if no attempt should be made to set it.
-static mozilla::Maybe<HWINEVENTHOOK> sWinCloakEventHook = Nothing();
+static mozilla::Maybe<HWINEVENTHOOK> sWinCloakEventHook =
+    IsWin8OrLater() ? Nothing() : Some(HWINEVENTHOOK(nullptr));
 static mozilla::LazyLogModule sCloakingLog("DWMCloaking");
 
 namespace mozilla {
@@ -624,6 +627,10 @@ class TIPMessageHandler {
   }
 
   static void Initialize() {
+    if (!IsWin8OrLater()) {
+      return;
+    }
+
     if (sInstance) {
       return;
     }
@@ -656,6 +663,16 @@ class TIPMessageHandler {
     mHook = ::SetWindowsHookEx(WH_GETMESSAGE, &TIPHook, nullptr,
                                ::GetCurrentThreadId());
     NS_WARNING_ASSERTION(mHook, "SetWindowsHookEx(WH_GETMESSAGE) failed");
+
+    // On touchscreen devices, tiptsf.dll will have been loaded when STA COM was
+    // first initialized.
+    if (!IsWin10OrLater() && GetModuleHandle(L"tiptsf.dll") &&
+        !sProcessCaretEventsStub) {
+      sTipTsfInterceptor.Init("tiptsf.dll");
+      DebugOnly<bool> ok = sProcessCaretEventsStub.Set(
+          sTipTsfInterceptor, "ProcessCaretEvents", &ProcessCaretEventsHook);
+      MOZ_ASSERT(ok);
+    }
 
     if (!sSendMessageTimeoutWStub) {
       sUser32Intercept.Init("user32.dll");
@@ -703,6 +720,16 @@ class TIPMessageHandler {
     return ::CallNextHookEx(nullptr, aCode, aWParam, aLParam);
   }
 
+  static void CALLBACK ProcessCaretEventsHook(HWINEVENTHOOK aWinEventHook,
+                                              DWORD aEvent, HWND aHwnd,
+                                              LONG aObjectId, LONG aChildId,
+                                              DWORD aGeneratingTid,
+                                              DWORD aEventTime) {
+    A11yInstantiationBlocker block;
+    sProcessCaretEventsStub(aWinEventHook, aEvent, aHwnd, aObjectId, aChildId,
+                            aGeneratingTid, aEventTime);
+  }
+
   static LRESULT WINAPI SendMessageTimeoutWHook(HWND aHwnd, UINT aMsgCode,
                                                 WPARAM aWParam, LPARAM aLParam,
                                                 UINT aFlags, UINT aTimeout,
@@ -728,6 +755,9 @@ class TIPMessageHandler {
     return static_cast<LRESULT>(TRUE);
   }
 
+  static WindowsDllInterceptor sTipTsfInterceptor;
+  static WindowsDllInterceptor::FuncHookType<WINEVENTPROC>
+      sProcessCaretEventsStub;
   static WindowsDllInterceptor::FuncHookType<decltype(&SendMessageTimeoutW)>
       sSendMessageTimeoutWStub;
   static StaticAutoPtr<TIPMessageHandler> sInstance;
@@ -737,6 +767,9 @@ class TIPMessageHandler {
   uint32_t mA11yBlockCount;
 };
 
+WindowsDllInterceptor TIPMessageHandler::sTipTsfInterceptor;
+WindowsDllInterceptor::FuncHookType<WINEVENTPROC>
+    TIPMessageHandler::sProcessCaretEventsStub;
 WindowsDllInterceptor::FuncHookType<decltype(&SendMessageTimeoutW)>
     TIPMessageHandler::sSendMessageTimeoutWStub;
 StaticAutoPtr<TIPMessageHandler> TIPMessageHandler::sInstance;
@@ -768,6 +801,10 @@ class InitializeVirtualDesktopManagerTask : public Task {
 #endif
 
   virtual TaskResult Run() override {
+    if (!IsWin10OrLater()) {
+      return TaskResult::Complete;
+    }
+
     RefPtr<IVirtualDesktopManager> desktopManager;
     HRESULT hr = ::CoCreateInstance(
         CLSID_VirtualDesktopManager, NULL, CLSCTX_INPROC_SERVER,
@@ -848,6 +885,9 @@ nsWindow::nsWindow()
     NS_ASSERTION(sIsOleInitialized, "***** OLE is not initialized!\n");
     MouseScrollHandler::Initialize();
     RedirectedKeyDownMessageManager::Forget();
+    if (mPointerEvents.ShouldEnableInkCollector()) {
+      InkCollector::sInkCollector = new InkCollector();
+    }
   }  // !sInstanceCount
 
   sInstanceCount++;
@@ -872,6 +912,10 @@ nsWindow::~nsWindow() {
 
   // Global shutdown
   if (sInstanceCount == 0) {
+    if (InkCollector::sInkCollector) {
+      InkCollector::sInkCollector->Shutdown();
+      InkCollector::sInkCollector = nullptr;
+    }
     sCurrentCursor = {};
     if (sIsOleInitialized) {
       // When we reach here, IMEHandler::Terminate() should've already been
@@ -960,6 +1004,13 @@ void nsWindow::RecreateDirectManipulationIfNeeded() {
     return;
   }
 
+  if (!IsWin10OrLater()) {
+    // Chrome source said the Windows Direct Manipulation implementation had
+    // important bugs until Windows 10 (although IE on Windows 8.1 seems to use
+    // Direct Manipulation).
+    return;
+  }
+
   mDmOwner = MakeUnique<DirectManipulationOwner>(this);
 
   LayoutDeviceIntRect bounds = mBounds;
@@ -1037,7 +1088,25 @@ nsresult nsWindow::Create(nsIWidget* aParent, const LayoutDeviceIntRect& aRect,
       .ex = static_cast<LONG_PTR>(WindowExStyle()),
   };
 
-  if (mWindowType != WindowType::Popup) {
+  // When window is PiP window on Windows7, WS_EX_COMPOSITED is set to suppress
+  // flickering during resizing with hardware acceleration.
+  bool isPIPWindow = aInitData.mPiPType != PiPType::NoPiP;
+  if (isPIPWindow && !IsWin8OrLater() &&
+      gfxConfig::IsEnabled(gfx::Feature::HW_COMPOSITING) &&
+      WidgetTypeSupportsAcceleration()) {
+    desiredStyles.ex |= WS_EX_COMPOSITED;
+  }
+
+  if (mWindowType == WindowType::Popup) {
+    if (!IsWin8OrLater() && HasBogusPopupsDropShadowOnMultiMonitor() &&
+        ShouldUseOffMainThreadCompositing()) {
+      desiredStyles.ex |= WS_EX_COMPOSITED;
+    }
+    if (mTransparencyMode == TransparencyMode::Opaque &&
+        !gfxWindowsPlatform::GetPlatform()->DwmCompositionEnabled()) {
+      desiredStyles.ex &= ~WS_EX_COMPOSITED;
+    }
+  } else {
     // See if the caller wants to explicitly set clip children and clip siblings
     if (aInitData.mClipChildren) {
       desiredStyles.style |= WS_CLIPCHILDREN;
@@ -2757,6 +2826,9 @@ void nsWindow::UpdateGetWindowInfoCaptionStatus(bool aActiveCaption) {
 }
 
 void nsWindow::SetColorScheme(const Maybe<ColorScheme>& aScheme) {
+  if (!IsWin10OrLater()) {
+    return;
+  }
   BOOL dark =
       aScheme.valueOrFrom(LookAndFeel::SystemColorScheme) == ColorScheme::Dark;
   DwmSetWindowAttribute(mWnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, &dark,
@@ -4319,6 +4391,17 @@ bool nsWindow::DispatchMouseEvent(EventMessage aEventMessage, WPARAM wParam,
   uint32_t pointerId =
       aPointerInfo ? aPointerInfo->pointerId : MOUSE_POINTERID();
 
+  // Since it is unclear whether a user will use the digitizer,
+  // Postpone initialization until first PEN message will be found.
+  if (MouseEvent_Binding::MOZ_SOURCE_PEN == aInputSource
+      // Messages should be only at topLevel window.
+      && WindowType::TopLevel == mWindowType
+      // Currently this scheme is used only when pointer events is enabled.
+      && InkCollector::sInkCollector) {
+    InkCollector::sInkCollector->SetTarget(mWnd);
+    InkCollector::sInkCollector->SetPointerId(pointerId);
+  }
+
   switch (aEventMessage) {
     case eMouseDown:
       // If the mouse was pressed down in the nonclient region, we do not
@@ -5460,6 +5543,21 @@ bool nsWindow::ProcessMessageInternal(UINT msg, WPARAM& wParam, LPARAM& lParam,
       LPARAM pos = lParamToClient(::GetMessagePos());
       DispatchMouseEvent(eMouseExitFromWidget, mouseState, pos, false,
                          MouseButton::ePrimary, MOUSE_INPUT_SOURCE());
+    } break;
+
+    case MOZ_WM_PEN_LEAVES_HOVER_OF_DIGITIZER: {
+      LPARAM pos = lParamToClient(::GetMessagePos());
+      MOZ_ASSERT(InkCollector::sInkCollector);
+      uint16_t pointerId = InkCollector::sInkCollector->GetPointerId();
+      if (pointerId != 0) {
+        WinPointerInfo pointerInfo;
+        pointerInfo.pointerId = pointerId;
+        DispatchMouseEvent(eMouseExitFromWidget, wParam, pos, false,
+                           MouseButton::ePrimary,
+                           MouseEvent_Binding::MOZ_SOURCE_PEN, &pointerInfo);
+        InkCollector::sInkCollector->ClearTarget();
+        InkCollector::sInkCollector->ClearPointerId();
+      }
     } break;
 
     case WM_CONTEXTMENU: {
@@ -7325,6 +7423,7 @@ void nsWindow::OnDPIChanged(int32_t x, int32_t y, int32_t width,
 /* static */
 void nsWindow::OnCloakEvent(HWND aWnd, bool aCloaked) {
   MOZ_ASSERT(NS_IsMainThread());
+  MOZ_ASSERT(IsWin8OrLater());
 
   const char* const kEventName = aCloaked ? "CLOAKED" : "UNCLOAKED";
   nsWindow* pWin = WinUtils::GetNSWindowPtr(aWnd);
@@ -9049,6 +9148,25 @@ nsresult nsWindow::RestoreHiDPIMode() { return WinUtils::RestoreHiDPIMode(); }
 
 mozilla::Maybe<UINT> nsWindow::GetHiddenTaskbarEdge() {
   HMONITOR windowMonitor = ::MonitorFromWindow(mWnd, MONITOR_DEFAULTTONEAREST);
+
+  if (!IsWin8OrLater()) {
+    // Per-monitor taskbar information is not available.
+    APPBARDATA appBarData;
+    appBarData.cbSize = sizeof(appBarData);
+    UINT taskbarState = SHAppBarMessage(ABM_GETSTATE, &appBarData);
+    if (ABS_AUTOHIDE & taskbarState) {
+      appBarData.hWnd = FindWindow(L"Shell_TrayWnd", nullptr);
+      if (appBarData.hWnd) {
+        HMONITOR taskbarMonitor =
+            ::MonitorFromWindow(appBarData.hWnd, MONITOR_DEFAULTTOPRIMARY);
+        if (taskbarMonitor == windowMonitor) {
+          SHAppBarMessage(ABM_GETTASKBARPOS, &appBarData);
+          return Some(appBarData.uEdge);
+        }
+      }
+    }
+    return Nothing();
+  }
 
   // Check all four sides of our monitor for an appbar.  Skip any that aren't
   // the system taskbar.

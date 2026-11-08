@@ -68,6 +68,7 @@
 #include "CubebUtils.h"
 #include "DecoderDoctorLogger.h"
 #include "MediaDecoder.h"
+#include "MediaManager.h"
 #include "RLBoxWOFF2Types.h"
 #include "RestoreTabContentObserver.h"
 #include "ThirdPartyUtil.h"
@@ -206,6 +207,7 @@ nsresult nsLayoutStatics::Initialize() {
   }
 
   DecoderDoctorLogger::Init();
+  MediaManager::StartupInit();
 
 #ifdef XP_WIN
   if (XRE_IsParentProcess()) {

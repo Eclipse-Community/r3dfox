@@ -10,6 +10,9 @@
 #include <windows.h>
 
 #include "nsDebug.h"
+#include "mozilla/RandomNum.h"
+#include "mozilla/WindowsVersion.h"
+#include "nsString.h"
 #ifdef MOZ_MEMORY
 #  include "mozmemory_stall.h"
 #endif
@@ -131,6 +134,7 @@ static Maybe<PlatformHandle> CreateImpl(size_t aSize, bool aFreezable) {
   SECURITY_ATTRIBUTES sa, *psa = nullptr;
   SECURITY_DESCRIPTOR sd;
   ACL dacl;
+  nsAutoStringN<sizeof("MozSharedMem_") + 16 * 4> name;
 
   if (aFreezable) {
     psa = &sa;
@@ -144,10 +148,24 @@ static Maybe<PlatformHandle> CreateImpl(size_t aSize, bool aFreezable) {
         NS_WARN_IF(!::SetSecurityDescriptorDacl(&sd, TRUE, &dacl, FALSE))) {
       return Nothing();
     }
+
+    // Older versions of Windows will silently ignore the security
+    // attributes unless the object has a name.
+    if (!mozilla::IsWin8Point1OrLater()) {
+      name.AssignLiteral("MozSharedMem_");
+      for (size_t i = 0; i < 4; ++i) {
+        mozilla::Maybe<uint64_t> randomNum = mozilla::RandomUint64();
+        if (NS_WARN_IF(randomNum.isNothing())) {
+          return Nothing();
+        }
+        name.AppendPrintf("%016llx", *randomNum);
+      }
+    }
   }
 
-  auto handle = MozCreateFileMappingW(psa, PAGE_READWRITE, 0,
-                                      static_cast<DWORD>(aSize), nullptr);
+  auto handle = MozCreateFileMappingW(
+      psa, PAGE_READWRITE, 0, static_cast<DWORD>(aSize),
+      name.IsEmpty() ? nullptr : name.get());
   if (!handle) {
     return Nothing();
   } else {
