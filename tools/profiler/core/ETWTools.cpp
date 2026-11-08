@@ -46,10 +46,10 @@ static void NTAPI ETWEnableCallback(LPCGUID aSourceId, ULONG aIsEnabled,
 }
 
 void Init() {
-  TraceLoggingRegisterEx(kFirefoxTraceLoggingProvider, ETWEnableCallback,
-                         nullptr);
+//TraceLoggingRegisterEx(kFirefoxTraceLoggingProvider, ETWEnableCallback,
+//                       nullptr);
 }
 
-void Shutdown() { TraceLoggingUnregister(kFirefoxTraceLoggingProvider); }
+void Shutdown() { }//TraceLoggingUnregister(kFirefoxTraceLoggingProvider); }
 
 }  // namespace ETW

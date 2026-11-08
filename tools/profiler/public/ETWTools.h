@@ -335,9 +335,9 @@ static inline void EmitETWMarker(const mozilla::ProfilerString8View& aName,
       return;
     }
 
-    static const __declspec(allocate(_tlgSegMetadataEvents))
-    __declspec(align(1)) constexpr StaticMetaData<MarkerType>
-        staticData;
+//  static const __declspec(allocate(_tlgSegMetadataEvents))
+//  __declspec(align(1)) constexpr StaticMetaData<MarkerType>
+//      staticData;
 
     // Allocate the exact amount of descriptors required by this event.
     std::array<EVENT_DATA_DESCRIPTOR, GetETWDescriptorCount<MarkerType>()>
@@ -381,9 +381,9 @@ static inline void EmitETWMarker(const mozilla::ProfilerString8View& aName,
       }
     }
 
-    _tlgWriteTransfer(kFirefoxTraceLoggingProvider,
-                      &staticData.metaData.Channel, NULL, NULL,
-                      descriptors.size(), descriptors.data());
+//  _tlgWriteTransfer(kFirefoxTraceLoggingProvider,
+//                    &staticData.metaData.Channel, NULL, NULL,
+//                    descriptors.size(), descriptors.data());
   }
 }
 
