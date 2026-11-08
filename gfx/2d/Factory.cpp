@@ -44,7 +44,6 @@
 #  include "mozilla/layers/LayersSurfaces.h"
 #  include "mozilla/layers/TextureD3D11.h"
 #  include "mozilla/layers/VideoProcessorD3D11.h"
-#  include "nsWindowsHelpers.h"
 #endif
 
 #include "DrawTargetOffset.h"
@@ -617,7 +616,7 @@ RefPtr<IDWriteFactory> Factory::EnsureDWriteFactory() {
     return mDWriteFactory;
   }
 
-  HMODULE dwriteModule = LoadLibrarySystem32(L"dwrite.dll");
+  HMODULE dwriteModule = LoadLibraryW(L"dwrite.dll");
   decltype(DWriteCreateFactory)* createDWriteFactory =
       (decltype(DWriteCreateFactory)*)GetProcAddress(dwriteModule,
                                                      "DWriteCreateFactory");
