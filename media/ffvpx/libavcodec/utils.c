@@ -33,7 +33,7 @@
 #include "libavutil/pixdesc.h"
 #include "libavutil/imgutils.h"
 #include "libavutil/pixfmt.h"
-/* #include "libavutil/timecode_internal.h" */
+#include "libavutil/timecode_internal.h"
 #include "avcodec.h"
 #include "codec.h"
 #include "codec_desc.h"
@@ -982,9 +982,49 @@ AVCPBProperties *av_cpb_properties_alloc(size_t *size)
 int ff_alloc_timecode_sei(const AVFrame *frame, AVRational rate, size_t prefix_len,
                      void **data, size_t *sei_size)
 {
-    // Stubbed: requires ff_timecode_set_smpte from libavutil internals,
-    // which cannot be called cross-library. Not used by any ffvpx codec.
-    *data = NULL;
+    AVFrameSideData *sd = NULL;
+    uint8_t *sei_data;
+    PutBitContext pb;
+    uint32_t *tc;
+    int m;
+
+    if (frame)
+        sd = av_frame_get_side_data(frame, AV_FRAME_DATA_S12M_TIMECODE);
+
+    if (!sd) {
+        *data = NULL;
+        return 0;
+    }
+    tc =  (uint32_t*)sd->data;
+    m  = tc[0] & 3;
+
+    *sei_size = sizeof(uint32_t) * 4;
+    *data = av_mallocz(*sei_size + prefix_len);
+    if (!*data)
+        return AVERROR(ENOMEM);
+    sei_data = (uint8_t*)*data + prefix_len;
+
+    init_put_bits(&pb, sei_data, *sei_size);
+    put_bits(&pb, 2, m); // num_clock_ts
+
+    for (int j = 1; j <= m; j++) {
+        unsigned hh, mm, ss, ff, drop;
+        ff_timecode_set_smpte(&drop, &hh, &mm, &ss, &ff, rate, tc[j], 0, 0);
+
+        put_bits(&pb, 1, 1); // clock_timestamp_flag
+        put_bits(&pb, 1, 1); // units_field_based_flag
+        put_bits(&pb, 5, 0); // counting_type
+        put_bits(&pb, 1, 1); // full_timestamp_flag
+        put_bits(&pb, 1, 0); // discontinuity_flag
+        put_bits(&pb, 1, drop);
+        put_bits(&pb, 9, ff);
+        put_bits(&pb, 6, ss);
+        put_bits(&pb, 6, mm);
+        put_bits(&pb, 5, hh);
+        put_bits(&pb, 5, 0);
+    }
+    flush_put_bits(&pb);
+
     return 0;
 }
 

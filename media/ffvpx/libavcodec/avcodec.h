@@ -1942,10 +1942,6 @@ typedef struct AVCodecContext {
      * - decoding: Set by libavcodec
      */
     enum AVAlphaMode alpha_mode;
-
-    int moz_extradata_offset;
-
-    void* moz_ndk_crypto;
 } AVCodecContext;
 
 /**

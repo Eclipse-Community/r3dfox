@@ -630,15 +630,6 @@ typedef struct AVPacket {
      * or muxers.
      */
     AVRational time_base;
-
-    /**
-     * Mozilla extensions to manage AMediaCryptoInfo for encrypted packets on
-     * Android. Must provide all parameters if any are given.
-     */
-    void* moz_ndk_crypto_info;
-    void* moz_crypto_info;
-    void (*moz_crypto_info_addref)(void*);
-    void (*moz_crypto_info_release)(void*);
 } AVPacket;
 
 #if FF_API_INIT_PACKET

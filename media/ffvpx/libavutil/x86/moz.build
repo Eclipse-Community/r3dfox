@@ -1,10 +1,14 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Auto-generated file. Do not edit!
+
+DIRS += [
+]
 
 SOURCES += [
+    'aes.asm',
+    'aes_init.c',
     'cpu.c',
     'cpuid.asm',
+    'crc.asm',
     'emms.asm',
     'fixed_dsp.asm',
     'fixed_dsp_init.c',
@@ -14,12 +18,11 @@ SOURCES += [
     'imgutils_init.c',
     'lls.asm',
     'lls_init.c',
-    'pixelutils.asm',
-    'pixelutils_init.c',
     'tx_float.asm',
     'tx_float_init.c',
 ]
 
-FINAL_LIBRARY = 'mozavutil'
+LOCAL_INCLUDES += [ "../" ]
 
+FINAL_LIBRARY = 'mozavutil'
 include('/media/ffvpx/ffvpxcommon.mozbuild')

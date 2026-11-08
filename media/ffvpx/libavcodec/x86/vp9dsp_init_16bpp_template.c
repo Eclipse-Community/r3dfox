@@ -26,8 +26,6 @@
 #include "libavcodec/vp9dsp.h"
 #include "libavcodec/x86/vp9dsp_init.h"
 
-#if HAVE_X86ASM
-
 extern const int16_t ff_filters_16bpp[3][15][4][16];
 
 decl_mc_funcs(4, sse2, int16_t, 16, BPC);
@@ -42,8 +40,8 @@ mc_rep_funcs(32, 16, 32, avx2, int16_t, 16, BPC)
 mc_rep_funcs(64, 32, 64, avx2, int16_t, 16, BPC)
 #endif
 
-filters_8tap_2d_fn2(put, 16, BPC, 2, sse2, sse2, 16bpp)
-filters_8tap_2d_fn2(avg, 16, BPC, 2, sse2, sse2, 16bpp)
+filters_8tap_2d_fn3(put, 16, BPC, 2, sse2, 16bpp)
+filters_8tap_2d_fn3(avg, 16, BPC, 2, sse2, 16bpp)
 #if HAVE_AVX2_EXTERNAL
 filters_8tap_2d_fn(put, 64, 32, BPC, 2, avx2, 16bpp)
 filters_8tap_2d_fn(avg, 64, 32, BPC, 2, avx2, 16bpp)
@@ -53,8 +51,8 @@ filters_8tap_2d_fn(put, 16, 32, BPC, 2, avx2, 16bpp)
 filters_8tap_2d_fn(avg, 16, 32, BPC, 2, avx2, 16bpp)
 #endif
 
-filters_8tap_1d_fn3(put, BPC, sse2, sse2, 16bpp)
-filters_8tap_1d_fn3(avg, BPC, sse2, sse2, 16bpp)
+filters_8tap_1d_fn4(put, BPC, sse2, 16bpp)
+filters_8tap_1d_fn4(avg, BPC, sse2, 16bpp)
 #if HAVE_AVX2_EXTERNAL
 filters_8tap_1d_fn2(put, 64, BPC, avx2, 16bpp)
 filters_8tap_1d_fn2(avg, 64, BPC, avx2, 16bpp)
@@ -125,8 +123,9 @@ decl_ipred_fns(tm, BPC, mmxext, sse2);
 
 decl_itxfm_func(iwht, iwht, 4, BPC, mmxext);
 #if BPC == 10
-decl_itxfm_func(idct,  idct,  4, BPC, mmxext);
 decl_itxfm_funcs(4, BPC, ssse3);
+decl_itxfm_funcs(16, BPC, avx512icl);
+decl_itxfm_func(idct,  idct, 32, BPC, avx512icl);
 #else
 decl_itxfm_func(idct,  idct,  4, BPC, sse2);
 #endif
@@ -136,11 +135,9 @@ decl_itxfm_func(iadst, iadst, 4, BPC, sse2);
 decl_itxfm_funcs(8, BPC, sse2);
 decl_itxfm_funcs(16, BPC, sse2);
 decl_itxfm_func(idct,  idct, 32, BPC, sse2);
-#endif /* HAVE_X86ASM */
 
 av_cold void INIT_FUNC(VP9DSPContext *dsp, int bitexact)
 {
-#if HAVE_X86ASM
     int cpu_flags = av_get_cpu_flags();
 
 #define init_lpf_8_func(idx1, idx2, dir, wd, bpp, opt) \
@@ -186,9 +183,6 @@ av_cold void INIT_FUNC(VP9DSPContext *dsp, int bitexact)
         init_ipred_func(tm, TM_VP8, 4, BPC, mmxext);
         if (!bitexact) {
             init_itx_func_one(4 /* lossless */, iwht, iwht, 4, BPC, mmxext);
-#if BPC == 10
-            init_itx_func(TX_4X4, DCT_DCT, idct, idct, 4, 10, mmxext);
-#endif
         }
     }
 
@@ -233,7 +227,12 @@ av_cold void INIT_FUNC(VP9DSPContext *dsp, int bitexact)
 #endif
     }
 
-#endif /* HAVE_X86ASM */
+#if ARCH_X86_64 && BPC == 10
+    if (EXTERNAL_AVX512ICL(cpu_flags)) {
+        init_itx_funcs(TX_16X16, 16, BPC, avx512icl);
+        init_itx_func_one(TX_32X32, idct, idct, 32, BPC, avx512icl);
+    }
+#endif
 
     ff_vp9dsp_init_16bpp_x86(dsp);
 }

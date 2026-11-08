@@ -227,7 +227,6 @@ int ff_decode_content_light_new_ext(const AVCodecContext *avctx,
                                     AVFrameSideData ***sd, int *nb_sd,
                                     struct AVContentLightMetadata **clm);
 
-#if CONFIG_EXIF
 enum AVExifHeaderMode;
 
 /**
@@ -256,6 +255,5 @@ struct AVExifMetadata;
  */
 int ff_decode_exif_attach_ifd(AVCodecContext *avctx, AVFrame *frame,
                               const struct AVExifMetadata *ifd);
-#endif
 
 #endif /* AVCODEC_DECODE_H */

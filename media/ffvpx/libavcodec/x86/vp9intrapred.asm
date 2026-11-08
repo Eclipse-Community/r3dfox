@@ -2,6 +2,7 @@
 ;* VP9 Intra prediction SIMD optimizations
 ;*
 ;* Copyright (c) 2013 Ronald S. Bultje <rsbultje gmail com>
+;* Copyright (c) 2025 Two Orioles, LLC
 ;*
 ;* Parts based on:
 ;* H.264 intra prediction asm optimizations
@@ -92,21 +93,14 @@ SECTION .text
 
 ; dc_NxN(uint8_t *dst, ptrdiff_t stride, const uint8_t *l, const uint8_t *a)
 
-%macro DC_4to8_FUNCS 0
+INIT_MMX ssse3
 cglobal vp9_ipred_dc_4x4, 4, 4, 0, dst, stride, l, a
     movd                    m0, [lq]
     punpckldq               m0, [aq]
     pxor                    m1, m1
     psadbw                  m0, m1
-%if cpuflag(ssse3)
     pmulhrsw                m0, [pw_4096]
     pshufb                  m0, m1
-%else
-    paddw                   m0, [pw_4]
-    psraw                   m0, 3
-    punpcklbw               m0, m0
-    pshufw                  m0, m0, q0000
-%endif
     movd      [dstq+strideq*0], m0
     movd      [dstq+strideq*1], m0
     lea                   dstq, [dstq+strideq*2]
@@ -123,15 +117,8 @@ cglobal vp9_ipred_dc_8x8, 4, 4, 0, dst, stride, l, a
     psadbw                  m0, m2
     psadbw                  m1, m2
     paddw                   m0, m1
-%if cpuflag(ssse3)
     pmulhrsw                m0, [pw_2048]
     pshufb                  m0, m2
-%else
-    paddw                   m0, [pw_8]
-    psraw                   m0, 4
-    punpcklbw               m0, m0
-    pshufw                  m0, m0, q0000
-%endif
     movq      [dstq+strideq*0], m0
     movq      [dstq+strideq*1], m0
     movq      [dstq+strideq*2], m0
@@ -142,12 +129,7 @@ cglobal vp9_ipred_dc_8x8, 4, 4, 0, dst, stride, l, a
     movq      [dstq+strideq*2], m0
     movq      [dstq+stride3q ], m0
     RET
-%endmacro
 
-INIT_MMX mmxext
-DC_4to8_FUNCS
-INIT_MMX ssse3
-DC_4to8_FUNCS
 
 %macro DC_16to32_FUNCS 0
 cglobal vp9_ipred_dc_16x16, 4, 4, 3, dst, stride, l, a
@@ -230,40 +212,6 @@ DC_16to32_FUNCS
 INIT_XMM ssse3
 DC_16to32_FUNCS
 
-%if HAVE_AVX2_EXTERNAL
-INIT_YMM avx2
-cglobal vp9_ipred_dc_32x32, 4, 4, 3, dst, stride, l, a
-    mova                    m0, [lq]
-    mova                    m1, [aq]
-    DEFINE_ARGS dst, stride, stride3, cnt
-    lea               stride3q, [strideq*3]
-    pxor                    m2, m2
-    psadbw                  m0, m2
-    psadbw                  m1, m2
-    paddw                   m0, m1
-    vextracti128           xm1, m0, 1
-    paddw                  xm0, xm1
-    movhlps                xm1, xm0
-    paddw                  xm0, xm1
-    pmulhrsw               xm0, [pw_512]
-    vpbroadcastb            m0, xm0
-    mov                   cntd, 4
-.loop:
-    mova      [dstq+strideq*0], m0
-    mova      [dstq+strideq*1], m0
-    mova      [dstq+strideq*2], m0
-    mova      [dstq+stride3q ], m0
-    lea                   dstq, [dstq+strideq*4]
-    mova      [dstq+strideq*0], m0
-    mova      [dstq+strideq*1], m0
-    mova      [dstq+strideq*2], m0
-    mova      [dstq+stride3q ], m0
-    lea                   dstq, [dstq+strideq*4]
-    dec                   cntd
-    jg .loop
-    RET
-%endif
-
 ; dc_top/left_NxN(uint8_t *dst, ptrdiff_t stride, const uint8_t *l, const uint8_t *a)
 
 %macro DC_1D_4to8_FUNCS 2 ; dir (top or left), arg (a or l)
@@ -271,15 +219,8 @@ cglobal vp9_ipred_dc_%1_4x4, 4, 4, 0, dst, stride, l, a
     movd                    m0, [%2q]
     pxor                    m1, m1
     psadbw                  m0, m1
-%if cpuflag(ssse3)
     pmulhrsw                m0, [pw_8192]
     pshufb                  m0, m1
-%else
-    paddw                   m0, [pw_2]
-    psraw                   m0, 2
-    punpcklbw               m0, m0
-    pshufw                  m0, m0, q0000
-%endif
     movd      [dstq+strideq*0], m0
     movd      [dstq+strideq*1], m0
     lea                   dstq, [dstq+strideq*2]
@@ -293,15 +234,8 @@ cglobal vp9_ipred_dc_%1_8x8, 4, 4, 0, dst, stride, l, a
     lea               stride3q, [strideq*3]
     pxor                    m1, m1
     psadbw                  m0, m1
-%if cpuflag(ssse3)
     pmulhrsw                m0, [pw_4096]
     pshufb                  m0, m1
-%else
-    paddw                   m0, [pw_4]
-    psraw                   m0, 3
-    punpcklbw               m0, m0
-    pshufw                  m0, m0, q0000
-%endif
     movq      [dstq+strideq*0], m0
     movq      [dstq+strideq*1], m0
     movq      [dstq+strideq*2], m0
@@ -314,9 +248,6 @@ cglobal vp9_ipred_dc_%1_8x8, 4, 4, 0, dst, stride, l, a
     RET
 %endmacro
 
-INIT_MMX mmxext
-DC_1D_4to8_FUNCS top,  a
-DC_1D_4to8_FUNCS left, l
 INIT_MMX ssse3
 DC_1D_4to8_FUNCS top,  a
 DC_1D_4to8_FUNCS left, l
@@ -395,44 +326,6 @@ INIT_XMM ssse3
 DC_1D_16to32_FUNCS top,  a
 DC_1D_16to32_FUNCS left, l
 
-%macro DC_1D_AVX2_FUNCS 2 ; dir (top or left), arg (a or l)
-%if HAVE_AVX2_EXTERNAL
-cglobal vp9_ipred_dc_%1_32x32, 4, 4, 3, dst, stride, l, a
-    mova                    m0, [%2q]
-    DEFINE_ARGS dst, stride, stride3, cnt
-    lea               stride3q, [strideq*3]
-    pxor                    m2, m2
-    psadbw                  m0, m2
-    vextracti128           xm1, m0, 1
-    paddw                  xm0, xm1
-    movhlps                xm1, xm0
-    paddw                  xm0, xm1
-    pmulhrsw               xm0, [pw_1024]
-    vpbroadcastb            m0, xm0
-    mov                   cntd, 4
-.loop:
-    mova      [dstq+strideq*0], m0
-    mova      [dstq+strideq*1], m0
-    mova      [dstq+strideq*2], m0
-    mova      [dstq+stride3q ], m0
-    lea                   dstq, [dstq+strideq*4]
-    mova      [dstq+strideq*0], m0
-    mova      [dstq+strideq*1], m0
-    mova      [dstq+strideq*2], m0
-    mova      [dstq+stride3q ], m0
-    lea                   dstq, [dstq+strideq*4]
-    dec                   cntd
-    jg .loop
-    RET
-%endif
-%endmacro
-
-INIT_YMM avx2
-DC_1D_AVX2_FUNCS top,  a
-DC_1D_AVX2_FUNCS left, l
-
-; v
-
 INIT_MMX mmx
 cglobal vp9_ipred_v_8x8, 4, 4, 0, dst, stride, l, a
     movq                    m0, [aq]
@@ -485,29 +378,6 @@ cglobal vp9_ipred_v_32x32, 4, 4, 2, dst, stride, l, a
     dec                   cntd
     jg .loop
     RET
-
-INIT_YMM avx
-cglobal vp9_ipred_v_32x32, 4, 4, 1, dst, stride, l, a
-    mova                    m0, [aq]
-    DEFINE_ARGS dst, stride, stride3, cnt
-    lea               stride3q, [strideq*3]
-    mov                   cntd, 4
-.loop:
-    mova      [dstq+strideq*0], m0
-    mova      [dstq+strideq*1], m0
-    mova      [dstq+strideq*2], m0
-    mova      [dstq+stride3q ], m0
-    lea                   dstq, [dstq+strideq*4]
-    mova      [dstq+strideq*0], m0
-    mova      [dstq+strideq*1], m0
-    mova      [dstq+strideq*2], m0
-    mova      [dstq+stride3q ], m0
-    lea                   dstq, [dstq+strideq*4]
-    dec                   cntd
-    jg .loop
-    RET
-
-; h
 
 %macro H_XMM_FUNCS 2
 %if notcpuflag(avx)
@@ -642,61 +512,22 @@ H_XMM_FUNCS 4, 8
 INIT_XMM avx
 H_XMM_FUNCS 4, 8
 
-%if HAVE_AVX2_EXTERNAL
-INIT_YMM avx2
-cglobal vp9_ipred_h_32x32, 3, 5, 8, dst, stride, l, stride3, cnt
-    mova                    m5, [pb_1]
-    mova                    m6, [pb_2]
-    mova                    m7, [pb_3]
-    pxor                    m4, m4
-    lea               stride3q, [strideq*3]
-    mov                   cntq, 7
-.loop:
-    movd                   xm3, [lq+cntq*4]
-    vinserti128             m3, m3, xm3, 1
-    pshufb                  m0, m3, m7
-    pshufb                  m1, m3, m6
-    mova      [dstq+strideq*0], m0
-    mova      [dstq+strideq*1], m1
-    pshufb                  m2, m3, m5
-    pshufb                  m3, m4
-    mova      [dstq+strideq*2], m2
-    mova      [dstq+stride3q ], m3
-    lea                   dstq, [dstq+strideq*4]
-    dec                   cntq
-    jge .loop
-    RET
-%endif
-
-; tm
-
-%macro TM_MMX_FUNCS 0
+INIT_MMX ssse3
 cglobal vp9_ipred_tm_4x4, 4, 4, 0, dst, stride, l, a
     pxor                    m1, m1
     movd                    m0, [aq]
     pinsrw                  m2, [aq-1], 0
     punpcklbw               m0, m1
     DEFINE_ARGS dst, stride, l, cnt
-%if cpuflag(ssse3)
     mova                    m3, [pw_m256]
     mova                    m1, [pw_m255]
     pshufb                  m2, m3
-%else
-    punpcklbw               m2, m1
-    pshufw                  m2, m2, q0000
-%endif
     psubw                   m0, m2
     mov                   cntq, 1
 .loop:
     pinsrw                  m2, [lq+cntq*2], 0
-%if cpuflag(ssse3)
     pshufb                  m4, m2, m1
     pshufb                  m2, m3
-%else
-    punpcklbw               m2, m1
-    pshufw                  m4, m2, q1111
-    pshufw                  m2, m2, q0000
-%endif
     paddw                   m4, m0
     paddw                   m2, m0
     packuswb                m4, m4
@@ -707,12 +538,6 @@ cglobal vp9_ipred_tm_4x4, 4, 4, 0, dst, stride, l, a
     dec                   cntq
     jge .loop
     RET
-%endmacro
-
-INIT_MMX mmxext
-TM_MMX_FUNCS
-INIT_MMX ssse3
-TM_MMX_FUNCS
 
 %macro TM_XMM_FUNCS 0
 cglobal vp9_ipred_tm_8x8, 4, 4, 5, dst, stride, l, a
@@ -898,65 +723,19 @@ TM_XMM_FUNCS
 INIT_XMM avx
 TM_XMM_FUNCS
 
-%if HAVE_AVX2_EXTERNAL
-INIT_YMM avx2
-cglobal vp9_ipred_tm_32x32, 4, 4, 8, dst, stride, l, a
-    pxor                    m3, m3
-    pinsrw                 xm2, [aq-1], 0
-    vinserti128             m2, m2, xm2, 1
-    mova                    m0, [aq]
-    DEFINE_ARGS dst, stride, l, cnt
-    mova                    m4, [pw_m256]
-    mova                    m5, [pw_m255]
-    pshufb                  m2, m4
-    punpckhbw               m1, m0, m3
-    punpcklbw               m0, m3
-    psubw                   m1, m2
-    psubw                   m0, m2
-    mov                   cntq, 15
-.loop:
-    pinsrw                 xm7, [lq+cntq*2], 0
-    vinserti128             m7, m7, xm7, 1
-    pshufb                  m3, m7, m5
-    pshufb                  m7, m4
-    paddw                   m2, m3, m0
-    paddw                   m3, m1
-    paddw                   m6, m7, m0
-    paddw                   m7, m1
-    packuswb                m2, m3
-    packuswb                m6, m7
-    mova      [dstq+strideq*0], m2
-    mova      [dstq+strideq*1], m6
-    lea                   dstq, [dstq+strideq*2]
-    dec                   cntq
-    jge .loop
-    RET
-%endif
-
-; dl
-
-%macro LOWPASS 4 ; left [dst], center, right, tmp
+%macro LOWPASS 4-5 [pb_1] ; left [dst], center, right, tmp, pb_1
     pxor                   m%4, m%1, m%3
-    pand                   m%4, [pb_1]
+    pand                   m%4, %5
     pavgb                  m%1, m%3
     psubusb                m%1, m%4
     pavgb                  m%1, m%2
 %endmacro
 
-%macro DL_MMX_FUNCS 0
+INIT_MMX ssse3
 cglobal vp9_ipred_dl_4x4, 4, 4, 0, dst, stride, l, a
     movq                    m1, [aq]
-%if cpuflag(ssse3)
     pshufb                  m0, m1, [pb_0to5_2x7]
     pshufb                  m2, m1, [pb_2to6_3x7]
-%else
-    punpckhbw               m3, m1, m1              ; 44556677
-    pand                    m0, m1, [pb_6xm1_2x0]   ; 012345__
-    pand                    m3, [pb_6x0_2xm1]       ; ______77
-    psrlq                   m2, m1, 16              ; 234567__
-    por                     m0, m3                  ; 01234577
-    por                     m2, m3                  ; 23456777
-%endif
     psrlq                   m1, 8
     LOWPASS                  0, 1, 2, 3
 
@@ -969,12 +748,6 @@ cglobal vp9_ipred_dl_4x4, 4, 4, 0, dst, stride, l, a
     movd      [dstq+strideq*0], m0
     movd      [dstq+strideq*2], m1
     RET
-%endmacro
-
-INIT_MMX mmxext
-DL_MMX_FUNCS
-INIT_MMX ssse3
-DL_MMX_FUNCS
 
 %macro DL_XMM_FUNCS 0
 cglobal vp9_ipred_dl_8x8, 4, 4, 4, dst, stride, stride5, a
@@ -1123,14 +896,14 @@ DL_XMM_FUNCS
 
 ; dr
 
-%macro DR_MMX_FUNCS 0
+INIT_MMX ssse3
 cglobal vp9_ipred_dr_4x4, 4, 4, 0, dst, stride, l, a
     movd                    m0, [lq]
     punpckldq               m0, [aq-1]
     movd                    m1, [aq+3]
     DEFINE_ARGS dst, stride, stride3
     lea               stride3q, [strideq*3]
-    PALIGNR                 m1, m0, 1, m3
+    palignr                 m1, m0, 1
     psrlq                   m2, m1, 8
     LOWPASS                  0, 1, 2, 3
 
@@ -1142,12 +915,6 @@ cglobal vp9_ipred_dr_4x4, 4, 4, 0, dst, stride, l, a
     psrlq                   m0, 8
     movd      [dstq+strideq*0], m0
     RET
-%endmacro
-
-INIT_MMX mmxext
-DR_MMX_FUNCS
-INIT_MMX ssse3
-DR_MMX_FUNCS
 
 %macro DR_XMM_FUNCS 0
 cglobal vp9_ipred_dr_8x8, 4, 4, 4, dst, stride, l, a
@@ -1425,7 +1192,7 @@ VL_XMM_FUNCS
 
 ; vr
 
-%macro VR_MMX_FUNCS 0
+INIT_MMX ssse3
 cglobal vp9_ipred_vr_4x4, 4, 4, 0, dst, stride, l, a
     movq                    m1, [aq-1]
     punpckldq               m2, [lq]
@@ -1433,7 +1200,7 @@ cglobal vp9_ipred_vr_4x4, 4, 4, 0, dst, stride, l, a
     DEFINE_ARGS dst, stride, stride3
     lea               stride3q, [strideq*3]
     pavgb                   m0, m1
-    PALIGNR                 m1, m2, 5, m3
+    palignr                 m1, m2, 5
     psrlq                   m2, m1, 8
     psllq                   m3, m1, 8
     LOWPASS                  2,  1, 3, 4
@@ -1443,7 +1210,6 @@ cglobal vp9_ipred_vr_4x4, 4, 4, 0, dst, stride, l, a
     ; IABC  | m0 contains ABCDxxxx
     ; JEFG  | m2 contains xJIEFGHx
 
-%if cpuflag(ssse3)
     punpckldq               m0, m2
     pshufb                  m2, [pb_13456_3xm1]
     movd      [dstq+strideq*0], m0
@@ -1452,24 +1218,7 @@ cglobal vp9_ipred_vr_4x4, 4, 4, 0, dst, stride, l, a
     psrlq                   m2, 8
     movd      [dstq+strideq*2], m0
     movd      [dstq+strideq*1], m2
-%else
-    psllq                   m1, m2, 40
-    psrlq                   m2, 24
-    movd      [dstq+strideq*0], m0
-    movd      [dstq+strideq*1], m2
-    PALIGNR                 m0, m1, 7, m3
-    psllq                   m1, 8
-    PALIGNR                 m2, m1, 7, m3
-    movd      [dstq+strideq*2], m0
-    movd      [dstq+stride3q ], m2
-%endif
     RET
-%endmacro
-
-INIT_MMX mmxext
-VR_MMX_FUNCS
-INIT_MMX ssse3
-VR_MMX_FUNCS
 
 %macro VR_XMM_FUNCS 1 ; n_xmm_regs for 16x16
 cglobal vp9_ipred_vr_8x8, 4, 4, 5, dst, stride, l, a
@@ -1847,16 +1596,10 @@ HD_XMM_FUNCS
 INIT_XMM avx
 HD_XMM_FUNCS
 
-%macro HU_MMX_FUNCS 0
+INIT_MMX ssse3
 cglobal vp9_ipred_hu_4x4, 3, 3, 0, dst, stride, l
     movd                    m0, [lq]
-%if cpuflag(ssse3)
     pshufb                  m0, [pb_0to2_5x3]
-%else
-    punpcklbw               m1, m0, m0          ; 00112233
-    pshufw                  m1, m1, q3333       ; 33333333
-    punpckldq               m0, m1              ; 01233333
-%endif
     psrlq                   m1, m0, 8
     psrlq                   m2, m1, 8
     LOWPASS                  2,  1, 0, 3
@@ -1864,7 +1607,7 @@ cglobal vp9_ipred_hu_4x4, 3, 3, 0, dst, stride, l
     DEFINE_ARGS dst, stride, stride3
     lea               stride3q, [strideq*3]
     SBUTTERFLY              bw,  1, 2, 0
-    PALIGNR                 m2, m1, 2, m0
+    palignr                 m2, m1, 2
     movd      [dstq+strideq*0], m1
     movd      [dstq+strideq*1], m2
     punpckhdq               m1, m1
@@ -1872,12 +1615,6 @@ cglobal vp9_ipred_hu_4x4, 3, 3, 0, dst, stride, l
     movd      [dstq+strideq*2], m1
     movd      [dstq+stride3q ], m2
     RET
-%endmacro
-
-INIT_MMX mmxext
-HU_MMX_FUNCS
-INIT_MMX ssse3
-HU_MMX_FUNCS
 
 %macro HU_XMM_FUNCS 1 ; n_xmm_regs in hu_32x32
 cglobal vp9_ipred_hu_8x8, 3, 4, 4, dst, stride, l
@@ -2040,5 +1777,307 @@ INIT_XMM ssse3
 HU_XMM_FUNCS 7
 INIT_XMM avx
 HU_XMM_FUNCS 7
+
+%if HAVE_AVX2_EXTERNAL
+INIT_YMM avx2
+cglobal vp9_ipred_dc_32x32, 4, 4, 3, dst, stride, l, a
+    pxor                    m1, m1
+    psadbw                  m0, m1, [lq]
+    psadbw                  m1, [aq]
+    movd                   xm2, [pw_512]
+    paddw                   m0, m1
+    vextracti128           xm1, m0, 1
+.main:
+    paddw                  xm0, xm1
+    punpckhqdq             xm1, xm0, xm0
+    paddw                  xm0, xm1
+    pmulhrsw               xm0, xm2
+    vpbroadcastb            m0, xm0
+.main2:
+    lea                     r2, [strideq*3]
+    mov                    r3d, 8
+.loop:
+    mova      [dstq+strideq*0], m0
+    mova      [dstq+strideq*1], m0
+    mova      [dstq+strideq*2], m0
+    mova      [dstq+r2       ], m0
+    lea                   dstq, [dstq+strideq*4]
+    dec                    r3d
+    jg .loop
+    RET
+
+cglobal vp9_ipred_dc_top_32x32, 0, 4, 3, dst, stride, l, a
+    mov                     lq, amp
+%if ARCH_X86_32
+    jmp mangle(private_prefix %+ _vp9_ipred_dc_left_32x32 %+ SUFFIX).main
+%endif
+
+%assign function_align 1
+cglobal vp9_ipred_dc_left_32x32, 0, 4, 3, dst, stride, l, a
+    movifnidn               lq, lmp
+.main:
+    movifnidn             dstq, dstmp
+    movifnidn          strideq, stridemp
+    pxor                   xm1, xm1
+    psadbw                 xm0, xm1, [lq]
+    psadbw                 xm1, [lq+16]
+    movd                   xm2, [pw_1024]
+    jmp mangle(private_prefix %+ _vp9_ipred_dc_32x32 %+ SUFFIX).main
+
+cglobal vp9_ipred_v_32x32, 2, 4, 3, dst, stride, l, a
+    movifnidn               aq, amp
+    mova                    m0, [aq]
+    jmp mangle(private_prefix %+ _vp9_ipred_dc_32x32 %+ SUFFIX).main2
+
+%assign function_align 16
+cglobal vp9_ipred_h_32x32, 3, 5, 6, dst, stride, l
+    vpbroadcastd            m2, [pb_3]
+    mov                    r3d, 7
+    vpbroadcastd            m3, [pb_2]
+    pxor                    m5, m5
+    vpbroadcastd            m4, [pb_1]
+    lea                     r4, [strideq*3]
+.loop:
+    vpbroadcastd            m1, [lq+r3*4]
+    pshufb                  m0, m1, m2
+    mova      [dstq+strideq*0], m0
+    pshufb                  m0, m1, m3
+    mova      [dstq+strideq*1], m0
+    pshufb                  m0, m1, m4
+    mova      [dstq+strideq*2], m0
+    pshufb                  m1, m5
+    mova      [dstq+r4       ], m1
+    lea                   dstq, [dstq+strideq*4]
+    dec                    r3d
+    jge .loop
+    RET
+
+cglobal vp9_ipred_tm_32x32, 4, 4, 8, dst, stride, l, a
+    vpbroadcastd            m0, [aq-1]
+    mova                    m7, [aq]
+    pxor                    m1, m1
+    vpbroadcastd            m4, [pw_m255]
+    mov                    r3d, 15
+    vpbroadcastd            m5, [pw_m256]
+    pshufb                  m0, m5
+    punpcklbw               m6, m7, m1
+    punpckhbw               m7, m1
+    psubw                   m6, m0
+    psubw                   m7, m0
+.loop:
+    vpbroadcastd            m3, [lq+r3*2]
+    pshufb                  m2, m3, m4
+    pshufb                  m3, m5
+    paddw                   m0, m2, m6
+    paddw                   m2, m7
+    paddw                   m1, m3, m6
+    paddw                   m3, m7
+    packuswb                m0, m2
+    packuswb                m1, m3
+    mova      [dstq+strideq*0], m0
+    mova      [dstq+strideq*1], m1
+    lea                   dstq, [dstq+strideq*2]
+    dec                    r3d
+    jge .loop
+    RET
+
+cglobal vp9_ipred_dl_32x32, 2, 5, 6, dst, stride, l, a
+    movifnidn               aq, amp
+    vpbroadcastb            m2, [aq+31]
+    vinserti128             m3, m2, [aq+16], 0
+    mova                    m0, [aq+ 0]
+    vpbroadcastd            m5, [pb_1]
+    palignr                 m4, m3, m0, 2
+    lea                     r3, [strideq*2]
+    palignr                 m3, m0, 1
+    LOWPASS                  0, 3, 4, 1, m5
+    lea                     r4, [strideq*3]
+    vperm2i128              m1, m0, m2, 0x31
+    mov                    r2d, 8
+.loop:
+    shufpd                  m3, m0, m1, 0x05
+    mova           [dstq+r3*0], m0
+    punpckhqdq              m4, m1, m2
+    mova           [dstq+r3*4], m3
+    palignr                 m0, m1, m0, 1
+    mova           [dstq+r3*8], m1
+    palignr                 m1, m2, m1, 1
+    mova           [dstq+r4*8], m4
+    add                   dstq, strideq
+    dec                    r2d
+    jg .loop
+    RET
+
+cglobal vp9_ipred_dr_32x32, 4, 5, 7, dst, stride, l, a
+    mova                    m3, [lq+ 0]
+    movu                    m1, [aq- 1]
+    mova                    m0, [aq+ 0]
+    vpbroadcastd            m6, [pb_1]
+    vperm2i128              m2, m3, m1, 0x21
+    lea                     r3, [strideq*2]
+    palignr                 m4, m1, m2, 15
+    LOWPASS                  0, 1, 4, 5, m6
+    pslldq                 xm4, xm3, 1
+    palignr                 m2, m3, 1
+    vinserti128             m4, [lq+15], 1
+    LOWPASS                  2, 3, 4, 5, m6
+    lea                     r4, [strideq*3]
+    vperm2i128              m1, m2, m0, 0x21
+    mov                    r2d, 8
+.loop:
+    shufpd                  m3, m1, m0, 0x05
+    mova           [dstq+r3*0], m0
+    shufpd                  m4, m2, m1, 0x05
+    mova           [dstq+r3*4], m3
+    palignr                 m0, m1, 15
+    mova           [dstq+r3*8], m1
+    palignr                 m1, m2, 15
+    mova           [dstq+r4*8], m4
+    add                   dstq, strideq
+    pslldq                  m2, 1
+    dec                    r2d
+    jg .loop
+    RET
+
+cglobal vp9_ipred_hd_32x32, 4, 6, 7, dst, stride, l, a
+    movu                    m1, [aq-1]
+    mova                    m0, [lq]
+    vpbroadcastd            m6, [pb_1]
+    vperm2i128              m4, m0, m1, 0x21
+    palignr                 m3, m4, m0, 1
+    palignr                 m4, m0, 2
+    LOWPASS                  4, 3, 0, 2, m6
+    pavgb                   m3, m0
+    movu                   xm0, [aq+15]
+    punpcklbw               m2, m3, m4
+    punpckhbw               m3, m4
+    palignr                 m4, m0, m1, 2
+    palignr                 m0, m1, 1
+    LOWPASS                  4, 0, 1, 5, m6
+    lea                     r2, [strideq*8]
+    vinserti128             m0, m2, xm3, 1
+    lea                     r3, [dstq+r2*1]
+    vpblendd                m1, m2, m3, 0x0f
+    lea                     r4, [dstq+r2*2]
+    vperm2i128              m2, m3, 0x31
+    lea                     r5, [r3  +r2*2]
+    vperm2i128              m3, m4, 0x21
+.loop:
+    sub                     r2, strideq
+    mova             [r5  +r2], m0
+    palignr                 m0, m1, m0, 2
+    mova             [r4  +r2], m1
+    palignr                 m1, m2, m1, 2
+    mova             [r3  +r2], m2
+    palignr                 m2, m3, m2, 2
+    mova             [dstq+r2], m3
+    palignr                 m3, m4, m3, 2
+    psrldq                  m4, 2
+    jg .loop
+    RET
+
+cglobal vp9_ipred_hu_32x32, 3, 5, 6, dst, stride, l, a
+    mova                    m0, [lq]
+    vpbroadcastb           xm3, [lq+31]
+    vpbroadcastd            m1, [pb_1]
+    vbroadcasti128          m4, [pb_2toE_3xF]
+    vperm2i128              m3, m0, 0x03
+    palignr                 m5, m3, m0, 2
+    palignr                 m3, m0, 1
+    LOWPASS                  5, 3, 0, 2, m1
+    vpbroadcastd            m1, [pb_15]
+    pavgb                   m3, m0
+    punpcklbw               m2, m3, m5
+    punpckhbw               m3, m5
+    vinserti128             m0, m2, xm3, 1
+    pshufb                  m5, m1
+    vperm2i128              m1, m2, m3, 0x12
+    lea                     r3, [strideq*2]
+    vperm2i128              m2, m3, 0x31
+    lea                     r4, [strideq*3]
+    vperm2i128              m3, m5, 0x31
+    mov                    r2d, 8
+.loop:
+    mova           [dstq+r3*0], m0
+    palignr                 m0, m1, m0, 2
+    mova           [dstq+r3*4], m1
+    palignr                 m1, m2, m1, 2
+    mova           [dstq+r3*8], m2
+    palignr                 m2, m3, m2, 2
+    mova           [dstq+r4*8], m3
+    pshufb                  m3, m4
+    add                   dstq, strideq
+    dec                    r2d
+    jg .loop
+    RET
+
+cglobal vp9_ipred_vl_32x32, 2, 5, 6, dst, stride, l, a
+    movifnidn               aq, amp
+    vpbroadcastb            m4, [aq+31]
+    vinserti128             m0, m4, [aq+16], 0
+    mova                    m1, [aq+ 0]
+    vpbroadcastd            m5, [pb_1]
+    palignr                 m2, m0, m1, 2
+    palignr                 m0, m1, 1
+    LOWPASS                  2, 0, 1, 3, m5
+    pavgb                   m0, m1
+    lea                     r3, [strideq*2]
+    vperm2i128              m1, m0, m4, 0x31
+    lea                     r4, [strideq+r3*8]
+    vperm2i128              m3, m2, m4, 0x31
+    mov                    r2d, 8
+.loop:
+    shufpd                  m4, m0, m1, 0x05
+    mova      [dstq+strideq*0], m0
+    shufpd                  m5, m2, m3, 0x05
+    mova      [dstq+strideq*1], m2
+    palignr                 m0, m1, m0, 1
+    mova      [dstq+r3*8     ], m4
+    psrldq                  m1, 1
+    mova      [dstq+r4       ], m5
+    palignr                 m2, m3, m2, 1
+    add                   dstq, r3
+    psrldq                  m3, 1
+    dec                    r2d
+    jg .loop
+    RET
+
+cglobal vp9_ipred_vr_32x32, 4, 5, 7, dst, stride, l, a
+    mova                    m4, [lq+ 0]
+    movu                    m0, [aq- 1]
+    vpbroadcastd            m6, [pb_1]
+    vperm2i128              m2, m4, m0, 0x21
+    pslldq                 xm5, xm4, 1
+    palignr                 m3, m2, m4, 1
+    vinserti128             m5, [lq+15], 1
+    LOWPASS                  3, 4, 5, 1, m6
+    mova                    m1, [aq+ 0]
+    vbroadcasti128          m4, [pb_02468ACE_13579BDF]
+    palignr                 m2, m0, m2, 15
+    LOWPASS                  2, 0, 1, 5, m6
+    pshufb                  m3, m4
+    lea                     r3, [strideq*2]
+    vpermq                  m3, m3, q2031
+    pavgb                   m0, m1
+    vinserti128             m1, m3, xm0, 1
+    lea                     r4, [strideq+r3*8]
+    vperm2i128              m3, m2, 0x21
+    mov                    r2d, 8
+.loop:
+    shufpd                  m4, m1, m0, 0x05
+    mova      [dstq+strideq*0], m0
+    shufpd                  m5, m3, m2, 0x05
+    mova      [dstq+strideq*1], m2
+    palignr                 m0, m1, 15
+    mova      [dstq+r3*8     ], m4
+    pslldq                  m1, 1
+    mova      [dstq+r4       ], m5
+    palignr                 m2, m3, 15
+    add                   dstq, r3
+    pslldq                  m3, 1
+    dec                    r2d
+    jg .loop
+    RET
+%endif
 
 ; FIXME 127, 128, 129 ?

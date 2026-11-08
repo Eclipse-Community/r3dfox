@@ -65,7 +65,6 @@
 #endif
 
 #include "libavutil/hwcontext.h"
-#include "libavutil/mem.h"
 
 #include "avcodec.h"
 #include "internal.h"

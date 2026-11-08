@@ -1,0 +1,24 @@
+# Auto-generated file. Do not edit!
+
+DIRS += [
+]
+
+SOURCES += [
+    'cabac.c',
+    'data.c',
+    'dsp.c',
+    'filter.c',
+    'hevcdec.c',
+    'mvs.c',
+    'parse.c',
+    'parser.c',
+    'pred.c',
+    'ps.c',
+    'refs.c',
+    'sei.c',
+]
+
+LOCAL_INCLUDES += [ "../" ]
+
+FINAL_LIBRARY = 'mozavcodec'
+include('/media/ffvpx/ffvpxcommon.mozbuild')
