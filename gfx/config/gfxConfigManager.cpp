@@ -17,6 +17,7 @@
 #ifdef XP_WIN
 #  include "mozilla/gfx/DeviceManagerDx.h"
 #  include "mozilla/gfx/DisplayConfigWindows.h"
+#  include "mozilla/WindowsVersion.h"
 #endif
 
 namespace mozilla {
@@ -55,6 +56,7 @@ void gfxConfigManager::Init() {
 #ifdef XP_WIN
   DeviceManagerDx::Get()->CheckHardwareStretchingSupport(mHwStretchingSupport);
   mScaledResolution = HasScaledResolution();
+  mIsWin10OrLater = IsWin10OrLater();
   mWrCompositorDCompRequired = true;
 #else
   ++mHwStretchingSupport.mBoth;
@@ -256,6 +258,13 @@ void gfxConfigManager::ConfigureWebRender() {
   }
 
   ConfigureFromBlocklist(nsIGfxInfo::FEATURE_WEBRENDER_DCOMP, mFeatureWrDComp);
+
+  if (!mIsWin10OrLater) {
+    // XXX relax win version to windows 8.
+    mFeatureWrDComp->Disable(FeatureStatus::Unavailable,
+                             "Requires Windows 10 or later",
+                             "FEATURE_FAILURE_DCOMP_NOT_WIN10"_ns);
+  }
 
   if (!mFeatureGPUProcess->IsEnabled()) {
     mFeatureWrDComp->Disable(FeatureStatus::Unavailable, "Requires GPU process",
