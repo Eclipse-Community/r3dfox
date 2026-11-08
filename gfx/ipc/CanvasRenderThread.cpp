@@ -98,7 +98,11 @@ void CanvasRenderThread::Start() {
             nsthread->SetUseHangMonitor(true);
             nsthread->SetPriority(nsISupportsPriority::PRIORITY_HIGH);
           }),
-      {.stackSize = stackSize});
+      {.stackSize = stackSize,
+#ifdef XP_WIN
+       .isUiThread = true,
+#endif
+      });
 
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return;
