@@ -505,7 +505,7 @@ Maybe<int> LauncherMain(int& argc, wchar_t* argv[]) {
   BOOL inheritHandles = FALSE;
 
   if (attrsOk.unwrap()) {
-    creationFlags |= EXTENDED_STARTUPINFO_PRESENT;
+    //creationFlags |= EXTENDED_STARTUPINFO_PRESENT;
 
     if (attrs.HasInheritableHandles()) {
       siex.StartupInfo.dwFlags |= STARTF_USESTDHANDLES;

@@ -17,7 +17,7 @@ namespace mozilla {
 class MOZ_RAII ProcThreadAttributes final {
   struct ProcThreadAttributeListDeleter {
     void operator()(LPPROC_THREAD_ATTRIBUTE_LIST aList) {
-      ::DeleteProcThreadAttributeList(aList);
+      //::DeleteProcThreadAttributeList(aList);
       delete[] reinterpret_cast<char*>(aList);
     }
   };
@@ -90,6 +90,7 @@ class MOZ_RAII ProcThreadAttributes final {
     if (!numAttributes) {
       return false;
     }
+    return true;
 
     SIZE_T listSize = 0;
     if (!::InitializeProcThreadAttributeList(nullptr, numAttributes, 0,
