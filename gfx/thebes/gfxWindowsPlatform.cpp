@@ -1962,7 +1962,7 @@ void gfxWindowsPlatform::BuildContentDeviceData(ContentDeviceData* aOut) {
 
 bool gfxWindowsPlatform::CheckVariationFontSupport() {
   // Variation font support is only available on Fall Creators Update or later.
-  return IsWin10FallCreatorsUpdateOrLater();
+  return true;//return IsWin10FallCreatorsUpdateOrLater();
 }
 
 void gfxWindowsPlatform::GetPlatformDisplayInfo(

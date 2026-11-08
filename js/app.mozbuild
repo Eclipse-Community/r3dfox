@@ -62,6 +62,8 @@ if CONFIG["MOZ_PACKAGE_JSSHELL"]:
         JS_SHELL_ARCHIVE_FILES += [
             "!/dist/bin/" + CONFIG["MSVC_CXX_RUNTIME_ATOMIC_WAIT_DLL"]
         ]
+    if CONFIG["MSVC_CONCUR_RUNTIME_DLL"]:
+        JS_SHELL_ARCHIVE_FILES += ["!/dist/bin/" + CONFIG["MSVC_CONCUR_RUNTIME_DLL"]]
     if CONFIG["WIN_UCRT_REDIST_DIR"]:
         JS_SHELL_ARCHIVE_FILES += [
             "!/dist/bin/api-ms-win-*.dll",
