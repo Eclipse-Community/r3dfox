@@ -47,7 +47,7 @@ typedef struct {
 } pthread_attr_t;
 
 typedef SRWLOCK pthread_mutex_t;
-typedef CONDITION_VARIABLE pthread_cond_t;
+typedef intptr_t pthread_cond_t;
 typedef volatile LONG pthread_once_t;
 #define MY_PTHREAD_ONCE_INIT  0
 #define MY_PTHREAD_ONCE_INPROGRESS 1
@@ -262,32 +262,11 @@ static inline int pthread_mutex_unlock(pthread_mutex_t *const mutex) {
     return 0;
 }
 
-static inline int pthread_cond_init(pthread_cond_t *const cond,
-                                    const void *const attr)
-{
-    InitializeConditionVariable(cond);
-    return 0;
-}
-
-static inline int pthread_cond_destroy(pthread_cond_t *const cond) {
-    return 0;
-}
-
-static inline int pthread_cond_wait(pthread_cond_t *const cond,
-                                    pthread_mutex_t *const mutex)
-{
-    return !SleepConditionVariableSRW(cond, mutex, INFINITE, 0);
-}
-
-static inline int pthread_cond_signal(pthread_cond_t *const cond) {
-    WakeConditionVariable(cond);
-    return 0;
-}
-
-static inline int pthread_cond_broadcast(pthread_cond_t *const cond) {
-    WakeAllConditionVariable(cond);
-    return 0;
-}
+int pthread_cond_init(pthread_cond_t *cv, const void *const *a);
+int pthread_cond_destroy(pthread_cond_t *cv);
+int pthread_cond_signal (pthread_cond_t *cv);
+int pthread_cond_broadcast (pthread_cond_t *cv);
+int pthread_cond_wait (pthread_cond_t *cv, pthread_mutex_t *external_mutex);
 
 #else
 
