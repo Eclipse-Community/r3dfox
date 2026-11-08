@@ -101,6 +101,8 @@ typedef struct tagRECT RECT;
 typedef struct _RTL_SRWLOCK RTL_SRWLOCK;
 typedef RTL_SRWLOCK SRWLOCK, *PSRWLOCK;
 
+typedef struct _RTL_CRITICAL_SECTION CRITICAL_SECTION, *PCRITICAL_SECTION;
+
 typedef struct _GUID GUID;
 typedef GUID CLSID;
 typedef GUID IID;
@@ -299,6 +301,9 @@ typedef INT_PTR(WINAPI* FARPROC)();
 WINBASEAPI _Releases_exclusive_lock_(*SRWLock) VOID WINAPI
     ReleaseSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
 WINBASEAPI BOOLEAN WINAPI TryAcquireSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
+WINBASEAPI BOOL WINAPI TryEnterCriticalSection(_Inout_ PCRITICAL_SECTION lpCriticalSection);
+WINBASEAPI _Releases_exclusive_lock_(*lpCriticalSection) VOID WINAPI
+    LeaveCriticalSection(_Inout_ PCRITICAL_SECTION lpCriticalSection);
 
 // Needed to support protobuf's GetMessage macro magic.
 WINUSERAPI BOOL WINAPI GetMessageW(_Out_ LPMSG lpMsg,
