@@ -559,6 +559,8 @@ ResultCode BrokerServicesBase::PreSpawnTarget(
   // TODO(crbug.com/1428756) remove all calls to HasJob in follow-up CLs.
   DCHECK(policy_base->HasJob());
 
+  // On Win10, jobs are associated via startup_info.
+  if (base::win::GetVersion() >= base::win::Version::WIN10)
   if (policy_base->HasJob())
     startup_info->AddJobToAssociate(policy_base->GetJobHandle());
 

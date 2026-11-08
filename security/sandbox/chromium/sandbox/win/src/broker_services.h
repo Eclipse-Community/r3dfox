@@ -21,6 +21,7 @@
 #include "base/win/scoped_process_information.h"
 #include "sandbox/win/src/alternate_desktop.h"
 #include "sandbox/win/src/crosscall_server.h"
+#include "sandbox/win/src/job.h"
 #include "sandbox/win/src/sandbox.h"
 #include "sandbox/win/src/sandbox_policy_base.h"
 #include "sandbox/win/src/sharedmem_ipc_server.h"

@@ -15,16 +15,19 @@
 
 namespace sandbox {
 
-Job::Job() = default;
-Job::~Job() = default;
+Job::Job() : job_handle_(nullptr) {}
+
+Job::~Job() {}
 
 DWORD Job::Init(JobLevel security_level,
+                const wchar_t* job_name,
                 DWORD ui_exceptions,
                 size_t memory_limit) {
   if (job_handle_.is_valid())
     return ERROR_ALREADY_INITIALIZED;
 
-  job_handle_.Set(::CreateJobObject(nullptr, nullptr));
+  job_handle_.Set(::CreateJobObject(nullptr,  // No security attribute
+                                    job_name));
   if (!job_handle_.is_valid())
     return ::GetLastError();
 
@@ -92,7 +95,29 @@ bool Job::IsValid() {
 }
 
 HANDLE Job::GetHandle() {
-  return job_handle_.get();
+  return job_handle_.Get();
+}
+
+DWORD Job::UserHandleGrantAccess(HANDLE handle) {
+  if (!job_handle_.is_valid())
+    return ERROR_NO_DATA;
+
+  if (!::UserHandleGrantAccess(handle, job_handle_.Get(),
+                               true)) {  // Access allowed.
+    return ::GetLastError();
+  }
+
+  return ERROR_SUCCESS;
+}
+
+DWORD Job::AssignProcessToJob(HANDLE process_handle) {
+  if (!job_handle_.is_valid())
+    return ERROR_NO_DATA;
+
+  if (!::AssignProcessToJobObject(job_handle_.Get(), process_handle))
+    return ::GetLastError();
+
+  return ERROR_SUCCESS;
 }
 
 DWORD Job::SetActiveProcessLimit(DWORD processes) {
@@ -101,7 +126,7 @@ DWORD Job::SetActiveProcessLimit(DWORD processes) {
   if (!job_handle_.is_valid())
     return ERROR_NO_DATA;
 
-  if (!::QueryInformationJobObject(job_handle_.get(),
+  if (!::QueryInformationJobObject(job_handle_.Get(),
                                    JobObjectExtendedLimitInformation, &jeli,
                                    sizeof(jeli), nullptr)) {
     return ::GetLastError();
@@ -109,7 +134,7 @@ DWORD Job::SetActiveProcessLimit(DWORD processes) {
   jeli.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_ACTIVE_PROCESS;
   jeli.BasicLimitInformation.ActiveProcessLimit = processes;
 
-  if (!::SetInformationJobObject(job_handle_.get(),
+  if (!::SetInformationJobObject(job_handle_.Get(),
                                  JobObjectExtendedLimitInformation, &jeli,
                                  sizeof(jeli))) {
     return ::GetLastError();
