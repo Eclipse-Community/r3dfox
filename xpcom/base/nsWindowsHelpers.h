@@ -356,7 +356,7 @@ inline bool IsDynamicBlocklistDisabled(bool isSafeMode,
 }
 
 extern "C" {
-NTSTATUS NTAPI RtlDosPathNameToNtPathName_U_WithStatus(PCWSTR aDosFileName,
+BOOLEAN NTAPI RtlDosPathNameToNtPathName_U(PCWSTR aDosFileName,
                                                        PUNICODE_STRING aNtName,
                                                        PCWSTR* aFilePart,
                                                        PVOID aRelativeName);
@@ -368,8 +368,8 @@ NTSTATUS NTAPI RtlDosPathNameToNtPathName_U_WithStatus(PCWSTR aDosFileName,
 class NtPathFromDosPath {
  public:
   explicit NtPathFromDosPath(const wchar_t* aDosPath) : mUnicodeString{} {
-    mStatus = ::RtlDosPathNameToNtPathName_U_WithStatus(
-        aDosPath, &mUnicodeString, nullptr, nullptr);
+    mStatus = ::RtlDosPathNameToNtPathName_U(
+        aDosPath, &mUnicodeString, nullptr, nullptr) ? static_cast<NTSTATUS>(0) : static_cast<NTSTATUS>(0xC0000001L);
   }
 
   ~NtPathFromDosPath() {
