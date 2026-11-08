@@ -2426,7 +2426,18 @@ static bool ggml_thread_apply_priority(int32_t prio) {
         t.ControlMask = THREAD_POWER_THROTTLING_EXECUTION_SPEED;
         t.StateMask   = 0;
 
-        if (!SetThreadInformation(GetCurrentThread(), ThreadPowerThrottling, &t, sizeof(t))) {
+typedef BOOL(WINAPI* SetThreadInformationFnPtr)(
+    HANDLE hThread, THREAD_INFORMATION_CLASS ThreadInformationClass,
+    LPVOID ThreadInformation, DWORD ThreadInformationSize);
+
+    // NOTE: SetThreadInformation API only exists on >= Win8.  Dynamically
+    //       get function handle.
+    SetThreadInformationFnPtr set_thread_info_function =
+        (SetThreadInformationFnPtr)(
+            GetProcAddress(GetModuleHandleW(L"kernel32.dll"),
+                             "SetThreadInformation"));
+
+        if (set_thread_info_function && !set_thread_info_function(GetCurrentThread(), ThreadPowerThrottling, &t, sizeof(t))) {
             GGML_LOG_DEBUG("failed to disable thread power throttling %d : (%d)\n", prio, (int) GetLastError());
             return false;
         }
