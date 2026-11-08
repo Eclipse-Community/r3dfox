@@ -209,6 +209,10 @@ struct auto_stream_ref {
   cubeb_stream * stm;
 };
 
+typedef HANDLE (WINAPI *set_mm_thread_characteristics_function)(
+                                      const char * TaskName, LPDWORD TaskIndex);
+typedef BOOL (WINAPI *revert_mm_thread_characteristics_function)(HANDLE handle);
+
 extern cubeb_ops const wasapi_ops;
 
 static com_heap_ptr<wchar_t>
@@ -300,6 +304,11 @@ typedef enum {
 
 struct cubeb {
   cubeb_ops const * ops = &wasapi_ops;
+  /* Library dynamically opened to increase the render thread priority, and
+     the two function pointers we need. */
+  HMODULE mmcss_module = nullptr;
+  set_mm_thread_characteristics_function set_mm_thread_characteristics = nullptr;
+  revert_mm_thread_characteristics_function revert_mm_thread_characteristics = nullptr;
   owned_critical_section lock;
   cubeb_strings * device_ids;
   /* Device enumerator to get notifications when the
@@ -1519,7 +1528,8 @@ static unsigned int __stdcall wasapi_stream_render_loop(LPVOID stream)
 
   /* We could consider using "Pro Audio" here for WebAudio and
      maybe WebRTC. */
-  mmcss_handle = AvSetMmThreadCharacteristicsA("Audio", &mmcss_task_index);
+  mmcss_handle =
+    stm->context->set_mm_thread_characteristics("Audio", &mmcss_task_index);
   if (!mmcss_handle) {
     /* This is not fatal, but we might glitch under heavy load. */
     LOG("Unable to use mmcss to bump the render thread priority: %lx",
@@ -1629,7 +1639,7 @@ static unsigned int __stdcall wasapi_stream_render_loop(LPVOID stream)
   }
 
   if (mmcss_handle) {
-    AvRevertMmThreadCharacteristics(mmcss_handle);
+    stm->context->revert_mm_thread_characteristics(mmcss_handle);
   }
 
   if (FAILED(hr)) {
@@ -1641,6 +1651,16 @@ static unsigned int __stdcall wasapi_stream_render_loop(LPVOID stream)
 
 void
 wasapi_destroy(cubeb * context);
+
+HANDLE WINAPI set_mm_thread_characteristics_noop(const char *, LPDWORD mmcss_task_index)
+{
+  return (HANDLE)1;
+}
+
+BOOL WINAPI revert_mm_thread_characteristics_noop(HANDLE mmcss_handle)
+{
+  return true;
+}
 
 HRESULT
 register_notification_client(cubeb_stream * stm)
@@ -1877,6 +1897,27 @@ wasapi_init(cubeb ** context, char const * context_name)
     ctx->performance_counter_frequency = 0;
   }
 
+  ctx->mmcss_module = LoadLibraryA("Avrt.dll");
+
+  if (ctx->mmcss_module) {
+    ctx->set_mm_thread_characteristics =
+      (set_mm_thread_characteristics_function) GetProcAddress(
+          ctx->mmcss_module, "AvSetMmThreadCharacteristicsA");
+    ctx->revert_mm_thread_characteristics =
+      (revert_mm_thread_characteristics_function) GetProcAddress(
+          ctx->mmcss_module, "AvRevertMmThreadCharacteristics");
+    if (!(ctx->set_mm_thread_characteristics && ctx->revert_mm_thread_characteristics)) {
+      LOG("Could not load AvSetMmThreadCharacteristics or AvRevertMmThreadCharacteristics: %lx", GetLastError());
+      FreeLibrary(ctx->mmcss_module);
+    }
+  } else {
+    // This is not a fatal error, but we might end up glitching when
+    // the system is under high load.
+    LOG("Could not load Avrt.dll");
+    ctx->set_mm_thread_characteristics = &set_mm_thread_characteristics_noop;
+    ctx->revert_mm_thread_characteristics = &revert_mm_thread_characteristics_noop;
+  }
+
   *context = ctx;
 
   return CUBEB_OK;
@@ -1923,6 +1964,9 @@ wasapi_destroy(cubeb * context)
     }
   }
 
+  if (context->mmcss_module) {
+    FreeLibrary(context->mmcss_module);
+  }
   delete context;
 }
 
