@@ -75,6 +75,8 @@ class nsNativeThemeWin final : public Theme {
   bool ThemeSupportsWidget(nsPresContext* aPresContext, nsIFrame* aFrame,
                            StyleAppearance aAppearance) override;
 
+  bool WidgetIsContainer(StyleAppearance aAppearance);
+
   bool ThemeDrawsFocusForWidget(nsIFrame*, StyleAppearance) override;
 
   nsNativeThemeWin();
