@@ -6130,9 +6130,11 @@ nsresult XREMain::XRE_mainRun() {
 #endif
 
 #ifdef XP_WIN
+#if 0 // Replace these with some other test...
       Preferences::RegisterCallbackAndCall(
           RegisterApplicationRestartChanged,
           PREF_WIN_REGISTER_APPLICATION_RESTART);
+#endif //
       SetupAlteredPrefetchPref();
 #  if defined(MOZ_LAUNCHER_PROCESS)
       SetupLauncherProcessPref();
