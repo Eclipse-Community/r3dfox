@@ -335,7 +335,72 @@ void NTAPI ETWEnableCallback(LPCGUID aSourceId, ULONG aIsEnabled, UCHAR aLevel,
   PerfMode = aIsEnabled ? PerfModeType::Function : PerfModeType::None;
 }
 
+// Typedefs for use with GetProcAddress
+typedef ULONG(__stdcall* tEventRegister)(LPCGUID ProviderId,
+                                         PENABLECALLBACK EnableCallback,
+                                         PVOID CallbackContext,
+                                         PREGHANDLE RegHandle);
+typedef ULONG(__stdcall* tEventWrite)(REGHANDLE RegHandle,
+                                      PCEVENT_DESCRIPTOR EventDescriptor,
+                                      ULONG UserDataCount,
+                                      PEVENT_DATA_DESCRIPTOR UserData);
+typedef ULONG(__stdcall* tEventUnregister)(REGHANDLE RegHandle);
+
+tEventRegister EventRegisterProc = nullptr;
+tEventWrite EventWriteProc = nullptr;
+tEventUnregister EventUnregisterProc = nullptr;
+
+// Redirector function for EventRegister. Called by macros in
+// chrome_events_win.h
+ULONG g_pfnEventRegister(LPCGUID ProviderId,
+                            PENABLECALLBACK EnableCallback,
+                            PVOID CallbackContext,
+                            PREGHANDLE RegHandle) {
+  if (EventRegisterProc)
+    return EventRegisterProc(ProviderId, EnableCallback, CallbackContext,
+                             RegHandle);
+  *RegHandle = 0;
+  return 0;
+}
+
+// Redirector function for EventWrite. Called by macros in
+// chrome_events_win.h
+ULONG g_pfnEventWrite(REGHANDLE RegHandle,
+                         PCEVENT_DESCRIPTOR EventDescriptor,
+                         ULONG UserDataCount,
+                         PEVENT_DATA_DESCRIPTOR UserData) {
+  if (EventWriteProc)
+    return EventWriteProc(RegHandle, EventDescriptor, UserDataCount, UserData);
+  return 0;
+}
+
+// Redirector function for EventUnregister. Called by macros in
+// chrome_events_win.h
+ULONG g_pfnEventUnregister(REGHANDLE RegHandle) {
+  if (EventUnregisterProc)
+    return EventUnregisterProc(RegHandle);
+  return 0;
+}
+
+#define EventWrite         g_pfnEventWrite
+#define EventWriteTransfer g_pfnEventWriteTransfer
+#define EventRegister      g_pfnEventRegister
+#define EventUnregister    g_pfnEventUnregister
+
+
 void RegisterETW() {
+  // Find Advapi32.dll. This should always succeed.
+  HMODULE AdvapiDLL = ::LoadLibraryW(L"Advapi32.dll");
+  if (AdvapiDLL) {
+    // Try to find the ETW functions. This will fail on XP.
+    EventRegisterProc = reinterpret_cast<tEventRegister>(
+        ::GetProcAddress(AdvapiDLL, "EventRegister"));
+    EventWriteProc = reinterpret_cast<tEventWrite>(
+        ::GetProcAddress(AdvapiDLL, "EventWrite"));
+    EventUnregisterProc = reinterpret_cast<tEventUnregister>(
+        ::GetProcAddress(AdvapiDLL, "EventUnregister"));
+  }
+
   static bool sHasRegisteredETW = false;
   if (!sHasRegisteredETW) {
     if (getenv("ETW_ENABLED")) {
