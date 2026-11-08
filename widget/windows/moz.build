@@ -246,3 +246,5 @@ if CONFIG["MOZ_WINDOWSAPPSDK_DIR"]:
             "Microsoft.WindowsAppRuntime.Insights.Resource.dll",
         )
     ]
+OS_LIBS += ["psapi"]
+DEFINES["PSAPI_VERSION"] = "1"
