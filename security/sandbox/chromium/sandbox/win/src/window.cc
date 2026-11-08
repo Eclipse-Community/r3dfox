@@ -12,6 +12,7 @@
 #include "base/win/security_descriptor.h"
 #include "base/win/sid.h"
 #include "base/win/win_util.h"
+#include "base/win/windows_version.h"
 
 namespace sandbox {
 
@@ -85,8 +86,10 @@ ResultCode CreateAltDesktop(HWINSTA winsta, HDESK* desktop) {
     // replace the NULL DACL with one that has a single ACE that allows access
     // to everyone, so the desktop remains accessible when we further modify
     // the DACL. Also need WinBuiltinAnyPackageSid for AppContainer processes.
-    sd->SetDaclEntry(base::win::WellKnownSid::kAllApplicationPackages,
-                     base::win::SecurityAccessMode::kGrant, GENERIC_ALL, 0);
+    if (base::win::GetVersion() >= base::win::Version::WIN8) {
+      sd->SetDaclEntry(base::win::WellKnownSid::kAllApplicationPackages,
+                       base::win::SecurityAccessMode::kGrant, GENERIC_ALL, 0);
+    }
     sd->SetDaclEntry(base::win::WellKnownSid::kWorld,
                      base::win::SecurityAccessMode::kGrant, GENERIC_ALL, 0);
   }
