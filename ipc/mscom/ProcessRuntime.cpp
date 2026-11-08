@@ -244,6 +244,12 @@ void ProcessRuntime::InitInsideApartment() {
     return;
   }
 
+  // Windows XP does not support configuring the COM exception policy.
+  if (!IsVistaOrLater()) {
+    mInitResult = S_OK;
+    return;
+  }
+
   if (prevInitState < ProcessInitState::PartialSecurityInitialized) {
     // We are required to initialize security prior to configuring global
     // options.
@@ -273,8 +279,13 @@ void ProcessRuntime::InitInsideApartment() {
     }
 
     // Disable COM's catch-all exception handler
-    mInitResult = globalOpts->Set(COMGLB_EXCEPTION_HANDLING,
-                                  COMGLB_EXCEPTION_DONOT_HANDLE_ANY);
+    // Windows 7 has a policy that is even more strict. Use it whenever
+    // possible.
+    const ULONG_PTR exceptionSetting =
+        IsWin7OrLater() ? COMGLB_EXCEPTION_DONOT_HANDLE_ANY
+                         : COMGLB_EXCEPTION_DONOT_HANDLE;
+    mInitResult =
+        globalOpts->Set(COMGLB_EXCEPTION_HANDLING, exceptionSetting);
     MOZ_ASSERT(SUCCEEDED(mInitResult));
     if (FAILED(mInitResult)) {
       return;
