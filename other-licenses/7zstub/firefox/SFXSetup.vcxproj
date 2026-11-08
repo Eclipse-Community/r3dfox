@@ -141,8 +141,8 @@
     <Link>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <SubSystem>Windows</SubSystem>
-      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;comctl32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ProfileGuidedDatabase />
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -187,8 +187,8 @@
     <Link>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <SubSystem>Windows</SubSystem>
-      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;shell32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;comctl32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;shell32.lib;oleaut32.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ProfileGuidedDatabase />
@@ -235,8 +235,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;comctl32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ProfileGuidedDatabase />
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
@@ -280,8 +280,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;shell32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>user32.dll;shell32.dll;oleaut32.dll;comctl32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;delayimp.lib;shell32.lib;oleaut32.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ProfileGuidedDatabase />
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
