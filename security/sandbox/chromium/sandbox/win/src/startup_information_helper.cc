@@ -124,6 +124,19 @@ bool StartupInformationHelper::BuildStartupInformation() {
   // When adding new attributes, any memory referenced needs to have the
   // same lifetime as startup_info_. This is why we use members below.
 
+    // On pre-Vista versions even if we can't limit what gets inherited, we
+    // sometimes want to inherit stdout/err for testing purposes.
+    startup_info_.startup_info()->dwFlags |= STARTF_USESTDHANDLES;
+    startup_info_.startup_info()->hStdInput = INVALID_HANDLE_VALUE;
+    startup_info_.startup_info()->hStdOutput = stdout_handle_;
+    startup_info_.startup_info()->hStdError = stderr_handle_;
+    inherit_handles_ = true;
+
+  if (base::win::GetVersion() < base::win::Version::VISTA) {
+    startup_info_.startup_info()->cb = sizeof(STARTUPINFOW);
+    return true;
+  }
+
   auto expected_attributes = CountAttributes();
   if (!startup_info_.InitializeProcThreadAttributeList(expected_attributes))
     return false;
