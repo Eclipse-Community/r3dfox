@@ -131,31 +131,32 @@ static UniquePtr<wchar_t[]> FormatUserChoiceString(const wchar_t* aExt,
 static UniquePtr<DWORD[]> CNG_MD5(const unsigned char* bytes, ULONG bytesLen) {
   constexpr ULONG MD5_BYTES = 16;
   constexpr ULONG MD5_DWORDS = MD5_BYTES / sizeof(DWORD);
-  UniquePtr<DWORD[]> hash;
-
-  BCRYPT_ALG_HANDLE hAlg = nullptr;
-  if (NT_SUCCESS(::BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_MD5_ALGORITHM,
-                                               nullptr, 0))) {
-    BCRYPT_HASH_HANDLE hHash = nullptr;
-    // As of Windows 7 the hash handle will manage its own object buffer when
-    // pbHashObject is nullptr and cbHashObject is 0.
-    if (NT_SUCCESS(
-            ::BCryptCreateHash(hAlg, &hHash, nullptr, 0, nullptr, 0, 0))) {
-      // BCryptHashData promises not to modify pbInput.
-      if (NT_SUCCESS(::BCryptHashData(hHash, const_cast<unsigned char*>(bytes),
-                                      bytesLen, 0))) {
-        hash = MakeUnique<DWORD[]>(MD5_DWORDS);
-        if (!NT_SUCCESS(::BCryptFinishHash(
-                hHash, reinterpret_cast<unsigned char*>(hash.get()),
-                MD5_DWORDS * sizeof(DWORD), 0))) {
-          hash.reset();
-        }
-      }
-      ::BCryptDestroyHash(hHash);
-    }
-    ::BCryptCloseAlgorithmProvider(hAlg, 0);
+  HCRYPTPROV provider = 0;
+  if (!::CryptAcquireContextW(&provider, nullptr, nullptr, PROV_RSA_FULL,
+                              CRYPT_VERIFYCONTEXT)) {
+    return nullptr;
   }
 
+  HCRYPTHASH hashHandle = 0;
+  if (!::CryptCreateHash(provider, CALG_MD5, 0, 0, &hashHandle)) {
+    ::CryptReleaseContext(provider, 0);
+    return nullptr;
+  }
+
+  UniquePtr<DWORD[]> hash;
+  if (::CryptHashData(hashHandle, bytes, bytesLen, 0)) {
+    DWORD hashLen = MD5_BYTES;
+    hash = MakeUnique<DWORD[]>(MD5_DWORDS);
+    if (!::CryptGetHashParam(hashHandle, HP_HASHVAL,
+                             reinterpret_cast<BYTE*>(hash.get()), &hashLen,
+                             0) ||
+        hashLen != MD5_BYTES) {
+      hash.reset();
+    }
+  }
+
+  ::CryptDestroyHash(hashHandle);
+  ::CryptReleaseContext(provider, 0);
   return hash;
 }
 
@@ -382,8 +383,8 @@ CheckUserChoiceHashResult CheckUserChoiceHash(const wchar_t* aExt,
     return CheckUserChoiceHashResult::ERR_OTHER;
   }
 
-  if (::CompareStringOrdinal(computedHash.get(), -1, storedHash.get(), -1,
-                             FALSE) != CSTR_EQUAL) {
+  if (::wcscmp(computedHash.get(), storedHash.get()
+                             ) != 0) {
     return CheckUserChoiceHashResult::ERR_MISMATCH;
   }
 
