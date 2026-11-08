@@ -298,13 +298,15 @@ GETDPIFORMONITORPROC sGetDpiForMonitor;
 GETPROCESSDPIAWARENESSPROC sGetProcessDpiAwareness;
 
 static bool SlowIsPerMonitorDPIAware() {
-  // Intentionally leak the handle.
-  HMODULE shcore = LoadLibraryEx(L"shcore", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-  if (shcore) {
-    sGetDpiForMonitor =
-        (GETDPIFORMONITORPROC)GetProcAddress(shcore, "GetDpiForMonitor");
-    sGetProcessDpiAwareness = (GETPROCESSDPIAWARENESSPROC)GetProcAddress(
-        shcore, "GetProcessDpiAwareness");
+  if (IsVistaOrLater()) {
+    // Intentionally leak the handle.
+    HMODULE shcore = LoadLibraryEx(L"shcore", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (shcore) {
+      sGetDpiForMonitor =
+          (GETDPIFORMONITORPROC)GetProcAddress(shcore, "GetDpiForMonitor");
+      sGetProcessDpiAwareness = (GETPROCESSDPIAWARENESSPROC)GetProcAddress(
+          shcore, "GetProcessDpiAwareness");
+    }
   }
   PROCESS_DPI_AWARENESS dpiAwareness;
   return sGetDpiForMonitor && sGetProcessDpiAwareness &&
@@ -474,7 +476,7 @@ bool WinUtils::GetMessage(LPMSG aMsg, HWND aWnd, UINT aFirstMessage,
 #if defined(ACCESSIBILITY)
 static DWORD GetWaitFlags() {
   DWORD result = MWMO_INPUTAVAILABLE;
-  if (XRE_IsContentProcess()) {
+  if (IsVistaOrLater() && XRE_IsContentProcess()) {
     result |= MWMO_ALERTABLE;
   }
   return result;
@@ -1589,7 +1591,7 @@ uint32_t WinUtils::IsTouchDeviceSupportPresent() {
 
 /* static */
 uint32_t WinUtils::GetMaxTouchPoints() {
-  if (IsTouchDeviceSupportPresent()) {
+  if (IsWin7OrLater() && IsTouchDeviceSupportPresent()) {
     return GetSystemMetrics(SM_MAXIMUMTOUCHES);
   }
   return 0;
@@ -1991,18 +1993,21 @@ bool WinUtils::GetAppInitDLLs(nsAString& aOutput) {
   }
   nsAutoRegKey key(hkey);
   LONG status;
-  const wchar_t kLoadAppInitDLLs[] = L"LoadAppInit_DLLs";
-  DWORD loadAppInitDLLs = 0;
-  DWORD loadAppInitDLLsLen = sizeof(loadAppInitDLLs);
-  status = RegQueryValueExW(hkey, kLoadAppInitDLLs, nullptr, nullptr,
-                            (LPBYTE)&loadAppInitDLLs, &loadAppInitDLLsLen);
-  if (status != ERROR_SUCCESS) {
-    return false;
-  }
-  if (!loadAppInitDLLs) {
-    // If loadAppInitDLLs is zero then AppInit_DLLs is disabled.
-    // In this case we'll return true along with an empty output string.
-    return true;
+  if (IsVistaOrLater()) {
+    const wchar_t kLoadAppInitDLLs[] = L"LoadAppInit_DLLs";
+    DWORD loadAppInitDLLs = 0;
+    DWORD loadAppInitDLLsLen = sizeof(loadAppInitDLLs);
+    status = RegQueryValueExW(hkey, kLoadAppInitDLLs, nullptr,
+                              nullptr, (LPBYTE)&loadAppInitDLLs,
+                              &loadAppInitDLLsLen);
+    if (status != ERROR_SUCCESS) {
+      return false;
+    }
+    if (!loadAppInitDLLs) {
+      // If loadAppInitDLLs is zero then AppInit_DLLs is disabled.
+      // In this case we'll return true along with an empty output string.
+      return true;
+    }
   }
   DWORD numBytes = 0;
   const wchar_t kAppInitDLLs[] = L"AppInit_DLLs";

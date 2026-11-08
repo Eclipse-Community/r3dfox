@@ -694,6 +694,7 @@ class nsWindow final : public nsIWidget {
       mozilla::layers::WebRenderBridgeChild* aWrBridge,
       mozilla::wr::DisplayListBuilder& aBuilder,
       mozilla::wr::IpcResourceUpdateQueue& aResourceUpdates) override;
+  static void ActivateOtherWindowHelper(HWND aWnd);
 
   void CreateCompositor() override;
   void DestroyCompositor() override;
@@ -745,6 +746,7 @@ class nsWindow final : public nsIWidget {
   static bool sJustGotActivate;
   static bool sIsInMouseCapture;
   static bool sIsRestoringSession;
+  static int sTrimOnMinimize;
   static bool sIsNativePointLocked;
   static bool sIsUsingRawInputForMouseMove;
 
