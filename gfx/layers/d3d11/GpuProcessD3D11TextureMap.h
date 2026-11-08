@@ -41,12 +41,12 @@ class GpuProcessD3D11TextureMap {
   void Register(GpuProcessTextureId aTextureId, ID3D11Texture2D* aTexture,
                 uint32_t aArrayIndex, const gfx::IntSize& aSize,
                 ZeroCopyUsageInfo* aUsageInfo,
-                RefPtr<gfx::FileHandleWrapper> aSharedHandle = nullptr);
+                HANDLE aSharedHandle = nullptr);
   void Register(const MonitorAutoLock& aProofOfLock,
                 GpuProcessTextureId aTextureId, ID3D11Texture2D* aTexture,
                 uint32_t aArrayIndex, const gfx::IntSize& aSize,
                 ZeroCopyUsageInfo* aUsageInfo,
-                RefPtr<gfx::FileHandleWrapper> aSharedHandle);
+                HANDLE aSharedHandle);
   void Unregister(GpuProcessTextureId aTextureId);
 
   RefPtr<ID3D11Texture2D> GetTexture(GpuProcessTextureId aTextureId);
@@ -68,16 +68,16 @@ class GpuProcessD3D11TextureMap {
   struct TextureHolder {
     TextureHolder(ID3D11Texture2D* aTexture, uint32_t aArrayIndex,
                   const gfx::IntSize& aSize, ZeroCopyUsageInfo* aUsageInfo,
-                  RefPtr<gfx::FileHandleWrapper> aSharedHandle);
+                  HANDLE aSharedHandle);
     TextureHolder() = default;
 
     RefPtr<ID3D11Texture2D> mTexture;
     uint32_t mArrayIndex = 0;
     gfx::IntSize mSize;
     RefPtr<ZeroCopyUsageInfo> mZeroCopyUsageInfo;
-    RefPtr<gfx::FileHandleWrapper> mSharedHandle;
+    HANDLE mSharedHandle = nullptr;
     RefPtr<ID3D11Texture2D> mCopiedTexture;
-    RefPtr<gfx::FileHandleWrapper> mCopiedTextureSharedHandle;
+    Maybe<HANDLE> mCopiedTextureSharedHandle;
   };
 
   struct UpdatingTextureHolder {

@@ -237,7 +237,7 @@ RefPtr<WebRenderAPI::CreatePromise> WebRenderAPI::Create(
 
         wr::DocumentHandle* docHandle = nullptr;
         int32_t maxTextureSize = 0;
-        layers::SyncHandle syncHandle = {};
+        layers::SyncHandle syncHandle = 0;
 
         // Only allow the panic on GL error functionality in nightly builds,
         // since it (deliberately) crashes the GPU process if any GL call

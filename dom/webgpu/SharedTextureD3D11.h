@@ -5,7 +5,6 @@
 #ifndef GPU_SharedTextureD3D11_H_
 #define GPU_SharedTextureD3D11_H_
 
-#include "mozilla/gfx/FileHandleWrapper.h"
 #include "mozilla/webgpu/SharedTexture.h"
 
 struct ID3D11Texture2D;
@@ -29,9 +28,7 @@ class SharedTextureD3D11 final : public SharedTexture {
   SharedTextureD3D11(
       const uint32_t aWidth, const uint32_t aHeight,
       const struct ffi::WGPUTextureFormat aFormat,
-      const ffi::WGPUTextureUsages aUsage,
-      const RefPtr<ID3D11Texture2D> aTexture,
-      RefPtr<gfx::FileHandleWrapper>&& aSharedHandle,
+      const ffi::WGPUTextureUsages aUsage, RefPtr<ID3D11Texture2D> aTexture,
       const layers::CompositeProcessFencesHolderId aFencesHolderId,
       RefPtr<layers::FenceD3D11>&& aWriteFence);
   virtual ~SharedTextureD3D11();
@@ -45,8 +42,7 @@ class SharedTextureD3D11 final : public SharedTexture {
   SharedTextureD3D11* AsSharedTextureD3D11() override { return this; }
 
  protected:
-  const RefPtr<ID3D11Texture2D> mTexture;
-  const RefPtr<gfx::FileHandleWrapper> mSharedHandle;
+  RefPtr<ID3D11Texture2D> mTexture;
   const layers::CompositeProcessFencesHolderId mFencesHolderId;
   const RefPtr<layers::FenceD3D11> mWriteFence;
 };
