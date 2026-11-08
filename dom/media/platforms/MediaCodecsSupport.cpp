@@ -7,11 +7,13 @@
 
 #include "AOMDecoder.h"
 #include "MP4Decoder.h"
+#include "OpusDecoder.h"
 #include "PDMFactory.h"
 #include "PEMFactory.h"
 #include "PlatformDecoderModule.h"
 #include "VPXDecoder.h"
-#include "VideoUtils.h"
+#include "VorbisDecoder.h"
+#include "WAVDecoder.h"
 #include "mozilla/AppShutdown.h"
 #include "mozilla/gfx/gfxVars.h"
 #include "nsTHashMap.h"
@@ -323,16 +325,16 @@ MediaCodec MCSInfo::GetMediaCodecFromMimeType(const nsACString& aMimeType) {
   if (MP4Decoder::IsAAC(aMimeType)) {
     return MediaCodec::AAC;
   }
-  if (aMimeType.EqualsLiteral("audio/vorbis")) {
+  if (VorbisDataDecoder::IsVorbis(aMimeType)) {
     return MediaCodec::Vorbis;
   }
   if (aMimeType.EqualsLiteral("audio/flac")) {
     return MediaCodec::FLAC;
   }
-  if (IsWaveMimetype(aMimeType)) {
+  if (WaveDataDecoder::IsWave(aMimeType)) {
     return MediaCodec::Wave;
   }
-  if (aMimeType.EqualsLiteral("audio/opus")) {
+  if (OpusDataDecoder::IsOpus(aMimeType)) {
     return MediaCodec::Opus;
   }
   if (aMimeType.EqualsLiteral("audio/mpeg")) {

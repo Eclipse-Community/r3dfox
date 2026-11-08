@@ -14,6 +14,7 @@
 #include "MediaDataDemuxer.h"
 #include "MediaResource.h"
 #include "NesteggPacketHolder.h"
+#include "OpusDecoder.h"
 #include "VPXDecoder.h"
 #include "VideoUtils.h"
 #include "WebMBufferedParser.h"
