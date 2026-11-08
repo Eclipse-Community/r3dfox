@@ -2618,8 +2618,10 @@ void SandboxBroker::SetSecurityLevelForContentProcess(int32_t aSandboxLevel,
   config->SetDelayedIntegrityLevel(delayedIntegrityLevel);
 
   if (aSandboxLevel > 5) {
+    if (IsVistaOrLater()) {
     config->SetLockdownDefaultDacl();
     config->AddRestrictingRandomSid();
+    }
   }
 
   if (aSandboxLevel > 4) {
