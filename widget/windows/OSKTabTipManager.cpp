@@ -4,6 +4,7 @@
 
 #include "OSKTabTipManager.h"
 
+#include "WinUtils.h"
 #include "mozilla/Preferences.h"
 #include "nsDebug.h"
 #include "mozilla/widget/WinRegistry.h"
@@ -76,7 +77,7 @@ void OSKTabTipManager::ShowOnScreenKeyboard() {
             std::wstring(commonProgramFilesPathW6432.data());
       } else {
         PWSTR path = nullptr;
-        HRESULT hres = SHGetKnownFolderPath(FOLDERID_ProgramFilesCommon, 0,
+        HRESULT hres = WinUtils::SHGetKnownFolderPath(FOLDERID_ProgramFilesCommon, 0,
                                             nullptr, &path);
         if (FAILED(hres) || !path) {
           return;

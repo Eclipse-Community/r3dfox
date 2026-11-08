@@ -349,7 +349,6 @@ if CONFIG["OS_ARCH"] == "WINNT":
         "shlwapi",
         "ws2_32",
         "dnsapi",
-        "dwmapi",
         "iphlpapi",
         "uxtheme",
         "setupapi",
