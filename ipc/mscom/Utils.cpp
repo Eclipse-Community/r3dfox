@@ -45,9 +45,17 @@ bool IsCurrentThreadMTA() {
 }
 
 bool IsCurrentThreadExplicitMTA() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+    return IsCurrentThreadMTALegacy();
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   if (FAILED(hr)) {
     return false;
   }
@@ -57,9 +65,17 @@ bool IsCurrentThreadExplicitMTA() {
 }
 
 bool IsCurrentThreadImplicitMTA() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+    return IsCurrentThreadMTALegacy();
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   if (FAILED(hr)) {
     return false;
   }
