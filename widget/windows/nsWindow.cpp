@@ -5050,6 +5050,7 @@ LRESULT CALLBACK nsWindow::WindowProcInternal(HWND hWnd, UINT msg,
 }
 
 const char16_t* GetQuitType() {
+#if 0 // Replace these with some other test...
   if (Preferences::GetBool(PREF_WIN_REGISTER_APPLICATION_RESTART, false)) {
     DWORD cchCmdLine = 0;
     HRESULT rc = ::GetApplicationRestartSettings(::GetCurrentProcess(), nullptr,
@@ -5058,6 +5059,7 @@ const char16_t* GetQuitType() {
       return u"os-restart";
     }
   }
+#endif //
   return nullptr;
 }
 
