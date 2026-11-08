@@ -5,8 +5,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "D3D9SurfaceImage.h"
+
+#include <d3d11.h>
+
 #include "gfx2DGlue.h"
 #include "gfxWindowsPlatform.h"
+#include "mozilla/gfx/DeviceManagerDx.h"
+#include "mozilla/layers/GpuProcessD3D11TextureMap.h"
 #include "mozilla/layers/CompositableClient.h"
 #include "mozilla/layers/CompositableForwarder.h"
 #include "mozilla/layers/ImageBridgeChild.h"
@@ -25,6 +30,11 @@ DXGID3D9TextureData::DXGID3D9TextureData(gfx::SurfaceFormat aFormat,
 }
 
 DXGID3D9TextureData::~DXGID3D9TextureData() {
+  if (mGpuProcessTextureId.isSome()) {
+    if (auto* textures = GpuProcessD3D11TextureMap::Get()) {
+      textures->Unregister(mGpuProcessTextureId.ref());
+    }
+  }
   gfxWindowsPlatform::sD3D9SharedTextures -= mDesc.Width * mDesc.Height * 4;
   MOZ_COUNT_DTOR(DXGID3D9TextureData);
 }
@@ -41,8 +51,35 @@ DXGID3D9TextureData* DXGID3D9TextureData::Create(gfx::IntSize aSize,
   }
 
   RefPtr<IDirect3DTexture9> texture;
+  RefPtr<ID3D11Texture2D> sharedTexture;
   HANDLE shareHandle = nullptr;
-  HRESULT hr = aDevice->CreateTexture(
+  HRESULT hr;
+  auto* textures = GpuProcessD3D11TextureMap::Get();
+  RefPtr<ID3D11Device> device =
+      textures ? gfx::DeviceManagerDx::Get()->GetCompositorDevice() : nullptr;
+  if (device) {
+    // D3D9 writes into the allocation that the renderer will sample directly.
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = aSize.width;
+    desc.Height = aSize.height;
+    desc.MipLevels = desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    desc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+    hr = device->CreateTexture2D(&desc, nullptr, getter_AddRefs(sharedTexture));
+    if (FAILED(hr)) {
+      return nullptr;
+    }
+    RefPtr<IDXGIResource> resource;
+    hr = sharedTexture->QueryInterface(__uuidof(IDXGIResource),
+                                      getter_AddRefs(resource));
+    if (FAILED(hr) || FAILED(resource->GetSharedHandle(&shareHandle))) {
+      return nullptr;
+    }
+  }
+  hr = aDevice->CreateTexture(
       aSize.width, aSize.height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8,
       D3DPOOL_DEFAULT, getter_AddRefs(texture), &shareHandle);
   if (FAILED(hr) || !shareHandle) {
@@ -57,6 +94,12 @@ DXGID3D9TextureData* DXGID3D9TextureData::Create(gfx::IntSize aSize,
   DXGID3D9TextureData* data =
       new DXGID3D9TextureData(aFormat, texture, shareHandle, aDevice);
   data->mDesc = surfaceDesc;
+  data->mSharedTexture = std::move(sharedTexture);
+  if (data->mSharedTexture) {
+    auto id = GpuProcessD3D11TextureMap::GetNextTextureId();
+    textures->Register(id, data->mSharedTexture, 0, aSize, nullptr, shareHandle);
+    data->mGpuProcessTextureId = Some(id);
+  }
 
   gfxWindowsPlatform::sD3D9SharedTextures += aSize.width * aSize.height * 4;
   return data;
@@ -81,7 +124,7 @@ already_AddRefed<IDirect3DSurface9> DXGID3D9TextureData::GetD3D9Surface()
 
 bool DXGID3D9TextureData::Serialize(SurfaceDescriptor& aOutDescriptor) {
   SurfaceDescriptorD3D10 desc((WindowsHandle)(mHandle),
-                              /* gpuProcessTextureId */ Nothing(),
+                              /* gpuProcessTextureId */ mGpuProcessTextureId,
                               /* arrayIndex */ 0, mFormat, GetSize(),
                               gfx::ColorSpace2::SRGB, gfx::ColorRange::FULL,
                               gfx::TransferFunction::SRGB,

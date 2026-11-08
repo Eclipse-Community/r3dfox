@@ -12,6 +12,8 @@
 #include "d3d9.h"
 #include "mozilla/layers/TextureClientRecycleAllocator.h"
 
+struct ID3D11Texture2D;
+
 namespace mozilla {
 namespace layers {
 
@@ -73,6 +75,8 @@ class DXGID3D9TextureData : public TextureData {
                       HANDLE aHandle, IDirect3DDevice9* aDevice);
 
   RefPtr<IDirect3DDevice9> mDevice;
+  RefPtr<ID3D11Texture2D> mSharedTexture;
+  Maybe<GpuProcessTextureId> mGpuProcessTextureId;
   RefPtr<IDirect3DTexture9> mTexture;
   gfx::SurfaceFormat mFormat;
   HANDLE mHandle;
