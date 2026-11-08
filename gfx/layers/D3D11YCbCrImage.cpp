@@ -60,8 +60,7 @@ already_AddRefed<TextureClient> DXGIYCbCrTextureAllocationHelper::Allocate(
                                     : DXGI_FORMAT_R16_UNORM,
                                 ySize.width, ySize.height, 1, 1);
   // Use FenceD3D11 for synchronization.
-  newDesc.MiscFlags =
-      D3D11_RESOURCE_MISC_SHARED_NTHANDLE | D3D11_RESOURCE_MISC_SHARED;
+  newDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
 
   RefPtr<ID3D11Texture2D> textureY;
   HRESULT hr =

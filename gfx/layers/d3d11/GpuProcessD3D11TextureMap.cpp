@@ -46,7 +46,7 @@ void GpuProcessD3D11TextureMap::Register(
     GpuProcessTextureId aTextureId, ID3D11Texture2D* aTexture,
     uint32_t aArrayIndex, const gfx::IntSize& aSize,
     ZeroCopyUsageInfo* aUsageInfo,
-    RefPtr<gfx::FileHandleWrapper> aSharedHandle) {
+    HANDLE aSharedHandle) {
   MonitorAutoLock lock(mMonitor);
   Register(lock, aTextureId, aTexture, aArrayIndex, aSize, aUsageInfo,
            aSharedHandle);
@@ -55,7 +55,7 @@ void GpuProcessD3D11TextureMap::Register(
     const MonitorAutoLock& aProofOfLock, GpuProcessTextureId aTextureId,
     ID3D11Texture2D* aTexture, uint32_t aArrayIndex, const gfx::IntSize& aSize,
     ZeroCopyUsageInfo* aUsageInfo,
-    RefPtr<gfx::FileHandleWrapper> aSharedHandle) {
+    HANDLE aSharedHandle) {
   MOZ_RELEASE_ASSERT(aTexture);
 
   auto it = mD3D11TexturesById.find(aTextureId);
@@ -102,11 +102,11 @@ Maybe<HANDLE> GpuProcessD3D11TextureMap::GetSharedHandle(
     }
 
     if (it->second.mSharedHandle) {
-      return Some(it->second.mSharedHandle->GetHandle());
+      return Some(it->second.mSharedHandle);
     }
 
-    if (it->second.mCopiedTextureSharedHandle) {
-      return Some(it->second.mCopiedTextureSharedHandle->GetHandle());
+    if (it->second.mCopiedTextureSharedHandle.isSome()) {
+      return it->second.mCopiedTextureSharedHandle;
     }
 
     holder = it->second;
@@ -130,8 +130,7 @@ Maybe<HANDLE> GpuProcessD3D11TextureMap::GetSharedHandle(
   CD3D11_TEXTURE2D_DESC newDesc(
       existingDesc.Format, holder.mSize.width, holder.mSize.height, 1, 1,
       D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
-  newDesc.MiscFlags =
-      D3D11_RESOURCE_MISC_SHARED_NTHANDLE | D3D11_RESOURCE_MISC_SHARED;
+  newDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
 
   RefPtr<ID3D11Texture2D> copiedTexture;
   HRESULT hr =
@@ -153,22 +152,17 @@ Maybe<HANDLE> GpuProcessD3D11TextureMap::GetSharedHandle(
   context->CopySubresourceRegion(copiedTexture, 0, 0, 0, 0, holder.mTexture,
                                  holder.mArrayIndex, &srcBox);
 
-  RefPtr<IDXGIResource1> resource;
-  copiedTexture->QueryInterface((IDXGIResource1**)getter_AddRefs(resource));
+  RefPtr<IDXGIResource> resource;
+  copiedTexture->QueryInterface((IDXGIResource**)getter_AddRefs(resource));
   if (!resource) {
     return Nothing();
   }
 
   HANDLE sharedHandle;
-  hr = resource->CreateSharedHandle(
-      nullptr, DXGI_SHARED_RESOURCE_READ | DXGI_SHARED_RESOURCE_WRITE, nullptr,
-      &sharedHandle);
+  hr = resource->GetSharedHandle(&sharedHandle);
   if (FAILED(hr)) {
     return Nothing();
   }
-
-  RefPtr handle =
-      MakeRefPtr<gfx::FileHandleWrapper>(UniqueFileHandle(sharedHandle));
 
   RefPtr<ID3D11Query> query;
   CD3D11_QUERY_DESC desc(D3D11_QUERY_EVENT);
@@ -202,10 +196,10 @@ Maybe<HANDLE> GpuProcessD3D11TextureMap::GetSharedHandle(
     }
 
     it->second.mCopiedTexture = copiedTexture;
-    it->second.mCopiedTextureSharedHandle = handle;
+    it->second.mCopiedTextureSharedHandle = Some(sharedHandle);
   }
 
-  return Some(handle->GetHandle());
+  return Some(sharedHandle);
 }
 
 void GpuProcessD3D11TextureMap::DisableZeroCopyNV12Texture(
@@ -434,7 +428,7 @@ RefPtr<ID3D11Texture2D> GpuProcessD3D11TextureMap::UpdateTextureData(
 
 GpuProcessD3D11TextureMap::TextureHolder::TextureHolder(
     ID3D11Texture2D* aTexture, uint32_t aArrayIndex, const gfx::IntSize& aSize,
-    ZeroCopyUsageInfo* aUsageInfo, RefPtr<gfx::FileHandleWrapper> aSharedHandle)
+    ZeroCopyUsageInfo* aUsageInfo, HANDLE aSharedHandle)
     : mTexture(aTexture),
       mArrayIndex(aArrayIndex),
       mSize(aSize),
