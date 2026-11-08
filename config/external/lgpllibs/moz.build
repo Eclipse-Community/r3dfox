@@ -10,6 +10,7 @@
 
 GeckoSharedLibrary("lgpllibs")
 SHARED_LIBRARY_NAME = "lgpllibs"
+USE_LIBS += ["xp_kernel32"]
 
 # For some reason, mingw builds export way too many symbols.
 if CONFIG["TARGET_OS"] == "WINNT" and CONFIG["CC_TYPE"] != "clang-cl":

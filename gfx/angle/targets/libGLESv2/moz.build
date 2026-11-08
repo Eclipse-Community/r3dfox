@@ -363,6 +363,7 @@ USE_LIBS += [
     "angle_image_util",
     "compression_utils_portable",
     "translator",
+    "xp_kernel32",
 ]
 
 DIRS += [
