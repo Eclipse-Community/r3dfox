@@ -77,6 +77,7 @@
 
     /** toolbar **/
     --toolbar-background-color: color-mix(in srgb, -moz-dialog 85%, var(--color-white));
+    --toolbar-field-background-color: light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30));
     --toolbar-field-background-color-focus: Field;
     --toolbar-field-text-color: inherit;
     --toolbar-field-text-color-focus: FieldText;
@@ -139,6 +140,7 @@
 
       /** toolbar **/
       --toolbar-background-color: light-dark(#f9f9fb, rgb(43, 42, 51));
+      --toolbar-field-background-color: light-dark(rgb(240, 240, 244), rgb(28, 27, 34));
       --toolbar-field-background-color-focus: light-dark(var(--color-white), rgb(66, 65, 77));
       --toolbar-field-text-color: light-dark(var(--color-gray-100), var(--color-gray-0));
       --toolbar-field-text-color-focus: light-dark(var(--color-black), var(--color-gray-0));
