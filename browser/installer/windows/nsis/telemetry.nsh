@@ -434,6 +434,13 @@ Function PrepareStubInstallPing
 
   nsJSON::Set /tree ping "Data" "download_requests_blocked_by_server" /value "$DownloadRequestsBlockedByServer"
 
+  ${If} $CanSetAsDefault == "true"
+  ${AndIf} $CheckboxSetAsDefault == "1"
+    nsJSON::Set /tree ping "Data" "set_default" /value true
+  ${Else}
+    nsJSON::Set /tree ping "Data" "set_default" /value false
+  ${EndIf}
+
   ${If} "$OpenedDownloadPage" == "1"
     nsJSON::Set /tree ping "Data" "manual_download" /value true
   ${Else}
