@@ -520,16 +520,10 @@ static void DoMozStackWalkThread(MozWalkStackCallback aCallback,
   }
 #  endif
 
-  HANDLE targetThread = aThread;
+  HANDLE currentThread = ::GetCurrentThread();
   bool walkCallingThread;
-  if (!targetThread) {
-    targetThread = ::GetCurrentThread();
-    walkCallingThread = true;
-  } else {
-    DWORD targetThreadId = ::GetThreadId(targetThread);
-    DWORD currentThreadId = ::GetCurrentThreadId();
-    walkCallingThread = (targetThreadId == currentThreadId);
-  }
+  HANDLE targetThread = aThread ? aThread : currentThread;
+  walkCallingThread = (targetThread == currentThread);
 
   // If not already provided, get a context for the specified thread.
   CONTEXT context_buf;
