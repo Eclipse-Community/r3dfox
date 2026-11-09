@@ -8,10 +8,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "base/containers/span.h"
 #include "base/win/windows_types.h"
@@ -20,6 +22,9 @@ namespace sandbox {
 
 // Prefix for path used by NT calls.
 const wchar_t kNTPrefix[] = L"\\??\\";
+
+// List of handles mapped to their kernel object type name.
+using ProcessHandleMap = std::map<std::wstring, std::vector<HANDLE>>;
 
 // Basic implementation of a singleton which calls the destructor
 // when the exe is shutting down or the DLL is being unloaded.
@@ -87,7 +92,7 @@ void WarmupRandomnessInfrastructure();
 // Fallback function for GetCurrentProcessHandles. Should only be needed on
 // Windows 7 which doesn't support the API to query all process handles. This
 // uses a brute force method to get the process handles.
-absl::optional<ProcessHandleMap> GetCurrentProcessHandlesWin7();
+std::optional<ProcessHandleMap> GetCurrentProcessHandlesWin7();
 
 }  // namespace sandbox
 

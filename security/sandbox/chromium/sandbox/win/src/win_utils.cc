@@ -241,13 +241,13 @@ void WarmupRandomnessInfrastructure() {
   CHECK(success);
 }
 
-absl::optional<ProcessHandleMap> GetCurrentProcessHandlesWin7() {
+std::optional<ProcessHandleMap> GetCurrentProcessHandlesWin7() {
   DWORD handle_count = UINT_MAX;
   const int kInvalidHandleThreshold = 100;
   const size_t kHandleOffset = 4;  // Handles are always a multiple of 4.
 
   if (!::GetProcessHandleCount(::GetCurrentProcess(), &handle_count))
-    return absl::nullopt;
+    return std::nullopt;
   ProcessHandleMap handle_map;
 
   uint32_t handle_value = 0;
