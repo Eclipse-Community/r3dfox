@@ -259,10 +259,10 @@ bool GLBlitHelper::BlitDescriptor(const layers::SurfaceDescriptorD3D10& desc,
   if (gpuProcessTextureId.isSome()) {
     auto* textureMap = layers::GpuProcessD3D11TextureMap::Get();
     if (textureMap) {
-      RefPtr<gfx::FileHandleWrapper> handle =
+      Maybe<HANDLE> handle =
           textureMap->GetSharedHandle(gpuProcessTextureId.ref());
-      if (handle) {
-        tex = OpenSharedTexture(d3d, (WindowsHandle)handle->GetHandle());
+      if (handle.isSome()) {
+        tex = OpenSharedTexture(d3d, (WindowsHandle)handle.ref());
         arrayIndex = 0;
       }
     }

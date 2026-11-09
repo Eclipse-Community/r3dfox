@@ -683,7 +683,7 @@ ExternalTextureSourceHost::CreateFromDXGITextureHost(
     const ExternalTextureSourceDescriptor& aDesc,
     const layers::DXGITextureHostD3D11* aTextureHost) {
 #ifdef XP_WIN
-  RefPtr<gfx::FileHandleWrapper> handle;
+  Maybe<HANDLE> handle;
   if (aTextureHost->mGpuProcessTextureId) {
     auto* textureMap = layers::GpuProcessD3D11TextureMap::Get();
     if (textureMap) {
@@ -691,7 +691,7 @@ ExternalTextureSourceHost::CreateFromDXGITextureHost(
           textureMap->GetSharedHandle(aTextureHost->mGpuProcessTextureId.ref());
     }
   } else if (aTextureHost->mHandle) {
-    handle = aTextureHost->mHandle;
+    handle.emplace(aTextureHost->mHandle->GetHandle());
   }
 
   if (!handle) {
@@ -770,7 +770,7 @@ ExternalTextureSourceHost::CreateFromDXGITextureHost(
     ErrorBuffer error;
     ffi::wgpu_server_device_import_texture_from_shared_handle(
         aParent->GetContext(), aDeviceId, usedTextureIds[0], &textureDesc,
-        handle->GetHandle(), error.ToFFI());
+        *handle, error.ToFFI());
     // From here on there's no need to return early with `CreateError()` in
     // case of an error, as an error creating a texture or view will be
     // propagated to any views or external textures created from them.
