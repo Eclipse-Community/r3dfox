@@ -266,7 +266,7 @@ nsresult SVGLengthListSMILType::Interpolate(const SMILValue& aStartVal,
       s = start[i].GetValueInCurrentUnits();
       e = end[i].GetValueInSpecifiedUnit(unit, start.Element(), start.Axis());
     }
-    result[i].SetValueAndUnit(std::lerp(s, e, aUnitDistance), unit);
+    result[i].SetValueAndUnit(std::lerp(double(s), double(e), aUnitDistance), unit);
   }
 
   // In the case that start.Length() != end.Length(), one of the following

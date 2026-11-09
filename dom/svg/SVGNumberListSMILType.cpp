@@ -193,7 +193,7 @@ nsresult SVGNumberListSMILType::Interpolate(const SMILValue& aStartVal,
   }
   std::transform(start.begin(), start.end(), end.begin(), result.begin(),
                  [&aUnitDistance](float s, float e) {
-                   return std::lerp(s, e, aUnitDistance);
+                   return std::lerp(double(s), double(e), aUnitDistance);
                  });
   return NS_OK;
 }

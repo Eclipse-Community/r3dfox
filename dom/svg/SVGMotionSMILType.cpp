@@ -386,7 +386,7 @@ nsresult SVGMotionSMILType::Interpolate(const SMILValue& aStartVal,
 
   // Get the interpolated distance along our path.
   float resultDist =
-      std::lerp(startDist, endParams.mDistToPoint, aUnitDistance);
+      std::lerp(double(startDist), double(endParams.mDistToPoint), aUnitDistance);
 
   // Construct the intermediate result segment, and put it in our outparam.
   // AppendElement has guaranteed success here, since InitValue() allocates
