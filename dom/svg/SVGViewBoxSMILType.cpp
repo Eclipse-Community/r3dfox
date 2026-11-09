@@ -118,10 +118,10 @@ nsresult SVGViewBoxSMILType::Interpolate(const SMILValue& aStartVal,
 
   SVGViewBox* current = static_cast<SVGViewBox*>(aResult.mU.mPtr);
 
-  float x = std::lerp(start->x, end->x, aUnitDistance);
-  float y = std::lerp(start->y, end->y, aUnitDistance);
-  float width = std::lerp(start->width, end->width, aUnitDistance);
-  float height = std::lerp(start->height, end->height, aUnitDistance);
+  float x = std::lerp(double(start->x), double(end->x), aUnitDistance);
+  float y = std::lerp(double(start->y), double(end->y), aUnitDistance);
+  float width = std::lerp(double(start->width), double(end->width), aUnitDistance);
+  float height = std::lerp(double(start->height), double(end->height), aUnitDistance);
 
   *current = SVGViewBox(x, y, width, height);
 

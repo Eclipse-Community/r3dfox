@@ -123,8 +123,8 @@ nsresult SVGOrientSMILType::Interpolate(const SMILValue& aStartVal,
     return NS_ERROR_FAILURE;
   }
 
-  float result = std::lerp(ValueInDegrees(aStartVal), ValueInDegrees(aEndVal),
-                           aUnitDistance);
+  float result = std::lerp(double(ValueInDegrees(aStartVal)),
+                           double(ValueInDegrees(aEndVal)), aUnitDistance);
 
   // we use the unit of the nearest value for the result:
   if (aUnitDistance > 0.5) {

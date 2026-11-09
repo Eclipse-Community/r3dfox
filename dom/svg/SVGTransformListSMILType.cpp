@@ -209,7 +209,8 @@ nsresult SVGTransformListSMILType::Interpolate(const SMILValue& aStartVal,
     if (startTransform.TransformType() == endTransform.TransformType()) {
       for (size_t i = 0; i < newParams.size(); ++i) {
         newParams[i] =
-            std::lerp(startTransform[i], endTransform[i], aUnitDistance);
+            std::lerp(double(startTransform[i]), double(endTransform[i]),
+                      aUnitDistance);
       }
       transformed = true;
     }

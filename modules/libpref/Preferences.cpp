@@ -3919,7 +3919,7 @@ void Preferences::SetupTelemetryPref() {
 
   Preferences::SetBool(kTelemetryPref, TelemetryPrefValue(),
                        PrefValueKind::Default);
-  Preferences::Lock(kTelemetryPref);
+//Preferences::Lock(kTelemetryPref);
 }
 
 #endif  // MOZ_WIDGET_ANDROID

@@ -42,7 +42,7 @@ if __name__ == "__main__":
         selected = yaml.safe_load(f.read())
     with TemporaryDirectory(prefix="get_vs", dir=".") as tmpdir:
         tmpdir = Path(tmpdir)
-        dl_cache = tmpdir / "cache"
+        dl_cache = out_dir.resolve().parent / "vs-download-cache"
         downloadPackages(selected, dl_cache)
         unpacked = tmpdir / "unpack"
         extractPackages(selected, dl_cache, unpacked)

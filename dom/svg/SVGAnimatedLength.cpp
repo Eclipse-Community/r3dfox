@@ -681,7 +681,7 @@ void SVGLengthAndInfo::Interpolate(const SVGLengthAndInfo& aStart,
     endValue = aEnd.ConvertUnits(aStart);
   }
   aResult.mElement = aEnd.mElement;
-  aResult.mValue = std::lerp(startValue, endValue, aUnitDistance);
+  aResult.mValue = std::lerp(double(startValue), double(endValue), aUnitDistance);
 }
 
 }  // namespace mozilla
