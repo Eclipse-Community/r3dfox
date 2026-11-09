@@ -12,6 +12,7 @@
 #include "mozilla/gfx/2D.h"
 #include "mozilla/layers/LayersTypes.h"
 #include "mozilla/layers/TextureHost.h"
+#include "mozilla/Maybe.h"
 #include "mozilla/StaticPtr.h"
 
 namespace mozilla {
@@ -49,8 +50,7 @@ class GpuProcessD3D11TextureMap {
   void Unregister(GpuProcessTextureId aTextureId);
 
   RefPtr<ID3D11Texture2D> GetTexture(GpuProcessTextureId aTextureId);
-  RefPtr<gfx::FileHandleWrapper> GetSharedHandle(
-      GpuProcessTextureId aTextureId);
+  Maybe<HANDLE> GetSharedHandle(GpuProcessTextureId aTextureId);
   void DisableZeroCopyNV12Texture(GpuProcessTextureId aTextureId);
 
   size_t GetWaitingTextureCount() const;
