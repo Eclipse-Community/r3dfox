@@ -440,7 +440,7 @@ InterceptionManager::PatchClientFunctions(DllInterceptionData* thunks,
   if (base::win::GetVersion() <= base::win::Version::VISTA) {
     Wow64 WowHelper(&child_.get(), ntdll_base);
     if (!WowHelper.WaitForNtdll())
-      return SBOX_ERROR_NO_HANDLE;
+      return base::unexpected(SBOX_ERROR_NO_HANDLE);
   }
 
   char* interceptor_base = nullptr;
