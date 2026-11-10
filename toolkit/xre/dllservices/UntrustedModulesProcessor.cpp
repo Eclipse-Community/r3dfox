@@ -47,13 +47,31 @@ static const uint32_t kMaxNtPathLen = 0x8000;
 static bool GetPathFromHandle(HANDLE aFile, DWORD aFlags, nsAString& aOutPath) {
   aOutPath.Truncate();
 
+typedef DWORD (WINAPI * GetFinalPathNameByHandlePtr)(HANDLE hFile,
+                                                    LPTSTR lpszFilePath,
+                                                    DWORD cchFilePath,
+                                                    DWORD dwFlags);
+
+  // GetFinalPathNameByHandleW is a Vista and later API. Since ESR builds with
+  // XP support still, we need to load the function manually.
+  GetFinalPathNameByHandlePtr getFinalPathNameFnPtr = nullptr;
+  HMODULE kernel32Dll = ::GetModuleHandleW(L"Kernel32");
+  if (kernel32Dll) {
+    getFinalPathNameFnPtr = (GetFinalPathNameByHandlePtr)
+      ::GetProcAddress(kernel32Dll, "GetFinalPathNameByHandleW");
+  }
+
+  if (!getFinalPathNameFnPtr) {
+    return false;
+  }
+
   for (uint32_t bufLen = MAX_PATH; bufLen <= kMaxNtPathLen; bufLen *= 2) {
     nsAutoString buf;
     if (!buf.SetLength(bufLen, fallible)) {
       return false;
     }
 
-    DWORD charsWritten = ::GetFinalPathNameByHandleW(
+    DWORD charsWritten = getFinalPathNameFnPtr(
         aFile, reinterpret_cast<wchar_t*>(buf.BeginWriting()), bufLen, aFlags);
     if (!charsWritten) {
       return false;
@@ -107,9 +125,22 @@ static bool IsRemoteFile(HANDLE aFile) {
  * and is accepted.
  */
 static bool IsBelowMediumIntegrityFile(HANDLE aFile) {
+typedef HANDLE (WINAPI *ReOpenFilefunc)(HANDLE, DWORD, DWORD, DWORD);
+static ReOpenFilefunc pfnReOpenFile = NULL;
+
+    HMODULE hmodule;
+    hmodule=GetModuleHandleW(L"kernel32.dll");
+    if (hmodule==NULL)
+        hmodule=LoadLibraryW(L"kernel32.dll");
+    if (hmodule){
+        pfnReOpenFile=(ReOpenFilefunc)GetProcAddress(hmodule, "ReOpenFile");
+        }
+
+    if (pfnReOpenFile == NULL)
+        return true;
   // aFile grants no access to the file, so reopen it to read its label.
   UniqueFileHandle labelAccess(
-      ::ReOpenFile(aFile, READ_CONTROL,
+      pfnReOpenFile(aFile, READ_CONTROL,
                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0));
   if (!labelAccess) {
     // Treat errors as untrustworthy.
