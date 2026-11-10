@@ -60,8 +60,7 @@ static const wchar_t* GetEventSoundAlias(uint32_t aEventId) {
   }
 }
 
-static void CALLBACK PlayEventSoundCallback(PTP_CALLBACK_INSTANCE,
-                                            void* aEventId) {
+static DWORD WINAPI PlayEventSoundCallback(void* aEventId) {
   if (!ShouldSuppressPlaySound()) {
     // PlaySoundW stops any sound this process is still playing, as we do not
     // pass SND_NOSTOP.
@@ -70,6 +69,7 @@ static void CALLBACK PlayEventSoundCallback(PTP_CALLBACK_INSTANCE,
                  SND_ALIAS | SND_ASYNC | SND_NODEFAULT);
   }
   sPlaying = false;
+  return 0;
 }
 
 mozilla::StaticRefPtr<nsISound> nsSound::sInstance;
@@ -111,9 +111,10 @@ NS_IMETHODIMP nsSound::PlayEventSound(uint32_t aEventId) {
   if (sPlaying.exchange(true)) {
     return NS_OK;
   }
-  if (!::TrySubmitThreadpoolCallback(
+  if (!::QueueUserWorkItem(
           PlayEventSoundCallback,
-          reinterpret_cast<void*>(static_cast<uintptr_t>(aEventId)), nullptr)) {
+          reinterpret_cast<void*>(static_cast<uintptr_t>(aEventId)),
+          WT_EXECUTEDEFAULT)) {
     sPlaying = false;
     return NS_ERROR_FAILURE;
   }
