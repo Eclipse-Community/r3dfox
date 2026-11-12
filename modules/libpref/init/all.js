@@ -65,6 +65,7 @@ pref("security.crash_tracking.js_load_1.prevCrashes", 0);
 pref("security.crash_tracking.js_load_1.maxCrashes", 1);
 
 pref("general.useragent.compatMode.firefox", true);
+pref("general.useragent.stealth", false);
 
 // Enable site specific overrides to fix shitty websites
 pref("general.useragent.site_specific_overrides", true);
