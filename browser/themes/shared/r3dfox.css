@@ -16,6 +16,42 @@
       --color-accent-primary: var(--color-cyan-50) !important;
     }
   }
+
+  @media -moz-pref("r3dfox.dark.colors") {
+    :root {
+      --tabpanel-background-color: light-dark(rgb(228, 227, 234), rgb(10, 10, 13)) !important;
+      --in-content-page-background: light-dark(rgb(228, 227, 234), rgb(10, 10, 13)) !important;
+      --background-color-canvas: light-dark(rgb(228, 227, 234), rgb(10, 10, 13)) !important;
+      --newtab-background-color: light-dark(rgb(228, 227, 234), rgb(10, 10, 13)) !important;
+      --newtab-background-color-secondary: light-dark(rgba(242, 242, 245, 0.95), rgba(22, 21, 28, 0.95)) !important;
+      --newtab-background-card: light-dark(rgba(242, 242, 245, 0.95), rgba(22, 21, 28, 0.95)) !important;
+      --sidebar-background-color: light-dark(rgba(242, 242, 245, 0.95), rgba(22, 21, 28, 0.95)) !important;
+
+      --panel-background-color: light-dark(rgba(228, 227, 234, 0.95), rgba(10, 10, 13, 0.95)) !important;
+      --toolbar-field-background-color-focus: light-dark(rgba(228, 227, 234, 0.95), rgba(10, 10, 13, 0.95)) !important;
+      --chrome-content-separator-color: light-dark(rgb(228, 227, 234), rgb(10, 10, 13)) !important;
+
+      @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+        --in-content-page-background: rgb(10, 10, 13) !important;
+        --background-color-canvas: rgb(10, 10, 13) !important;
+      }
+
+      @media not -moz-pref("r3dfox.translucent.navbar") {
+        @media (-moz-toolbar-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+          --toolbar-background-color: rgb(22, 21, 28) !important;
+          --toolbar-field-background-color: rgb(10, 10, 13) !important;
+        }
+
+        @media (-moz-toolbar-prefers-color-scheme: light), (prefers-color-scheme: light) {
+          --toolbar-background-color: rgb(242, 242, 245) !important;
+          --toolbar-field-background-color: rgb(228, 227, 234) !important;
+        }
+      }
+    }
+    #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button, #urlbar-label-box {
+      background-color: light-dark(rgb(242, 242, 245), rgb(30, 26, 39)) !important;
+    }
+  }
 }
 
 @media -moz-pref("r3dfox.colors", 1) {
@@ -64,6 +100,42 @@
 
     #PlacesToolbarDropIndicator {
       list-style-image: url(chrome://browser/skin/r3d-toolbar-drag-indicator.svg) !important;
+    }
+  }
+
+  @media -moz-pref("r3dfox.dark.colors") {
+    :root {
+      --tabpanel-background-color: light-dark(rgb(234, 227, 227), rgb(13, 10, 10)) !important;
+      --in-content-page-background: light-dark(rgb(234, 227, 227), rgb(13, 10, 10)) !important;
+      --background-color-canvas: light-dark(rgb(234, 227, 227), rgb(13, 10, 10)) !important;
+      --newtab-background-color: light-dark(rgb(234, 227, 227), rgb(13, 10, 10)) !important;
+      --newtab-background-color-secondary: light-dark(rgba(245, 242, 242, 0.95), rgba(28, 21, 21, 0.95)) !important;
+      --newtab-background-card: light-dark(rgba(245, 242, 242, 0.95), rgba(28, 21, 21, 0.95)) !important;
+      --sidebar-background-color: light-dark(rgba(245, 242, 242, 0.95), rgba(28, 21, 21, 0.95)) !important;
+
+      --panel-background-color: light-dark(rgba(234, 227, 227, 0.95), rgba(13, 10, 10, 0.95)) !important;
+      --toolbar-field-background-color-focus: light-dark(rgba(234, 227, 227, 0.95), rgba(13, 10, 10, 0.95)) !important;
+      --chrome-content-separator-color: light-dark(rgb(234, 227, 227), rgb(13, 10, 10)) !important;
+
+      @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+        --in-content-page-background: rgb(13, 10, 10) !important;
+        --background-color-canvas: rgb(13, 10, 10) !important;
+      }
+
+      @media not -moz-pref("r3dfox.translucent.navbar") {
+        @media (-moz-toolbar-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+          --toolbar-background-color: rgb(28, 21, 21) !important;
+          --toolbar-field-background-color: rgb(13, 10, 10) !important;
+        }
+
+        @media (-moz-toolbar-prefers-color-scheme: light), (prefers-color-scheme: light) {
+          --toolbar-background-color: rgb(245, 242, 242) !important;
+          --toolbar-field-background-color: rgb(234, 227, 227) !important;
+        }
+      }
+    }
+    #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button, #urlbar-label-box {
+      background-color: light-dark(rgb(245, 242, 242), rgb(30, 26, 39)) !important;
     }
   }
 }
@@ -119,6 +191,42 @@
       list-style-image: url(chrome://browser/skin/esr-toolbar-drag-indicator.svg) !important;
     }
   }
+
+  @media -moz-pref("r3dfox.dark.colors") {
+    :root {
+      --tabpanel-background-color: light-dark(rgb(234, 228, 226), rgb(14, 11, 10)) !important;
+      --in-content-page-background: light-dark(rgb(234, 228, 226), rgb(14, 11, 10)) !important;
+      --background-color-canvas: light-dark(rgb(234, 228, 226), rgb(14, 11, 10)) !important;
+      --newtab-background-color: light-dark(rgb(234, 228, 226), rgb(14, 11, 10)) !important;
+      --newtab-background-color-secondary: light-dark(rgba(246, 243, 242, 0.95), rgba(28, 22, 20, 0.95)) !important;
+      --newtab-background-card: light-dark(rgba(246, 243, 242, 0.95), rgba(28, 22, 20, 0.95)) !important;
+      --sidebar-background-color: light-dark(rgba(246, 243, 242, 0.95), rgba(28, 22, 20, 0.95)) !important;
+
+      --panel-background-color: light-dark(rgba(234, 228, 226, 0.95), rgba(14, 11, 10, 0.95)) !important;
+      --toolbar-field-background-color-focus: light-dark(rgba(234, 228, 226, 0.95), rgba(14, 11, 10, 0.95)) !important;
+      --chrome-content-separator-color: light-dark(rgb(234, 228, 226), rgb(14, 11, 10)) !important;
+
+      @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+        --in-content-page-background: rgb(14, 11, 10) !important;
+        --background-color-canvas: rgb(14, 11, 10) !important;
+      }
+
+      @media not -moz-pref("r3dfox.translucent.navbar") {
+        @media (-moz-toolbar-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+          --toolbar-background-color: rgb(28, 22, 20) !important;
+          --toolbar-field-background-color: rgb(14, 11, 10) !important;
+        }
+
+        @media (-moz-toolbar-prefers-color-scheme: light), (prefers-color-scheme: light) {
+          --toolbar-background-color: rgb(246, 243, 242) !important;
+          --toolbar-field-background-color: rgb(234, 228, 226) !important;
+        }
+      }
+    }
+    #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button, #urlbar-label-box {
+      background-color: light-dark(rgb(246, 243, 242), rgb(30, 26, 39)) !important;
+    }
+  }
 }
 
 @media -moz-pref("r3dfox.colors", 3) {
@@ -172,6 +280,42 @@
       list-style-image: url(chrome://browser/skin/plas-toolbar-drag-indicator.svg) !important;
     }
   }
+
+  @media -moz-pref("r3dfox.dark.colors") {
+    :root {
+      --tabpanel-background-color: light-dark(rgb(234, 227, 232), rgb(13, 10, 12)) !important;
+      --in-content-page-background: light-dark(rgb(234, 227, 232), rgb(13, 10, 12)) !important;
+      --background-color-canvas: light-dark(rgb(234, 227, 232), rgb(13, 10, 12)) !important;
+      --newtab-background-color: light-dark(rgb(234, 227, 232), rgb(13, 10, 12)) !important;
+      --newtab-background-color-secondary: light-dark(rgba(245, 242, 244, 0.95), rgba(28, 21, 26, 0.95)) !important;
+      --newtab-background-card: light-dark(rgba(245, 242, 244, 0.95), rgba(28, 21, 26, 0.95)) !important;
+      --sidebar-background-color: light-dark(rgba(245, 242, 244, 0.95), rgba(28, 21, 26, 0.95)) !important;
+
+      --panel-background-color: light-dark(rgba(234, 227, 232, 0.95), rgba(13, 10, 12, 0.95)) !important;
+      --toolbar-field-background-color-focus: light-dark(rgba(234, 227, 232, 0.95), rgba(13, 10, 12, 0.95)) !important;
+      --chrome-content-separator-color: light-dark(rgb(234, 227, 232), rgb(13, 10, 12)) !important;
+
+      @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+        --in-content-page-background: rgb(13, 10, 12) !important;
+        --background-color-canvas: rgb(13, 10, 12) !important;
+      }
+
+      @media not -moz-pref("r3dfox.translucent.navbar") {
+        @media (-moz-toolbar-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+          --toolbar-background-color: rgb(28, 21, 26) !important;
+          --toolbar-field-background-color: rgb(13, 10, 12) !important;
+        }
+
+        @media (-moz-toolbar-prefers-color-scheme: light), (prefers-color-scheme: light) {
+          --toolbar-background-color: rgb(245, 242, 244) !important;
+          --toolbar-field-background-color: rgb(234, 227, 232) !important;
+        }
+      }
+    }
+    #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button, #urlbar-label-box {
+      background-color: light-dark(rgb(245, 242, 244), rgb(30, 26, 39)) !important;
+    }
+  }
 }
 
 @media -moz-pref("r3dfox.colors", 4) {
@@ -202,40 +346,11 @@
       --lwt-tab-line-color: light-dark(rgb(255, 40, 40), rgb(255, 80, 80)) !important;
     }
 
-    --tabpanel-background-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
-    --in-content-page-background: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
-    --background-color-canvas: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
-    --newtab-background-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
-    --newtab-background-color-secondary: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
-    --newtab-background-card: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
-    --sidebar-background-color: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
-
-    --panel-background-color: light-dark(rgba(229, 227, 234, 0.95), rgba(11, 10, 13, 0.95)) !important;
-    --toolbar-field-background-color-focus: light-dark(rgba(229, 227, 234, 0.95), rgba(11, 10, 13, 0.95)) !important;
-    --chrome-content-separator-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
-
     @media (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
       --color-accent-primary: rgb(156, 87, 193) !important;
       --color-accent-primary-hover: rgb(185, 103, 229) !important;
       --color-accent-primary-active: rgb(156, 87, 193) !important;
       --color-accent-primary-selected: rgb(156, 87, 193) !important;
-    }
-
-    @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
-      --in-content-page-background: rgb(11, 10, 13) !important;
-      --background-color-canvas: rgb(11, 10, 13) !important;
-    }
-
-    @media not -moz-pref("r3dfox.translucent.navbar") {
-      @media (-moz-toolbar-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
-        --toolbar-background-color: rgb(23, 21, 28) !important;
-        --toolbar-field-background-color: rgb(11, 10, 13) !important;
-      }
-
-      @media (-moz-toolbar-prefers-color-scheme: light), (prefers-color-scheme: light) {
-        --toolbar-background-color: rgb(243, 242, 245) !important;
-        --toolbar-field-background-color: rgb(229, 227, 234) !important;
-      }
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
@@ -254,8 +369,41 @@
       list-style-image: url(chrome://browser/skin/ecl-toolbar-drag-indicator.svg) !important;
     }
   }
-  #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button, #urlbar-label-box {
-    background-color: light-dark(rgb(243, 242, 245), rgb(30, 26, 39)) !important;
+
+  @media -moz-pref("r3dfox.dark.colors") {
+    :root {
+      --tabpanel-background-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
+      --in-content-page-background: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
+      --background-color-canvas: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
+      --newtab-background-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
+      --newtab-background-color-secondary: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
+      --newtab-background-card: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
+      --sidebar-background-color: light-dark(rgba(243, 242, 245, 0.95), rgba(23, 21, 28, 0.95)) !important;
+
+      --panel-background-color: light-dark(rgba(229, 227, 234, 0.95), rgba(11, 10, 13, 0.95)) !important;
+      --toolbar-field-background-color-focus: light-dark(rgba(229, 227, 234, 0.95), rgba(11, 10, 13, 0.95)) !important;
+      --chrome-content-separator-color: light-dark(rgb(229, 227, 234), rgb(11, 10, 13)) !important;
+
+      @media (-moz-toolbar-prefers-color-scheme: dark), (-moz-content-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+        --in-content-page-background: rgb(11, 10, 13) !important;
+        --background-color-canvas: rgb(11, 10, 13) !important;
+      }
+
+      @media not -moz-pref("r3dfox.translucent.navbar") {
+        @media (-moz-toolbar-prefers-color-scheme: dark), (prefers-color-scheme: dark) {
+          --toolbar-background-color: rgb(23, 21, 28) !important;
+          --toolbar-field-background-color: rgb(11, 10, 13) !important;
+        }
+
+        @media (-moz-toolbar-prefers-color-scheme: light), (prefers-color-scheme: light) {
+          --toolbar-background-color: rgb(243, 242, 245) !important;
+          --toolbar-field-background-color: rgb(229, 227, 234) !important;
+        }
+      }
+    }
+    #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button, #urlbar-label-box {
+      background-color: light-dark(rgb(243, 242, 245), rgb(30, 26, 39)) !important;
+    }
   }
 }
 

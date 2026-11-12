@@ -200,6 +200,9 @@ r3dfox-fog-type = Caption bar/Aero fog style
 
 r3dfox-caption-text = Override caption/window text color
 
+r3dfox-dark-colors =
+    .label = Use r3dfox darker background colors
+
 r3dfox-theme =
     .label = Use r3dfox theme styles
 
