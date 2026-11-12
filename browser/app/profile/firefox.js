@@ -2713,8 +2713,8 @@ pref("browser.tabs.fadeOutExplicitlyUnloadedTabs", true);
 pref("browser.tabs.fadeOutUnloadedTabs", false);
 
 // Whether tabs can be "split" or displayed side by side at once.
-pref("browser.tabs.splitView.enabled", true);
-pref("browser.tabs.splitview.hasUsed", false);
+pref("browser.tabs.splitView.enabled", false);
+pref("browser.tabs.splitview.hasUsed", true);
 
 // Whether SVG favicons should be safely re-encoded using the moz-remote-image:// protocol.
 pref("browser.tabs.remoteSVGIconDecoding", true);
