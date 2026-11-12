@@ -9176,6 +9176,11 @@ static inline bool IsKorean(intl::Script aScript) {
   return aScript == intl::Script::HANGUL;
 }
 
+static inline bool IsHanOrJapanese(intl::Script aScript) {
+  return aScript == intl::Script::HAN || aScript == intl::Script::HIRAGANA ||
+         aScript == intl::Script::KATAKANA;
+}
+
 int32_t ClusterIterator::GetAfterInternal() const {
   if (mCharacterDataBuffer->IsHighSurrogateFollowedByLowSurrogateAt(
           AssertedCast<uint32_t>(mCharIndex))) {
@@ -9395,6 +9400,15 @@ nsIFrame::FrameSearchResult nsTextFrame::PeekOffsetWord(
         canBreak = isWordBreakBefore && aState->mSawBeforeType &&
                    (aWordSelectEatSpace != isWhitespace);
       }
+      if (canBreak && is2b &&
+          StaticPrefs::layout_word_select_select_same_script_for_cj() &&
+          IsHanOrJapanese(aState->mLastScript) &&
+          aState->mLastScript == scriptCode) {
+        // Don't break between two Han/Hiragana/Katakana characters, even if
+        // there is a word break opportunity.
+        canBreak = false;
+      }
+
       // Special-case for Korean: treat a boundary between Hangul & non-Hangul
       // characters as a word boundary (see bug 1973393 and UAX#29).
       if (!canBreak && is2b && aState->mLastScript != intl::Script::INVALID &&

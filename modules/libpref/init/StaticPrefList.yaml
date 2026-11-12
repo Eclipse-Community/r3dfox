@@ -11815,6 +11815,12 @@
   value: false
   mirror: always
 
+# When selecting a word, don't segment between Han/Hiragana/Katakana.
+- name: layout.word_select.select_same_script_for_cj
+  type: bool
+  value: false
+  mirror: always
+
 # Controls whether nsRefreshDriver::IsInHighRateMode() may ever return true.
 - name: layout.expose_high_rate_mode_from_refreshdriver
   type: bool
