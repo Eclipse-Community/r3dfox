@@ -11,6 +11,7 @@ var gR3dfoxPane = {
 Preferences.addAll([
   { id: "widget.override-win-version", type: "int" },
   { id: "r3dfox.colors", type: "int" },
+  { id: "r3dfox.dark.colors", type: "bool" },
   { id: "r3dfox.customizations.enabled", type: "bool" },
   { id: "r3dfox.drag-space.enabled", type: "bool" },
   { id: "r3dfox.backgrounds.enabled", type: "bool" },
