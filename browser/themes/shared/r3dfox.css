@@ -156,10 +156,6 @@
       --color-accent-primary-selected: rgb(255, 60, 206) !important;
     }
 
-    &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
-    }
-
     .urlbar-input::selection, .searchbar-textbox::selection {
       background: light-dark(rgb(255, 80, 211), rgb(160, 60, 135)) !important;
     }
@@ -240,10 +236,6 @@
         --toolbar-background-color: rgb(243, 242, 245) !important;
         --toolbar-field-background-color: rgb(229, 227, 234) !important;
       }
-    }
-
-    &[privatebrowsingmode=temporary] {
-        --tabpanel-background-color: linear-gradient(to bottom, #261919 0%,#191313 100%) !important;
     }
 
     .urlbar-input::selection, .searchbar-textbox::selection {
