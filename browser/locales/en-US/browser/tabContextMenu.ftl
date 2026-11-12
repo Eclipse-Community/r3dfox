@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 # In left-to-right languages this should use "Right" and in right-to-left languages this should use "Left" to indicate the direction a new tab will open.
 tab-context-new-tab-open =
     .label = New Tab to Right
@@ -58,7 +57,31 @@ close-tabs-to-the-end-vertical =
 close-other-tabs =
     .label = Close Other Tabs
     .accesskey = o
-
+# The following string is displayed on a menuitem that unloads the tabs from
+# the start of the tab strip to the currently targeted tab, excluding the
+# targeted tab and any other selected tabs.
+# In left-to-right languages this should use "Left" and in right-to-left
+# languages this should use "Right".
+unload-tabs-to-the-start =
+    .label = Unload Tabs to Left
+    .accesskey = l
+# The following string is displayed on a menuitem that unloads the tabs from
+# the end of the tab strip to the currently targeted tab, excluding the
+# targeted tab and any other selected tabs.
+# In left-to-right languages this should use "Right" and in right-to-left
+# languages this should use "Left".
+unload-tabs-to-the-end =
+    .label = Unload Tabs to Right
+    .accesskey = i
+# The following string is displayed on a menuitem that unloads all eligible
+# tabs on both sides of the currently targeted tab, excluding the targeted tab
+# and any other selected tabs.
+unload-other-tabs =
+    .label = Unload All Other Tabs
+    .accesskey = O
+tab-context-unload-options =
+    .label = Unload Tabs
+    .accesskey = T
 ## Variables:
 ##  $tabCount (Number): the number of tabs that are affected by the action.
 
@@ -69,7 +92,6 @@ tab-context-unload-n-tabs =
            *[other] Unload { $tabCount } Tabs
         }
     .accesskey = U
-
 # Context menu option, alternate label for unloading the content of 1 or more tabs to reduce memory usage
 tab-context-unload-tabs =
     .label = Unload
@@ -138,10 +160,8 @@ tab-context-close-duplicate-tabs2 =
 tab-context-share-url =
     .label = Share
     .accesskey = h
-
 ## Variables:
 ##  $tabCount (Number): the number of tabs that are affected by the action.
-
 tab-context-reopen-closed-tabs =
     .label =
         { $tabCount ->
@@ -170,7 +190,6 @@ tab-context-move-tabs =
            *[other] Move Tabs
         }
     .accesskey = v
-
 # Context menu option, highlighting this shows a submenu of potential destinations to move one or more tabs to (tab groups, windows, profiles, start, end, etc.)
 tab-context-move-tabs2 =
     .label =
@@ -179,12 +198,10 @@ tab-context-move-tabs2 =
            *[other] Move { $tabCount } Tabs to
         }
     .accesskey = v
-
 # Context menu option, highlighting this shows a submenu of potential destinations to move two tabs of a split view together to (tab groups, windows, profiles, start, end, etc.)
 tab-context-move-split-view =
     .label = Move Split View to
     .accesskey = v
-
 # The following string intentionally omits the word "Tab" from the singular and includes it in the plural.
 tab-context-send-to-device =
     .label =
@@ -204,7 +221,6 @@ tab-context-send-to-mobile =
            *[other] Send { $tabCount } Tabs to Mobile
         }
     .accesskey = n
-
 # Verb: share a collection of selected tabs as a link
 tab-context-share-selected-tabs =
     .label = Create Shareable Link

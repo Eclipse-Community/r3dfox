@@ -1,7 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 document.addEventListener(
   "DOMContentLoaded",
   () => {
@@ -149,13 +148,47 @@ document.addEventListener(
         case "context_unloadTab":
           TabContextMenu.explicitUnloadTabs();
           break;
+        case "context_unloadTabsToTheStart": {
+          const tabs = gBrowser
+            ._getTabsToTheStartFrom(TabContextMenu.contextTab)
+            .filter(
+              tab => tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser
+            );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
+        case "context_unloadTabsToTheEnd": {
+          const tabs = gBrowser
+            ._getTabsToTheEndFrom(TabContextMenu.contextTab)
+            .filter(
+              tab => tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser
+            );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
+        case "context_unloadOtherTabs": {
+          const contextTab = TabContextMenu.contextTab;
+          const tabs = [
+            ...gBrowser._getTabsToTheStartFrom(contextTab),
+            ...gBrowser._getTabsToTheEndFrom(contextTab),
+          ].filter(
+            tab => tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser
+          );
+          if (tabs.length) {
+            gBrowser.explicitUnloadTabs(tabs);
+          }
+          break;
+        }
         case "context_fullscreenAutohide":
           FullScreen.setAutohide();
           break;
         case "context_fullscreenExit":
           BrowserCommands.fullScreen();
           break;
-
         // == open-tab-group-context-menu ==
         case "open-tab-group-context-menu_moveToNewWindow":
           {
@@ -188,7 +221,6 @@ document.addEventListener(
             );
           }
           break;
-
         // == saved-tab-group-context-menu ==
         case "saved-tab-group-context-menu_openInThisWindow":
           {
@@ -221,7 +253,6 @@ document.addEventListener(
         case "editBookmarkPanelRemoveButton":
           StarUI.removeBookmarkButtonCommand();
           break;
-
         // == sidebarMenu-popup ==
         case "sidebar-switcher-bookmarks":
           SidebarController.show("viewBookmarksSidebar");
@@ -239,7 +270,6 @@ document.addEventListener(
           // Close the sidebar UI, but leave it otherwise in its current state
           SidebarController.hide({ dismissPanel: false });
           break;
-
         // == toolbar-context-menu ==
         case "toolbar-context-manage-extension":
           ToolbarContextMenu.openAboutAddonsForContextAction(
@@ -320,7 +350,6 @@ document.addEventListener(
         case "toolbar-context-full-screen-exit":
           BrowserCommands.fullScreen();
           break;
-
         // == pictureInPictureToggleContextMenu ==
         case "context_HidePictureInPictureToggle":
           PictureInPicture.hideToggle();
@@ -328,7 +357,6 @@ document.addEventListener(
         case "context_MovePictureInPictureToggle":
           PictureInPicture.moveToggle();
           break;
-
         // == pageActionContextMenu ==
         case "pageActionContextMenuManageExtension":
           BrowserPageActions.openAboutAddonsForContextAction();
@@ -341,7 +369,6 @@ document.addEventListener(
         case "syncedTabsManageDevices":
           gSync.openDevicesManagementPage("syncedtabs-sidebar");
           break;
-
         // == unified-extensions-context-menu ==
         case "unified-extensions-context-menu-pin-to-toolbar":
           gUnifiedExtensions.onPinToToolbarChange(
@@ -364,7 +391,6 @@ document.addEventListener(
         case "unified-extensions-context-menu-report-extension":
           gUnifiedExtensions.reportExtension(event.target.parentElement);
           break;
-
         // == full-page-translations-panel-settings-menupopup ==
         case "translations-panel-settings-always-offer-translation":
           FullPageTranslationsPanel.onAlwaysOfferTranslations();
@@ -387,7 +413,6 @@ document.addEventListener(
         case "translations-panel-about":
           FullPageTranslationsPanel.onAboutTranslations();
           break;
-
         // == select-translations-panel-settings-menupopup ==
         case "select-translations-panel-open-settings-page-menuitem":
           SelectTranslationsPanel.openTranslationsSettingsPage();
@@ -395,7 +420,6 @@ document.addEventListener(
         case "select-translations-panel-about-translations-menuitem":
           SelectTranslationsPanel.onAboutTranslations();
           break;
-
         // == customizationPanelItemContextMenu ==
         case "customizationPanelItemContextMenuManageExtension":
           ToolbarContextMenu.openAboutAddonsForContextAction(
@@ -408,7 +432,6 @@ document.addEventListener(
             event.target.parentElement
           );
           break;
-
         case "customizationPanelItemContextMenuReportExtension":
           ToolbarContextMenu.reportExtensionForContextAction(
             event.target.parentElement,
@@ -422,7 +445,6 @@ document.addEventListener(
             "panelitem-context"
           );
           break;
-
         case "customizationPanelItemContextMenuUnpin":
           gCustomizeMode.addToToolbar(
             event.target.parentNode.triggerNode,
@@ -436,14 +458,12 @@ document.addEventListener(
             "panelitem-context"
           );
           break;
-
         // == sharing-tabs-warning-panel ==
         case "sharing-warning-proceed-to-tab":
           gSharedTabWarning.allowSharedTabSwitch();
           break;
       }
     });
-
     const userContextIcons = document.getElementById("userContext-icons");
     userContextIcons.addEventListener("click", event => {
       if (event.button !== 0) {
@@ -453,7 +473,6 @@ document.addEventListener(
         .getElementById("userContext-indicator-menu")
         .openPopup(userContextIcons, "after_start", 0, 0, false, false, event);
     });
-
     const containerHistoryPopup = document.getElementById(
       "sidebar-history-context-menu-container-popup"
     );
@@ -466,7 +485,6 @@ document.addEventListener(
     containerHistoryPopup.addEventListener("popupshowing", event =>
       PlacesUIUtils.createContainerTabMenu(event)
     );
-
     const containerSyncedTabsPopup = document.getElementById(
       "sidebar-synced-tabs-context-menu-container-popup"
     );
@@ -476,7 +494,6 @@ document.addEventListener(
     containerSyncedTabsPopup.addEventListener("popupshowing", event =>
       PlacesUIUtils.createContainerTabMenu(event)
     );
-
     document
       .getElementById("sidebar-bookmarks-context-container-tab-popup")
       .addEventListener("popupshowing", event =>
@@ -489,7 +506,6 @@ document.addEventListener(
         // Handle commands on the descendant <menuitem>s with different containers.
         TabContextMenu.reopenInContainer(event);
       });
-
     document
       .getElementById("context_moveTabToGroupPopupMenu")
       .addEventListener("command", event => {
@@ -503,12 +519,10 @@ document.addEventListener(
         if (group) {
           TabContextMenu.moveTabsToGroup(group);
         }
-
         if (SessionStore.getSavedTabGroup(tabGroupId)) {
           TabContextMenu.addTabsToSavedGroup(tabGroupId);
         }
       });
-
     document
       .getElementById("backForwardMenu")
       .addEventListener("command", event => {
@@ -518,7 +532,6 @@ document.addEventListener(
         // Prevent propagation to the back/forward button.
         event.stopPropagation();
       });
-
     document
       .getElementById("unified-extensions-context-menu")
       .addEventListener("command", event => {
@@ -530,7 +543,6 @@ document.addEventListener(
       .addEventListener("command", event => {
         webrtcUI.updateWarningLabel(event.currentTarget);
       });
-
     mainPopupSet.addEventListener("popupshowing", event => {
       switch (event.target.id) {
         case "context_sendTabToDevicePopupMenu":
@@ -562,7 +574,6 @@ document.addEventListener(
           ToolbarContextMenu.updateDownloadsAlwaysOpenPanel(event.target);
           ToolbarContextMenu.updateExtensionsButtonContextMenu(event.target);
           ToolbarContextMenu.updateExtension(event.target);
-
           // The following methods must be called last after updating the menu items above,
           // as they may change which items are visible.
           ToolbarContextMenu.updateCustomizationItemsVisibility(event.target);
@@ -595,15 +606,42 @@ document.addEventListener(
           break;
       }
     });
-
     document
       .getElementById("tabContextMenu")
       .addEventListener("popupshowing", event => {
         if (event.target.id == "tabContextMenu") {
           TabContextMenu.updateContextMenu(event.target);
+
+          const unloadOptions = document.getElementById(
+            "context_unloadTabOptions"
+          );
+          const unloadTabsToTheStart = document.getElementById(
+            "context_unloadTabsToTheStart"
+          );
+          const unloadTabsToTheEnd = document.getElementById(
+            "context_unloadTabsToTheEnd"
+          );
+          const unloadOtherTabs = document.getElementById(
+            "context_unloadOtherTabs"
+          );
+
+          const isUnloadable = tab =>
+            tab.linkedPanel && tab.linkedBrowser?.isRemoteBrowser;
+          const tabsToTheStart = gBrowser
+            ._getTabsToTheStartFrom(TabContextMenu.contextTab)
+            .filter(isUnloadable);
+          const tabsToTheEnd = gBrowser
+            ._getTabsToTheEndFrom(TabContextMenu.contextTab)
+            .filter(isUnloadable);
+
+          unloadTabsToTheStart.disabled = !tabsToTheStart.length;
+          unloadTabsToTheEnd.disabled = !tabsToTheEnd.length;
+          unloadOtherTabs.disabled =
+            !tabsToTheStart.length && !tabsToTheEnd.length;
+          unloadOptions.disabled = unloadOtherTabs.disabled;
+          unloadOptions.hidden = !gBrowser._unloadTabInContextMenu;
         }
       });
-
     // Enable/disable some `open-tab-group-context-menu` options based on the
     // specific tab group context.
     document
@@ -618,7 +656,6 @@ document.addEventListener(
           event.target.querySelector(
             "#open-tab-group-context-menu_moveToThisWindow"
           ).disabled = tabGroupIsInThisWindow;
-
           // Disable "Move Group to New Window" menu option for tab groups
           // that are the only things in their respective window.
           let groupAloneInWindow =
@@ -629,7 +666,6 @@ document.addEventListener(
           ).disabled = groupAloneInWindow;
         }
       });
-
     mainPopupSet.addEventListener("popupshown", event => {
       switch (event.target.id) {
         case "sharing-tabs-warning-panel":
@@ -640,7 +676,6 @@ document.addEventListener(
           break;
       }
     });
-
     mainPopupSet.addEventListener("popuphiding", event => {
       switch (event.target.id) {
         case "tabbrowser-tab-tooltip":
@@ -653,7 +688,6 @@ document.addEventListener(
           break;
       }
     });
-
     mainPopupSet.addEventListener("popuphidden", event => {
       switch (event.target.id) {
         case "full-page-translations-panel-settings-menupopup":
