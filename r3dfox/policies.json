@@ -9,10 +9,14 @@
         "DisplayMenuBar": true,
         "ExtensionSettings": {
             "uBlock0@raymondhill.net": {
-                "install_url": "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi",
-                "installation_mode": "normal_installed",
+                "installation_mode": "allowed",
                 "private_browsing": true
             }
+        },
+        "Extensions": {
+            "Install": [
+                "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi"
+            ]
         },
         "SearchEngines": {
             "PreventInstalls": false,
