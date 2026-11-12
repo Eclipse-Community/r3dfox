@@ -272,6 +272,9 @@ r3dfox-prompt-header-icon =
 r3dfox-prompt-sound =
     .label = Play sounds for native system message box prompts
 
+r3dfox-jap-segment =
+    .label = Restore classic double click select behavior for Han/Hiragana/Katakana
+
 r3dfox-advanced-header = Advanced configurations
 
 r3dfox-unload-ram =
@@ -307,6 +310,11 @@ r3dfox-site-overrides =
     .label = Disable site specific useragent overrides
 
 r3dfox-site-overrides-desc = Can be paired with the above as the compatibility overrides are no longer needed with stealth useragent. This will disable the site specific Anubis bypasses as well however.
+
+r3dfox-exc-audio =
+    .label = Enable exclusive mode audio (Requires restart)
+
+r3dfox-exc-audio-desc = Gives the web browser exclusive control over the system sound device. Audiophiles may be interested in this.
 
 r3dfox-webaudio =
     .label = Disable Web Audio API

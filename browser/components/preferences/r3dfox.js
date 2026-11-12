@@ -49,4 +49,6 @@ Preferences.addAll([
   { id: "browser.low_physical_memory_threshold_mb", type: "int" },
   { id: "browser.memory_poll_interval_ms", type: "int" },
   { id: "browser.tabs.unloadActiveForegroundTab", type: "bool" },
+  { id: "layout.word_select.select_same_script_for_cj", type: "bool" },
+  { id: "media.cubeb.wasapi-exclusive", type: "bool" },
 ]);
