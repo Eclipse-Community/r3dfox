@@ -295,6 +295,16 @@ r3dfox-caption-desc = For themes that use custom sized caption buttons that diff
 
 r3dfox-caption-height = Custom caption button Aero fog mask height
 
+r3dfox-useragent-stealth =
+    .label = Stealth mode useragent
+
+r3dfox-useragent-stealth-desc = Identifies the browser as stock Firefox on Windows 10. Blends in better for more privacy and can resolve issues stemming from custom useragent.
+
+r3dfox-site-overrides =
+    .label = Disable site specific useragent overrides
+
+r3dfox-site-overrides-desc = Can be paired with the above as the compatibility overrides are no longer needed with stealth useragent. This will disable the site specific Anubis bypasses as well however.
+
 r3dfox-webaudio =
     .label = Disable Web Audio API
 
