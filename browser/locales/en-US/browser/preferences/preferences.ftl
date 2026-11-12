@@ -311,7 +311,7 @@ r3dfox-site-overrides-desc = Can be paired with the above as the compatibility o
 r3dfox-webaudio =
     .label = Disable Web Audio API
 
-r3dfox-webaudio-desc = Web Audio can be disabled for enhanced security, however a few websites may require it to be enabled.
+r3dfox-webaudio-desc = Web Audio can be disabled for enhanced security, however a few websites and extensions may require it to be enabled.
 
 r3dfox-csp =
     .label = Disable Content Security Policy (CSP)
