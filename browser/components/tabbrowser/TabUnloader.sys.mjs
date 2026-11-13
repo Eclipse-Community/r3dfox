@@ -1,3 +1,4 @@
+
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -215,14 +216,10 @@ function canReplaceSelectedTab(gBrowser) {
   const now = Date.now();
   const lastForWindow = gSelectedTabReplacementByBrowser.get(gBrowser) || 0;
 
-  if (
-    now - lastForWindow <
+  return (
+    now - lastForWindow >=
     SELECTED_TAB_REPLACEMENT_WINDOW_COOLDOWN_MS
-  ) {
-    return false;
-  }
-
-  return true;
+  );
 }
 
 function noteSelectedTabReplacement(gBrowser) {
@@ -267,7 +264,6 @@ let DefaultTabUnloaderMethods = {
       return -1;
     }
 
-    // A dedicated recovery tab should never itself become an unload target.
     if (isRecoveryTab(tab)) {
       return -1;
     }
@@ -420,6 +416,7 @@ let DefaultTabUnloaderMethods = {
  */
 export var TabUnloader = {
   _isUnloading: false,
+  _scheduledUnloadTimer: null,
 
   /**
    * Initialize low-memory detection and tab auto-unloading.
@@ -436,12 +433,150 @@ export var TabUnloader = {
     for (const win of Services.wm.getEnumerator("navigator:browser")) {
       installUnloadDomainsOnSwitchForWindow(win);
     }
+
     Services.obs.addObserver(this, "browser-delayed-startup-finished");
+    Services.prefs.addObserver(kScheduledUnloadPref, this);
+    this.scheduleDailyUnload();
   },
 
-  observe(subject, topic) {
+  observe(subject, topic, data) {
     if (topic === "browser-delayed-startup-finished") {
       installUnloadDomainsOnSwitchForWindow(subject);
+    } else if (
+      topic === "nsPref:changed" &&
+      data === kScheduledUnloadPref
+    ) {
+      this.scheduleDailyUnload();
+    }
+  },
+
+  scheduleDailyUnload() {
+    this._scheduledUnloadTimer?.cancel();
+    this._scheduledUnloadTimer = null;
+
+    let time;
+    try {
+      time = Services.prefs.getStringPref(kScheduledUnloadPref, "").trim();
+    } catch (ex) {
+      Cu.reportError(ex);
+      return;
+    }
+
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time);
+    if (!match) {
+      return;
+    }
+
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(Number(match[1]), Number(match[2]), 0, 0);
+
+    if (next <= now) {
+      next.setDate(next.getDate() + 1);
+    }
+
+    const timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    this._scheduledUnloadTimer = timer;
+
+    timer.initWithCallback(
+      () => {
+        this._scheduledUnloadTimer = null;
+        this.scheduleDailyUnload();
+        this.unloadAllScheduledTabs().catch(ex => Cu.reportError(ex));
+      },
+      Math.max(1, next.getTime() - now.getTime()),
+      Ci.nsITimer.TYPE_ONE_SHOT
+    );
+  },
+
+  async unloadAllScheduledTabs() {
+    if (this._isUnloading) {
+      Services.console.logStringMessage(
+        "[TabUnloader] Scheduled unload skipped: another unload is active."
+      );
+      return;
+    }
+
+    this._isUnloading = true;
+    let unloaded = 0;
+
+    try {
+      const tabs = [...DefaultTabUnloaderMethods.iterateTabs()];
+
+      for (const tabInfo of tabs) {
+        const { tab, gBrowser } = tabInfo;
+
+        if (
+          !tab ||
+          !gBrowser ||
+          tab.closing ||
+          tab.isDestroyed ||
+          !tab.linkedPanel ||
+          gUnloadDomainsOnSwitchInFlight.has(tab)
+        ) {
+          continue;
+        }
+
+        try {
+          let weight = determineTabBaseWeight(
+            tabInfo,
+            DefaultTabUnloaderMethods
+          );
+
+          if (weight < 0 || weight >= NEVER_DISCARD) {
+            continue;
+          }
+
+          if (tab.selected) {
+            const recoveryTab = this.getOrCreateRecoveryTab(gBrowser, tab);
+
+            if (!recoveryTab || recoveryTab === tab) {
+              continue;
+            }
+
+            if (gBrowser.selectedTab !== recoveryTab) {
+              gBrowser.selectedTab = recoveryTab;
+            }
+
+            noteSelectedTabReplacement(gBrowser);
+          }
+
+          if (typeof gBrowser.prepareDiscardBrowser === "function") {
+            await gBrowser.prepareDiscardBrowser(tab);
+          }
+
+          if (
+            tab.selected ||
+            tab.closing ||
+            tab.isDestroyed ||
+            !tab.linkedPanel ||
+            gUnloadDomainsOnSwitchInFlight.has(tab)
+          ) {
+            continue;
+          }
+
+          weight = determineTabBaseWeight(
+            tabInfo,
+            DefaultTabUnloaderMethods
+          );
+
+          if (weight < 0 || weight >= NEVER_DISCARD) {
+            continue;
+          }
+
+          if (gBrowser.discardBrowser(tab)) {
+            ++unloaded;
+            tab.updateLastUnloadedByTabUnloader?.();
+          }
+        } catch (ex) {
+          Cu.reportError(ex);
+        }
+      }
+    } finally {
+      this._isUnloading = false;
+      Services.console.logStringMessage(
+        `[TabUnloader] Scheduled unload completed: ${unloaded} tab(s).`
+      );
     }
   },
 
@@ -518,6 +653,7 @@ export var TabUnloader = {
     }
 
     recoveryTab[kRecoveryTabKey] = true;
+
     try {
       recoveryTab.setAttribute?.(RECOVERY_TAB_ATTRIBUTE, "true");
     } catch (ex) {
@@ -679,6 +815,7 @@ export var TabUnloader = {
       inBackground: true,
       skipAnimation: true,
     });
+
     return this.markRecoveryTab(gBrowser, newTab, tabToReplace);
   },
 
@@ -738,6 +875,7 @@ export var TabUnloader = {
     const now = tabMethods.getNow();
 
     let lowestWeight = 1000;
+
     for (let tab of tabMethods.iterateTabs()) {
       // Protect recently accessed background tabs. Selected tabs remain in the
       // candidate list so they can still be considered as a final fallback.
@@ -755,6 +893,7 @@ export var TabUnloader = {
       if (weight != -1) {
         tab.weight = weight;
         tabs.push(tab);
+
         if (weight < lowestWeight) {
           lowestWeight = weight;
         }
@@ -778,6 +917,7 @@ export var TabUnloader = {
     // lowest weight will be additionally weighted by the number of processes
     // and memory that they use.
     let higherWeightedCount = 0;
+
     for (let idx = 0; idx < tabs.length; idx++) {
       if (tabs[idx].weight != lowestWeight) {
         higherWeightedCount = tabs.length - idx;
@@ -790,6 +930,7 @@ export var TabUnloader = {
     // only a few tabs, or for the last few tabs that have likely been used
     // recently.
     let minCount = tabMethods.getMinTabCount();
+
     if (higherWeightedCount < minCount) {
       higherWeightedCount = minCount;
     }
@@ -797,6 +938,7 @@ export var TabUnloader = {
     // If |lowestWeightedCount| is 1, no benefit from calculating the tab's
     // memory and additional weight.
     const lowestWeightedCount = tabs.length - higherWeightedCount;
+
     if (lowestWeightedCount > 1) {
       let processMap = getAllProcesses(tabs, tabMethods);
 
@@ -828,6 +970,7 @@ export var TabUnloader = {
 
       const { tab } = tabInfo;
       const gBrowser = tab?.documentGlobal?.gBrowser || tabInfo.gBrowser;
+
       if (!tab || !gBrowser) {
         continue;
       }
@@ -842,6 +985,7 @@ export var TabUnloader = {
         }
 
         const recoveryTab = this.getOrCreateRecoveryTab(gBrowser, tab);
+
         if (!recoveryTab || recoveryTab === tab) {
           continue;
         }
@@ -868,6 +1012,7 @@ export var TabUnloader = {
         return true;
       }
     }
+
     return false;
   },
 
@@ -936,8 +1081,10 @@ function getAllProcesses(tabs, tabMethods) {
     tab.processes = new Map();
 
     let topLevel = true;
+
     for (let pid of tabMethods.iterateProcesses(tab.tab)) {
       let processInfo = processMap.get(pid);
+
       if (processInfo) {
         processInfo.count++;
         processInfo.tabSet.add(tabIndex);
@@ -947,6 +1094,7 @@ function getAllProcesses(tabs, tabMethods) {
       }
 
       let tabProcessEntry = tab.processes.get(pid);
+
       if (tabProcessEntry) {
         ++tabProcessEntry.frameCount;
       } else {
@@ -985,13 +1133,16 @@ async function adjustForResourceUse(tabs, processMap, tabMethods) {
   await tabMethods.calculateMemoryUsage(processMap, tabs);
 
   let sortWeight = 0;
+
   for (let tab of tabs) {
     tab.sortWeight = ++sortWeight;
 
     let uniqueCount = 0;
     let totalMemory = 0;
+
     for (const procEntry of tab.processes.values()) {
       const processInfo = procEntry.entryToProcessMap;
+
       if (processInfo.tabSet.size == 1) {
         uniqueCount++;
       }
@@ -1005,6 +1156,7 @@ async function adjustForResourceUse(tabs, processMap, tabMethods) {
       // use 20% of the memory.
       const denominator =
         processInfo.topCount * 2 + (processInfo.count - processInfo.topCount);
+
       const perFrameMemory = denominator ? processInfo.memory / denominator : 0;
       totalMemory += perFrameMemory * procEntry.frameCount;
     }
@@ -1016,9 +1168,12 @@ async function adjustForResourceUse(tabs, processMap, tabMethods) {
   tabs.sort((a, b) => {
     return b.uniqueCount - a.uniqueCount;
   });
+
   sortWeight = 0;
+
   for (let tab of tabs) {
     tab.sortWeight += ++sortWeight;
+
     if (tab.uniqueCount > 1) {
       // If the tab has a number of processes that are only used by this tab,
       // subtract off an additional amount to the sorting weight value. That
@@ -1030,7 +1185,9 @@ async function adjustForResourceUse(tabs, processMap, tabMethods) {
   tabs.sort((a, b) => {
     return b.memory - a.memory;
   });
+
   sortWeight = 0;
+
   for (let tab of tabs) {
     tab.sortWeight += ++sortWeight;
   }
