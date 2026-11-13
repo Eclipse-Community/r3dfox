@@ -215,14 +215,10 @@ function canReplaceSelectedTab(gBrowser) {
   const now = Date.now();
   const lastForWindow = gSelectedTabReplacementByBrowser.get(gBrowser) || 0;
 
-  if (
-    now - lastForWindow <
+  return (
+    now - lastForWindow >=
     SELECTED_TAB_REPLACEMENT_WINDOW_COOLDOWN_MS
-  ) {
-    return false;
-  }
-
-  return true;
+  );
 }
 
 function noteSelectedTabReplacement(gBrowser) {
@@ -267,7 +263,6 @@ let DefaultTabUnloaderMethods = {
       return -1;
     }
 
-    // A dedicated recovery tab should never itself become an unload target.
     if (isRecoveryTab(tab)) {
       return -1;
     }
@@ -420,6 +415,7 @@ let DefaultTabUnloaderMethods = {
  */
 export var TabUnloader = {
   _isUnloading: false,
+  _scheduledUnloadTimer: null,
 
   /**
    * Initialize low-memory detection and tab auto-unloading.
@@ -437,11 +433,148 @@ export var TabUnloader = {
       installUnloadDomainsOnSwitchForWindow(win);
     }
     Services.obs.addObserver(this, "browser-delayed-startup-finished");
+    Services.prefs.addObserver(kScheduledUnloadPref, this);
+    this.scheduleDailyUnload();
   },
 
-  observe(subject, topic) {
+  observe(subject, topic, data) {
     if (topic === "browser-delayed-startup-finished") {
       installUnloadDomainsOnSwitchForWindow(subject);
+    } else if (
+      topic === "nsPref:changed" &&
+      data === kScheduledUnloadPref
+    ) {
+      this.scheduleDailyUnload();
+    }
+  },
+
+  scheduleDailyUnload() {
+    this._scheduledUnloadTimer?.cancel();
+    this._scheduledUnloadTimer = null;
+
+    let time;
+    try {
+      time = Services.prefs.getStringPref(kScheduledUnloadPref, "").trim();
+    } catch (ex) {
+      Cu.reportError(ex);
+      return;
+    }
+
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time);
+    if (!match) {
+      return;
+    }
+
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(Number(match[1]), Number(match[2]), 0, 0);
+
+    if (next <= now) {
+      next.setDate(next.getDate() + 1);
+    }
+
+    const timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    this._scheduledUnloadTimer = timer;
+
+    timer.initWithCallback(
+      () => {
+        this._scheduledUnloadTimer = null;
+        this.scheduleDailyUnload();
+        this.unloadAllScheduledTabs().catch(ex => Cu.reportError(ex));
+      },
+      Math.max(1, next.getTime() - now.getTime()),
+      Ci.nsITimer.TYPE_ONE_SHOT
+    );
+  },
+
+  async unloadAllScheduledTabs() {
+    if (this._isUnloading) {
+      Services.console.logStringMessage(
+        "[TabUnloader] Scheduled unload skipped: another unload is active."
+      );
+      return;
+    }
+
+    this._isUnloading = true;
+    let unloaded = 0;
+
+    try {
+      const tabs = [...DefaultTabUnloaderMethods.iterateTabs()];
+
+      for (const tabInfo of tabs) {
+        const { tab, gBrowser } = tabInfo;
+
+        if (
+          !tab ||
+          !gBrowser ||
+          tab.closing ||
+          tab.isDestroyed ||
+          !tab.linkedPanel ||
+          gUnloadDomainsOnSwitchInFlight.has(tab)
+        ) {
+          continue;
+        }
+
+        try {
+          let weight = determineTabBaseWeight(
+            tabInfo,
+            DefaultTabUnloaderMethods
+          );
+
+          if (weight < 0 || weight >= NEVER_DISCARD) {
+            continue;
+          }
+
+          if (tab.selected) {
+            const recoveryTab = this.getOrCreateRecoveryTab(gBrowser, tab);
+
+            if (!recoveryTab || recoveryTab === tab) {
+              continue;
+            }
+
+            if (gBrowser.selectedTab !== recoveryTab) {
+              gBrowser.selectedTab = recoveryTab;
+            }
+
+            noteSelectedTabReplacement(gBrowser);
+          }
+
+          if (typeof gBrowser.prepareDiscardBrowser === "function") {
+            await gBrowser.prepareDiscardBrowser(tab);
+          }
+
+          if (
+            tab.selected ||
+            tab.closing ||
+            tab.isDestroyed ||
+            !tab.linkedPanel ||
+            gUnloadDomainsOnSwitchInFlight.has(tab)
+          ) {
+            continue;
+          }
+
+          weight = determineTabBaseWeight(
+            tabInfo,
+            DefaultTabUnloaderMethods
+          );
+
+          if (weight < 0 || weight >= NEVER_DISCARD) {
+            continue;
+          }
+
+          if (gBrowser.discardBrowser(tab)) {
+            ++unloaded;
+            tab.updateLastUnloadedByTabUnloader?.();
+          }
+        } catch (ex) {
+          Cu.reportError(ex);
+        }
+      }
+    } finally {
+      this._isUnloading = false;
+      Services.console.logStringMessage(
+        `[TabUnloader] Scheduled unload completed: ${unloaded} tab(s).`
+      );
     }
   },
 
