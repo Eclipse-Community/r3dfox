@@ -312,7 +312,7 @@ r3dfox-site-overrides =
 r3dfox-site-overrides-desc = Can be paired with the above as the compatibility overrides are no longer needed with stealth useragent. This will disable the site specific Anubis bypasses as well however.
 
 r3dfox-exc-audio =
-    .label = Enable exclusive mode audio (Requires restart)
+    .label = Enable exclusive mode audio
 
 r3dfox-exc-audio-desc = Gives the web browser exclusive control over the system sound device. Audiophiles may be interested in this.
 
