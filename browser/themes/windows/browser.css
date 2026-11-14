@@ -451,16 +451,6 @@ menupopup[touchmode] :is(menu, menuitem, menucaption) {
   padding-inline: 0;
 }
 
-:root[customtitlebar][sizemode="normal"] .browser-titlebar:not([collapsed], [autohide][inactive]:not([customizing])) {
-  appearance: auto;
-  -moz-default-appearance: -moz-window-titlebar;
-}
-
-:root[customtitlebar][sizemode="maximized"] .browser-titlebar:not([collapsed], [autohide][inactive]:not([customizing])) {
-  appearance: auto;
-  -moz-default-appearance: -moz-window-titlebar-maximized;
-}
-
 /* Only the first visible titlebar toolbar needs native caption padding. */
 @media (-moz-windows-compositor) {
 :root[customtitlebar]:not([chromehidden~="menubar"]) #toolbar-menubar:not([collapsed], [autohide][inactive]:not([customizing])) ~ .browser-titlebar {
