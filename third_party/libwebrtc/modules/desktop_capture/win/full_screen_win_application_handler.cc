@@ -416,7 +416,16 @@ std::wstring GetPathByWindowId(HWND window_id) {
   DWORD path_len = MAX_PATH;
   WCHAR path[MAX_PATH];
   std::wstring result;
-  if (::QueryFullProcessImageNameW(process, 0, path, &path_len)) {
+typedef BOOL(WINAPI * QUERYFULLPROCESSIMAGENAMEW)(HANDLE hProcess, DWORD dwFlags, LPWSTR lpExeName, PDWORD lpdwSize);
+	static QUERYFULLPROCESSIMAGENAMEW pQueryFullProcessImageNameW = NULL;
+
+			HMODULE hKernel = LoadLibraryW( L"kernel32" );
+
+			if( !pQueryFullProcessImageNameW )
+				pQueryFullProcessImageNameW = (QUERYFULLPROCESSIMAGENAMEW)GetProcAddress( hKernel, "QueryFullProcessImageNameW" );
+
+			if( pQueryFullProcessImageNameW )
+  if (pQueryFullProcessImageNameW(process, 0, path, &path_len)) {
     result = std::wstring(path, path_len);
   } else {
     RTC_LOG_GLE(LS_ERROR) << "QueryFullProcessImageName failed.";
