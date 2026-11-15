@@ -107,6 +107,21 @@ class LookAndFeel {
     /* Whether Windows mica effect is enabled and available */
     WindowsMica,
 
+    /*
+     * A Boolean value to determine whether the Windows default theme is
+     * being used.
+     *
+     * The value of this metric is not used on other platforms. These platforms
+     * should return NS_ERROR_NOT_IMPLEMENTED when queried for this metric.
+     */
+    WindowsDefaultTheme,
+
+    /*
+     * A Boolean value to determine whether the Mac graphite theme is
+     * being used.
+     */
+    MacGraphiteTheme,
+
     /* Whether Windows mica effect is enabled and available on popups */
     WindowsMicaPopups,
 

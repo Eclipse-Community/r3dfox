@@ -90,6 +90,8 @@ class nsLookAndFeel final : public nsXPLookAndFeel {
 
   static HANDLE GetTheme(UXThemeClass);
 
+  bool IsDefaultWindowTheme() const { return mIsDefaultWindowsTheme; }
+
   void NativeInit() final;
   void RefreshImpl() override;
   nsresult NativeGetInt(IntID, int32_t& aResult) override;
@@ -165,6 +167,7 @@ class nsLookAndFeel final : public nsXPLookAndFeel {
 
   nscolor mSysColorTable[SYS_COLOR_COUNT]{0};
   bool mHighContrastOn = false;
+  bool mIsDefaultWindowsTheme = false;
 
   mozilla::EnumeratedArray<UXThemeClass, UXThemeHandle,
                            size_t(UXThemeClass::NumClasses)>
