@@ -26,6 +26,12 @@
 using namespace mozilla;
 using namespace mozilla::widget;
 
+const wchar_t
+nsLookAndFeel::kThemeLibraryName[] = L"uxtheme.dll";
+
+HMODULE
+nsLookAndFeel::sThemeDLL = nullptr;
+
 const int NUM_COMMAND_BUTTONS = 3;
 SIZE nsLookAndFeel::sCommandButtonMetrics[NUM_COMMAND_BUTTONS];
 bool nsLookAndFeel::sCommandButtonMetricsInitialized = false;
@@ -98,6 +104,13 @@ void UXThemeHandle::Close() {
 }
 
 UXThemeHandle::operator HANDLE() { return mHandle.valueOr(nullptr); }
+
+HMODULE
+nsLookAndFeel::GetThemeDLL() {
+  if (!sThemeDLL)
+    sThemeDLL = ::LoadLibraryW(kThemeLibraryName);
+  return sThemeDLL;
+}
 
 static const wchar_t* GetUXThemeClassName(UXThemeClass aClass) {
   switch (aClass) {
