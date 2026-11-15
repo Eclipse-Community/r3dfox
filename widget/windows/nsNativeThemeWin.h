@@ -33,7 +33,6 @@ class nsNativeThemeWin final : public Theme {
   // to avoid subtle sizing changes. The non-native theme can basically draw at
   // any size, so we prefer to have consistent sizing information.
   enum class NonNative { No, Always, BecauseColorMismatch };
-  static bool IsWidgetAlwaysNonNative(nsIFrame*, StyleAppearance);
   NonNative IsWidgetNonNative(nsIFrame*, StyleAppearance);
 
   // The nsITheme interface.

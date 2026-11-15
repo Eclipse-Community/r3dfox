@@ -400,6 +400,5 @@ bool nsNativeTheme::IsWidgetAlwaysNonNative(nsIFrame* aFrame,
          aAppearance == StyleAppearance::ProgressBar ||
          aAppearance == StyleAppearance::Meter ||
          aAppearance == StyleAppearance::Range ||
-         aAppearance == StyleAppearance::Listbox ||
-         (aFrame && aFrame->StyleUI()->mMozTheme == StyleMozTheme::NonNative);
+         aAppearance == StyleAppearance::Listbox;
 }

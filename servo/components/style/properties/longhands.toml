@@ -1891,16 +1891,6 @@ spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-moz-user-
 enabled_in = "chrome"
 affects = ""
 
-[-moz-theme]
-type = "MozTheme"
-initial = "specified::MozTheme::Auto"
-struct = "inherited_ui"
-engine = "gecko"
-enabled_in = "chrome"
-animation_type = "discrete"
-spec = "Internal"
-affects = "paint"
-
 [scrollbar-gutter]
 type = "ScrollbarGutter"
 initial = "computed::ScrollbarGutter::AUTO"
