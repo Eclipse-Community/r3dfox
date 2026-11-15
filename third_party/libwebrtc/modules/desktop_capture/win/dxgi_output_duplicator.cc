@@ -68,6 +68,41 @@ Rotation DxgiRotationToRotation(DXGI_MODE_ROTATION rotation) {
   return Rotation::CLOCK_WISE_0;
 }
 
+static HRESULT GetScaleFactorForMonitorA(
+    IN  HMONITOR                Monitor,
+    OUT DEVICE_SCALE_FACTOR    *ScaleFactor)
+{
+HMODULE hDLLShcore{};
+using GetScaleFactorForMonitorSig = HRESULT(WINAPI *)(HMONITOR, DEVICE_SCALE_FACTOR *);
+GetScaleFactorForMonitorSig fnGetScaleFactorForMonitor = nullptr;
+
+    hDLLShcore = ::LoadLibraryExW(L"shcore.dll", {}, 0);
+    if (hDLLShcore) {
+        fnGetScaleFactorForMonitor = (GetScaleFactorForMonitorSig) GetProcAddress(hDLLShcore, "GetScaleFactorForMonitor");
+    }
+    if (fnGetScaleFactorForMonitor) {
+        return fnGetScaleFactorForMonitor(Monitor, ScaleFactor);
+    }
+    HDC DeviceContext;
+    ULONG LogPixelsX;
+
+    DeviceContext = GetDC(NULL);
+    if (!DeviceContext) {
+        *ScaleFactor = SCALE_100_PERCENT;
+        return S_OK;
+    }
+
+    LogPixelsX = GetDeviceCaps(DeviceContext, LOGPIXELSX);
+    ReleaseDC(NULL, DeviceContext);
+
+    // DEVICE_SCALE_FACTOR is a percentage - SCALE_150_PERCENT is 150 - so the
+    // DPI has to be divided by the baseline, not the other way round. The
+    // reciprocal produced 66 for a 150% display, which is not even a value of
+    // the enumeration.
+    *ScaleFactor = (DEVICE_SCALE_FACTOR) (LogPixelsX * SCALE_100_PERCENT / USER_DEFAULT_SCREEN_DPI);
+    return S_OK;
+}
+
 }  // namespace
 
 DxgiOutputDuplicator::DxgiOutputDuplicator(const D3dDevice& device,
@@ -442,7 +477,7 @@ int64_t DxgiOutputDuplicator::num_frames_captured() const {
 
 std::optional<float> DxgiOutputDuplicator::device_scale_factor() const {
   DEVICE_SCALE_FACTOR device_scale_factor = DEVICE_SCALE_FACTOR_INVALID;
-  HRESULT hr = GetScaleFactorForMonitor(monitor_, &device_scale_factor);
+  HRESULT hr = GetScaleFactorForMonitorA(monitor_, &device_scale_factor);
   if (FAILED(hr)) {
     RTC_LOG(LS_ERROR) << "Failed to get scale factor for monitor: " << hr;
     return std::nullopt;
