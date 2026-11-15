@@ -44,11 +44,9 @@ class TimerThread final : public mozilla::Runnable, public nsIObserver {
    public:
     explicit HiResWindowsMonitor(const char* aName)
         : mMutex(aName), mHandles{{
-            CreateWaitableTimerEx(nullptr, nullptr,
-                                  CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
-                                  TIMER_ALL_ACCESS),
+            nullptr,
             CreateEvent(nullptr, FALSE, FALSE, nullptr),
-            CreateWaitableTimerEx(nullptr, nullptr, 0, TIMER_ALL_ACCESS)
+            CreateWaitableTimerW(nullptr, FALSE, nullptr)
           }} {
       // These are MOZ_RELEASE_ASSERT's because, if we fail to create either of
       // those objects, we have no way to continue. GetHiResTimer() is not
@@ -85,8 +83,8 @@ class TimerThread final : public mozilla::Runnable, public nsIObserver {
 
    private:
     void WaitHiRes(const LARGE_INTEGER* aDuration) MOZ_REQUIRES(this) {
-      const BOOL b = SetWaitableTimerEx(GetHiResTimer(), aDuration, 0, nullptr,
-                                        nullptr, nullptr, 0);
+      const BOOL b = SetWaitableTimer(GetHiResTimer(), aDuration, 0, nullptr,
+                                        nullptr, FALSE);
       MOZ_RELEASE_ASSERT(b != 0);
       mMutex.AssertCurrentThreadOwns();
       Unlock();
@@ -97,8 +95,8 @@ class TimerThread final : public mozilla::Runnable, public nsIObserver {
 
     void WaitLoRes(const LARGE_INTEGER* aDuration, const uint64_t aTolerance_ms)
         MOZ_REQUIRES(this) {
-      const BOOL b = SetWaitableTimerEx(GetLoResTimer(), aDuration, 0, nullptr,
-                                        nullptr, nullptr, aTolerance_ms);
+      const BOOL b = SetWaitableTimer(GetLoResTimer(), aDuration, 0, nullptr,
+                                        nullptr, FALSE);
       MOZ_RELEASE_ASSERT(b != 0);
       mMutex.AssertCurrentThreadOwns();
       Unlock();
