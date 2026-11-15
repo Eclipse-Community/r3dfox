@@ -99,6 +99,7 @@ Variable += [
 | Version   | One of the following formats:> - ALL_VERSIONS \| UNVERSIONED
 > - A tuple consisting of four digits
 > - A 32-bit integer representing a Unix timestamp with PETimeStamp                                                                                                                                     |
+| Flags     | BLOCK_WIN8_AND_OLDER \| BLOCK_WIN7_AND_OLDER                                                                                        |
 
 #### Variable
 
@@ -146,6 +147,14 @@ To specify a version, you can use either of the following formats:
   Example: (1, 2, 3, 4)
 - A 32-bit integer representing a Unix timestamp with PETimeStamp. This is compared to an integer of IMAGE_FILE_HEADER::TimeDateStamp.
   Example: PETimeStamp(0x12345678)
+
+#### Flags
+
+If you know a problem happens only on older Windows versions, you can use one of
+the following flags to narrow down the affected platform.
+
+- BLOCK_WIN8_AND_OLDER
+- BLOCK_WIN7_AND_OLDER
 
 ## Technical details
 

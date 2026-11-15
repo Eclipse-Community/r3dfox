@@ -860,6 +860,10 @@ void WinWindowOcclusionTracker::WindowOcclusionCalculator::Initialize() {
   MOZ_ASSERT(!mVirtualDesktopManager);
   CALC_LOG(LogLevel::Info, "Initialize()");
 
+  if (!IsWin10OrLater()) {
+    return;
+  }
+
   RefPtr<IVirtualDesktopManager> desktopManager;
   HRESULT hr = ::CoCreateInstance(
       CLSID_VirtualDesktopManager, NULL, CLSCTX_INPROC_SERVER,

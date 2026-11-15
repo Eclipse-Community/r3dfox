@@ -7,6 +7,7 @@
 #include "nsWindowsDllInterceptor.h"
 #include "mozilla/DebugOnly.h"
 #include "mozilla/NativeNt.h"
+#include "mozilla/WindowsVersion.h"
 #include "mozilla/StackWalk_windows.h"
 #include "mozilla/WindowsDiagnostics.h"
 
@@ -74,8 +75,11 @@ void WindowsStackWalkInitialization() {
   // case the stack walk suppressions are already added there directly.
   NtDllIntercept.Init("ntdll.dll");
   stub_LdrUnloadDll.Set(NtDllIntercept, "LdrUnloadDll", &patched_LdrUnloadDll);
-  stub_LdrResolveDelayLoadedAPI.Set(NtDllIntercept, "LdrResolveDelayLoadedAPI",
-                                    &patched_LdrResolveDelayLoadedAPI);
+  if (IsWin8OrLater()) {  // LdrResolveDelayLoadedAPI was introduced in Win8
+    stub_LdrResolveDelayLoadedAPI.Set(NtDllIntercept,
+                                      "LdrResolveDelayLoadedAPI",
+                                      &patched_LdrResolveDelayLoadedAPI);
+  }
 }
 
 [[clang::optnone]] void UnoptimizedLookup() {

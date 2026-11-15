@@ -12,6 +12,7 @@
 #include "nsWindowsHelpers.h"
 #include "WinUtils.h"
 #include "WindowsUIUtils.h"
+#include "mozilla/WindowsVersion.h"
 #include "mozilla/FontPropertyTypes.h"
 #include "mozilla/glean/WidgetWindowsMetrics.h"
 #include "mozilla/intl/LocaleService.h"
@@ -648,6 +649,11 @@ nsresult nsLookAndFeel::NativeGetInt(IntID aID, int32_t& aResult) {
       aResult = GetTooltipOffsetVertical();
       break;
     case IntID::SystemUsesDarkTheme: {
+      if (!IsWin10OrLater()) {
+        aResult = false;
+        break;
+      }
+
       if (mHighContrastOn) {
         aResult =
             LookAndFeel::IsDarkColor(GetColorForSysColorIndex(COLOR_WINDOW));
