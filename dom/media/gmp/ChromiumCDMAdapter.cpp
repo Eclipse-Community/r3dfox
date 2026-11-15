@@ -27,6 +27,7 @@
 #  include "nsWindowsDllInterceptor.h"
 #  include "mozilla/NativeNt.h"
 #  include "mozilla/WindowsVersion.h"
+#include "mozilla/RandomNum.h"
 #else
 #  include <fcntl.h>
 #  include <sys/stat.h>
@@ -221,6 +222,9 @@ typedef BOOL(WINAPI* SetThreadInformationFnPtr)(
 static WindowsDllInterceptor::FuncHookType<SetThreadInformationFnPtr>
     sOriginalSetThreadInformationFnPtr;
 
+static WindowsDllInterceptor::FuncHookType<decltype(&GetProcAddress)>
+    sOriginalGetProcAddressFnPtr;
+
 static std::unordered_map<std::wstring, std::wstring>* sDeviceNames = nullptr;
 
 DWORD WINAPI QueryDosDeviceWHook(LPCWSTR lpDeviceName, LPWSTR lpTargetPath,
@@ -310,6 +314,18 @@ BOOL WINAPI MozSetThreadInformation(
   return TRUE;
 }
 
+BOOL WINAPI MozProcessPrng(PBYTE pbData, SIZE_T cbData) {
+  return mozilla::GenerateRandomBytesFromOS(pbData, cbData) ? TRUE : FALSE;
+}
+
+FARPROC WINAPI MozGetProcAddress(HMODULE hModule, LPCSTR lpProcName) {
+  if (strcmp(lpProcName, "ProcessPrng") == 0) {
+    return reinterpret_cast<FARPROC>(&MozProcessPrng);
+  }
+
+  return sOriginalGetProcAddressFnPtr(hModule, lpProcName);
+}
+
 static void InitializeHooks() {
   static bool initialized = false;
   if (initialized) {
@@ -344,6 +360,11 @@ static void InitializeHooks() {
                                                   "SetThreadInformation",
                                                   &MozSetThreadInformation)) {
         GMP_LOG_WARNING("Failed to hook SetThreadInformation");
+      }
+
+      if (!sOriginalGetProcAddressFnPtr.Set(
+              sKernel32Intercept, "GetProcAddress", &MozGetProcAddress)) {
+        GMP_LOG_WARNING("Failed to hook GetProcAddress");
       }
     } else {
       GMP_LOG_WARNING(
