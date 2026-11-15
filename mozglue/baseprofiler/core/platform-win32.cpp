@@ -211,9 +211,32 @@ SamplerThread::SamplerThread(PSLockRef aLock, uint32_t aActivityGeneration,
           std::max(1, int(floor(aIntervalMilliseconds * 1000 + 0.5)))),
       mNoTimerResolutionChange(
           ProfilerFeature::HasNoTimerResolutionChange(aFeatures)),
-      mHiResTimer(::CreateWaitableTimerExA(
+      mHiResTimer(nullptr) {
+typedef HANDLE (WINAPI *CreateWaitableTimerExW_t)(LPSECURITY_ATTRIBUTES lpTimerAttributes, LPCWSTR lpTimerName, DWORD dwFlags, DWORD dwDesiredAccess);
+static CreateWaitableTimerExW_t pCreateWaitableTimerExW;
+
+typedef BOOL (WINAPI *SetWaitableTimerEx_t)(HANDLE hTimer, const LARGE_INTEGER *lpDueTime, LONG lPeriod, PTIMERAPCROUTINE pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, PREASON_CONTEXT WakeContext, ULONG TolerableDelay);
+static SetWaitableTimerEx_t pSetWaitableTimerEx;
+
+    if (!pCreateWaitableTimerExW || !pSetWaitableTimerEx) {
+        static bool initialized;
+
+        if (!initialized) {
+            HMODULE module = GetModuleHandleW(L"kernel32.dll");
+            if (module) {
+                pCreateWaitableTimerExW = (CreateWaitableTimerExW_t)GetProcAddress(module, "CreateWaitableTimerExW");
+                pSetWaitableTimerEx = (SetWaitableTimerEx_t)GetProcAddress(module, "SetWaitableTimerEx");
+            }
+            initialized = true;
+        }
+
+        if (!(!pCreateWaitableTimerExW || !pSetWaitableTimerEx)) {
+      mHiResTimer = (pCreateWaitableTimerExW(
           nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
-          TIMER_ALL_ACCESS)) {
+          TIMER_ALL_ACCESS));
+        }
+    }
+
   if (!mHiResTimer) {
     if ((!mNoTimerResolutionChange) && (mIntervalMicroseconds < 10 * 1000)) {
       // By default the timer resolution (which tends to be 1/64Hz, around 16ms)
@@ -253,11 +276,30 @@ SamplerThread::~SamplerThread() {
 
 void SamplerThread::SleepMicro(uint32_t aMicroseconds) {
   if (mHiResTimer) {
+typedef HANDLE (WINAPI *CreateWaitableTimerExW_t)(LPSECURITY_ATTRIBUTES lpTimerAttributes, LPCWSTR lpTimerName, DWORD dwFlags, DWORD dwDesiredAccess);
+static CreateWaitableTimerExW_t pCreateWaitableTimerExW;
+
+typedef BOOL (WINAPI *SetWaitableTimerEx_t)(HANDLE hTimer, const LARGE_INTEGER *lpDueTime, LONG lPeriod, PTIMERAPCROUTINE pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, PREASON_CONTEXT WakeContext, ULONG TolerableDelay);
+static SetWaitableTimerEx_t pSetWaitableTimerEx;
+
+    if (!pCreateWaitableTimerExW || !pSetWaitableTimerEx) {
+        static bool initialized;
+
+        if (!initialized) {
+            HMODULE module = GetModuleHandleW(L"kernel32.dll");
+            if (module) {
+                pCreateWaitableTimerExW = (CreateWaitableTimerExW_t)GetProcAddress(module, "CreateWaitableTimerExW");
+                pSetWaitableTimerEx = (SetWaitableTimerEx_t)GetProcAddress(module, "SetWaitableTimerEx");
+            }
+            initialized = true;
+        }
+    }
+
     // duration needs to be in "hundreds of nanoseconds", negative indicates
     // value is relative rather than absolute
     const LARGE_INTEGER duration{
         .QuadPart = static_cast<int64_t>(aMicroseconds) * -10LL};
-    const bool b = ::SetWaitableTimerEx(mHiResTimer, &duration, 0, nullptr,
+    const bool b = pSetWaitableTimerEx(mHiResTimer, &duration, 0, nullptr,
                                         nullptr, nullptr, 0);
     MOZ_RELEASE_ASSERT(b);
     const DWORD r = ::WaitForSingleObject(mHiResTimer, INFINITE);
