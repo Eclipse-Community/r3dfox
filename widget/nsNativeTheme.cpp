@@ -60,6 +60,12 @@ static HTMLInputElement* GetContainingNumberInput(nsIContent* aContent) {
   }
 
   bool isXULElement = frameContent->IsXULElement();
+  if (isXULElement &&
+      (aAppearance == StyleAppearance::CheckboxLabel ||
+       aAppearance == StyleAppearance::RadioLabel)) {
+    aFrame = aFrame->GetParent()->GetParent();
+    frameContent = aFrame->GetContent();
+  }
   if (aAppearance == StyleAppearance::Checkbox ||
       aAppearance == StyleAppearance::Radio) {
     if (nsXULElement::FromNodeOrNull(frameContent->GetParent())) {
@@ -85,6 +91,24 @@ static HTMLInputElement* GetContainingNumberInput(nsIContent* aContent) {
   }
 
   switch (aAppearance) {
+    case StyleAppearance::RadioLabel: {
+      if (frameContent->AsElement()->HasAttr(nsGkAtoms::focused)) {
+        flags |= ElementState::FOCUS;
+        nsPIDOMWindowOuter* window =
+            aFrame->GetContent()->OwnerDoc()->GetWindow();
+        if (window && window->ShouldShowFocusRing()) {
+          flags |= ElementState::FOCUSRING;
+        }
+      }
+      break;
+    }
+    case StyleAppearance::CheckboxLabel: {
+      if (!flags.HasState(ElementState::CHECKED) &&
+          CheckBooleanAttr(aFrame, nsGkAtoms::indeterminate)) {
+        flags |= ElementState::INDETERMINATE;
+      }
+      break;
+    }
     case StyleAppearance::Toolbarbutton:
       if (CheckBooleanAttr(aFrame, nsGkAtoms::open)) {
         // TODO: Consider using :open instead of faking :hover:active?
