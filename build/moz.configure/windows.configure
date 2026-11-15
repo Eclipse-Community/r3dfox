@@ -550,6 +550,7 @@ with only_when(depends(c_compiler)(lambda c: c.type == "clang-cl")):
     )
     set_config("MSVC_CXX_RUNTIME_DLL", "msvcp140.dll")
     set_config("MSVC_CXX_RUNTIME_ATOMIC_WAIT_DLL", "msvcp140_atomic_wait.dll")
+    set_config("MSVC_CONCUR_RUNTIME_DLL", "concrt140.dll")
 
     # Disable warnings about using MSVC-specific secure CRT functions.
     set_define("_CRT_SECURE_NO_WARNINGS", True)
