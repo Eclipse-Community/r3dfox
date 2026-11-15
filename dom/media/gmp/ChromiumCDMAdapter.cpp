@@ -27,6 +27,7 @@
 #  include "nsWindowsDllInterceptor.h"
 #  include "mozilla/NativeNt.h"
 #  include "mozilla/WindowsVersion.h"
+#  include <winuser.h>
 #include "mozilla/RandomNum.h"
 #else
 #  include <fcntl.h>
@@ -319,7 +320,7 @@ BOOL WINAPI MozProcessPrng(PBYTE pbData, SIZE_T cbData) {
 }
 
 FARPROC WINAPI MozGetProcAddress(HMODULE hModule, LPCSTR lpProcName) {
-  if (strcmp(lpProcName, "ProcessPrng") == 0) {
+  if (!IS_INTRESOURCE(lpProcName) && strcmp(lpProcName, "ProcessPrng") == 0) {
     return reinterpret_cast<FARPROC>(&MozProcessPrng);
   }
 
