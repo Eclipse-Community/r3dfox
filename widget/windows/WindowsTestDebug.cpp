@@ -131,7 +131,15 @@ WindowsTestDebug::ProcessesThatOpenedFile(
     }
     WCHAR imageName[MAX_PATH];
     DWORD imageNameLen = MAX_PATH;
-    if (NS_WARN_IF(FAILED(::QueryFullProcessImageNameW(
+typedef BOOL(WINAPI * QUERYFULLPROCESSIMAGENAMEW)(HANDLE hProcess, DWORD dwFlags, LPWSTR lpExeName, PDWORD lpdwSize);
+    static QUERYFULLPROCESSIMAGENAMEW pQueryFullProcessImageNameW = NULL;
+
+            HMODULE hKernel = LoadLibraryW( L"kernel32" );
+
+            if( !pQueryFullProcessImageNameW )
+                pQueryFullProcessImageNameW = (QUERYFULLPROCESSIMAGENAMEW)GetProcAddress( hKernel, "QueryFullProcessImageNameW" );
+
+    if (!pQueryFullProcessImageNameW || NS_WARN_IF(FAILED(pQueryFullProcessImageNameW(
             otherProcess, 0, imageName, &imageNameLen)))) {
       continue;
     }
