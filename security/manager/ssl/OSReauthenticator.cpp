@@ -206,6 +206,26 @@ bool IsRequireSignonEnabled() {
   return !!value;
 }
 
+inline DWORD CredUIPromptForWindowsCredentialsWXp(PCREDUI_INFOW pUiInfo, DWORD dwAuthError, ULONG* pulAuthPackage, LPCVOID pvInAuthBuffer,
+    ULONG ulInAuthBufferSize, LPVOID* ppvOutAuthBuffer, ULONG* pulOutAuthBufferSize, BOOL* pfSave, DWORD dwFlags)
+{
+    typedef POWER_PLATFORM_ROLE(__stdcall * PFN_CredUIPromptForWindowsCredentialsW)(PCREDUI_INFOW pUiInfo, DWORD dwAuthError, ULONG * pulAuthPackage,
+        LPCVOID pvInAuthBuffer, ULONG ulInAuthBufferSize, LPVOID * ppvOutAuthBuffer, ULONG * pulOutAuthBufferSize, BOOL * pfSave, DWORD dwFlags);
+    static PFN_CredUIPromptForWindowsCredentialsW s_CredUIPromptForWindowsCredentialsW = NULL;
+    static BOOL s_is_init = FALSE;
+    if (!s_is_init) {
+        HMODULE mod_handle = LoadLibraryW(L"CREDUI.dll");
+        s_CredUIPromptForWindowsCredentialsW = (PFN_CredUIPromptForWindowsCredentialsW)GetProcAddress(mod_handle, "CredUIPromptForWindowsCredentialsW");
+        s_is_init = TRUE;
+    }
+
+    if (s_CredUIPromptForWindowsCredentialsW)
+        return s_CredUIPromptForWindowsCredentialsW(
+            pUiInfo, dwAuthError, pulAuthPackage, pvInAuthBuffer, ulInAuthBufferSize, ppvOutAuthBuffer, pulOutAuthBufferSize, pfSave, dwFlags);
+
+    return ERROR_ACCESS_DENIED;
+}
+
 // Use the Windows credential prompt to ask the user to authenticate the
 // currently used account.
 static nsresult ReauthenticateUserWindows(
@@ -315,7 +335,7 @@ static nsresult ReauthenticateUserWindows(
 
     // Get user's Windows credentials.
     // https://docs.microsoft.com/en-us/windows/desktop/api/wincred/nf-wincred-creduipromptforwindowscredentialsw
-    err = CredUIPromptForWindowsCredentialsW(
+    err = CredUIPromptForWindowsCredentialsWXp(
         &credui, err, &authPackage, nullptr, 0, &outCredBuffer, &outCredSize,
         nullptr, CREDUIWIN_ENUMERATE_CURRENT_USER);
     ScopedBuffer scopedOutCredBuffer(outCredBuffer, BufferFreer(outCredSize));
