@@ -1,0 +1,24 @@
+AllowCompilerWarnings()
+
+if CONFIG['CC_TYPE'] in ('clang', 'clang-cl'):
+    CXXFLAGS += [
+        '-Wno-final-dtor-non-final-class',
+        '-Wno-implicit-const-int-float-conversion',
+        '-Wno-range-loop-construct',
+    ]
+
+if CONFIG['INTEL_ARCHITECTURE']:
+    CXXFLAGS += CONFIG['SSE2_FLAGS']
+
+if not CONFIG["MOZ_DEBUG"]:
+    DEFINES["ANGLE_DISABLE_TRACE"] = True
+
+if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
+    if CONFIG["CC_TYPE"] in ("clang", "clang-cl"):
+        DEFINES["NO_SANITIZE_FUNCTION"] = '__attribute__((no_sanitize("function")))'
+    else:
+        DEFINES["NO_SANITIZE_FUNCTION"] = ""
+
+    DEFINES['_ENABLE_EXTENDED_ALIGNED_STORAGE'] = True
+
+    DEFINES['MOZ_DISABLE_WINDOWS_WRAPPER'] = True

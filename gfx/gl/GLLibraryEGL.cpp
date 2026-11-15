@@ -513,9 +513,15 @@ bool GLLibraryEGL::Init(nsACString* const out_failureId) {
       MOZ_ASSERT(false, "d3dcompiler DLL loading failed.");
     } while (false);
 
-    mGLLibrary = LoadLibraryForEGLOnWindows(u"libGLESv2.dll"_ns);
-
-    mEGLLibrary = LoadLibraryForEGLOnWindows(u"libEGL.dll"_ns);
+    if (StaticPrefs::webgl_force_swiftshader()) {
+      mGLLibrary =
+          LoadLibraryForEGLOnWindows(u"libswiftshader_libGLESv2.dll"_ns);
+      mEGLLibrary =
+          LoadLibraryForEGLOnWindows(u"libswiftshader_libEGL.dll"_ns);
+    } else {
+      mGLLibrary = LoadLibraryForEGLOnWindows(u"libGLESv2.dll"_ns);
+      mEGLLibrary = LoadLibraryForEGLOnWindows(u"libEGL.dll"_ns);
+    }
   }
 
 #else  // !Windows

@@ -227,6 +227,8 @@
 #ifdef MOZ_ANGLE_RENDERER
 @BINPATH@/libEGL.dll
 @BINPATH@/libGLESv2.dll
+@BINPATH@/libswiftshader_libEGL.dll
+@BINPATH@/libswiftshader_libGLESv2.dll
 
 #ifdef MOZ_D3DCOMPILER_VISTA_DLL
 @BINPATH@/@MOZ_D3DCOMPILER_VISTA_DLL@
