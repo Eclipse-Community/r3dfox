@@ -669,7 +669,7 @@
       --tabstrip-min-height: unset !important;
       --all-tabs-padding: 8px 8px 8px 0px;
   
-      @media (-moz-platform: windows-winxp), (-moz-windows-classic) {
+      @media (-moz-platform: windows-xp), (-moz-windows-classic) {
         --all-tabs-padding: 10px 9px 9px 0px;
       }
 
@@ -681,7 +681,7 @@
         --tab-min-height: 24px !important;
         --all-tabs-padding: 4px 4px 4px 0px;
 
-        @media (-moz-platform: windows-winxp), (-moz-windows-classic) {
+        @media (-moz-platform: windows-xp), (-moz-windows-classic) {
           --all-tabs-padding: 6px 5px 5px 0px;
         }
 
@@ -709,7 +709,7 @@
         --tab-min-height: 40px !important;
         --all-tabs-padding: 12px 12px 12px 0px;
 
-        @media (-moz-platform: windows-winxp), (-moz-windows-classic) {
+        @media (-moz-platform: windows-xp), (-moz-windows-classic) {
           --all-tabs-padding: 14px 13px 13px 0px;
         }
       }
