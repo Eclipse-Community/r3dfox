@@ -29,6 +29,10 @@ class WMFVideoMFTManager : public MFTManager {
 
   MediaResult Init();
 
+  static DXVA2Manager* CreateVP9DXVA(layers::KnowsCompositor* aCompositor,
+                                    nsACString& aFailureReason,
+                                    const GUID& aGUID);
+
   HRESULT Input(MediaRawData* aSample) override;
 
   HRESULT Output(int64_t aStreamOffset, RefPtr<MediaData>& aOutput) override;

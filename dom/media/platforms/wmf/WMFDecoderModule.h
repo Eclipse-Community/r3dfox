@@ -49,9 +49,19 @@ class WMFDecoderModule : public PlatformDecoderModule {
                                   RefPtr<MFTDecoder>& aDecoder);
   static bool CanCreateMFTDecoder(const WMFStreamType& aType);
 
+  // Diagnostic probes, independent of the process used for playback. The MFT
+  // probe checks for an installed transform, not hardware support for a stream.
+  // The DXVA2 probe creates a profile-0 decoder at 1280x720. These may be called
+  // on the main thread without initializing the module's supported-type cache.
+  static bool HasVP9MFT();
+  static bool HasVP9DXVA2(layers::KnowsCompositor* aKnowsCompositor);
+
  private:
   WMFDecoderModule() = default;
   virtual ~WMFDecoderModule() = default;
+
+  already_AddRefed<MediaDataDecoder> CreateVP9Decoder(
+      const CreateDecoderParams& aParams);
 
   static inline StaticMutex sMutex;
   static inline bool sSupportedTypesInitialized MOZ_GUARDED_BY(sMutex) = false;

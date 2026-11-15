@@ -7,6 +7,12 @@
 #include <algorithm>
 
 #include "CubebDeviceEnumerator.h"
+
+#if defined(XP_WIN) && defined(MOZ_WMF)
+#  include "WMFDecoderModule.h"
+#  include "mozilla/StaticPrefs_media.h"
+#endif
+
 #include "LayoutConstants.h"
 #include "MobileViewportManager.h"
 #include "js/Object.h"                         // JS::GetClass
@@ -2574,6 +2580,48 @@ NS_IMETHODIMP
 nsDOMWindowUtils::GetIsWebRenderRequested(bool* retval) {
   *retval = gfxPlatform::WebRenderPrefEnabled() ||
             gfxPlatform::WebRenderEnvvarEnabled();
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::GetSupportsHardwareVP9Decoding(Promise** aOutPromise) {
+  NS_ENSURE_ARG_POINTER(aOutPromise);
+  *aOutPromise = nullptr;
+
+  nsCOMPtr<nsPIDOMWindowOuter> outer = do_QueryReferent(mWindow);
+  NS_ENSURE_STATE(outer);
+  nsCOMPtr<nsPIDOMWindowInner> inner = outer->GetCurrentInnerWindow();
+  NS_ENSURE_STATE(inner);
+
+  ErrorResult err;
+  RefPtr<Promise> promise = Promise::Create(inner->AsGlobal(), err);
+  if (err.Failed()) {
+    return err.StealNSResult();
+  }
+
+#if defined(XP_WIN) && defined(MOZ_WMF)
+  nsCOMPtr<nsIWidget> widget = GetWidget();
+  WindowRenderer* renderer = widget ? widget->GetWindowRenderer() : nullptr;
+  if (!StaticPrefs::media_wmf_enabled()) {
+    promise->MaybeResolve(u"No; media.wmf.enabled is false"_ns);
+  } else if (!StaticPrefs::media_wmf_vp9_enabled()) {
+    promise->MaybeResolve(u"No; media.wmf.vp9.enabled is false"_ns);
+  } else if (!gfx::gfxVars::CanUseHardwareVideoDecoding()) {
+    promise->MaybeResolve(u"No; hardware video decoding disabled"_ns);
+  } else if (WMFDecoderModule::HasVP9MFT()) {
+    promise->MaybeResolve(
+        u"MFT available; VP9 hardware support depends on the GPU and stream"_ns);
+  } else if (renderer && WMFDecoderModule::HasVP9DXVA2(
+                             renderer->AsKnowsCompositor())) {
+    promise->MaybeResolve(u"Yes; using DXVA2"_ns);
+  } else {
+    promise->MaybeResolve(u"No; no VP9 hardware decoder available"_ns);
+  }
+#else
+  promise->MaybeResolve(u"No; not supported on this platform"_ns);
+#endif
+
+  promise.forget(aOutPromise);
   return NS_OK;
 }
 

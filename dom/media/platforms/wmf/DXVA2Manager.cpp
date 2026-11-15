@@ -4,6 +4,7 @@
 
 #include "DXVA2Manager.h"
 
+#include <algorithm>
 #include <d3d11.h>
 
 #include "AOMDecoder.h"
@@ -143,7 +144,7 @@ class D3D9DXVA2Manager : public DXVA2Manager {
   virtual ~D3D9DXVA2Manager();
 
   HRESULT Init(layers::KnowsCompositor* aKnowsCompositor,
-               nsACString& aFailureReason);
+               nsACString& aFailureReason, const GUID* aDecoderGUID);
 
   IUnknown* GetDXVADeviceManager() override;
 
@@ -154,6 +155,10 @@ class D3D9DXVA2Manager : public DXVA2Manager {
   HRESULT CopyToImage(ID3D11Texture2D* aVideoSample, UINT aSurfaceIndex,
                       const gfx::IntRect& aRegion,
                       layers::Image** aOutImage) override;
+
+  HRESULT CopySurfaceToImage(IDirect3DSurface9* aSurface,
+                             const gfx::IntRect& aRegion,
+                             Image** aOutImage) override;
 
   bool SupportsConfig(const VideoInfo& aInfo, IMFMediaType* aInputType,
                       IMFMediaType* aOutputType) override;
@@ -394,7 +399,7 @@ IUnknown* D3D9DXVA2Manager::GetDXVADeviceManager() {
 
 HRESULT
 D3D9DXVA2Manager::Init(layers::KnowsCompositor* aKnowsCompositor,
-                       nsACString& aFailureReason) {
+                       nsACString& aFailureReason, const GUID* aDecoderGUID) {
   ScopedGfxFeatureReporter reporter("DXVA2D3D9");
 
   // Create D3D9Ex.
@@ -514,8 +519,10 @@ D3D9DXVA2Manager::Init(layers::KnowsCompositor* aKnowsCompositor,
 
   bool found = false;
   for (UINT i = 0; i < deviceCount; i++) {
-    if (decoderDevices[i] == DXVA2_ModeH264_VLD_NoFGT ||
-        decoderDevices[i] == DXVA2_Intel_ClearVideo_ModeH264_VLD_NoFGT) {
+    if (aDecoderGUID
+            ? decoderDevices[i] == *aDecoderGUID
+            : (decoderDevices[i] == DXVA2_ModeH264_VLD_NoFGT ||
+               decoderDevices[i] == DXVA2_Intel_ClearVideo_ModeH264_VLD_NoFGT)) {
       mDecoderGUID = decoderDevices[i];
       found = true;
       break;
@@ -597,15 +604,22 @@ D3D9DXVA2Manager::CopyToImage(IMFSample* aSample, const gfx::IntRect& aRegion,
                          getter_AddRefs(surface));
   NS_ENSURE_TRUE(SUCCEEDED(hr), hr);
 
+  return CopySurfaceToImage(surface, aRegion, aOutImage);
+}
+
+HRESULT D3D9DXVA2Manager::CopySurfaceToImage(IDirect3DSurface9* aSurface,
+                                           const gfx::IntRect& aRegion,
+                                           Image** aOutImage) {
   RefPtr<D3D9SurfaceImage> image = new D3D9SurfaceImage();
-  hr = image->AllocateAndCopy(mTextureClientAllocator, surface, aRegion);
+  HRESULT hr = image->AllocateAndCopy(mTextureClientAllocator, aSurface, aRegion);
   NS_ENSURE_TRUE(SUCCEEDED(hr), hr);
 
   RefPtr<IDirect3DSurface9> sourceSurf = image->GetD3D9Surface();
 
   // Copy a small rect into our sync surface, and then map it
   // to block until decoding/color conversion completes.
-  RECT copyRect = {0, 0, kSyncSurfaceSize, kSyncSurfaceSize};
+  RECT copyRect = {0, 0, std::min<LONG>(kSyncSurfaceSize, aRegion.width),
+                   std::min<LONG>(kSyncSurfaceSize, aRegion.height)};
   hr = mDevice->StretchRect(sourceSurf, &copyRect, mSyncSurface, &copyRect,
                             D3DTEXF_NONE);
   NS_ENSURE_TRUE(SUCCEEDED(hr), hr);
@@ -634,7 +648,8 @@ static Atomic<uint32_t> sDXVAVideosCount(0);
 
 /* static */
 DXVA2Manager* DXVA2Manager::CreateD3D9DXVA(
-    layers::KnowsCompositor* aKnowsCompositor, nsACString& aFailureReason) {
+    layers::KnowsCompositor* aKnowsCompositor, nsACString& aFailureReason,
+    const GUID* aDecoderGUID) {
   HRESULT hr;
 
   // DXVA processing takes up a lot of GPU resources, so limit the number of
@@ -647,7 +662,7 @@ DXVA2Manager* DXVA2Manager::CreateD3D9DXVA(
   }
 
   UniquePtr<D3D9DXVA2Manager> d3d9Manager(new D3D9DXVA2Manager());
-  hr = d3d9Manager->Init(aKnowsCompositor, aFailureReason);
+  hr = d3d9Manager->Init(aKnowsCompositor, aFailureReason, aDecoderGUID);
   if (SUCCEEDED(hr)) {
     return d3d9Manager.release();
   }

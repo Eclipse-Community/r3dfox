@@ -58,7 +58,7 @@ interface nsISynthesizedEventCallback : nsISupports {
   void onCompleteDispatch();
 };
 
-[builtinclass, scriptable, uuid(4d6732ca-9da7-4176-b8a1-8dde15cd0bf9)]
+[builtinclass, scriptable, uuid(16ed093c-84a7-4ca3-84c8-9ad71f8b5d82)]
 interface nsIDOMWindowUtils : nsISupports {
 
   /**
@@ -1431,6 +1431,14 @@ interface nsIDOMWindowUtils : nsISupports {
    * *actually* enabled, just whether or not it was requested.
    */
   readonly attribute boolean isWebRenderRequested;
+
+  /**
+   * Returns a Promise resolved with a string describing Windows VP9 decoder
+   * availability. An installed MFT does not guarantee hardware decoding; the
+   * direct DXVA2 probe checks an 8-bit profile-0 decoder at 1280x720.
+   * Success does not mean that all VP9 video decoding will use hardware.
+   */
+  readonly attribute Promise supportsHardwareVP9Decoding;
 
   /**
    * Returns the current audio backend as a free-form string.
