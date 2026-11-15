@@ -32,6 +32,10 @@
 // Internal message used for rolling up popups for dmanip events
 #define MOZ_WM_DMANIP (WM_APP + 0x0317)
 
+// Internal message for ensuring the file picker is visible on multi monitor
+// systems, and when the screen resolution changes.
+#define MOZ_WM_ENSUREVISIBLE (WM_APP + 0x374F)
+
 // Internal message used to work around race condition in explorer.exe's
 // fullscreen window-state update handler in Windows 10+. (See bug 1835851.)
 #define MOZ_WM_FULLSCREEN_STATE_UPDATE (WM_APP + 0x0318)

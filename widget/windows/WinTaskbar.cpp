@@ -25,6 +25,7 @@
 #include "nsPIDOMWindowInlines.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "mozilla/Preferences.h"
+#include "mozilla/WindowsVersion.h"
 #include "nsAppRunner.h"
 #include "nsXREDirProvider.h"
 #include "mozilla/widget/WinRegistry.h"
