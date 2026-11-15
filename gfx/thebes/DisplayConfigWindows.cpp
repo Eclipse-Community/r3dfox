@@ -18,8 +18,27 @@ optional<DisplayConfig> GetDisplayConfig() {
   UINT32 numModes;
   vector<DISPLAYCONFIG_PATH_INFO> paths;
   vector<DISPLAYCONFIG_MODE_INFO> modes;
+    LONG (WINAPI * pfnQueryDisplayConfig)(UINT Flags,UINT *pNumPathArrayElements, DISPLAYCONFIG_PATH_INFO *pPathInfoArray,
+                                      UINT *pNumModeInfoArrayElements, DISPLAYCONFIG_MODE_INFO *pModeInfoArray,
+                                      DISPLAYCONFIG_TOPOLOGY_ID *pCurrentTopologyId) = 0;
+    LONG (WINAPI * pfnGetDisplayConfigBufferSizes)(UINT Flags, UINT *pNumPathArrayElements, UINT *pNumModeInfoArrayElements) = 0;
+    bool bSupported = false;
+        HMODULE hUser = GetModuleHandleW(L"user32.dll");
+        if (hUser)
+        {
+                bSupported = true;
+
+                *(uintptr_t *)&pfnQueryDisplayConfig = (uintptr_t)GetProcAddress(hUser, "QueryDisplayConfig");
+                bSupported &= !!(pfnQueryDisplayConfig);
+
+                *(uintptr_t *)&pfnGetDisplayConfigBufferSizes = (uintptr_t)GetProcAddress(hUser, "GetDisplayConfigBufferSizes");
+                bSupported &= !!(pfnGetDisplayConfigBufferSizes);
+        }
+    if (!bSupported) {
+      return {};
+    }
   do {
-    result = GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &numPaths,
+    result = pfnGetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &numPaths,
                                          &numModes);
     if (result != ERROR_SUCCESS) {
       return {};
@@ -28,7 +47,7 @@ optional<DisplayConfig> GetDisplayConfig() {
     paths.resize(numPaths);
     modes.resize(numModes);
 
-    result = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &numPaths, paths.data(),
+    result = pfnQueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &numPaths, paths.data(),
                                 &numModes, modes.data(), NULL);
     // try again if there wasn't enough space
   } while (result == ERROR_INSUFFICIENT_BUFFER);
