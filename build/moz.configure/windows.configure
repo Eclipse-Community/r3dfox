@@ -443,6 +443,21 @@ def win32_redist_dir(redist, automation, c_compiler, vc_path, target):
 set_config("WIN32_REDIST_DIR", win32_redist_dir)
 
 
+option(env="WIN_UCRT_REDIST_DIR", nargs=1, help="Directory containing the Windows UCRT")
+
+
+@depends("WIN_UCRT_REDIST_DIR")
+@imports("os")
+def win_ucrt_redist_dir(redist):
+    if redist:
+        if os.path.isdir(redist[0]):
+            return redist[0]
+        configure_error(f"Invalid Windows UCRT Redist directory: {redist[0]}")
+
+
+set_config("WIN_UCRT_REDIST_DIR", win_ucrt_redist_dir)
+
+
 @template
 def check_w32API_version():
     # minimum version of toolkit libs used by mozilla
