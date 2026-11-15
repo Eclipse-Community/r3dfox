@@ -175,6 +175,16 @@ void UpdateTimerIntervalLocked() {
   }
 }
 
+// Returns a pointer to the QueryThreadCycleTime() function from Windows.
+// Can't statically link to it because it is not available on XP.
+using QueryThreadCycleTimePtr = decltype(::QueryThreadCycleTime)*;
+QueryThreadCycleTimePtr GetQueryThreadCycleTimeFunction() {
+  static const QueryThreadCycleTimePtr query_thread_cycle_time_fn =
+      reinterpret_cast<QueryThreadCycleTimePtr>(::GetProcAddress(
+          ::GetModuleHandle(L"kernel32.dll"), "QueryThreadCycleTime"));
+  return query_thread_cycle_time_fn;
+}
+
 // Returns the current value of the performance counter.
 int64_t QPCNowRaw() {
   LARGE_INTEGER perf_counter_now = {};
@@ -863,7 +873,7 @@ ThreadTicks ThreadTicks::GetForThread(
 #else
   // Get the number of TSC ticks used by the current thread.
   ULONG64 thread_cycle_time = 0;
-  ::QueryThreadCycleTime(thread_handle.platform_handle(), &thread_cycle_time);
+  GetQueryThreadCycleTimeFunction()(::GetCurrentThread(), &thread_cycle_time);
 
   // Get the frequency of the TSC.
   const double tsc_ticks_per_second = time_internal::TSCTicksPerSecond();
@@ -1002,7 +1012,7 @@ ABI::Windows::Foundation::TimeSpan TimeDelta::ToWinrtTimeSpan() const {
 namespace time_internal {
 
 bool HasConstantRateTSC() {
-  static bool is_supported = CPU().has_non_stop_time_stamp_counter();
+  static bool is_supported = GetQueryThreadCycleTimeFunction() && CPU().has_non_stop_time_stamp_counter();
   return is_supported;
 }
 
