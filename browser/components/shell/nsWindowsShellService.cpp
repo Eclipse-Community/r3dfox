@@ -228,9 +228,8 @@ static bool IsMsixProgIdDefaultForClass(
     return false;
   }
 
-  const bool isDefault{::CompareStringOrdinal(firefoxProgId.get(), -1,
-                                              defaultProgId, -1,
-                                              TRUE) == CSTR_EQUAL};
+  const bool isDefault{::_wcsicmp(firefoxProgId.get(),
+                                              defaultProgId) == 0};
 
   CoTaskMemFree(defaultProgId);
 
