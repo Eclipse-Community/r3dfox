@@ -14,6 +14,14 @@ use windows_sys::Win32::System::IO::{IO_STATUS_BLOCK, IO_STATUS_BLOCK_0};
 
 const IOCTL_AFD_POLL: u32 = 0x00012024;
 
+#[link(name = "ntdll")]
+extern "system" {
+    fn NtCancelIoFile(
+        file_handle: HANDLE,
+        io_status_block: *mut IO_STATUS_BLOCK,
+    ) -> NTSTATUS;
+}
+
 /// Winsock2 AFD driver instance.
 ///
 /// All operations are unsafe due to IO_STATUS_BLOCK parameter are being used by Afd driver during STATUS_PENDING before I/O Completion Port returns its result.
@@ -103,7 +111,7 @@ impl Afd {
             Anonymous: IO_STATUS_BLOCK_0 { Status: 0 },
             Information: 0,
         };
-        let status = NtCancelIoFileEx(self.fd.as_raw_handle() as HANDLE, iosb, &mut cancel_iosb);
+        let status = NtCancelIoFile(self.fd.as_raw_handle() as HANDLE, iosb);
         if status == STATUS_SUCCESS || status == STATUS_NOT_FOUND {
             return Ok(());
         }
