@@ -137,6 +137,7 @@ void nsLookAndFeel::RefreshImpl() {
 nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
                                        nscolor& aColor) {
   EnsureInit();
+  BOOL is_enabled;
 
   auto UseNonNativeMenuColors = [&]() -> bool {
     return !mHighContrastOn || aScheme == ColorScheme::Dark;
@@ -204,24 +205,6 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
 
   // Titlebar and menu colors are color-scheme aware.
   switch (aID) {
-    case ColorID::Activecaption:
-      aColor = mTitlebarColors.Get(aScheme, true).mBg;
-      return NS_OK;
-    case ColorID::Captiontext:
-      aColor = mTitlebarColors.Get(aScheme, true).mFg;
-      return NS_OK;
-    case ColorID::Activeborder:
-      aColor = mTitlebarColors.Get(aScheme, true).mBorder;
-      return NS_OK;
-    case ColorID::Inactivecaption:
-      aColor = mTitlebarColors.Get(aScheme, false).mBg;
-      return NS_OK;
-    case ColorID::Inactivecaptiontext:
-      aColor = mTitlebarColors.Get(aScheme, false).mFg;
-      return NS_OK;
-    case ColorID::Inactiveborder:
-      aColor = mTitlebarColors.Get(aScheme, false).mBorder;
-      return NS_OK;
     case ColorID::MozMenuhover:
       MOZ_ASSERT(UseNonNativeMenuColors());
       if (WinUtils::MicaPopupsEnabled()) {
@@ -395,6 +378,32 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
       }
       idx = COLOR_HIGHLIGHTTEXT;
       break;
+    case ColorID::Activecaption:
+      if (!nsLookAndFeel::IsAppThemed()) {
+        idx = COLOR_ACTIVECAPTION;
+        break;
+      }
+      aColor = mTitlebarColors.Get(aScheme, true).mBg;
+      return NS_OK;
+    case ColorID::Captiontext:
+      aColor = mTitlebarColors.Get((!IsVistaOrLater() || !(WinUtils::dwmIsCompositionEnabledPtr && SUCCEEDED(WinUtils::dwmIsCompositionEnabledPtr(&is_enabled)) && is_enabled)) ? ColorScheme::Light : aScheme, true).mFg;
+      return NS_OK;
+    case ColorID::Activeborder:
+      aColor = mTitlebarColors.Get(aScheme, true).mBorder;
+      return NS_OK;
+    case ColorID::Inactivecaption:
+      if (!nsLookAndFeel::IsAppThemed()) {
+        idx = COLOR_INACTIVECAPTION;
+        break;
+      }
+      aColor = mTitlebarColors.Get(aScheme, false).mBg;
+      return NS_OK;
+    case ColorID::Inactivecaptiontext:
+      aColor = mTitlebarColors.Get((!IsVistaOrLater() || !(WinUtils::dwmIsCompositionEnabledPtr && SUCCEEDED(WinUtils::dwmIsCompositionEnabledPtr(&is_enabled)) && is_enabled)) ? ColorScheme::Light : aScheme, false).mFg;
+      return NS_OK;
+    case ColorID::Inactiveborder:
+      aColor = mTitlebarColors.Get(aScheme, false).mBorder;
+      return NS_OK;
     case ColorID::Infobackground:
       idx = COLOR_INFOBK;
       break;
@@ -902,14 +911,13 @@ auto nsLookAndFeel::ComputeTitlebarColors() -> TitlebarColors {
   result.mInactiveLight = {GetColorForSysColorIndex(COLOR_INACTIVECAPTION),
                            GetColorForSysColorIndex(COLOR_INACTIVECAPTIONTEXT),
                            GetColorForSysColorIndex(COLOR_INACTIVEBORDER)};
-  result.mActiveDark = {*GenericDarkColor(ColorID::Activecaption),
-                        *GenericDarkColor(ColorID::Captiontext),
-                        *GenericDarkColor(ColorID::Activeborder)};
-  result.mInactiveDark = {*GenericDarkColor(ColorID::Inactivecaption),
-                          *GenericDarkColor(ColorID::Inactivecaptiontext),
-                          *GenericDarkColor(ColorID::Inactiveborder)};
+  // Foreground and background taken from Windows Mica material theme colors.
+  result.mActiveDark = {NS_RGB(0x2e, 0x2e, 0x2e), NS_RGB(0xff, 0xff, 0xff),
+                        NS_RGB(57, 57, 57)};
+  result.mInactiveDark = {NS_RGB(0x33, 0x33, 0x33), NS_RGB(0xff, 0xff, 0xff),
+                          NS_RGB(57, 57, 57)};
 
-  if (!mHighContrastOn) {
+  if (IsVistaOrLater() && !mHighContrastOn) {
     // Use our non-native light colors.
     result.mActiveLight = {
         GetStandinForNativeColor(ColorID::Activecaption, ColorScheme::Light),
