@@ -43,7 +43,6 @@ class BASE_EXPORT StartupInformation {
   }
 
  private:
-  base::HeapArray<char> attribute_list_;
   STARTUPINFOEXW startup_info_;
 };
 
