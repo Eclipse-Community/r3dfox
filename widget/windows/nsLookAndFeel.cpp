@@ -346,6 +346,9 @@ nsresult nsLookAndFeel::NativeGetColor(ColorID aID, ColorScheme aScheme,
     case ColorID::MozColheaderactive:
       idx = COLOR_BTNFACE;
       break;
+    case ColorID::MozButtondefault:
+      idx = COLOR_3DDKSHADOW;
+      break;
     case ColorID::Buttonhighlight:
       idx = COLOR_BTNHIGHLIGHT;
       break;

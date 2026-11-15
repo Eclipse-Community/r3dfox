@@ -882,6 +882,9 @@ nsresult nsLookAndFeel::PerThemeData::GetColor(ColorID aID,
     case ColorID::MozSidebarborder:
       aColor = mSidebarBorder;
       break;
+    case ColorID::MozButtondefault:
+      aColor = mButton.mBg;
+      break;
     case ColorID::MozMenuhover:
       aColor = mMenuHover.mBg;
       break;
