@@ -416,7 +416,7 @@ LightweightThemeConsumer.prototype = {
       theme = { id: DEFAULT_THEME_ID };
     }
     let builtinThemeConfig = lazy.BuiltInThemeConfig.get(theme.id);
-    let hasTheme = theme.id != DEFAULT_THEME_ID && !builtinThemeConfig?.inApp;
+    let hasTheme = theme.id != DEFAULT_THEME_ID && !builtinThemeConfig?.inApp || useDarkTheme;
     this._doc.forceNonNativeTheme = !!builtinThemeConfig?.nonNative;
 
     let root = this._doc.documentElement;
