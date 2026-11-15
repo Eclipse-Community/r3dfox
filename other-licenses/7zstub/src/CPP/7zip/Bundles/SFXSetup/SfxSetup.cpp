@@ -336,7 +336,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
   //#endif
   // END Mozilla customizations
 
-  // InitCommonControls();
+  InitCommonControls();
 
   UString archiveName, switches;
   #ifdef _SHELL_EXECUTE
