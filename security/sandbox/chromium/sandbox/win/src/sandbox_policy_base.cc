@@ -271,11 +271,15 @@ ResultCode ConfigBase::AllowRegistryRead(const wchar_t* pattern) {
 }
 
 ResultCode ConfigBase::SetFakeGdiInit() {
+  // Win32k intercept rules only supported on Windows 8 and above. This must
+  // match the version checks in process_mitigations.cc for consistency.
+  if (base::win::GetVersion() >= base::win::Version::WIN8) {
   DCHECK_EQ(MITIGATION_WIN32K_DISABLE, mitigations_ & MITIGATION_WIN32K_DISABLE)
       << "Enable MITIGATION_WIN32K_DISABLE before adding win32k policy "
          "rules.";
   if (!ProcessMitigationsWin32KLockdownPolicy::GenerateRules(PolicyMaker())) {
     return SBOX_ERROR_BAD_PARAMS;
+  }
   }
   return SBOX_ALL_OK;
 }
@@ -475,8 +479,10 @@ void ConfigBase::SetDisconnectCsrss() {
 // CreateThread EAT patch used when this is enabled.
 // See https://crbug.com/783296#c27.
 #if defined(_WIN64) && !defined(ADDRESS_SANITIZER)
+  if (base::win::GetVersion() >= base::win::Version::WIN10) {
   is_csrss_connected_ = false;
   AddKernelObjectToClose(HandleToClose::kDisconnectCsrss);
+  }
 #endif  // !defined(_WIN64) || defined(ADDRESS_SANITIZER)
 }
 
