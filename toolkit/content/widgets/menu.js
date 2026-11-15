@@ -193,7 +193,8 @@
         // find-in-page in preferences, it really sucks. We can't use
         // text=label everywhere because we rely on the accesskey...
         ".menu-highlightable-text": "text=label,crop,accesskey",
-        ".menu-icon": "srcset=image",
+        ".menu-icon":
+          "srcset=image,validate,triggeringprincipal=iconloadingprincipal,checked,disabled,_moz-menuactive",
         ".menu-accel": "value=acceltext",
       };
     }
