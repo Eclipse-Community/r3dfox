@@ -5,10 +5,11 @@
 #include <errno.h>
 
 #include "mozilla/PlatformMutex.h"
+#include "MutexPlatformData_noop.h"
 
-mozilla::detail::MutexImpl::MutexImpl() = default;
+mozilla::detail::MutexImpl::MutexImpl() {}
 
-mozilla::detail::MutexImpl::~MutexImpl() = default;
+mozilla::detail::MutexImpl::~MutexImpl() {}
 
 inline void mozilla::detail::MutexImpl::mutexLock() {}
 
@@ -19,3 +20,10 @@ bool mozilla::detail::MutexImpl::mutexTryLock() { return true; }
 void mozilla::detail::MutexImpl::lock() { mutexLock(); }
 
 void mozilla::detail::MutexImpl::unlock() {}
+
+mozilla::detail::MutexImpl::PlatformData*
+mozilla::detail::MutexImpl::platformData() {
+  static_assert(sizeof(platformData_) >= sizeof(PlatformData),
+                "platformData_ is too small");
+  return reinterpret_cast<PlatformData*>(platformData_);
+}
