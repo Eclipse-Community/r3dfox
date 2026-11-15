@@ -50,7 +50,7 @@ class ConditionVariableImpl {
 #if !defined(XP_WIN) && !defined(__wasi__)
   pthread_cond_t platformData_[1];
 #else
-  void* platformData_[4];
+  void* platformData_[100];
 #endif
 };
 
