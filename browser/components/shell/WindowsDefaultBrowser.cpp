@@ -47,12 +47,20 @@ static bool IsWindowsLogonConnected() {
 static bool SettingsAppBelievesConnected() {
   const wchar_t* keyPath = L"SOFTWARE\\Microsoft\\Windows\\Shell\\Associations";
   const wchar_t* valueName = L"IsConnectedAtLogon";
+  HKEY key;
+  LSTATUS status =
+      ::RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_QUERY_VALUE, &key);
+  if (status != ERROR_SUCCESS) {
+    return false;
+  }
 
-  uint32_t value = 0;
-  DWORD size = sizeof(uint32_t);
-  LSTATUS ls = RegGetValueW(HKEY_CURRENT_USER, keyPath, valueName, RRF_RT_ANY,
-                            nullptr, &value, &size);
-  if (ls != ERROR_SUCCESS) {
+  DWORD value = 0;
+  DWORD type = 0;
+  DWORD size = sizeof(value);
+  status = ::RegQueryValueExW(key, L"IsConnectedAtLogon", nullptr, &type,
+                              reinterpret_cast<LPBYTE>(&value), &size);
+  ::RegCloseKey(key);
+  if (status != ERROR_SUCCESS || type != REG_DWORD) {
     return false;
   }
 
