@@ -22,8 +22,16 @@
 
 using namespace mozilla;
 
+static const CLSID CLSID_WinParentalControls = {0xE77CC89B,0x7401,0x4C04,{0x8C,0xED,0x14,0x9D,0xB3,0x5A,0xDD,0x04}};
+static const IID IID_IWinParentalControls  = {0x28B4D88B,0xE072,0x49E6,{0x80,0x4D,0x26,0xED,0xBE,0x21,0xA7,0xB9}};
+
 NS_IMPL_ISUPPORTS(nsParentalControlsService, nsIParentalControlsService)
 
+static HINSTANCE gAdvAPIDLLInst = nullptr;
+
+decltype(EventWrite)* gEventWrite = nullptr;
+decltype(EventRegister)* gEventRegister = nullptr;
+decltype(EventUnregister)* gEventUnregister = nullptr;
 // Get the SID string for the user associated with this process's token.
 static nsAutoString GetUserSid() {
   nsAutoString ret;
@@ -95,8 +103,8 @@ nsParentalControlsService::nsParentalControlsService()
 
   HRESULT hr;
   CoInitialize(nullptr);
-  hr = CoCreateInstance(__uuidof(WindowsParentalControls), nullptr,
-                        CLSCTX_INPROC, IID_PPV_ARGS(&mPC));
+  hr = CoCreateInstance(CLSID_WinParentalControls, nullptr, CLSCTX_INPROC,
+                        IID_IWinParentalControls, (void**)&mPC);
   if (FAILED(hr)) return;
 
   RefPtr<IWPCSettings> wpcs;
@@ -117,6 +125,13 @@ nsParentalControlsService::nsParentalControlsService()
                                 : settings != WPCFLAG_NO_RESTRICTION;
 
   if (enable) {
+    gAdvAPIDLLInst = ::LoadLibraryW(L"Advapi32.dll");
+    if(gAdvAPIDLLInst)
+    {
+      gEventWrite = (decltype(EventWrite)*) GetProcAddress(gAdvAPIDLLInst, "EventWrite");
+      gEventRegister = (decltype(EventRegister)*) GetProcAddress(gAdvAPIDLLInst, "EventRegister");
+      gEventUnregister = (decltype(EventUnregister)*) GetProcAddress(gAdvAPIDLLInst, "EventUnregister");
+    }
     mEnabled = true;
   }
 }
@@ -124,9 +139,11 @@ nsParentalControlsService::nsParentalControlsService()
 nsParentalControlsService::~nsParentalControlsService() {
   if (mPC) mPC->Release();
 
-  if (mProvider) {
-    EventUnregister(mProvider);
-  }
+  if (gEventUnregister && mProvider)
+    gEventUnregister(mProvider);
+
+  if (gAdvAPIDLLInst)
+    ::FreeLibrary(gAdvAPIDLLInst);
 }
 
 //------------------------------------------------------------------------
@@ -206,7 +223,9 @@ nsParentalControlsService::Log(int16_t aEntryType, bool blocked,
   // Register a Vista log event provider associated with the parental controls
   // channel.
   if (!mProvider) {
-    if (EventRegister(&WPCPROV, nullptr, nullptr, &mProvider) != ERROR_SUCCESS)
+    if (!gEventRegister)
+      return NS_ERROR_NOT_AVAILABLE;
+    if (gEventRegister(&WPCPROV, nullptr, nullptr, &mProvider) != ERROR_SUCCESS)
       return NS_ERROR_OUT_OF_MEMORY;
   }
 
@@ -230,6 +249,9 @@ nsParentalControlsService::Log(int16_t aEntryType, bool blocked,
 void nsParentalControlsService::LogFileDownload(bool blocked, nsIURI* aSource,
                                                 nsIFile* aTarget) {
   nsAutoCString curi;
+
+  if (!gEventWrite)
+    return;
 
   // Note, EventDataDescCreate is a macro defined in the headers, not a function
 
@@ -271,7 +293,7 @@ void nsParentalControlsService::LogFileDownload(bool blocked, nsIURI* aSource,
                         (const void*)fill, sizeof(fill));
   }
 
-  EventWrite(mProvider, &WPCEVENT_WEB_FILEDOWNLOAD, ARRAYSIZE(eventData),
+  gEventWrite(mProvider, &WPCEVENT_WEB_FILEDOWNLOAD, ARRAYSIZE(eventData),
              eventData);
 }
 
