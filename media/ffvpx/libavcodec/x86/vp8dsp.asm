@@ -173,11 +173,7 @@ SECTION .text
 %define MOV movq
 %endif
 
-%if %1 == 8
-cglobal put_vp8_epel%1_h6, 6, 6 + npicregs, 8, dst, dststride, src, srcstride, height, mx, picreg
-%else
-cglobal put_vp8_epel%1_h6, 6, 6 + npicregs, 6, dst, dststride, src, srcstride, height, mx, picreg
-%endif
+cglobal put_vp8_epel%1_h6, 6, 6 + npicregs, 6+2*(%1==8), dst, dststride, src, srcstride, height, mx, picreg
 %if %1 == 4
     mova      m3, [filter4_h6_shuf]
 %if PIC
@@ -232,11 +228,7 @@ cglobal put_vp8_epel%1_h6, 6, 6 + npicregs, 6, dst, dststride, src, srcstride, h
     jg .nextrow
     RET
 
-%if %1 == 8
-cglobal put_vp8_epel%1_h4, 6, 6 + npicregs, 7, dst, dststride, src, srcstride, height, mx, picreg
-%else
-cglobal put_vp8_epel%1_h4, 6, 6 + npicregs, 6, dst, dststride, src, srcstride, height, mx, picreg
-%endif
+cglobal put_vp8_epel%1_h4, 6, 6 + npicregs, 6+!!(%1 == 8), dst, dststride, src, srcstride, height, mx, picreg
     mova      m2, [pw_256]
 %if %1 == 8
     shl      mxd, 4

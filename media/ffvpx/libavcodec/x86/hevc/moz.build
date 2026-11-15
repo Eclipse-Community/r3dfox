@@ -1,0 +1,20 @@
+# Auto-generated file. Do not edit!
+
+DIRS += [
+]
+
+SOURCES += [
+    'add_res.asm',
+    'deblock.asm',
+    'dequant.asm',
+    'dsp_init.c',
+    'idct.asm',
+    'mc.asm',
+    'sao.asm',
+    'sao_10bit.asm',
+]
+
+LOCAL_INCLUDES += [ "../" ]
+
+FINAL_LIBRARY = 'mozavcodec'
+include('/media/ffvpx/ffvpxcommon.mozbuild')

@@ -40,7 +40,8 @@ static void FUNC(emulated_edge_mc)(uint8_t *buf, const uint8_t *src,
         src += (h - 1) * src_linesize;
         src_y = h - 1;
     } else if (src_y <= -block_h) {
-        src += (-src_y + 1 - block_h) * src_linesize;
+        src -= src_y * src_linesize;
+        src += (1 - block_h) * src_linesize;
         src_y = 1 - block_h;
     }
     if (src_x >= w) {

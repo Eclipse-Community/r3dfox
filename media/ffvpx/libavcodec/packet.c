@@ -392,32 +392,6 @@ int av_packet_shrink_side_data(AVPacket *pkt, enum AVPacketSideDataType type,
     return AVERROR(ENOENT);
 }
 
-static void av_packet_free_moz_crypto_info(AVPacket *pkt) {
-  if (pkt->moz_crypto_info_release && pkt->moz_crypto_info) {
-    (*pkt->moz_crypto_info_release)(pkt->moz_crypto_info);
-  }
-  pkt->moz_ndk_crypto_info        = NULL;
-  pkt->moz_crypto_info            = NULL;
-  pkt->moz_crypto_info_addref     = NULL;
-  pkt->moz_crypto_info_release    = NULL;
-}
-
-static int av_packet_copy_moz_crypto_info(AVPacket *dst, const AVPacket *src) {
-  av_packet_free_moz_crypto_info(dst);
-  if (!src->moz_ndk_crypto_info) {
-    return 0;
-  }
-  if (!src->moz_crypto_info || !src->moz_crypto_info_addref || !src->moz_crypto_info_release) {
-    return AVERROR(EINVAL);
-  }
-  dst->moz_ndk_crypto_info        = src->moz_ndk_crypto_info;
-  dst->moz_crypto_info            = src->moz_crypto_info;
-  dst->moz_crypto_info_addref     = src->moz_crypto_info_addref;
-  dst->moz_crypto_info_release    = src->moz_crypto_info_release;
-  (*dst->moz_crypto_info_addref)(dst->moz_crypto_info);
-  return 0;
-}
-
 int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
 {
     int i, ret;
@@ -434,15 +408,9 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
     dst->side_data            = NULL;
     dst->side_data_elems      = 0;
 
-    ret = av_packet_copy_moz_crypto_info(dst, src);
+    ret = av_buffer_replace(&dst->opaque_ref, src->opaque_ref);
     if (ret < 0)
         return ret;
-
-    ret = av_buffer_replace(&dst->opaque_ref, src->opaque_ref);
-    if (ret < 0) {
-        av_packet_free_moz_crypto_info(dst);
-        return ret;
-    }
 
     for (i = 0; i < src->side_data_elems; i++) {
         enum AVPacketSideDataType type = src->side_data[i].type;
@@ -451,7 +419,6 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
         uint8_t *dst_data = av_packet_new_side_data(dst, type, size);
 
         if (!dst_data) {
-            av_packet_free_moz_crypto_info(dst);
             av_buffer_unref(&dst->opaque_ref);
             av_packet_free_side_data(dst);
             return AVERROR(ENOMEM);
@@ -464,7 +431,6 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
 
 void av_packet_unref(AVPacket *pkt)
 {
-    av_packet_free_moz_crypto_info(pkt);
     av_packet_free_side_data(pkt);
     av_buffer_unref(&pkt->opaque_ref);
     av_buffer_unref(&pkt->buf);

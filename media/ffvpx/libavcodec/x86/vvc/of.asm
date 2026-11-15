@@ -1,0 +1,409 @@
+; /*
+; * Provide AVX2 luma optical flow functions for VVC decoding
+; * Copyright (c) 2024 Nuo Mi
+; *
+; * This file is part of FFmpeg.
+; *
+; * FFmpeg is free software; you can redistribute it and/or
+; * modify it under the terms of the GNU Lesser General Public
+; * License as published by the Free Software Foundation; either
+; * version 2.1 of the License, or (at your option) any later version.
+; *
+; * FFmpeg is distributed in the hope that it will be useful,
+; * but WITHOUT ANY WARRANTY; without even the implied warranty of
+; * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; * Lesser General Public License for more details.
+; *
+; * You should have received a copy of the GNU Lesser General Public
+; * License along with FFmpeg; if not, write to the Free Software
+; * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+; */
+%include "libavutil/x86/x86util.asm"
+
+%define MAX_PB_SIZE             128
+%define SRC_STRIDE              (MAX_PB_SIZE * 2)
+%define SRC_PS                  2                                                       ; source pixel size, sizeof(int16_t)
+%define BDOF_STACK_SIZE         10                                                      ; (4 + 1) * 2, 4 lines + the first line, *2 for h and v
+%define bdof_stack_offset(line) ((line) * 2 % BDOF_STACK_SIZE * mmsize)
+%define SHIFT                   6
+%define SHIFT2                  4
+
+SECTION_RODATA 32
+pd_15                   times 8 dd 15
+pd_m15                  times 8 dd -15
+
+pb_shuffle     times 2 db   0, 1, 0xff, 0xff, 8, 9, 0xff, 0xff, 6, 7, 0xff, 0xff, 14, 15, 0xff, 0xff
+pd_perm_w16            dd   0, 1, 2, 4, 3, 5, 6, 7
+%if ARCH_X86_64
+
+%if HAVE_AVX2_EXTERNAL
+
+SECTION .text
+
+INIT_YMM avx2
+
+; dst = (src0 >> shift) - (src1 >> shift)
+%macro DIFF 5 ; dst, src0, src1, shift, tmp
+    psraw   %1, %2, %4
+    psraw   %5, %3, %4
+    psubw   %1, %5
+%endmacro
+
+%macro LOAD_GRAD_H 4 ; dst, src, off, tmp
+    movu    %1, [%2 + %3 + 2 * SRC_PS]
+    movu    %4, [%2 + %3]
+
+    DIFF    %1, %1, %4, SHIFT, %4
+%endmacro
+
+%macro SUM_GRAD 2 ;(dst/grad0, grad1)
+    paddw  %1, %2
+    psraw  %1, 1    ; shift3
+%endmacro
+
+%macro APPLY_BDOF_MIN_BLOCK_LINE 5 ; dst, vx, vy, tmp, line_num
+%define off bdof_stack_offset(%5)
+    pmullw                        %1, %2, [rsp + off + 0 * mmsize]               ; vx * (gradient_h[0] - gradient_h[1])
+    pmullw                        %4, %3, [rsp + off + 1 * mmsize]               ; vy * (gradient_v[0] - gradient_v[1])
+    paddw                         %1, [src0q + (%5 + 1) * SRC_STRIDE + SRC_PS]
+    paddw                         %4, [src1q + (%5 + 1) * SRC_STRIDE + SRC_PS]
+    paddsw                        %1, %4                                         ; src0[x] + src1[x] + bdof_offset
+    pmulhrsw                      %1, m11
+%endmacro
+
+%macro SAVE 2-3 ""; dst, src, jump target
+    cmp                 pixel_maxd, (1 << 8) - 1
+    jne               %%save_16bpc
+
+    packuswb                   m%2, m%2
+
+    cmp                         wd, 16
+    je                       %%w16_8
+    movq                        %1, xm%2
+%ifnidn %3, ""
+    jmp                         %3
+%else
+    jmp                      %%end
+%endif
+
+%%save_16bpc:
+    CLIPW                      m%2, m9, m10
+    cmp                         wd, 16
+    jne                       %%w8_16
+    movu                        %1, m%2
+%ifnidn %3, ""
+    jmp                         %3
+%else
+    jmp                      %%end
+%endif
+
+%%w16_8:
+    vpermq                     m%2, m%2, q0020
+%%w8_16:
+    movu                        %1, xm%2
+%%end:
+%endmacro
+
+; [rsp + even * mmsize] are gradient_h[0] - gradient_h[1]
+; [rsp +  odd * mmsize] are gradient_v[0] - gradient_v[1]
+%macro APPLY_BDOF_MIN_BLOCK 3-4 ""; block_num, vx, vy, jump target
+    pxor                          m9, m9
+
+    movd                        xm10, pixel_maxd
+    vpbroadcastw                 m10, xm10
+
+    lea                        tmp0d, [pixel_maxd + 1]
+    movd                        xm11, tmp0d
+    VPBROADCASTW                 m11, xm11                 ;shift_4 for pmulhrsw
+
+    APPLY_BDOF_MIN_BLOCK_LINE    m6, %2, %3, m7, (%1) * 4 + 0
+    SAVE                        [dstq + 0 * dsq], 6
+
+    APPLY_BDOF_MIN_BLOCK_LINE    m6, %2, %3, m7, (%1) * 4 + 1
+    SAVE                        [dstq + 1 * dsq], 6
+
+    APPLY_BDOF_MIN_BLOCK_LINE    m6, %2, %3, m7, (%1) * 4 + 2
+    SAVE                        [dstq + 2 * dsq], 6
+
+    APPLY_BDOF_MIN_BLOCK_LINE    m6, %2, %3, m7, (%1) * 4 + 3
+    SAVE                        [dstq + ds3q], 6, %4
+%endmacro
+
+%macro SUM_MIN_BLOCK_W16 4-5 ; src/dst, shuffle, perm, tmp, [dst]
+    pshufb  %4, %1, %2
+    vpermd  %4, %3, %4
+%if %0 == 4
+    paddw   %1, %4
+%else
+    paddw   %5, %1, %4
+%endif
+%endmacro
+
+%macro SUM_MIN_BLOCK_W8 3-4 ; src/dst, shuffle, tmp, [dst]
+    pshufb  xm%3, xm%1, xm%2
+%if %0 == 3
+    paddw   xm%1, xm%3
+%else
+    paddw   xm%4, xm%1, xm%3
+%endif
+%endmacro
+
+%macro BDOF_PROF_GRAD 2-3 0 ; line_no, last_line, assign (instead of add) to dst regs
+%assign i0 (%1 + 0) % 3
+%assign j0 (%1 + 1) % 3
+%assign k0 (%1 + 2) % 3
+%assign i1 3 + (%1 + 0) % 3
+%assign j1 3 + (%1 + 1) % 3
+%assign k1 3 + (%1 + 2) % 3
+
+; we cached src0 in m0 to m2
+%define t0 m %+ i0
+%define c0 m %+ j0
+%define b0 m %+ k0
+
+; we cached src1 in m3 to m5
+%define t1 m %+ i1
+%define c1 m %+ j1
+%define b1 m %+ k1
+%define ndiff t1
+%define off bdof_stack_offset(%1)
+
+    movu                        b0, [src0q + (%1 + 2) * SRC_STRIDE + SRC_PS]
+    movu                        b1, [src1q + (%1 + 2) * SRC_STRIDE + SRC_PS]
+
+    ; gradient_v[0], gradient_v[1]
+    DIFF                        m6,  b0,  t0, SHIFT, t0
+    DIFF                        m7,  b1,  t1, SHIFT, t1
+
+    ; save gradient_v[0] - gradient_v[1]
+    psubw                      m10, m6, m7
+    mova      [rsp + off + mmsize], m10
+
+    ; gradient_h[0], gradient_h[1]
+    LOAD_GRAD_H                 m8, src0q, (%1 + 1) * SRC_STRIDE, t0
+    LOAD_GRAD_H                 m9, src1q, (%1 + 1) * SRC_STRIDE, t1
+
+    ; save gradient_h[0] - gradient_h[1]
+    psubw                      m11, m8, m9
+    mova               [rsp + off], m11
+
+    SUM_GRAD                    m8, m9                  ; temph
+    SUM_GRAD                    m6, m7                  ; tempv
+
+    DIFF                     ndiff, c1, c0, SHIFT2, t0  ; -diff
+
+    ; use t0, t1 as temporary buffers
+    mova                        t0, [pb_shuffle]
+
+    psignw                      m7, ndiff, m8           ; sgxdi
+    psignw                      m9, ndiff, m6           ; sgydi
+    psignw                     m10, m8, m6              ; sgxgy
+
+    pabsw                       m6, m6                  ; sgy2
+    pabsw                       m8, m8                  ; sgx2
+
+    cmp                         wd, 16
+
+    je                       %%w16
+    SUM_MIN_BLOCK_W8             6, i0, i1
+    SUM_MIN_BLOCK_W8             7, i0, i1
+    SUM_MIN_BLOCK_W8             8, i0, i1
+    SUM_MIN_BLOCK_W8             9, i0, i1
+%if (%3)
+    SUM_MIN_BLOCK_W8            10, i0, i1, 13
+%else
+    SUM_MIN_BLOCK_W8            10, i0, i1
+%endif
+    jmp                     %%wend
+
+%%w16:
+    mova                        t1, [pd_perm_w16]
+    SUM_MIN_BLOCK_W16           m6, t0, t1, m11
+    SUM_MIN_BLOCK_W16           m7, t0, t1, m11
+    SUM_MIN_BLOCK_W16           m8, t0, t1, m11
+    SUM_MIN_BLOCK_W16           m9, t0, t1, m11
+%if (%3)
+    SUM_MIN_BLOCK_W16          m10, t0, t1, m11, m13
+%else
+    SUM_MIN_BLOCK_W16          m10, t0, t1, m11
+%endif
+
+%%wend:
+    vpblendd                    m11, m8, m7, 10101010b
+    vpblendd                     m7, m8, m7, 01010101b
+    pshufd                       m7, m7, q2301
+    paddw                        m8, m7, m11                ;4 x (2sgx2, 2sgxdi)
+
+    vpblendd                    m11, m6, m9, 10101010b
+    vpblendd                     m9, m6, m9, 01010101b
+    pshufd                       m9, m9, q2301
+    paddw                        m6, m9, m11                ;4 x (2sgy2, 2sgydi)
+
+    vpblendw                    m11, m8, m6, 10101010b
+    vpblendw                     m6, m8, m6, 01010101b
+    pshuflw                      m6, m6, q2301
+    pshufhw                      m6, m6, q2301
+%if (%3)
+    paddw                       m12, m6, m11                ; 4 x (4sgx2, 4sgy2, 4sgxdi, 4sgydi)
+%else
+    paddw                        m8, m6, m11                ; 4 x (4sgx2, 4sgy2, 4sgxdi, 4sgydi)
+%endif
+
+%if (%1) == 0
+    ; pad for top and directly output to m12, m13
+    paddw                      m12, m8,  m8
+    paddw                      m13, m10, m10
+%elifn (%3)
+%if (%2)
+    ; pad for bottom
+    paddw                       m8, m8
+    paddw                      m10, m10
+%endif
+
+    paddw                      m12, m8
+    paddw                      m13, m10
+%endif
+%endmacro
+
+
+%macro LOG2 3 ; dst, src, tmp
+    cvtdq2ps             %1, %2
+    ; The exponent contains log2 biased by 127 unless the value is zero.
+    ; dst is only used as shift count where the value to be shifted is
+    ; always zero if src is zero, so avoid using saturated subtraction.
+    pcmpeqd              %3, %3
+    psrld                %3, 25        ; pd_127
+    psrld                %1, 23        ; floating point exponent
+    psubd                %1, %3
+%endmacro
+
+; %1: 4 (sgx2, sgy2, sgxdi, gydi)
+; %2: 4 (4sgxgy)
+%macro BDOF_VX_VY 2       ;
+    pshufd                 m%1, m%1, q3120
+    vextracti128           xm7, m%1, 1
+
+    punpcklqdq             xm8, xm%1, xm7           ; 4 (sgx2, sgy2)
+    punpckhqdq             xm9, xm%1, xm7           ; 4 (sgxdi, sgydi)
+
+    ; Promote to dword since vpsrlvw is AVX-512 only
+    pmovzxwd                m8, xm8
+    pmovsxwd                m9, xm9
+    LOG2                   m10, m8, m7              ; 4 (log2(sgx2), log2(sgy2))
+
+    pslld                   m9, 2                   ; 4 (sgxdi, sgydi)
+
+    vpsravd                m11, m9, m10
+    CLIPD                  m11, [pd_m15], [pd_15]   ; 4 (vx, junk)
+
+    pshuflw                m%1, m11, q0000
+    pshufhw                m%1, m%1, q0000          ; 4 (4vx)
+
+    psllq                   m6, m%2, 32
+    paddw                  m%2, m6
+
+    pmaddwd                m%2, m%1                 ; 4 (junk, vx * sgxgy)
+    psrad                  m%2, 1
+    psubd                   m9, m%2                 ; 4 (junk, (sgydi << 2) - (vx * sgxgy >> 1))
+
+    vpsravd                m%2, m9, m10
+    CLIPD                  m%2, [pd_m15], [pd_15]   ; 4 (junk, vy)
+
+    pshuflw                m%2, m%2, q2222
+    pshufhw                m%2, m%2, q2222          ; 4 (4vy)
+%endmacro
+
+
+%macro BDOF_MINI_BLOCKS 2 ; (block_num, last_block)
+
+%if (%1) == 0
+    movu                    m0, [src0q + 0 * SRC_STRIDE + SRC_PS]
+    movu                    m1, [src0q + 1 * SRC_STRIDE + SRC_PS]
+    movu                    m3, [src1q + 0 * SRC_STRIDE + SRC_PS]
+    movu                    m4, [src1q + 1 * SRC_STRIDE + SRC_PS]
+
+    BDOF_PROF_GRAD           0, 0
+%endif
+
+%if (%1) != 1
+    BDOF_PROF_GRAD  %1 * 4 + 1, 0
+    BDOF_PROF_GRAD  %1 * 4 + 2, 0
+%endif
+
+%if (%2)
+    BDOF_PROF_GRAD  %1 * 4 + 3, %2
+    BDOF_VX_VY              12, 13
+%if UNIX64
+    APPLY_BDOF_MIN_BLOCK    %1, m12, m13
+%else
+    APPLY_BDOF_MIN_BLOCK    %1, m12, m13, .end
+%endif
+
+%else
+    mova                   m14, m12
+    mova                   m15, m13
+
+    BDOF_PROF_GRAD  %1 * 4 + 3, 0, 1
+    BDOF_PROF_GRAD  %1 * 4 + 4, 0
+    paddw                  m14, m12
+    paddw                  m15, m13
+
+    BDOF_VX_VY              14, 15
+    APPLY_BDOF_MIN_BLOCK    %1, m14, m15
+    lea                   dstq, [dstq + 4 * dsq]
+%endif
+%endmacro
+
+%macro BDOF_WRAPPER 2 ; bpp, is_nonadjacent
+;void ff_vvc_apply_bdof_%1(uint8_t *dst, const ptrdiff_t dst_stride, const int16_t *src0,
+;                          const int16_t *src1, const int w, const int h)
+cglobal vvc_apply_bdof_%1
+    ; r6 is not used for parameter passing and is volatile both on UNIX64
+    ; and Win64, so it can be freely used
+    mov                    r6d, (1<<%1)-1
+%if %2
+    jmp        vvc_apply_bdof_ %+ cpuname
+%endif
+%endmacro
+
+%macro VVC_OF_AVX2 0
+    BDOF_WRAPPER 12, 1
+    BDOF_WRAPPER  8, 1
+    BDOF_WRAPPER 10, 0
+
+vvc_apply_bdof_ %+ cpuname:
+; the prologue on Win64 is big (10 xmm regs need saving), so use PROLOGUE
+; to avoid duplicating it.
+PROLOGUE 6, 9, 16, BDOF_STACK_SIZE*32, dst, ds, src0, src1, w, h, pixel_max, ds3, tmp0
+    lea                   ds3q, [dsq * 3]
+    sub                  src0q, SRC_STRIDE + SRC_PS
+    sub                  src1q, SRC_STRIDE + SRC_PS
+
+    BDOF_MINI_BLOCKS         0, 0
+
+    BDOF_PROF_GRAD  1 * 4 + 1, 0
+    BDOF_PROF_GRAD  1 * 4 + 2, 0
+
+    cmp                     hd, 16
+    je                    .h16
+    BDOF_MINI_BLOCKS         1, 1
+%if UNIX64
+    RET
+%else
+    jmp                   .end
+%endif
+
+.h16:
+    BDOF_MINI_BLOCKS         1, 0
+    BDOF_MINI_BLOCKS         2, 0
+    BDOF_MINI_BLOCKS         3, 1
+
+.end:
+    RET
+%endmacro
+
+VVC_OF_AVX2
+
+%endif ; HAVE_AVX2_EXTERNAL
+
+%endif ; ARCH_X86_64

@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "config.h"
-#include "config_components.h"
 #include "libavutil/avassert.h"
 #include "libavutil/thread.h"
 #include "avcodec.h"

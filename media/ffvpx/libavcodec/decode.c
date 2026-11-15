@@ -47,9 +47,7 @@
 #include "codec_desc.h"
 #include "codec_internal.h"
 #include "decode.h"
-#if CONFIG_EXIF
 #include "exif.h"
-#endif
 #include "hwaccel_internal.h"
 #include "hwconfig.h"
 #include "internal.h"
@@ -1409,7 +1407,6 @@ static int side_data_stereo3d_merge(AVFrameSideData *sd_frame,
     return 0;
 }
 
-#if CONFIG_EXIF
 static int side_data_exif_parse(AVFrame *dst, const AVPacketSideData *sd_pkt)
 {
     AVExifMetadata ifd = { 0 };
@@ -1481,7 +1478,6 @@ end:
     av_exif_free(&ifd);
     return ret;
 }
-#endif
 
 static int side_data_map(AVFrame *dst,
                          const AVPacketSideData *sd_src, int nb_sd_src,
@@ -1510,14 +1506,12 @@ static int side_data_map(AVFrame *dst,
         }
 
         switch (type_pkt) {
-#if CONFIG_EXIF
         case AV_PKT_DATA_EXIF: {
             int ret = side_data_exif_parse(dst, sd_pkt);
             if (ret < 0)
                 return ret;
             break;
         }
-#endif
         default:
             sd_frame = av_frame_new_side_data(dst, type_frame, sd_pkt->size);
             if (!sd_frame)
@@ -2392,7 +2386,6 @@ av_cold void ff_decode_internal_uninit(AVCodecContext *avctx)
 #endif
 }
 
-#if CONFIG_EXIF
 static int attach_displaymatrix(AVCodecContext *avctx, AVFrame *frame, int orientation)
 {
     AVFrameSideData *sd = NULL;
@@ -2493,4 +2486,3 @@ end:
     av_exif_free(&ifd);
     return ret;
 }
-#endif
