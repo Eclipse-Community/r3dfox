@@ -4,11 +4,14 @@
 #include "RemoteDecoderModule.h"
 
 #include "AOMDecoder.h"
+#include "OpusDecoder.h"
 #include "RemoteAudioDecoder.h"
 #include "RemoteMediaDataDecoder.h"
 #include "RemoteMediaManagerChild.h"
 #include "RemoteVideoDecoder.h"
 #include "VideoUtils.h"
+#include "VorbisDecoder.h"
+#include "WAVDecoder.h"
 #include "gfxConfig.h"
 #include "mozilla/RemoteDecodeUtils.h"
 
@@ -96,7 +99,7 @@ RemoteDecoderModule::AsyncCreateDecoder(const CreateDecoderParams& aParams) {
     // that IsDefaultPlaybackDeviceMono provides.  We want to avoid calls
     // to IsDefaultPlaybackDeviceMono on RDD because initializing audio
     // backends on RDD will be blocked by the sandbox.
-    if (aParams.mConfig.mMimeType.Equals("audio/opus") &&
+    if (OpusDataDecoder::IsOpus(aParams.mConfig.mMimeType) &&
         IsDefaultPlaybackDeviceMono()) {
       CreateDecoderParams params = aParams;
       params.mOptions += CreateDecoderParams::Option::DefaultPlaybackDeviceMono;

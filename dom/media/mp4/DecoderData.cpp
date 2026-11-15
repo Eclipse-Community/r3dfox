@@ -12,6 +12,9 @@
 #include "gfxUtils.h"
 #include "mozilla/EndianUtils.h"
 #include "mozilla/Logging.h"
+
+// OpusDecoder header is really needed only by MP4 in rust
+#include "OpusDecoder.h"
 #include "mozilla/glean/DomMediaMp4Metrics.h"
 #include "mp4parse.h"
 

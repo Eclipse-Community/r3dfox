@@ -6,7 +6,10 @@
 
 #include "AOMDecoder.h"
 #include "DAV1DDecoder.h"
+#include "OpusDecoder.h"
 #include "VPXDecoder.h"
+#include "VorbisDecoder.h"
+#include "WAVDecoder.h"
 #include "VideoUtils.h"
 #include "mozilla/Logging.h"
 #include "mozilla/StaticPrefs_media.h"
@@ -107,6 +110,9 @@ media::DecodeSupportSet AgnosticDecoderModule::Supports(
       // decoding on the content process doesn't accidentally happen in case
       // something goes wrong with launching the RDD process.
       (AOMDecoder::IsAV1(mimeType) && IsAvailable(DecoderType::AV1)) ||
+      (VorbisDataDecoder::IsVorbis(mimeType) && IsAvailable(DecoderType::Vorbis)) ||
+      (WaveDataDecoder::IsWave(mimeType) && IsAvailable(DecoderType::Wave)) ||
+      (OpusDataDecoder::IsOpus(mimeType) && IsAvailable(DecoderType::Opus)) ||
       (VPXDecoder::IsVPX(mimeType) && IsAvailable(DecoderType::VPX));
   MOZ_LOG_FMT(
       sPDMLog, LogLevel::Debug, "Agnostic decoder {} requested type '{}'",
@@ -146,7 +152,22 @@ already_AddRefed<MediaDataDecoder> AgnosticDecoderModule::CreateVideoDecoder(
 
 already_AddRefed<MediaDataDecoder> AgnosticDecoderModule::CreateAudioDecoder(
     const CreateDecoderParams& aParams) {
-  return nullptr;
+  if (Supports(SupportDecoderParams(aParams), nullptr /* diagnostic */)
+          .isEmpty()) {
+    return nullptr;
+  }
+  RefPtr<MediaDataDecoder> m;
+
+  const TrackInfo& config = aParams.mConfig;
+  if (VorbisDataDecoder::IsVorbis(config.mMimeType)) {
+    m = new VorbisDataDecoder(aParams);
+  } else if (OpusDataDecoder::IsOpus(config.mMimeType)) {
+    m = new OpusDataDecoder(aParams);
+  } else if (WaveDataDecoder::IsWave(config.mMimeType)) {
+    m = new WaveDataDecoder(aParams);
+  }
+
+  return m.forget();
 }
 
 /* static */
