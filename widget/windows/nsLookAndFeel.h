@@ -59,6 +59,7 @@ enum class UXThemeClass : uint8_t {
   Combobox,
   Listview,
   Menu,
+  WindowFrame,
   NumClasses
 };
 

@@ -35,6 +35,115 @@
     background-color: InactiveCaption;
     color: InactiveCaptionText;
   }
+}
+
+.titlebar-button {
+  appearance: none !important;
+  border: none;
+  margin: 0 !important;
+  padding: 8px 18px;
+
+  /* Segoe Fluent Icons is the preferred font for Windows 11, and
+   * Segoe MDL2 Assets is there for windows 10. Luckily, the relevant glyphs
+   * are the same, so we can just fall back.
+   * See: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font */
+  font:
+    round(10px, env(hairline)) / 1 "Segoe Fluent Icons",
+    "Segoe MDL2 Assets"; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
+}
+
+.titlebar-button > .toolbarbutton-icon {
+  display: none;
+}
+
+.titlebar-button::before {
+  display: inline-block;
+  content: inherit;
+}
+
+.titlebar-min {
+  content: "\e921"; /* ChromeMinimize */
+}
+
+.titlebar-max {
+  content: "\e922"; /* ChromeMaximize */
+}
+
+.titlebar-restore {
+  content: "\e923"; /* ChromeRestore */
+}
+
+.titlebar-restore:-moz-locale-dir(rtl)::before {
+  transform: scaleX(-1);
+}
+
+.titlebar-close {
+  content: "\e8bb"; /* ChromeClose */
+}
+
+@media (-moz-windows-default-theme) {
+  #main-menubar > menu[_moz-menuactive="true"] {
+    color: inherit;
+  }
+
+  #main-menubar > menu[_moz-menuactive="true"],
+  .titlebar-button:hover {
+    background-color: hsla(0,0%,0%,.12);
+  }
+  .titlebar-button:hover:active {
+    background-color: hsla(0,0%,0%,.22);
+  }
+
+  #toolbar-menubar[brighttext] > #menubar-items > #main-menubar > menu[_moz-menuactive="true"],
+  toolbar[brighttext] .titlebar-button:not(.titlebar-close):hover {
+    background-color: hsla(0,0%,100%,.22);
+  }
+  toolbar[brighttext] .titlebar-button:not(.titlebar-close):hover:active {
+    background-color: hsla(0,0%,100%,.32);
+  }
+
+  .titlebar-close:hover {
+    color: white;
+    background-color: hsl(355,86%,49%);
+  }
+  .titlebar-close:hover:active {
+    background-color: hsl(355,82%,69%);
+  }
+
+  .titlebar-button:not(:hover):-moz-window-inactive::before {
+    opacity: 0.5;
+  }
+}
+
+@media (-moz-windows-default-theme: 0) {
+  .titlebar-button {
+    background-color: -moz-field;
+    color: ButtonText;
+  }
+  .titlebar-button:hover {
+    background-color: SelectedItem;
+    color: SelectedItemText;
+  }
+
+  .titlebar-min {
+    content: "\ef2d"; /* ChromeMinimizeContrast */
+  }
+
+  .titlebar-max {
+    content: "\ef2e"; /* ChromeMaximizeContrast */
+  }
+
+  .titlebar-restore {
+    content: "\ef2f"; /* ChromeRestoreContrast */
+  }
+
+  .titlebar-close {
+    content: "\ef2c"; /* ChromeCloseContrast */
+  }
+
+  :root[darkwindowframe="true"]:not(:-moz-window-inactive, [lwtheme]) {
+    color: white;
+  }
 
   :root:not([lwtheme]) #appcontent {
     background-color: -moz-dialog;
