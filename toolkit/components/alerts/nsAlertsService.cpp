@@ -81,6 +81,25 @@ bool nsAlertsService::ShouldShowAlert() {
   return result;
 }
 
+bool nsAlertsService::ShouldUseSystemBackend() {
+  if (!mBackend) {
+    return false;
+  }
+  return StaticPrefs::alerts_useSystemBackend();
+}
+
+static bool ShouldFallBackToXUL() {
+#if defined(XP_WIN) || defined(XP_MACOSX)
+  // We know we always have system backend on Windows and macOS. Let's not
+  // permanently fall back to XUL just because of temporary failure.
+  return false;
+#else
+  // The system may not have the notification library, we should fall back to
+  // XUL.
+  return true;
+#endif
+}
+
 NS_IMETHODIMP nsAlertsService::ShowAlert(nsIAlertNotification* aAlert,
                                          nsIObserver* aAlertListener) {
   NS_ENSURE_ARG(aAlert);
@@ -97,11 +116,14 @@ NS_IMETHODIMP nsAlertsService::ShowAlert(nsIAlertNotification* aAlert,
 
   // Check if there is an optional service that handles system-level
   // notifications
-  if (StaticPrefs::alerts_useSystemBackend()) {
-    if (!mBackend) {
-      return NS_ERROR_NOT_AVAILABLE;
+  if (ShouldUseSystemBackend()) {
+    rv = mBackend->ShowAlert(aAlert, aAlertListener);
+    if (NS_SUCCEEDED(rv) || !ShouldFallBackToXUL()) {
+      return rv;
     }
-    return mBackend->ShowAlert(aAlert, aAlertListener);
+    // If the system backend failed to show the alert, clear the backend and
+    // retry with XUL notifications. Future alerts will always use XUL.
+    mBackend = nullptr;
   }
 
   if (!ShouldShowAlert()) {
@@ -120,16 +142,21 @@ NS_IMETHODIMP nsAlertsService::ShowAlert(nsIAlertNotification* aAlert,
 
 NS_IMETHODIMP nsAlertsService::CloseAlert(const nsAString& aAlertName,
                                           bool aContextClosed) {
-  if (!StaticPrefs::alerts_useSystemBackend()) {
+  nsresult rv;
+  // Try the system notification service.
+  if (ShouldUseSystemBackend()) {
+    rv = mBackend->CloseAlert(aAlertName, aContextClosed);
+    if (NS_WARN_IF(NS_FAILED(rv)) && ShouldFallBackToXUL()) {
+      // If the system backend failed to close the alert, fall back to XUL for
+      // future alerts.
+      mBackend = nullptr;
+    }
+  } else {
     nsCOMPtr<nsIAlertsService> xulBackend(nsXULAlerts::GetInstance());
     NS_ENSURE_TRUE(xulBackend, NS_ERROR_FAILURE);
-    return xulBackend->CloseAlert(aAlertName, aContextClosed);
+    rv = xulBackend->CloseAlert(aAlertName, aContextClosed);
   }
-  if (!mBackend) {
-    return NS_ERROR_NOT_AVAILABLE;
-  }
-
-  return mBackend->CloseAlert(aAlertName, aContextClosed);
+  return rv;
 }
 
 NS_IMETHODIMP nsAlertsService::GetHistory(nsTArray<nsString>& aResult) {
@@ -185,7 +212,7 @@ NS_IMETHODIMP nsAlertsService::SetSuppressForScreenSharing(bool aSuppress) {
 already_AddRefed<nsIAlertsDoNotDisturb> nsAlertsService::GetDNDBackend() {
   nsCOMPtr<nsIAlertsService> backend;
   // Try the system notification service.
-  if (StaticPrefs::alerts_useSystemBackend()) {
+  if (ShouldUseSystemBackend()) {
     backend = mBackend;
   }
   if (!backend) {
@@ -209,7 +236,7 @@ NS_IMETHODIMP nsAlertsService::Observe(nsISupports* aSubject,
 NS_IMETHODIMP nsAlertsService::Teardown() {
   nsCOMPtr<nsIAlertsService> backend;
   // Try the system notification service.
-  if (StaticPrefs::alerts_useSystemBackend()) {
+  if (ShouldUseSystemBackend()) {
     backend = mBackend;
   }
   if (!backend) {
@@ -222,7 +249,7 @@ NS_IMETHODIMP nsAlertsService::Teardown() {
 NS_IMETHODIMP nsAlertsService::PbmTeardown() {
   nsCOMPtr<nsIAlertsService> backend;
   // Try the system notification service.
-  if (StaticPrefs::alerts_useSystemBackend()) {
+  if (ShouldUseSystemBackend()) {
     backend = mBackend;
   }
   if (!backend) {
