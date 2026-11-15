@@ -788,7 +788,8 @@ bool gfxPlatformFontList::InitFontList() {
   InitializeCodepointsWithNoFonts();
 
   // Try to initialize the cross-process shared font list if enabled by prefs.
-  if (StaticPrefs::gfx_e10s_font_list_shared_AtStartup()) {
+  if (StaticPrefs::gfx_e10s_font_list_shared_AtStartup() &&
+      LoadLibraryW(L"dwrite.dll")) {
     for (const auto& entry : mFontEntries.Values()) {
       if (!entry) {
         continue;
