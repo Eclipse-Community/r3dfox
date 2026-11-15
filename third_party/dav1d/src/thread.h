@@ -81,10 +81,167 @@ static inline int pthread_attr_setstacksize(pthread_attr_t *const attr,
     return 0;
 }
 
+// begin_ntosp
+
+//
+// Push lock definitions
+//
+typedef struct _EX_PUSH_LOCK {
+
+#define EX_PUSH_LOCK_WAITING   0x1
+#define EX_PUSH_LOCK_EXCLUSIVE 0x2
+#define EX_PUSH_LOCK_SHARE_INC 0x4
+
+    union {
+        struct {
+            ULONG_PTR Waiting : 1;
+            ULONG_PTR Exclusive : 1;
+            ULONG_PTR Shared : sizeof (ULONG_PTR) * 8 - 2;
+        };
+        ULONG_PTR Value;
+        PVOID Ptr;
+    };
+} EX_PUSH_LOCK, *PEX_PUSH_LOCK;
+
+//
+// This is a block held on the local stack of the waiting threads.
+//
+
+typedef  struct _EX_PUSH_LOCK_WAIT_BLOCK *PEX_PUSH_LOCK_WAIT_BLOCK;
+
+typedef struct _EX_PUSH_LOCK_WAIT_BLOCK {
+    HANDLE WakeEvent;
+    PEX_PUSH_LOCK_WAIT_BLOCK Next;
+    PEX_PUSH_LOCK_WAIT_BLOCK Last;
+    PEX_PUSH_LOCK_WAIT_BLOCK Previous;
+    ULONG ShareCount;
+    BOOLEAN Exclusive;
+} EX_PUSH_LOCK_WAIT_BLOCK;
+
+// end_ntosp
+#ifdef ASSERT
+#undef ASSERT
+#endif
+#define ASSERT(e)        // get rid of the assert symbol.
+
+#define NTKERNELAPI
+
+#if defined(_X86_)
+#define FASTCALL    __fastcall
+#else
+#define FASTCALL
+#endif
+
+VOID
+FORCEINLINE
+ExInitializePushLock (
+     IN PEX_PUSH_LOCK PushLock
+     )
+/*++
+
+Routine Description:
+
+    Initialize a push lock structure
+
+Arguments:
+
+    PushLock - Push lock to be initialized
+
+Return Value:
+
+    None
+
+--*/
+{
+    PushLock->Value = 0;
+}
+
+NTKERNELAPI
+VOID
+FASTCALL
+ExfAcquirePushLockExclusive (
+     IN PEX_PUSH_LOCK PushLock
+     );
+
+NTKERNELAPI
+VOID
+FASTCALL
+ExfAcquirePushLockShared (
+     IN PEX_PUSH_LOCK PushLock
+     );
+
+NTKERNELAPI
+VOID
+FASTCALL
+ExfReleasePushLock (
+     IN PEX_PUSH_LOCK PushLock
+     );
+
+// end_ntosp
+// begin_ntosp
+
+VOID
+FORCEINLINE
+ExAcquirePushLockExclusive (
+     IN PEX_PUSH_LOCK PushLock
+     )
+/*++
+
+Routine Description:
+
+    Acquire a push lock exclusively
+
+Arguments:
+
+    PushLock - Push lock to be acquired
+
+Return Value:
+
+    None
+
+--*/
+{
+    if (InterlockedCompareExchangePointer (&PushLock->Ptr,
+                                           (PVOID)EX_PUSH_LOCK_EXCLUSIVE,
+                                           NULL) != NULL) {
+        ExfAcquirePushLockExclusive (PushLock);
+    }
+}
+
+VOID
+FORCEINLINE
+ExReleasePushLockExclusive (
+     IN PEX_PUSH_LOCK PushLock
+     )
+/*++
+
+Routine Description:
+
+    Release a push lock that was acquired exclusively
+
+Arguments:
+
+    PushLock - Push lock to be released
+
+Return Value:
+
+    None
+
+--*/
+{
+    ASSERT (PushLock->Value & (EX_PUSH_LOCK_WAITING|EX_PUSH_LOCK_EXCLUSIVE));
+
+    if (InterlockedCompareExchangePointer (&PushLock->Ptr,
+                                           NULL,
+                                           (PVOID)EX_PUSH_LOCK_EXCLUSIVE) != (PVOID)EX_PUSH_LOCK_EXCLUSIVE) {
+        ExfReleasePushLock (PushLock);
+    }
+}
+
 static inline int pthread_mutex_init(pthread_mutex_t *const mutex,
                                      const void *const attr)
 {
-    InitializeSRWLock(mutex);
+    ExInitializePushLock((PEX_PUSH_LOCK)mutex);
     return 0;
 }
 
@@ -93,12 +250,12 @@ static inline int pthread_mutex_destroy(pthread_mutex_t *const mutex) {
 }
 
 static inline int pthread_mutex_lock(pthread_mutex_t *const mutex) {
-    AcquireSRWLockExclusive(mutex);
+    ExAcquirePushLockExclusive((PEX_PUSH_LOCK)mutex);
     return 0;
 }
 
 static inline int pthread_mutex_unlock(pthread_mutex_t *const mutex) {
-    ReleaseSRWLockExclusive(mutex);
+    ExReleasePushLockExclusive((PEX_PUSH_LOCK)mutex);
     return 0;
 }
 
