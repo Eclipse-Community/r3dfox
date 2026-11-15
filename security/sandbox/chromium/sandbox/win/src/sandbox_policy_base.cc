@@ -369,6 +369,9 @@ void ConfigBase::AddRestrictingRandomSid() {
 }
 
 void ConfigBase::SetLockdownDefaultDacl() {
+  if (base::win::OSInfo::GetInstance()->version() < base::win::Version::VISTA)
+    return;
+
   lockdown_default_dacl_ = true;
 }
 

@@ -548,7 +548,10 @@ ResultCode BrokerServicesBase::PreSpawnTarget(
   for (HANDLE handle : policy_handle_list)
     startup_info->AddInheritedHandle(handle);
 
-  AppContainer* container = config_base->GetAppContainer();
+  AppContainer* container = nullptr;
+  if (base::win::GetVersion() >= base::win::Version::VISTA) {
+    container = config_base->GetAppContainer();
+  }
   if (container) {
     CHECK(config_base->is_csrss_connected() ||
           config_base->GetLockdownTokenLevel() == USER_LOCKDOWN)
