@@ -42,6 +42,7 @@ bool SocketProcessImpl::Init(int aArgc, char* aArgv[]) {
   LoadLibraryW(L"softokn3.dll");
   LoadLibraryW(L"freebl3.dll");
   LoadLibraryW(L"winmm.dll");
+  LoadLibraryW(L"oleaut32.dll");
   mozilla::SandboxTarget::Instance()->StartSandbox();
 #elif defined(__OpenBSD__) && defined(MOZ_SANDBOX)
   PR_LoadLibrary("libnss3.so");

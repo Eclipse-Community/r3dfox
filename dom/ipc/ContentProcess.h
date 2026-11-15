@@ -35,6 +35,14 @@ class ContentProcess : public mozilla::ipc::ProcessChild {
 
   ContentChild mContent;
 #if defined(XP_WIN)
+  // ole32.dll is delay-loaded from xul.dll. On Windows XP, the first
+  // CoInitializeEx call can otherwise fail while the COM MTA is created.
+  struct Ole32Preloader {
+    Ole32Preloader() { ::LoadLibraryW(L"ole32.dll"); }
+  };
+
+  Ole32Preloader mOle32Preloader;
+
   // This object initializes and configures COM. This must happen prior to
   // constructing mXREEmbed.
   mozilla::mscom::ProcessRuntime mCOMRuntime;
