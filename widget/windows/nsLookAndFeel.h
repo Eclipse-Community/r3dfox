@@ -55,6 +55,7 @@ enum class UXThemeClass : uint8_t {
   Progress,
   Tab,
   Trackbar,
+  Spin,
   Combobox,
   Listview,
   Menu,
