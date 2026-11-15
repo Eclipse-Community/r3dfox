@@ -52,9 +52,9 @@ class BASE_EXPORT LockImpl {
   friend class base::win::internal::ScopedHandleVerifier;
 
 #if BUILDFLAG(IS_WIN)
-  using NativeHandle = CHROME_SRWLOCK;
+  typedef char NativeHandle[100];
 #elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-  using NativeHandle = pthread_mutex_t;
+  typedef pthread_mutex_t NativeHandle;
 #endif
 
   LockImpl();
@@ -82,6 +82,9 @@ class BASE_EXPORT LockImpl {
 #endif
 
   void LockInternal();
+#if BUILDFLAG(IS_WIN)
+  alignas(void*)
+#endif
   NativeHandle native_handle_;
 };
 
@@ -101,12 +104,14 @@ void LockImpl::Lock() {
 
 #if BUILDFLAG(IS_WIN)
 bool LockImpl::Try() {
-  return !!::TryAcquireSRWLockExclusive(
-      reinterpret_cast<PSRWLOCK>(&native_handle_));
+  if (::TryEnterCriticalSection(reinterpret_cast<PCRITICAL_SECTION>(&native_handle_)) != 0) {
+    return true;
+  }
+  return false;
 }
 
 void LockImpl::Unlock() {
-  ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&native_handle_));
+  ::LeaveCriticalSection(reinterpret_cast<PCRITICAL_SECTION>(&native_handle_));
 }
 
 #elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
