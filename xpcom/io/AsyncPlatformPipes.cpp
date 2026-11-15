@@ -138,6 +138,31 @@ already_AddRefed<PlatformPipeLink> PlatformPipeLink::TakePending() {
   return pending.forget();
 }
 
+// This cancels ASYNCHRONOUS calls
+int apiCancelIoEx(HANDLE hFile, LPOVERLAPPED lpOverlapped)
+{
+    int iRc = -1;
+    BOOL bRc = FALSE;
+
+    typedef BOOL (WINAPI* CancelIoEx_t)(HANDLE hFile, LPOVERLAPPED lpOverlapped);
+    static CancelIoEx_t fnCancelIoEx = NULL;
+    static bool fnChecked = false;
+
+    if (!fnChecked)
+    {
+        HMODULE hKernel = GetModuleHandle(L"Kernel32.dll");
+        fnCancelIoEx = hKernel ? (CancelIoEx_t)GetProcAddress(hKernel, "CancelIoEx") : NULL;
+        fnChecked = true;
+    }
+
+    if (fnCancelIoEx)
+    {
+        bRc = fnCancelIoEx(hFile, lpOverlapped);
+        iRc = bRc ? 1 : 0;
+    }
+
+    return iRc;
+}
 void PlatformPipeLink::Close(nsresult aStatus, bool aInternal) {
   MOZ_RELEASE_ASSERT(!mIOThread.IsOnCurrentThread(),
                      "Close may deadlock if called on the IO thread");
@@ -158,7 +183,7 @@ void PlatformPipeLink::Close(nsresult aStatus, bool aInternal) {
     // On Windows, if we still have pending IO, request that it is cancelled.
     // We can do that from any thread using CancelIoEx. The notification will be
     // delivered to the IO thread.
-    CancelIoEx(mHandle.get(), &mIOContext.overlapped);
+    apiCancelIoEx(mHandle.get(), &mIOContext.overlapped);
 #else
     // On POSIX, request cancellation by dispatching a runnable to stop watching
     // our file descriptor, and clear mPending.
