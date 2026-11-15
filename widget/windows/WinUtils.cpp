@@ -30,6 +30,7 @@
 #include "mozilla/widget/WinRegistry.h"
 #include "mozilla/WindowsVersion.h"
 #include "mozilla/WinHeaderOnlyUtils.h"
+#include "mozilla/WindowsVersion.h"
 #include "nsIContentPolicy.h"
 #include "nsIReferrerInfo.h"
 #include "nsIURIMutator.h"
