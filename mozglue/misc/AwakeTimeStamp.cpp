@@ -89,12 +89,7 @@ AwakeTimeStamp AwakeTimeStamp::NowLoRes() {
   return AwakeTimeStamp(interrupt_time / kHNSperUS);
 }
 
-AwakeTimeStamp AwakeTimeStamp::Now() {
-  ULONGLONG interrupt_time;
-  QueryUnbiasedInterruptTimePrecise(&interrupt_time);
-
-  return AwakeTimeStamp(interrupt_time / kHNSperUS);
-}
+AwakeTimeStamp AwakeTimeStamp::Now() { return NowLoRes(); }
 
 #else  // Linux and other POSIX but not macOS
 #  include <time.h>
