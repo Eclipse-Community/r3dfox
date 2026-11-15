@@ -856,6 +856,21 @@ Function FinishInstall
   StrCpy $ProgressCompleted "${PROGRESS_BAR_INSTALL_END_STEP}"
   Call SetProgressBars
 
+  ${If} $CheckboxShortcuts == 1
+    ${If} ${AtMostWinVista}
+      ClearErrors
+      ${GetParameters} $0
+      ClearErrors
+      ${GetOptions} "$0" "/UAC:" $0
+      ${If} ${Errors}
+        Call AddQuickLaunchShortcut
+      ${Else}
+        GetFunctionAddress $0 AddQuickLaunchShortcut
+        UAC::ExecCodeSegment $0
+      ${EndIf}
+    ${EndIf}
+  ${EndIf}
+
   ${If} ${FileExists} "$INSTDIR\${FileMainEXE}.moz-upgrade"
     Delete "$INSTDIR\${FileMainEXE}"
     Rename "$INSTDIR\${FileMainEXE}.moz-upgrade" "$INSTDIR\${FileMainEXE}"
