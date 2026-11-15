@@ -920,8 +920,8 @@
     "forcedColors": "{Theme$focus/outline/color}"
   },
   "toolbar/field/background/color": {
-    "light": "rgba(0, 0, 0, 0.05)",
-    "dark": "{Colors$color/black/alpha/30}",
+    "light": "rgb(240, 240, 244)",
+    "dark": "rgb(28, 27, 34)",
     "forcedColors": "{HCM Theme$Field}"
   },
   "toolbar/field/background/color/focus": {

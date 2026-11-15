@@ -450,10 +450,19 @@ export const tokensTable = {
     },
     {
       value: {
-        light: "rgba(0, 0, 0, 0.05)",
-        dark: "var(--color-black-alpha-30)",
+        light: "rgb(240, 240, 244)",
+        dark: "rgb(28, 27, 34)",
+        nativeTheme: "light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30))",
         prefersContrast: "Field",
-        default: "light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30))",
+        platform: {
+          default: "light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30))",
+          browserTheme: {
+            light: "rgb(240, 240, 244)",
+            dark: "rgb(28, 27, 34)",
+            default: "light-dark(rgb(240, 240, 244), rgb(28, 27, 34))",
+          },
+        },
+        default: "light-dark(rgb(240, 240, 244), rgb(28, 27, 34))",
       },
       name: "--toolbar-field-background-color",
     },
@@ -4289,10 +4298,19 @@ export const variableLookupTable = {
     prefersContrast: "var(--focus-outline-color)",
   },
   "toolbar-field-background-color": {
-    light: "rgba(0, 0, 0, 0.05)",
-    dark: "var(--color-black-alpha-30)",
+    light: "rgb(240, 240, 244)",
+    dark: "rgb(28, 27, 34)",
+    nativeTheme: "light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30))",
     prefersContrast: "Field",
-    default: "light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30))",
+    platform: {
+      default: "light-dark(rgba(0, 0, 0, 0.05), var(--color-black-alpha-30))",
+      browserTheme: {
+        light: "rgb(240, 240, 244)",
+        dark: "rgb(28, 27, 34)",
+        default: "light-dark(rgb(240, 240, 244), rgb(28, 27, 34))",
+      },
+    },
+    default: "light-dark(rgb(240, 240, 244), rgb(28, 27, 34))",
   },
   "toolbar-field-background-color-focus": {
     light: "var(--color-white)",
