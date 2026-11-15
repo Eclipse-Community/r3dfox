@@ -392,11 +392,80 @@ NS_IMETHODIMP UntrustedModulesProcessor::OnThreadCreated() {
   return NS_OK;
 }
 
+// The thread environment block internal type.
+struct TEB {
+  NT_TIB Tib;
+  // Rest of struct is ignored.
+};
+
+DWORD
+APIENTRY
+GetThreadIdA(
+    HANDLE thread_handle
+    )
+/*++
+
+Routine Description:
+
+    Gets the thread ID of the thread open via the specified handle
+
+Arguments:
+
+    Thread - Handle of thread to do the query on
+
+Return Value:
+
+    Returns a unique value representing the thread ID of the
+    executing thread.  The return value may be used to identify a thread
+    in the system. If the function fails the return value is zero.
+
+--*/
+
+{
+  // Define the internal types we need to invoke NtQueryInformationThread.
+  enum THREAD_INFORMATION_CLASS { ThreadBasicInformation };
+
+  struct CLIENT_ID {
+    HANDLE UniqueProcess;
+    HANDLE UniqueThread;
+  };
+
+  struct THREAD_BASIC_INFORMATION {
+    NTSTATUS ExitStatus;
+    TEB* Teb;
+    CLIENT_ID ClientId;
+    KAFFINITY AffinityMask;
+    LONG Priority;
+    LONG BasePriority;
+  };
+
+  using NtQueryInformationThreadFunction =
+      NTSTATUS (WINAPI*)(HANDLE, THREAD_INFORMATION_CLASS, PVOID, ULONG,
+                         PULONG);
+
+  const NtQueryInformationThreadFunction nt_query_information_thread =
+      reinterpret_cast<NtQueryInformationThreadFunction>(
+          ::GetProcAddress(::GetModuleHandleW(L"ntdll.dll"),
+                           "NtQueryInformationThread"));
+  if (!nt_query_information_thread)
+    return 0;
+
+  THREAD_BASIC_INFORMATION basic_info = {0};
+  NTSTATUS status =
+      nt_query_information_thread(thread_handle, ThreadBasicInformation,
+                                  &basic_info, sizeof(THREAD_BASIC_INFORMATION),
+                                  nullptr);
+  if (status != 0)
+    return 0;
+
+  return (ULONG)(ULONG_PTR) (basic_info.ClientId.UniqueThread);
+}
+
 NS_IMETHODIMP UntrustedModulesProcessor::OnThreadShuttingDown() {
   // When a lazy thread shuts down, clean up the thread handle reference unless
   // it's already been replaced.
   MutexAutoLock lock(mThreadHandleMutex);
-  if (mThreadHandle && ::GetCurrentThreadId() == ::GetThreadId(mThreadHandle)) {
+  if (mThreadHandle && ::GetCurrentThreadId() == GetThreadIdA(mThreadHandle)) {
     mThreadHandle.reset();
   }
   return NS_OK;
@@ -488,7 +557,7 @@ void UntrustedModulesProcessor::Enqueue(
 
   {
     MutexAutoLock lock(mThreadHandleMutex);
-    DWORD bgThreadId = ::GetThreadId(mThreadHandle);
+    DWORD bgThreadId = GetThreadIdA(mThreadHandle);
     if (aModLoadInfo.mNtLoadInfo.mThreadId == bgThreadId) {
       // Exclude loads that were caused by our own background thread
       return;
