@@ -301,6 +301,8 @@ class nsWindow final : public nsIWidget {
   void UpdateWindowDraggingRegion(
       const LayoutDeviceIntRegion& aRegion) override;
 
+  void UpdateThemeGeometries(
+      const nsTArray<ThemeGeometry>& aThemeGeometries) override;
   uint32_t GetMaxTouchPoints() const override;
   void SetIsEarlyBlankWindow(bool) override;
 
@@ -567,6 +569,9 @@ class nsWindow final : public nsIWidget {
   void ResetLayout();
   void InvalidateNonClientRegion();
   HRGN ExcludeNonClientFromPaintRegion(HRGN aRegion);
+  bool HasGlass() const {
+    return mTransparencyMode == TransparencyMode::BorderlessGlass;
+  }
   HWND GetOwnerWnd() const { return ::GetWindow(mWnd, GW_OWNER); }
   bool IsOwnerForegroundWindow() const {
     HWND owner = GetOwnerWnd();
@@ -654,6 +659,7 @@ class nsWindow final : public nsIWidget {
       mozilla::Maybe<POINT> aEventPoint = mozilla::Nothing());
   static bool DealWithPopups(HWND inWnd, UINT inMsg, WPARAM inWParam,
                              LPARAM inLParam, LRESULT* outResult);
+  void UpdateGlass();
   bool IsSimulatedClientArea(int32_t clientX, int32_t clientY);
   bool IsWindowButton(int32_t hitTestResult);
 
@@ -683,6 +689,11 @@ class nsWindow final : public nsIWidget {
   static HWND WindowAtMouse();
   static bool IsTopLevelMouseExit(HWND aWnd);
   LayoutDeviceIntRegion GetRegionToPaint(const PAINTSTRUCT& ps, HDC aDC) const;
+
+  void AddWindowOverlayWebRenderCommands(
+      mozilla::layers::WebRenderBridgeChild* aWrBridge,
+      mozilla::wr::DisplayListBuilder& aBuilder,
+      mozilla::wr::IpcResourceUpdateQueue& aResourceUpdates) override;
 
   void CreateCompositor() override;
   void DestroyCompositor() override;
@@ -875,6 +886,7 @@ class nsWindow final : public nsIWidget {
 
   // Transparency
   TransparencyMode mTransparencyMode = TransparencyMode::Opaque;
+  MARGINS mGlassMargins = {0, 0, 0, 0};
 
   // Win7 Gesture processing and management
   nsWinGesture mGesture;
@@ -902,6 +914,9 @@ class nsWindow final : public nsIWidget {
   // The point in time at which the last paint completed. We use this to avoid
   //  painting too rapidly in response to frequent input events.
   TimeStamp mLastPaintEndTime;
+
+  // The location of the window buttons in the window.
+  mozilla::Maybe<LayoutDeviceIntRect> mWindowButtonsRect;
 
   // Caching for hit test results (in client coordinates)
   LayoutDeviceIntPoint mCachedHitTestPoint;
