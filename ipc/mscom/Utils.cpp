@@ -7,6 +7,17 @@
 #  include "mozilla/dom/ContentChild.h"
 #endif
 
+// We need Windows 7 headers
+#ifdef NTDDI_VERSION
+#undef NTDDI_VERSION
+#endif
+#define NTDDI_VERSION 0x06010000
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0601
+
+#include "mozilla/DynamicallyLinkedFunctionPtr.h"
 #include "mozilla/mscom/COMWrappers.h"
 #include "mozilla/DebugOnly.h"
 #include "mozilla/mscom/Utils.h"
@@ -23,20 +34,67 @@
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 #endif
 
+static bool
+IsCurrentThreadMTALegacy()
+{
+  // We don't use RefPtr for token because CoGetContextToken does *not*
+  // increment its refcount!
+  IUnknown* token = nullptr;
+  HRESULT hr =
+    CoGetContextToken(reinterpret_cast<ULONG_PTR*>(&token));
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  RefPtr<IComThreadingInfo> threadingInfo;
+  hr = token->QueryInterface(IID_IComThreadingInfo,
+                             getter_AddRefs(threadingInfo));
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  APTTYPE aptType;
+  hr = threadingInfo->GetCurrentApartmentType(&aptType);
+  if (FAILED(hr)) {
+    return false;
+  }
+
+  return aptType == APTTYPE_MTA;
+}
+
 namespace mozilla {
 namespace mscom {
 
 bool IsCOMInitializedOnCurrentThread() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+  IUnknown* token = nullptr;
+  HRESULT hr =
+    CoGetContextToken(reinterpret_cast<ULONG_PTR*>(&token));
+    return hr != CO_E_NOTINITIALIZED;
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   return hr != CO_E_NOTINITIALIZED;
 }
 
 bool IsCurrentThreadMTA() {
+  static DynamicallyLinkedFunctionPtr<decltype(&::CoGetApartmentType)>
+    pCoGetApartmentType(L"ole32.dll", "CoGetApartmentType");
+
+  if (!pCoGetApartmentType) {
+    // XP and Vista do not expose the newer API.
+    return IsCurrentThreadMTALegacy();
+  }
+
   APTTYPE aptType;
   APTTYPEQUALIFIER aptTypeQualifier;
-  HRESULT hr = wrapped::CoGetApartmentType(&aptType, &aptTypeQualifier);
+  HRESULT hr = pCoGetApartmentType(&aptType, &aptTypeQualifier);
   if (FAILED(hr)) {
     return false;
   }
@@ -209,7 +267,13 @@ long CreateStream(const uint8_t* aInitBuf, const uint32_t aInitBufSize,
 
     // If aInitBuf is null then initSize must be 0.
     UINT initSize = aInitBuf ? aInitBufSize : 0;
-    stream = already_AddRefed<IStream>(::SHCreateMemStream(aInitBuf, initSize));
+  // Need to link to this as ordinal 12 for Windows XP
+  static DynamicallyLinkedFunctionPtr<decltype(&::SHCreateMemStream)>
+    pSHCreateMemStream(L"shlwapi.dll", reinterpret_cast<const char*>(12));
+  if (!pSHCreateMemStream) {
+    return E_OUTOFMEMORY;
+  }
+    stream = already_AddRefed<IStream>(pSHCreateMemStream(aInitBuf, initSize));
     if (!stream) {
       return E_OUTOFMEMORY;
     }
