@@ -195,6 +195,16 @@ class nsWindow final : public nsIWidget {
   double GetDefaultScaleInternal() override;
   void DidClearParent(nsIWidget* aOldParent) override;
   int32_t LogToPhys(double aValue);
+  mozilla::DesktopToLayoutDeviceScale GetDesktopToDeviceScale() const override {
+    if (mozilla::widget::WinUtils::IsPerMonitorDPIAware()) {
+      return mozilla::DesktopToLayoutDeviceScale(1.0);
+    } else {
+      if (mDefaultScale <= 0.0) {
+        mDefaultScale = mozilla::widget::WinUtils::LogToPhysFactor(mWnd);
+      }
+      return mozilla::DesktopToLayoutDeviceScale(mDefaultScale);
+    }
+  }
 
   void Show(bool aState) override;
   bool IsVisible() const override;
@@ -830,7 +840,7 @@ class nsWindow final : public nsIWidget {
   mozilla::LayoutDeviceIntCoord mCustomResizeMargin{0};
 
   // not yet set, will be calculated on first use
-  double mDefaultScale = -1.0;
+  mutable double mDefaultScale = -1.0;
 
   // not yet set, will be calculated on first use
   float mAspectRatio = 0.0;
