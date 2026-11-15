@@ -763,8 +763,17 @@ nsresult SetDefaultExtensionHandlersUserChoiceImpl(
     const wchar_t* aAumi, const wchar_t* const aSid, const bool aRegRename,
     const nsTArray<nsString>& aFileExtensions) {
   UINT32 pfnLen = 0;
-  bool inMsix =
-      GetCurrentPackageFullName(&pfnLen, nullptr) != APPMODEL_ERROR_NO_PACKAGE;
+typedef LONG(WINAPI *GetCurrentPackageFullName_t)(UINT32 *packageFullNameLength, PWSTR packageFullName);
+
+static GetCurrentPackageFullName_t WIN_GetCurrentPackageFullName;
+
+    if (!WIN_GetCurrentPackageFullName) {
+        HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+        WIN_GetCurrentPackageFullName = (GetCurrentPackageFullName_t)GetProcAddress(kernel32, "GetCurrentPackageFullName");
+    }
+
+  bool inMsix =WIN_GetCurrentPackageFullName&&
+      WIN_GetCurrentPackageFullName(&pfnLen, nullptr) != APPMODEL_ERROR_NO_PACKAGE;
 
   if (inMsix) {
     return SetDefaultExtensionHandlersUserChoiceImplMsix(
