@@ -11,6 +11,11 @@
 #include "nsServiceManagerUtils.h"
 #include "nsXULAlerts.h"
 
+#ifdef XP_WIN
+#  include <windows.h>
+#  include <shellapi.h>
+#endif
+
 #include "nsAlertsService.h"
 
 #include "nsToolkitCompsCID.h"
@@ -59,12 +64,23 @@ bool nsAlertsService::ShouldShowAlert() {
 
 #ifdef XP_WIN
   if (!xpc::IsInAutomation()) {
+  HMODULE shellDLL = ::LoadLibraryW(L"shell32.dll");
+  if (!shellDLL)
+    return result;
+
+  SHQueryUserNotificationStatePtr pSHQueryUserNotificationState =
+    (SHQueryUserNotificationStatePtr) ::GetProcAddress(shellDLL, "SHQueryUserNotificationState");
+
+  if (pSHQueryUserNotificationState) {
     QUERY_USER_NOTIFICATION_STATE qstate;
-    if (SUCCEEDED(SHQueryUserNotificationState(&qstate))) {
+    if (SUCCEEDED(pSHQueryUserNotificationState(&qstate))) {
       if (qstate != QUNS_ACCEPTS_NOTIFICATIONS) {
-        result = false;
+         result = false;
+      }
       }
     }
+
+  ::FreeLibrary(shellDLL);
   }
 #endif
 
