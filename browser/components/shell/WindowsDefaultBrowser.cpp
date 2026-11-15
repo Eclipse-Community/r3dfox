@@ -89,6 +89,11 @@ bool GetAppRegName(mozilla::UniquePtr<wchar_t[]>& aAppRegName) {
 }
 
 bool LaunchControlPanelDefaultPrograms() {
+  // This Default Programs feature is Win7+ only.
+  if (!mozilla::IsWin7OrLater()) {
+    return false;
+  }
+
   // Build the path control.exe path safely
   WCHAR controlEXEPath[MAX_PATH + 1] = {'\0'};
   if (!GetSystemDirectoryW(controlEXEPath, MAX_PATH)) {
