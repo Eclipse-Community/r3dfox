@@ -686,10 +686,49 @@ nsAppStartup::GetWasSilentlyStarted(bool* aResult) {
   return NS_OK;
 }
 
+// Used only when GetTickCount64 is not available on the platform.
+// Last result of GetTickCount call.
+//
+// Kept in [ms]
+static DWORD sLastGTCResult = 0;
+
+// Higher part of the 64-bit value of MozGetTickCount64,
+// incremented atomically.
+static DWORD sLastGTCRollover = 0;
+
+typedef ULONGLONG (WINAPI* GetTickCount64_t)();
+static GetTickCount64_t sGetTickCount64 = nullptr;
+
+// Function protecting GetTickCount result from rolling over,
+// result is in [ms]
+static ULONGLONG WINAPI
+MozGetTickCount64()
+{
+  DWORD GTC = ::GetTickCount();
+
+  // Pull the rollover counter forward only if new value of GTC goes way
+  // down under the last saved result
+  if ((sLastGTCResult > GTC) && ((sLastGTCResult - GTC) > (1UL << 30))) {
+    ++sLastGTCRollover;
+  }
+
+  sLastGTCResult = GTC;
+  return ULONGLONG(sLastGTCRollover) << 32 | sLastGTCResult;
+}
+
 NS_IMETHODIMP
 nsAppStartup::GetSecondsSinceLastOSRestart(int64_t* aResult) {
 #if defined(XP_WIN)
-  *aResult = int64_t(GetTickCount64() / 1000ull);
+  HMODULE kernelDLL = GetModuleHandleW(L"kernel32.dll");
+  sGetTickCount64 = reinterpret_cast<GetTickCount64_t>(
+    GetProcAddress(kernelDLL, "GetTickCount64"));
+  if (!sGetTickCount64) {
+    // If the platform does not support the GetTickCount64 (Windows XP doesn't),
+    // then use our fallback implementation based on GetTickCount.
+    sGetTickCount64 = MozGetTickCount64;
+  }
+
+  *aResult = int64_t(sGetTickCount64() / 1000ull);
   return NS_OK;
 #elif defined(XP_DARWIN)
   uint64_t absTime = mach_absolute_time();
