@@ -95,6 +95,9 @@ DCForMetrics::DCForMetrics() {
   SetGraphicsMode(mDC, GM_ADVANCED);
 }
 
+#define GFX_USE_CLEARTYPE_ALWAYS "gfx.font_rendering.cleartype.always_use_for_content"
+#define GFX_DOWNLOADABLE_FONTS_USE_CLEARTYPE "gfx.font_rendering.cleartype.use_for_downloadable_fonts"
+
 class GPUAdapterReporter final : public nsIMemoryReporter {
   // Callers must Release the DXGIAdapter after use or risk mem-leak
   static bool GetDXGIAdapter(IDXGIAdapter** aDXGIAdapter) {
@@ -250,6 +253,8 @@ NS_IMPL_ISUPPORTS(D3DSharedTexturesReporter, nsIMemoryReporter)
 
 gfxWindowsPlatform::gfxWindowsPlatform()
     : mDwmCompositionStatus(DwmCompositionStatus::Unknown) {
+  mUseClearTypeForDownloadableFonts = UNINITIALIZED_VALUE;
+  mUseClearTypeAlways = UNINITIALIZED_VALUE;
   // If win32k is locked down then we can't use COM STA and shouldn't need it.
   // Also, we won't be using any GPU memory in this process.
   if (!IsWin32kLockedDown()) {
@@ -1233,6 +1238,26 @@ nsTArray<uint8_t> gfxWindowsPlatform::GetPlatformCMSOutputProfileData_Impl() {
   return sCached.Clone();
 }
 
+bool
+gfxWindowsPlatform::UseClearTypeForDownloadableFonts()
+{
+    if (mUseClearTypeForDownloadableFonts == UNINITIALIZED_VALUE) {
+        mUseClearTypeForDownloadableFonts = Preferences::GetBool(GFX_DOWNLOADABLE_FONTS_USE_CLEARTYPE, true);
+    }
+
+    return mUseClearTypeForDownloadableFonts;
+}
+
+bool
+gfxWindowsPlatform::UseClearTypeAlways()
+{
+    if (mUseClearTypeAlways == UNINITIALIZED_VALUE) {
+        mUseClearTypeAlways = Preferences::GetBool(GFX_USE_CLEARTYPE_ALWAYS, false);
+    }
+
+    return mUseClearTypeAlways;
+}
+
 void gfxWindowsPlatform::GetDLLVersion(char16ptr_t aDLLPath,
                                        nsAString& aVersion) {
   DWORD versInfoSize, vers[4] = {0};
@@ -1318,8 +1343,12 @@ void gfxWindowsPlatform::FontsPrefsChanged(const char* aPref) {
 
   gfxPlatform::FontsPrefsChanged(aPref);
 
-  if (aPref &&
-      !strncmp(GFX_CLEARTYPE_PARAMS, aPref, strlen(GFX_CLEARTYPE_PARAMS))) {
+  if (!strcmp(GFX_DOWNLOADABLE_FONTS_USE_CLEARTYPE, aPref)) {
+    mUseClearTypeForDownloadableFonts = UNINITIALIZED_VALUE;
+  } else if (!strcmp(GFX_USE_CLEARTYPE_ALWAYS, aPref)) {
+    mUseClearTypeAlways = UNINITIALIZED_VALUE;
+  } else if (!strncmp(GFX_CLEARTYPE_PARAMS, aPref,
+                      strlen(GFX_CLEARTYPE_PARAMS))) {
     gfxDWriteFont::UpdateClearTypeVars();
   } else {
     clearTextFontCaches = false;

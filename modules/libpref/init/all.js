@@ -1722,6 +1722,14 @@ pref("font.name.sans-serif.x-math", "");
 pref("font.name.monospace.x-math", "");
 pref("font.name.cursive.x-math", "");
 
+// cleartype settings - false implies default system settings
+
+// use cleartype rendering for downloadable fonts (win xp only)
+pref("gfx.font_rendering.cleartype.use_for_downloadable_fonts", true);
+
+// use cleartype rendering for all fonts always (win xp only)
+pref("gfx.font_rendering.cleartype.always_use_for_content", false);
+
 pref("font.name-list.serif.x-math", "Latin Modern Math, STIX Two Math, XITS Math, Cambria Math, Libertinus Math, DejaVu Math TeX Gyre, TeX Gyre Bonum Math, TeX Gyre Pagella Math, TeX Gyre Schola, TeX Gyre Termes Math, STIX Math, Asana Math, STIXGeneral, DejaVu Serif, DejaVu Sans, serif");
 pref("font.name-list.sans-serif.x-math", "sans-serif");
 pref("font.name-list.monospace.x-math", "monospace");
