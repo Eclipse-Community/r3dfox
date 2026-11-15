@@ -284,13 +284,15 @@ body {
 
 :root:not([theme-image-in-toolbox]) body,
 :root[theme-image-in-toolbox] #navigator-toolbox {
-  @media not (-moz-platform: windows-win7) {
-    @media not (-moz-platform: windows-win8) {
-      background-image: var(--toolbox-background-image);
-      background-repeat: var(--toolbox-background-repeat);
-      background-position: var(--toolbox-background-position);
-      /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
-      background-size: var(--toolbox-background-size);
+  @media not (-moz-platform: windows-xp) {
+    @media not (-moz-platform: windows-win7) {
+      @media not (-moz-platform: windows-win8) {
+        background-image: var(--toolbox-background-image);
+        background-repeat: var(--toolbox-background-repeat);
+        background-position: var(--toolbox-background-position);
+        /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
+        background-size: var(--toolbox-background-size);
+      }
     }
   }
 }
@@ -324,7 +326,8 @@ body {
 }
 
 /* TODO bug 1695280: Remove this block. */
-@media (-moz-platform: windows-win7),
+@media (-moz-platform: windows-xp),
+       (-moz-platform: windows-win7),
        (-moz-platform: windows-win8) {
   :root[lwtheme] {
     background-color: var(--lwt-accent-color);

@@ -85,9 +85,20 @@ class nsFilePicker final : public nsBaseWinFilePicker {
                           const nsAString& aFilter) override;
 
  protected:
+  enum PickerType {
+    PICKER_TYPE_OPEN,
+    PICKER_TYPE_SAVE,
+  };
+
   /* method from nsBaseFilePicker */
   virtual void InitNative(nsIWidget* aParent, const nsAString& aTitle) override;
+  static void GetQualifiedPath(const wchar_t* aInPath, nsString& aOutPath);
   void GetFilterListArray(nsString& aFilterList);
+  static bool GetFileNameWrapper(OPENFILENAMEW* ofn, PickerType aType);
+  bool FilePickerWrapper(OPENFILENAMEW* ofn, PickerType aType);
+  bool ShowXPFolderPicker(const nsString& aInitialDir);
+  bool ShowXPFilePicker(const nsString& aInitialDir);
+  void AppendXPFilter(const nsAString& aTitle, const nsAString& aFilter);
 
   NS_IMETHOD Open(nsIFilePickerShownCallback* aCallback) override;
 
@@ -102,6 +113,13 @@ class nsFilePicker final : public nsBaseWinFilePicker {
   using ContentAnalysisResponse =
       mozilla::MozPromise<nsCOMArray<nsIFile>, nsresult, true>;
   RefPtr<ContentAnalysisResponse> CheckContentAnalysisService();
+
+  void SetDialogHandle(HWND aWnd);
+  bool ClosePickerIfNeeded(bool aIsXPDialog);
+  static UINT_PTR CALLBACK MultiFilePickerHook(HWND hwnd, UINT msg,
+                                               WPARAM wParam, LPARAM lParam);
+  static UINT_PTR CALLBACK FilePickerHook(HWND hwnd, UINT msg, WPARAM wParam,
+                                          LPARAM lParam);
 
  protected:
   void RememberLastUsedDirectory();
@@ -132,6 +150,7 @@ class nsFilePicker final : public nsBaseWinFilePicker {
     nsString filter;
   };
   AutoTArray<Filter, 1> mFilterList;
+  nsString mFilterListXP;
 };
 
 #endif  // nsFilePicker_h_

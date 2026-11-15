@@ -1451,7 +1451,7 @@ nsDataObj ::GetFileContentsInternetShortcut(FORMATETC& aFE, STGMEDIUM& aSTG) {
   const char* shortcutFormatStr;
   int totalLen;
   nsCString asciiPath;
-  if (!Preferences::GetBool(kShellIconPref, true)) {
+  if (!Preferences::GetBool(kShellIconPref, true) || !IsVistaOrLater()) {
     shortcutFormatStr = "[InternetShortcut]\r\nURL=%s\r\n";
     const int formatLen = strlen(shortcutFormatStr) - 2;  // don't include %s
     totalLen = formatLen + asciiUrl.Length();  // don't include null character

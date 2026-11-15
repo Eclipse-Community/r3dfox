@@ -191,11 +191,22 @@
 .titlebar-buttonbox-container {
   align-items: stretch;
 }
-@media (-moz-platform: windows-win7),
+@media (-moz-platform: windows-xp),
+       (-moz-platform: windows-win7),
        (-moz-platform: windows-win8) {
   /* Preserve window control buttons position at the top of the button box. */
   .titlebar-buttonbox-container {
     align-items: flex-start;
+  }
+}
+
+/* Add extra margin for unmaximized windows on Win XP Luna themes. */
+@media not (-moz-windows-classic) {
+  @media (-moz-platform: windows-xp) {
+    :root[customtitlebar]:not([sizemode="maximized"])
+      .titlebar-buttonbox-container {
+      margin-top: 4px;
+    }
   }
 }
 
