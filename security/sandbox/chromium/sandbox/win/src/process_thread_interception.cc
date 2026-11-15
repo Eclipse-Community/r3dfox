@@ -226,6 +226,75 @@ TargetNtOpenProcessTokenEx(NtOpenProcessTokenExFunction orig_OpenProcessTokenEx,
       process, desired_access, handle_attributes, token);
 }
 
+// The thread environment block internal type.
+struct TEB {
+  NT_TIB Tib;
+  // Rest of struct is ignored.
+};
+
+DWORD
+APIENTRY
+GetThreadId(
+    HANDLE thread_handle
+    )
+/*++
+
+Routine Description:
+
+    Gets the thread ID of the thread open via the specified handle
+
+Arguments:
+
+    Thread - Handle of thread to do the query on
+
+Return Value:
+
+    Returns a unique value representing the thread ID of the
+    executing thread.  The return value may be used to identify a thread
+    in the system. If the function fails the return value is zero.
+
+--*/
+
+{
+  // Define the internal types we need to invoke NtQueryInformationThread.
+  enum THREAD_INFORMATION_CLASS { ThreadBasicInformation };
+
+  struct CLIENT_ID {
+    HANDLE UniqueProcess;
+    HANDLE UniqueThread;
+  };
+
+  struct THREAD_BASIC_INFORMATION {
+    NTSTATUS ExitStatus;
+    TEB* Teb;
+    CLIENT_ID ClientId;
+    KAFFINITY AffinityMask;
+    LONG Priority;
+    LONG BasePriority;
+  };
+
+  using NtQueryInformationThreadFunction =
+      NTSTATUS (WINAPI*)(HANDLE, THREAD_INFORMATION_CLASS, PVOID, ULONG,
+                         PULONG);
+
+  const NtQueryInformationThreadFunction nt_query_information_thread =
+      reinterpret_cast<NtQueryInformationThreadFunction>(
+          ::GetProcAddress(::GetModuleHandleW(L"ntdll.dll"),
+                           "NtQueryInformationThread"));
+  if (!nt_query_information_thread)
+    return 0;
+
+  THREAD_BASIC_INFORMATION basic_info = {0};
+  NTSTATUS status =
+      nt_query_information_thread(thread_handle, ThreadBasicInformation,
+                                  &basic_info, sizeof(THREAD_BASIC_INFORMATION),
+                                  nullptr);
+  if (status != 0)
+    return 0;
+
+  return (ULONG)(ULONG_PTR) (basic_info.ClientId.UniqueThread);
+}
+
 HANDLE WINAPI TargetCreateThread(CreateThreadFunction orig_CreateThread,
                                  LPSECURITY_ATTRIBUTES thread_attributes,
                                  SIZE_T stack_size,
@@ -287,7 +356,7 @@ HANDLE WINAPI TargetCreateThread(CreateThreadFunction orig_CreateThread,
 
     __try {
       if (thread_id)
-        *thread_id = ::GetThreadId(answer.handle);
+        *thread_id = GetThreadId(answer.handle);
       return answer.handle;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
       break;
