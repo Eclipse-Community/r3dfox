@@ -1397,7 +1397,9 @@ static const wchar_t* ChooseWindowClass(WindowType aWindowType) {
         return GetMainWindowClass();
     }
   }();
-  RegisterWindowClass(className, 0, gStockApplicationIcon);
+  RegisterWindowClass(
+      className, aWindowType == WindowType::Popup ? CS_DROPSHADOW : 0,
+      aWindowType == WindowType::Dialog ? 0 : gStockApplicationIcon);
   return className;
 }
 
@@ -1688,6 +1690,15 @@ void nsWindow::Show(bool aState) {
 
   if (mWindowType == WindowType::Popup) {
     MOZ_ASSERT(ChooseWindowClass(mWindowType) == kClassNameDropShadow);
+    const bool shouldUseDropShadow =
+        mTransparencyMode != TransparencyMode::Transparent;
+
+    static bool sShadowEnabled = true;
+    if (sShadowEnabled != shouldUseDropShadow) {
+      ::SetClassLongA(mWnd, GCL_STYLE, shouldUseDropShadow ? CS_DROPSHADOW : 0);
+      sShadowEnabled = shouldUseDropShadow;
+    }
+
     // WS_EX_COMPOSITED conflicts with the WS_EX_LAYERED style and causes
     // some popup menus to become invisible.
     LONG_PTR exStyle = ::GetWindowLongPtrW(mWnd, GWL_EXSTYLE);
@@ -1895,6 +1906,26 @@ bool nsWindow::IsVisible() const { return mIsVisible; }
 
 /**************************************************************
  *
+ * SECTION: Window clipping utilities
+ *
+ * Used in Size and Move operations for setting the proper
+ * window clipping regions for window transparency.
+ *
+ **************************************************************/
+
+// XP and Vista visual styles sometimes require window clipping regions to be
+// applied for proper transparency. These routines are called on size and move
+// operations.
+// XXX this is apparently still needed in Windows 7 and later
+void nsWindow::ClearThemeRegion() {
+  if (mWindowType == WindowType::Popup &&
+      (mPopupType == PopupType::Tooltip || mPopupType == PopupType::Panel)) {
+    SetWindowRgn(mWnd, nullptr, false);
+  }
+}
+
+/**************************************************************
+ *
  * SECTION: Touch and APZ-related functions
  *
  **************************************************************/
@@ -2069,6 +2100,8 @@ void nsWindow::Move(const DesktopPoint& aTopLeft) {
       }
     }
 #endif
+    ClearThemeRegion();
+
     UINT flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE;
     double oldScale = mDefaultScale;
     mResizeState = IN_SIZEMOVE;
@@ -2128,6 +2161,7 @@ void nsWindow::Resize(const DesktopSize& aSize, bool aRepaint) {
     if (!aRepaint) {
       flags |= SWP_NOREDRAW;
     }
+    ClearThemeRegion();
     double oldScale = mDefaultScale;
     mResizeState = RESIZING;
     VERIFY(::SetWindowPos(mWnd, nullptr, 0, 0, size.width, size.height, flags));
@@ -2199,6 +2233,8 @@ void nsWindow::Resize(const DesktopRect& aRect, bool aRepaint) {
     if (!aRepaint) {
       flags |= SWP_NOREDRAW;
     }
+
+    ClearThemeRegion();
 
     double oldScale = mDefaultScale;
     mResizeState = RESIZING;
