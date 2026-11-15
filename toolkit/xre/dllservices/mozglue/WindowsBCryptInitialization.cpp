@@ -9,13 +9,15 @@
 #include <bcrypt.h>
 #pragma comment(lib, "bcrypt.lib")
 
+#include "mozilla/RandomNum.h"
 namespace mozilla {
 
 bool WindowsBCryptInitialization() {
-  UCHAR buffer[32];
-  NTSTATUS status = ::BCryptGenRandom(nullptr, buffer, sizeof(buffer),
-                                      BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-  return NT_SUCCESS(status);
+  // Call RandomUint64 to pre-load bcryptPrimitives.dll while the current
+  // thread still has an unrestricted impersonation token.
+  LoadLibraryW(L"bcryptprimitives");
+  RandomUint64OrDie();
+  return true;
 }
 
 }  // namespace mozilla
