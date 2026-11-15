@@ -722,7 +722,21 @@ nsresult Win32SerialPlatformService::StartMonitoringDeviceChanges() {
   filter.FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE;
   filter.u.DeviceInterface.ClassGuid = GUID_DEVINTERFACE_COMPORT;
 
-  CONFIGRET cr = CM_Register_Notification(
+typedef DWORD (WINAPI *FnCM_Register_Notification)(
+    void* pFilter, void* pContext,
+    DWORD (WINAPI *pCallback)(HCMNOTIFICATION, void*, CM_NOTIFY_ACTION, PCM_NOTIFY_EVENT_DATA, DWORD),
+    PHCMNOTIFICATION pNotifyContext);
+
+        HMODULE hCfg = GetModuleHandleW(L"cfgmgr32.dll");
+        if (!hCfg) hCfg = LoadLibraryW(L"cfgmgr32.dll");
+        if (!hCfg) { return NS_ERROR_FAILURE; }
+
+        auto pfnRegister = reinterpret_cast<FnCM_Register_Notification>(
+            GetProcAddress(hCfg, "CM_Register_Notification"));
+
+        if (!pfnRegister) { return NS_ERROR_FAILURE; }
+
+  CONFIGRET cr = pfnRegister(
       &filter, this, DeviceNotificationCallback, &mDeviceNotification);
 
   if (cr != CR_SUCCESS) {
@@ -764,7 +778,15 @@ void Win32SerialPlatformService::StopMonitoringDeviceChanges() {
       ("Win32SerialPlatformService[%p]::StopMonitoringDeviceChanges", this));
 
   if (mDeviceNotification) {
-    CM_Unregister_Notification(mDeviceNotification);
+typedef DWORD (WINAPI *FnCM_Unregister_Notification)(void* hNotify);
+
+        HMODULE hCfg = GetModuleHandleW(L"cfgmgr32.dll");
+        if (!hCfg) hCfg = LoadLibraryW(L"cfgmgr32.dll");
+        if (!hCfg) { return; }
+
+                auto pfnUnreg = reinterpret_cast<FnCM_Unregister_Notification>(
+                    GetProcAddress(hCfg, "CM_Unregister_Notification"));
+    if (pfnUnreg) pfnUnreg(mDeviceNotification);
     mDeviceNotification = nullptr;
   }
 
