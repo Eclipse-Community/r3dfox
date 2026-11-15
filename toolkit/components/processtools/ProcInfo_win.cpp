@@ -66,9 +66,13 @@ int GetCycleTimeFrequencyMHz() {
 
 nsresult GetCpuTimeSinceProcessStartInMs(uint64_t* aResult) {
   int frequencyInMHz = GetCycleTimeFrequencyMHz();
-  if (frequencyInMHz) {
+typedef BOOL (WINAPI *Func_QueryProcessCycleTime)(HANDLE Process, PULONG64 CycleTime);
+    HMODULE kern = ::GetModuleHandleW(L"kernel32.dll");
+    Func_QueryProcessCycleTime my_QueryProcessCycleTime = (Func_QueryProcessCycleTime)
+        ::GetProcAddress(kern, "QueryProcessCycleTime");
+  if (frequencyInMHz && my_QueryProcessCycleTime) {
     uint64_t cpuCycleCount;
-    if (!QueryProcessCycleTime(::GetCurrentProcess(), &cpuCycleCount)) {
+    if (!my_QueryProcessCycleTime(::GetCurrentProcess(), &cpuCycleCount)) {
       return NS_ERROR_FAILURE;
     }
     constexpr int HZ_PER_MHZ = 1000000;
