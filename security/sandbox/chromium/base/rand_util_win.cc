@@ -9,6 +9,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// #define needed to link in RtlGenRandom(), a.k.a. SystemFunction036.  See the
+// "Community Additions" comment on MSDN here:
+// http://msdn.microsoft.com/en-us/library/windows/desktop/aa387694.aspx
+#define SystemFunction036 NTAPI SystemFunction036
+#include <NTSecAPI.h>
+#undef SystemFunction036
+
 #include <algorithm>
 #include <atomic>
 #include <limits>
@@ -18,12 +25,6 @@
 #if !defined(MOZ_SANDBOX)
 #include "third_party/boringssl/src/include/openssl/rand.h"
 #endif
-
-// Prototype for ProcessPrng.
-// See: https://learn.microsoft.com/en-us/windows/win32/seccng/processprng
-extern "C" {
-BOOL WINAPI ProcessPrng(PBYTE pbData, SIZE_T cbData);
-}
 
 namespace base {
 
@@ -54,18 +55,6 @@ bool UseBoringSSLForRandBytes() {
 
 namespace {
 
-// Import bcryptprimitives!ProcessPrng rather than cryptbase!RtlGenRandom to
-// avoid opening a handle to \\Device\KsecDD in the renderer.
-decltype(&ProcessPrng) GetProcessPrng() {
-  HMODULE hmod = LoadLibraryW(L"bcryptprimitives.dll");
-  CHECK(hmod);
-  decltype(&ProcessPrng) process_prng_fn =
-      reinterpret_cast<decltype(&ProcessPrng)>(
-          GetProcAddress(hmod, "ProcessPrng"));
-  CHECK(process_prng_fn);
-  return process_prng_fn;
-}
-
 void RandBytesInternal(span<uint8_t> output, bool avoid_allocation) {
 #if !defined(MOZ_SANDBOX)
   if (!avoid_allocation && internal::UseBoringSSLForRandBytes()) {
@@ -75,11 +64,17 @@ void RandBytesInternal(span<uint8_t> output, bool avoid_allocation) {
   }
 #endif
 
-  static decltype(&ProcessPrng) process_prng_fn = GetProcessPrng();
-  BOOL success =
-      process_prng_fn(static_cast<BYTE*>(output.data()), output.size());
-  // ProcessPrng is documented to always return TRUE.
-  CHECK(success);
+  unsigned char* output_ptr = output.data();
+  size_t output_length = output.size();
+  while (output_length > 0) {
+    const ULONG output_bytes_this_pass = static_cast<ULONG>(std::min(
+        output_length, static_cast<size_t>(std::numeric_limits<ULONG>::max())));
+    const bool success =
+        RtlGenRandom(output_ptr, output_bytes_this_pass) != FALSE;
+    CHECK(success);
+    output_length -= output_bytes_this_pass;
+    output_ptr += output_bytes_this_pass;
+  }
 }
 
 }  // namespace
