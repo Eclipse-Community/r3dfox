@@ -26,13 +26,32 @@ namespace sandbox {
 
 namespace {
 
+typedef decltype(::CreateAppContainerProfile) CreateAppContainerProfileFunc;
+
+typedef decltype(::DeriveAppContainerSidFromAppContainerName)
+    DeriveAppContainerSidFromAppContainerNameFunc;
+
+typedef decltype(::DeleteAppContainerProfile) DeleteAppContainerProfileFunc;
+
+typedef decltype(::GetAppContainerFolderPath) GetAppContainerFolderPathFunc;
+
+typedef decltype(
+    ::GetAppContainerRegistryLocation) GetAppContainerRegistryLocationFunc;
+
 struct FreeSidDeleter {
   inline void operator()(void* ptr) const { ::FreeSid(ptr); }
 };
 
 std::optional<base::win::Sid> DerivePackageSid(const wchar_t* package_name) {
   PSID package_sid_ptr = nullptr;
-  HRESULT hr = ::DeriveAppContainerSidFromAppContainerName(package_name,
+  static auto derive_app_container_sid =
+      reinterpret_cast<DeriveAppContainerSidFromAppContainerNameFunc*>(
+          GetProcAddress(GetModuleHandle(L"userenv"),
+                         "DeriveAppContainerSidFromAppContainerName"));
+  if (!derive_app_container_sid)
+    return std::nullopt;
+
+  HRESULT hr = derive_app_container_sid(package_name,
                                                            &package_sid_ptr);
   if (FAILED(hr)) {
     return std::nullopt;
