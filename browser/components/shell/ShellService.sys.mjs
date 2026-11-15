@@ -14,6 +14,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   Subprocess: "resource://gre/modules/Subprocess.sys.mjs",
   WindowsSetDefaultRedirect:
     "moz-src:///browser/components/shell/WindowsSetDefaultRedirect.sys.mjs",
+  WindowsRegistry: "resource://gre/modules/WindowsRegistry.sys.mjs",
   WindowsVersionInfo:
     "resource://gre/modules/components-utils/WindowsVersionInfo.sys.mjs",
 });
@@ -116,6 +117,26 @@ let ShellServiceInternal = {
     return false;
   },
 
+  isDefaultBrowserOptOut() {
+    if (AppConstants.platform == "win") {
+      let optOutValue = lazy.WindowsRegistry.readRegKey(
+        Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
+        "Software\\Mozilla\\Firefox",
+        "DefaultBrowserOptOut"
+      );
+      lazy.WindowsRegistry.removeRegKey(
+        Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
+        "Software\\Mozilla\\Firefox",
+        "DefaultBrowserOptOut"
+      );
+      if (optOutValue == "True") {
+        Services.prefs.setBoolPref("browser.shell.checkDefaultBrowser", false);
+        return true;
+      }
+    }
+    return false;
+  },
+
   /**
    * Used to determine based on the creation date of the home folder how old a
    * user profile is (and NOT the browser profile).
@@ -152,6 +173,10 @@ let ShellServiceInternal = {
     }
 
     if (!Services.prefs.getBoolPref("browser.shell.checkDefaultBrowser")) {
+      return false;
+    }
+
+    if (this.isDefaultBrowserOptOut()) {
       return false;
     }
 
@@ -391,9 +416,9 @@ let ShellServiceInternal = {
 
   // override nsIShellService.setDefaultBrowser() on the ShellService proxy.
   async setDefaultBrowser(forAllUsers) {
-    // On Windows, our best chance is to set UserChoice, so try that first.
+    // On Windows 10, our best chance is to set UserChoice, so try that first.
     if (
-      AppConstants.platform == "win" &&
+      AppConstants.isPlatformAndVersionAtLeast("win", "10") &&
       Services.prefs.getBoolPref("browser.shell.setDefaultBrowserUserChoice")
     ) {
       try {
@@ -467,6 +492,10 @@ let ShellServiceInternal = {
   ) {
     if (AppConstants.platform != "win") {
       throw new Error("Windows-only");
+    }
+
+    if (!AppConstants.isPlatformAndVersionAtLeast("win", "10")) {
+      return;
     }
 
     if (onlyIfKnownBrowser && !this.getDefaultPDFHandler().knownBrowser) {

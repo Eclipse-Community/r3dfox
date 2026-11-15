@@ -1887,6 +1887,10 @@ EnvironmentCache.prototype = {
       data = { ...this._getProcessData(), ...data };
       Glean.system.isWow64.set(data.isWow64);
       Glean.system.isWowArm64.set(data.isWowARM64);
+    }
+
+    // Windows 8+
+    if (AppConstants.isPlatformAndVersionAtLeast("win", "6.2")) {
       data.sec = this._getSecurityAppData();
     }
 
