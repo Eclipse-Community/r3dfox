@@ -1149,7 +1149,11 @@ pref("browser.tabs.groups.smart.userEnabled", true);
 pref("security.allow_parent_unrestricted_js_loads", false);
 
 // Unload tabs when available memory is running low
-pref("browser.tabs.unloadOnLowMemory", false);
+#if defined(XP_MACOSX) || defined(XP_WIN)
+    pref("browser.tabs.unloadOnLowMemory", true);
+#else
+    pref("browser.tabs.unloadOnLowMemory", false);
+#endif
 
 // Tab Unloader does not unload tabs whose last inactive period is longer than
 // this value (in milliseconds).
