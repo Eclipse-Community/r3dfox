@@ -555,7 +555,7 @@
       --tab-bg-block-margin: 0px;
       --my-tab-inline-padding: 0px;
       --tab-separator-offset: 0px;
-      @media not -moz-pref("r3dfox.colors", 4) {
+      @media not -moz-pref("r3dfox.dark.colors") {
         --panel-background-color: light-dark(rgba(255, 255, 255, 0.95), rgba(66, 65, 77, 0.95)) !important;
         --toolbar-field-background-color-focus: light-dark(rgba(255, 255, 255, 0.95), rgba(66, 65, 77, 0.95)) !important;
         /*--chrome-content-separator-color: light-dark(rgb(204, 204, 204), rgb(12, 12, 13)) !important;*/
