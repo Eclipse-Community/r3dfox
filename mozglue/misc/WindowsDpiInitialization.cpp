@@ -62,7 +62,14 @@ WindowsDpiInitializationResult WindowsDpiInitialization() {
 
     return WindowsDpiInitializationResult::Success;
   } else {
-    if (!SetProcessDPIAware()) {
+    typedef BOOL (WINAPI *SetProcessDPIAware_t)(void);
+    HMODULE dllUser32 = ::LoadLibraryW(L"user32.dll");
+    SetProcessDPIAware_t pfnSetProcessDPIAware =
+        (SetProcessDPIAware_t)GetProcAddress(dllUser32, "SetProcessDPIAware");
+
+    if ( !pfnSetProcessDPIAware )
+        return WindowsDpiInitializationResult::Success;
+    if (!pfnSetProcessDPIAware()) {
       return WindowsDpiInitializationResult::SetProcessDPIAwareFailed;
     }
 
