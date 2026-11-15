@@ -82,6 +82,7 @@ def Libxul(name, output_category=None):
         ]
         RCINCLUDE = "/toolkit/library/xulrunner.rc"
 
+    USE_LIBS += ["xp_kernel32"]
     # Show a breakdown of linker time. (Too verbose for local builds.)
     if CONFIG["CC_TYPE"] == "clang-cl" and not CONFIG["DEVELOPER_OPTIONS"]:
         LDFLAGS += ["-time"]
