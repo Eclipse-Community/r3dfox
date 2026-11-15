@@ -30,6 +30,7 @@
 #include "sandbox/win/src/target_interceptions.h"
 #include "sandbox/win/src/target_process.h"
 #include "sandbox/win/src/win_utils.h"
+#include "sandbox/win/src/wow64.h"
 
 namespace sandbox {
 
@@ -430,6 +431,12 @@ InterceptionManager::PatchClientFunctions(DllInterceptionData* thunks,
   HMODULE ntdll_base = ::GetModuleHandle(kNtdllName);
   if (!ntdll_base)
     return base::unexpected(SBOX_ERROR_NO_HANDLE);
+
+  if (base::win::GetVersion() <= base::win::Version::VISTA) {
+    Wow64 WowHelper(&child_.get(), ntdll_base);
+    if (!WowHelper.WaitForNtdll())
+      return base::unexpected(SBOX_ERROR_NO_HANDLE);
+  }
 
   PatchClientResultData patch;
   patch.dll_data.data_bytes = thunk_bytes;

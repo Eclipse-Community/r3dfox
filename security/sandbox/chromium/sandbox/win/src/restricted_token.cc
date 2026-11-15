@@ -16,6 +16,7 @@
 #include "base/logging.h"
 #include "base/win/access_token.h"
 #include "base/win/security_util.h"
+#include "base/win/windows_version.h"
 #include "sandbox/win/src/acl.h"
 
 namespace sandbox {
@@ -184,7 +185,8 @@ std::optional<base::win::AccessToken> RestrictedToken::CreateRestricted(
     return std::nullopt;
   }
 
-  if (lockdown_default_dacl_) {
+  if (base::win::GetVersion() >= base::win::Version::VISTA &&
+      lockdown_default_dacl_) {
     // Don't add Restricted sid and also remove logon sid access.
     std::optional<base::win::Sid> logon_sid = new_token->LogonId();
     if (logon_sid.has_value()) {
@@ -217,7 +219,8 @@ std::optional<base::win::AccessToken> RestrictedToken::CreateRestricted(
     return std::nullopt;
   }
 
-  if (integrity_rid_.has_value()) {
+  if (base::win::GetVersion() >= base::win::Version::VISTA &&
+      integrity_rid_.has_value()) {
     if (!new_token->SetIntegrityLevel(*integrity_rid_)) {
       return std::nullopt;
     }

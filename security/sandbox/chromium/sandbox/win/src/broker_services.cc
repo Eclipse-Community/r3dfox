@@ -793,7 +793,8 @@ ResultCode BrokerServicesBase::UpdateDesktopIntegrity(
   // integrity label on the object is no higher than the sandboxed process's
   // integrity level. So, we lower the label on the desktop handle if it's
   // not already low enough for our process.
-  if (integrity == INTEGRITY_LEVEL_LAST)
+  if (integrity == INTEGRITY_LEVEL_LAST ||
+      base::win::OSInfo::GetInstance()->version() < base::win::Version::VISTA)
     return SBOX_ALL_OK;
   switch (desktop) {
     case Desktop::kDefault:

@@ -123,6 +123,9 @@ DWORD StartupInformationHelper::CountAttributes() {
 bool StartupInformationHelper::BuildStartupInformation() {
   // When adding new attributes, any memory referenced needs to have the
   // same lifetime as startup_info_. This is why we use members below.
+  inherit_handles_ = true;
+  if (base::win::GetVersion() < base::win::Version::VISTA)
+  return true;
 
     // On pre-Vista versions even if we can't limit what gets inherited, we
     // sometimes want to inherit stdout/err for testing purposes.
