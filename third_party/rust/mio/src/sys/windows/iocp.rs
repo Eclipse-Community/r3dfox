@@ -11,7 +11,7 @@ use std::time::Duration;
 
 use windows_sys::Win32::Foundation::{HANDLE, INVALID_HANDLE_VALUE};
 use windows_sys::Win32::System::IO::{
-    CreateIoCompletionPort, GetQueuedCompletionStatusEx, PostQueuedCompletionStatus, OVERLAPPED,
+    CreateIoCompletionPort, GetQueuedCompletionStatus, PostQueuedCompletionStatus, OVERLAPPED,
     OVERLAPPED_ENTRY,
 };
 
@@ -104,24 +104,42 @@ impl CompletionPort {
             mem::size_of::<OVERLAPPED_ENTRY>()
         );
         let mut removed = 0;
-        let timeout = duration_millis(timeout);
-        let len = cmp::min(list.len(), u32::MAX as usize) as u32;
-        let ret = unsafe {
-            GetQueuedCompletionStatusEx(
-                self.handle.raw(),
-                list.as_ptr() as *mut _,
-                len,
-                &mut removed,
-                timeout,
-                0,
-            )
-        };
+        let mut timeout = duration_millis(timeout);
 
-        if ret == 0 {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(&mut list[..removed as usize])
+        for status in list.iter_mut() {
+            let mut bytes = 0;
+            let mut token = 0;
+            let mut overlapped = std::ptr::null_mut();
+            let ret = unsafe {
+                GetQueuedCompletionStatus(
+                    self.handle.raw(),
+                    &mut bytes,
+                    &mut token,
+                    &mut overlapped,
+                    timeout,
+                )
+            };
+
+            // A failed I/O operation returns zero but still dequeues its
+            // completion packet, indicated by a non-null overlapped pointer.
+            if ret == 0 && overlapped.is_null() {
+                if removed == 0 {
+                    return Err(io::Error::last_os_error());
+                }
+                break;
+            }
+
+            *status = CompletionStatus(OVERLAPPED_ENTRY {
+                dwNumberOfBytesTransferred: bytes,
+                lpCompletionKey: token,
+                lpOverlapped: overlapped,
+                Internal: 0,
+            });
+            removed += 1;
+            timeout = 0;
         }
+
+        Ok(&mut list[..removed])
     }
 
     /// Posts a new completion status onto this I/O completion port.
