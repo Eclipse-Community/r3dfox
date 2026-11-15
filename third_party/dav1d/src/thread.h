@@ -48,7 +48,10 @@ typedef struct {
 
 typedef SRWLOCK pthread_mutex_t;
 typedef CONDITION_VARIABLE pthread_cond_t;
-typedef INIT_ONCE pthread_once_t;
+typedef volatile LONG pthread_once_t;
+#define MY_PTHREAD_ONCE_INIT  0
+#define MY_PTHREAD_ONCE_INPROGRESS 1
+#define MY_PTHREAD_ONCE_DONE 2
 
 void dav1d_init_thread(void);
 void dav1d_set_thread_name(const wchar_t *name);
