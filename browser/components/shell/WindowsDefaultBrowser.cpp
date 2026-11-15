@@ -266,7 +266,15 @@ static bool IsSystemSettingsProcessByPid(DWORD aPid) {
 
   DWORD bufferLength{MAX_PATH};
   auto buffer{mozilla::MakeUnique<wchar_t[]>(bufferLength)};
-  if (::QueryFullProcessImageNameW(process, 0, buffer.get(), &bufferLength)) {
+typedef BOOL(WINAPI * QUERYFULLPROCESSIMAGENAMEW)(HANDLE hProcess, DWORD dwFlags, LPWSTR lpExeName, PDWORD lpdwSize);
+    static QUERYFULLPROCESSIMAGENAMEW pQueryFullProcessImageNameW = NULL;
+
+            HMODULE hKernel = LoadLibraryW( L"kernel32" );
+
+            if( !pQueryFullProcessImageNameW )
+                pQueryFullProcessImageNameW = (QUERYFULLPROCESSIMAGENAMEW)GetProcAddress( hKernel, "QueryFullProcessImageNameW" );
+
+  if (pQueryFullProcessImageNameW && pQueryFullProcessImageNameW(process, 0, buffer.get(), &bufferLength)) {
     LPCWSTR kProcessName{L"SystemSettings.exe"};
     return PathHasFilename(buffer.get(), kProcessName);
   }
