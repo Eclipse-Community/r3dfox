@@ -63,6 +63,13 @@ enum class UXThemeClass : uint8_t {
   NumClasses
 };
 
+enum CmdButtonIdx {
+  CMDBUTTONIDX_MINIMIZE = 0,
+  CMDBUTTONIDX_RESTORE,
+  CMDBUTTONIDX_CLOSE,
+  CMDBUTTONIDX_BUTTONBOX
+};
+
 // This class makes sure we don't attempt to open a theme if the previous
 // loading attempt has failed because OpenThemeData is a heavy task and
 // it's less likely that the API returns a different result.
@@ -85,13 +92,42 @@ class UXThemeHandle final {
 };
 
 class nsLookAndFeel final : public nsXPLookAndFeel {
+
+  // We initialize sCommandButtonBoxMetrics separately as a performance
+  // optimization to avoid fetching dummy values for sCommandButtonMetrics
+  // when we don't need those.
+  static SIZE sCommandButtonMetrics[3];
+  static bool sCommandButtonMetricsInitialized;
+  static SIZE sCommandButtonBoxMetrics;
+  static bool sCommandButtonBoxMetricsInitialized;
+
+  static void EnsureCommandButtonMetrics();
+  static void EnsureCommandButtonBoxMetrics();
  public:
+  static bool sTitlebarInfoPopulatedAero;
+  static bool sTitlebarInfoPopulatedThemed;
   nsLookAndFeel();
   virtual ~nsLookAndFeel();
 
   static HANDLE GetTheme(UXThemeClass);
 
   bool IsDefaultWindowTheme() const { return mIsDefaultWindowsTheme; }
+
+  // nsWindow calls this to update desktop settings info
+  static void UpdateTitlebarInfo(HWND aWnd);
+
+  static SIZE GetCommandButtonMetrics(CmdButtonIdx aMetric) {
+    EnsureCommandButtonMetrics();
+    return sCommandButtonMetrics[aMetric];
+  }
+  static SIZE GetCommandButtonBoxMetrics() {
+    EnsureCommandButtonBoxMetrics();
+    return sCommandButtonBoxMetrics;
+  }
+
+  static bool AreFlatMenusEnabled();
+  static bool IsAppThemed();
+  void UpdateNativeThemeInfo();
 
   void NativeInit() final;
   void RefreshImpl() override;

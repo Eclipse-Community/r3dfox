@@ -21,6 +21,11 @@ radio {
 
   &[disabled] {
     color: GrayText;
+
+    @media (-moz-windows-classic) {
+      color: ThreeDShadow;
+      text-shadow: 1px 1px ThreeDHighlight;
+    }
   }
 }
 

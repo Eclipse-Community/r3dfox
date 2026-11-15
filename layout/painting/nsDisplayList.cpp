@@ -1882,7 +1882,9 @@ void nsDisplayListBuilder::AdjustWindowDraggingRegion(nsIFrame* aFrame) {
     return;
   }
 
-  if (!aFrame->StyleVisibility()->IsVisible()) {
+  if (!aFrame->StyleVisibility()->IsVisible() &&
+       aFrame->StyleDisplay()->EffectiveAppearance() != StyleAppearance::MozWindowTitlebar &&
+       aFrame->StyleDisplay()->EffectiveAppearance() != StyleAppearance::MozWindowTitlebarMaximized) {
     // Invisible frames don't influence the window dragging region.
     return;
   }
@@ -3241,7 +3243,16 @@ AppendedBackgroundType nsDisplayBackgroundImage::AppendBackgroundItemsToTop(
 
   DealWithWindowsAppearanceHacks(aFrame, aBuilder);
 
-  const bool isThemed = aFrame->IsThemed();
+  bool isThemed = aFrame->IsThemed();
+#ifdef XP_WIN
+  const auto appearance = aFrame->StyleDisplay()->EffectiveAppearance();
+  if ((appearance == StyleAppearance::MozWindowTitlebar ||
+       appearance == StyleAppearance::MozWindowTitlebarMaximized) &&
+      LookAndFeel::GetInt(LookAndFeel::IntID::DWMCompositor)) {
+    // Paint CSS backgrounds while retaining the native titlebar's metrics.
+    isThemed = false;
+  }
+#endif
 
   const ComputedStyle* bgSC = aFrame->Style();
   const nsStyleBackground* bg = bgSC->StyleBackground();
@@ -3974,7 +3985,37 @@ Maybe<nscolor> nsDisplayThemedBackground::IsUniform(
 }
 
 nsRect nsDisplayThemedBackground::GetPositioningArea() const {
-  return mBackgroundRect;
+  nsRect positioningArea(mBackgroundRect);
+#ifdef XP_WIN
+  const auto appearance = StyleFrame()->StyleDisplay()->EffectiveAppearance();
+  if (!LookAndFeel::GetInt(LookAndFeel::IntID::DWMCompositor) &&
+      (appearance == StyleAppearance::MozWindowTitlebar ||
+       appearance == StyleAppearance::MozWindowTitlebarMaximized)) {
+    nsIFrame* frame = StyleFrame();
+    const nsPoint offset = mBackgroundRect.TopLeft() - frame->GetPosition();
+    nsIFrame* first = frame;
+    for (nsIFrame* previous = frame->GetPrevSibling(); previous;
+         previous = previous->GetPrevSibling()) {
+      if (previous->StyleVisibility()->IsCollapse()) {
+        continue;
+      }
+      if (previous->StyleDisplay()->EffectiveAppearance() != appearance) {
+        break;
+      }
+      first = previous;
+    }
+    for (nsIFrame* row = first; row; row = row->GetNextSibling()) {
+      if (row->StyleVisibility()->IsCollapse()) {
+        continue;
+      }
+      if (row->StyleDisplay()->EffectiveAppearance() != appearance) {
+        break;
+      }
+      positioningArea.UnionRect(positioningArea, row->GetRect() + offset);
+    }
+  }
+#endif
+  return positioningArea;
 }
 
 void nsDisplayThemedBackground::Paint(nsDisplayListBuilder* aBuilder,

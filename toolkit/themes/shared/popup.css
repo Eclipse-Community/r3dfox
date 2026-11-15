@@ -44,6 +44,30 @@
   -moz-window-input-region-margin: var(--panel-box-shadow-margin);
   margin: calc(-1 * var(--panel-box-shadow-margin));
 
+  @media (-moz-platform: windows) {
+    &:where(menupopup) {
+      @media not (-moz-windows-non-native-menus) {
+        appearance: auto;
+        -moz-default-appearance: menupopup;
+        color-scheme: light !important;
+        background-color: Menu;
+        border: 1px solid ThreeDShadow;
+        --panel-background-color: transparent;
+        --panel-border-color: transparent;
+        --panel-box-shadow-margin: 0px;
+      }
+      @media (-moz-windows-non-native-menus) {
+        appearance: none;
+        background-color: transparent;
+        border: none;
+        --panel-border-radius: 4px;
+        --panel-padding: 4px 0;
+        --panel-border-color: ThreeDShadow;
+        --panel-background-color: Menu;
+      }
+    }
+  }
+
   /* Panel design token theming */
   --background-color-canvas: var(--panel-background-color);
 

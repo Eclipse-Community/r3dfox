@@ -32,7 +32,7 @@ panel {
   @media (-moz-platform: windows) {
     --menu-arrow-size: max(1em, var(--size-item-small));
 
-    @media (prefers-color-scheme: light) {
+    @media (prefers-color-scheme: light) and (-moz-windows-non-native-menus) {
       --menu-arrow-opacity: var(--opacity-deemphasized);
     }
   }
@@ -73,12 +73,39 @@ menupopup {
     /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
     margin-top: calc(-1 * (var(--panel-box-shadow-margin) + var(--panel-padding-block) + 1px));
   }
+
+  @media (-moz-platform: windows) {
+    @media (-moz-windows-non-native-menus) {
+      > menu, > menuitem {
+        padding-block: 0.5em;
+        padding-inline-start: 1em;
+      }
+      > menu > menupopup {
+        margin-top: -10px;
+        margin-inline-start: -10px;
+      }
+    }
+    @media not (-moz-windows-non-native-menus) {
+      > menu > menupopup {
+        margin-top: -3px;
+        margin-inline-start: -3px;
+      }
+    }
+  }
 }
 
 /* Rules for popups associated with menulists */
 menulist > menupopup {
   min-width: 0;
   font: inherit;
+
+  @media (-moz-platform: windows) {
+    @media not (-moz-windows-non-native-menus) {
+      color: FieldText;
+      --panel-background-color: Field;
+      --panel-border-color: ThreeDShadow;
+    }
+  }
 
   @media (-moz-platform: macos) {
     color: FieldText;
@@ -105,6 +132,12 @@ menulist > menupopup {
     > menuitem[_moz-menuactive][disabled] {
       color: var(--text-color-disabled);
     }
+    @media (-moz-windows-classic) {
+      > menuitem[disabled]:not([_moz-menuactive="true"]) {
+        color: GrayText;
+        text-shadow: none;
+      }
+    }
   }
 }
 
@@ -122,8 +155,10 @@ menuseparator {
   }
 
   @media (-moz-platform: windows) {
-    /* The side padding should align with the start of the menu item text. */
-    padding-inline: 1em;
+    @media (-moz-windows-non-native-menus) {
+      /* The side padding should align with the start of the menu item text. */
+      padding-inline: 1em;
+    }
   }
 
   &::before {
@@ -223,6 +258,28 @@ menubar > menu {
   }
 }
 
+@media (-moz-platform: windows) {
+  @media (-moz-windows-classic) {
+    menubar > menu {
+      border: 2px solid transparent;
+    }
+    menubar > menu[_moz-menuactive="true"][open="true"] {
+      border-width: 3px 1px 1px 3px;
+    }
+  }
+
+  @media (-moz-windows-default-theme) {
+    :root[lwtheme] menubar > menu {
+      appearance: auto;
+      -moz-default-appearance: menuitem;
+    }
+    :root[lwtheme] menubar > menu[_moz-menuactive="true"]:not([disabled]) {
+      color: inherit !important;
+      text-shadow: inherit;
+    }
+  }
+}
+
 menu,
 menuitem,
 menucaption {
@@ -239,6 +296,29 @@ menucaption {
   --menuitem-icon: normal;
 }
 
+@media (-moz-platform: windows) and (not (-moz-windows-non-native-menus)) {
+  menu,
+  menuitem,
+  menucaption {
+    appearance: auto;
+    -moz-default-appearance: menuitem;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+menucaption {
+  @media (-moz-platform: windows) {
+    appearance: auto;
+    -moz-default-appearance: menuitem;
+
+    @media (-moz-windows-non-native-menus) {
+      appearance: none;
+    }
+  }
+}
+
 menu,
 menuitem {
   -moz-context-properties: fill;
@@ -247,6 +327,10 @@ menuitem {
   &:where([disabled]) {
     color: var(--text-color-disabled);
     text-shadow: none;
+    @media (-moz-windows-classic) {
+      color: ThreeDShadow;
+      text-shadow: 1px 1px ThreeDHighlight;
+    }
   }
 
   &:where([_moz-menuactive]:not([disabled])) {
@@ -255,7 +339,9 @@ menuitem {
   }
 
   &:where([_moz-menuactive][disabled]) {
-    background-color: -moz-menuhoverdisabled;
+    @media not (-moz-platform: windows) or (-moz-windows-non-native-menus) {
+      background-color: -moz-menuhoverdisabled;
+    }
   }
 }
 
@@ -298,6 +384,18 @@ menupopup > menu:-moz-locale-dir(rtl)::after {
   background-image: url("chrome://global/skin/icons/arrow-left.svg");
 }
 
+@media (-moz-platform: windows) and (not (-moz-windows-non-native-menus)) {
+  menupopup > menu::after,
+  menupopup > menu:-moz-locale-dir(rtl)::after {
+    appearance: auto;
+    -moz-default-appearance: menuarrow;
+    background-image: none;
+    margin-inline-end: -2px;
+    width: 1.28em;
+    padding-top: 1px;
+  }
+}
+
 .menu-text,
 .menu-accel {
   margin: 0;
@@ -310,6 +408,24 @@ menupopup > menu:-moz-locale-dir(rtl)::after {
      */
     /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
     margin-inline: 0 2px;
+  }
+}
+
+@media (-moz-platform: windows) and (not (-moz-windows-non-native-menus)) {
+  menupopup > menu:not(.menu-iconic) > .menu-text,
+  menupopup > menuitem:not(.menuitem-iconic, [type="checkbox"], [type="radio"], [checked]) > .menu-text {
+    padding-inline-start: 1.45em !important;
+    appearance: auto;
+    -moz-default-appearance: menuitemtext;
+  }
+
+  menupopup > :is(menu, menuitem) > .menu-text {
+    margin-inline-start: 2px !important;
+    padding-inline-end: 2px;
+  }
+
+  menulist > menupopup > :is(menu, menuitem) > .menu-text {
+    padding-inline-start: 0 !important;
   }
 }
 
@@ -369,7 +485,16 @@ menuitem[highlightable] > .menu-text {
       -moz-default-appearance: menuimage;
     }
     margin-top: var(--space-xxsmall);
-    margin-inline-end: var(--space-small);
+    @media (-moz-windows-non-native-menus) {
+      :is(.menu-iconic, .menuitem-iconic) > & {
+        appearance: none !important;
+      }
+      margin-inline-end: var(--space-small);
+    }
+    @media not (-moz-windows-non-native-menus) {
+      width: 1.45em;
+      margin-inline-end: 0;
+    }
   }
   @media (-moz-platform: macos) {
     margin-block: calc(-1 * var(--space-xxsmall));
@@ -403,8 +528,8 @@ menuitem[highlightable] > .menu-text {
   }
 }
 
-/* On windows we use a checkmark */
-@media (-moz-platform: windows) {
+/* On windows with non-native menus we use a checkmark */
+@media (-moz-platform: windows) and (-moz-windows-non-native-menus) {
   /* We need to do something to override the default style for selected
      checkboxes and radio buttons because the native drawing we use on other
      Windows versions looks pretty bad with the Win10 styles, so for now we'll
@@ -418,8 +543,40 @@ menuitem[highlightable] > .menu-text {
   }
 }
 
+@media (-moz-platform: windows) and (not (-moz-windows-non-native-menus)) {
+  menuitem:is([type="checkbox"], [checked]) {
+    appearance: auto;
+    -moz-default-appearance: checkmenuitem;
+  }
+
+  menuitem[type="radio"] {
+    appearance: auto;
+    -moz-default-appearance: radiomenuitem;
+  }
+
+  menuitem:is([type="checkbox"], [checked], [type="radio"]) > .menu-icon {
+    display: revert;
+    list-style-image: none;
+    margin-top: 0;
+  }
+
+  menuitem[checked] > .menu-icon {
+    visibility: inherit;
+  }
+
+  menuitem:is([type="checkbox"], [checked]) > .menu-icon {
+    appearance: auto;
+    -moz-default-appearance: menucheckbox;
+  }
+
+  menuitem[type="radio"] > .menu-icon {
+    appearance: auto;
+    -moz-default-appearance: menuradio;
+  }
+}
+
 menupopup[needsgutter] {
-  @media (-moz-platform: linux) or (-moz-platform: windows) {
+  @media (-moz-platform: linux), (-moz-platform: windows) and (-moz-windows-non-native-menus) {
     > :is(menu, menuitem) > .menu-icon {
       display: revert;
     }
