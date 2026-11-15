@@ -159,8 +159,8 @@ cfg_if! {
         mod windows7;
         pub use windows7::*;
     } else if #[cfg(windows)] {
-        mod windows;
-        pub use windows::*;
+        mod windows7;
+        pub use windows7::*;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
         pub use rdrand::*;
