@@ -445,7 +445,11 @@ LightweightThemeConsumer.prototype = {
         return this.BROWSER_NOVA_ENABLED;
       })()
     );
-    this._setExperiment(hasTheme, themeData.experiment, theme.experimental);
+    this._setExperiment(
+      hasTheme || !!builtinThemeConfig?.inApp,
+      themeData.experiment,
+      theme.experimental
+    );
     _setImage(
       this._win,
       root,

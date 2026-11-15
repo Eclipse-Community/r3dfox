@@ -17,5 +17,8 @@
     "properties": {
       "color_scheme": "dark"
     }
+  },
+  "theme_experiment": {
+    "stylesheet": "experiment.css"
   }
 }
